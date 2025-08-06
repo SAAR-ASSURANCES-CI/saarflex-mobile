@@ -1,115 +1,9 @@
-// import 'dart:ui';
 
-// import 'package:flutter/material.dart';
-// import 'package:google_fonts/google_fonts.dart';
-// import '../../constants/colors.dart';
-// // import 'login_screen.dart';
-// import 'signup_screen.dart';
-
-// class WelcomeScreen extends StatelessWidget {
-//   const WelcomeScreen({super.key});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       backgroundColor:  AppColors.primary,
-//       // const Color.fromARGB(255, 94, 94, 94),
-//       body: SafeArea(
-//         child: Padding(
-//           padding: const EdgeInsets.symmetric(horizontal: 24.0),
-//           child: Column(
-//             crossAxisAlignment: CrossAxisAlignment.center,
-//             children: [
-//               const SizedBox(height: 130),
-//               Image.asset(
-//                 'lib/assets/images/welcome_img.png',
-//                 // height: 120,
-//               ),
-//               const SizedBox(height: 20),
-//               Text(
-//                 'BIENVENUE',
-//                 style: GoogleFonts.poppins(
-//                   fontSize: 50,
-//                   fontWeight: FontWeight.w800,
-//                   color: AppColors.white,
-//                 ),
-//                 textAlign: TextAlign.center,
-//               ),
-//               const SizedBox(height: 10),
-//               Padding(
-//                 padding: const EdgeInsets.symmetric(horizontal: 50),
-//                 child: Text(
-//                   'SAAR Assurance Votre assurance à portée de main',
-//                   style: GoogleFonts.poppins(
-//                     fontSize: 16,
-//                     color: const Color.fromARGB(255, 222, 222, 222),
-//                     fontWeight: FontWeight.w600,
-//                   ),
-//                   textAlign: TextAlign.center,
-//                 ),
-//               ),
-//               const SizedBox(height: 110),
-//               // const Spacer(),
-//               ElevatedButton(
-//                 onPressed: () {
-//                   // Navigator.push(context,
-//                   //     MaterialPageRoute(builder: (_) => const LoginScreen()));
-//                 },
-//                 style: ElevatedButton.styleFrom(
-//                   backgroundColor: AppColors.white,
-//                   minimumSize: const Size(double.infinity, 50),
-//                 ),
-//                 child: const Text(
-//                   'Se connecter',
-//                   style: TextStyle(
-//                     color: Colors.black,
-//                     fontWeight: FontWeight.bold,
-//                   ),
-//                 ),
-//               ),
-//               const SizedBox(height: 12),
-//               ElevatedButton(
-//                 onPressed: () {
-//                   Navigator.push(
-//                     context,
-//                     MaterialPageRoute(builder: (_) => const SignupScreen()),
-//                   );
-//                 },
-//                 style: ElevatedButton.styleFrom(
-//                   backgroundColor: AppColors.secondary,
-//                   // foregroundColor: Colors.black,
-//                   minimumSize: const Size(double.infinity, 50),
-//                 ),
-//                 child: const Text(
-//                   'Créer un compte',
-//                   style: TextStyle(
-//                     color: Colors.black,
-//                     fontWeight: FontWeight.bold,
-//                   ),
-//                 ),
-//               ),
-//               const SizedBox(height: 15),
-//               Text(
-//                 "En continuant, vous acceptez nos CGU.",
-//                 style: TextStyle(fontSize: 10, color: AppColors.white, fontWeight: FontWeight.bold),
-//                 textAlign: TextAlign.center,
-//               ),
-//               const SizedBox(height: 20),
-//             ],
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-// }
-
-
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../constants/colors.dart';
-// import 'login_screen.dart';
+import 'login_screen.dart';
 import 'signup_screen.dart';
 
 class WelcomeScreen extends StatelessWidget {
@@ -220,8 +114,8 @@ class WelcomeScreen extends StatelessWidget {
                 _buildModernButton(
                   text: 'Se connecter',
                   onPressed: () {
-                    // Navigator.push(context,
-                    //     MaterialPageRoute(builder: (_) => const LoginScreen()));
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (_) => const LoginScreen()));
                   },
                   backgroundColor: AppColors.white,
                   textColor: AppColors.primary,
