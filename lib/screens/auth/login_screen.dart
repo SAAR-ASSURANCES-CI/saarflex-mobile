@@ -1,6 +1,7 @@
 // import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:saarflex_app/screens/auth/reset_password_screen.dart';
 import 'package:saarflex_app/screens/auth/signup_screen.dart';
 import '../../constants/colors.dart';
 // import 'reset_password_screen.dart';
@@ -186,12 +187,12 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             TextButton(
                               onPressed: () {
-                                // Navigator.push(
-                                //   context,
-                                //   MaterialPageRoute(
-                                //     builder: (_) => const ResetPasswordScreen(),
-                                //   ),
-                                // );
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const ResetPasswordScreen(),
+                                  ),
+                                );
                               },
                               child: Text(
                                 "Mot de passe oublié ?",
