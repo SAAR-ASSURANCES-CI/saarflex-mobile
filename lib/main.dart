@@ -34,7 +34,6 @@ class SaarflexApp extends StatelessWidget {
           useMaterial3: true,
         ),
         home: const WelcomeScreen(),
-
         routes: {
           '/welcome': (context) => const WelcomeScreen(),
           '/login': (context) => const LoginScreen(),
@@ -44,6 +43,7 @@ class SaarflexApp extends StatelessWidget {
         onUnknownRoute: (settings) {
           return MaterialPageRoute(builder: (context) => const WelcomeScreen());
         },
+
       ),
     );
   }
