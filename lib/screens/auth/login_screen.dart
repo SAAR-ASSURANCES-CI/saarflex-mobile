@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:saarflex_app/screens/auth/reset_password_screen.dart';
 import 'package:saarflex_app/screens/auth/signup_screen.dart';
 import '../../constants/colors.dart';
 import '../../providers/auth_provider.dart';
@@ -244,9 +245,12 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                                 TextButton(
                                   onPressed: () {
-                                    Navigator.pushNamed(
+                                    Navigator.push(
                                       context,
-                                      '/reset-password',
+                                      MaterialPageRoute(
+                                        builder: (_) =>
+                                            const ResetPasswordScreen(),
+                                      ),
                                     );
                                   },
                                   child: Text(
