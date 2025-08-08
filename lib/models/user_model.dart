@@ -1,63 +1,118 @@
 class User {
   final String id;
-  final String name;
+  final String nom;                   
   final String email;
-  final String? phone;
+  final String? telephone;             
   final String? avatarUrl;
-  final DateTime? createdAt;
+  final TypeUtilisateur typeUtilisateur; 
+  final bool statut;                   
+  final DateTime? derniereConnexion; 
+  final DateTime? dateCreation;       
   final DateTime? updatedAt;
 
   User({
     required this.id,
-    required this.name,
+    required this.nom,
     required this.email,
-    this.phone,
+    this.telephone,
     this.avatarUrl,
-    this.createdAt,
+    required this.typeUtilisateur,
+    required this.statut,
+    this.derniereConnexion,
+    this.dateCreation,
     this.updatedAt,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
       id: json['id'],
-      name: json['name'],
+      nom: json['nom'],
       email: json['email'],
-      phone: json['phone'],
+      telephone: json['téléphone'],
       avatarUrl: json['avatarUrl'],
-      createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
-      updatedAt: json['updatedAt'] != null ? DateTime.parse(json['updatedAt']) : null,
+      typeUtilisateur: TypeUtilisateur.values.firstWhere(
+        (e) => e.toString().split('.').last == json['type_utilisateur'],
+        orElse: () => TypeUtilisateur.client,
+      ),
+      statut: json['statut'] ?? true,
+      derniereConnexion: json['dernière_connexion'] != null 
+          ? DateTime.parse(json['dernière_connexion']) 
+          : null,
+      dateCreation: json['date_creation'] != null 
+          ? DateTime.parse(json['date_creation']) 
+          : null,
+      updatedAt: json['updatedAt'] != null 
+          ? DateTime.parse(json['updatedAt']) 
+          : null,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'name': name,
+      'nom': nom,
       'email': email,
-      'phone': phone,
+      'téléphone': telephone,
       'avatarUrl': avatarUrl,
-      'createdAt': createdAt?.toIso8601String(),
+      'type_utilisateur': typeUtilisateur.toString().split('.').last,
+      'statut': statut,
+      'dernière_connexion': derniereConnexion?.toIso8601String(),
+      'date_creation': dateCreation?.toIso8601String(),
       'updatedAt': updatedAt?.toIso8601String(),
     };
   }
 
   User copyWith({
     String? id,
-    String? name,
+    String? nom,
     String? email,
-    String? phone,
+    String? telephone,
     String? avatarUrl,
-    DateTime? createdAt,
+    TypeUtilisateur? typeUtilisateur,
+    bool? statut,
+    DateTime? derniereConnexion,
+    DateTime? dateCreation,
     DateTime? updatedAt,
   }) {
     return User(
       id: id ?? this.id,
-      name: name ?? this.name,
+      nom: nom ?? this.nom,
       email: email ?? this.email,
-      phone: phone ?? this.phone,
+      telephone: telephone ?? this.telephone,
       avatarUrl: avatarUrl ?? this.avatarUrl,
-      createdAt: createdAt ?? this.createdAt,
+      typeUtilisateur: typeUtilisateur ?? this.typeUtilisateur,
+      statut: statut ?? this.statut,
+      derniereConnexion: derniereConnexion ?? this.derniereConnexion,
+      dateCreation: dateCreation ?? this.dateCreation,
       updatedAt: updatedAt ?? this.updatedAt,
     );
+  }
+
+  String get displayName => nom;
+  bool get isActive => statut;
+  bool get isClient => typeUtilisateur == TypeUtilisateur.client;
+  bool get isAgent => typeUtilisateur == TypeUtilisateur.agent;
+  bool get isAdmin => typeUtilisateur == TypeUtilisateur.admin;
+}
+
+enum TypeUtilisateur {
+  client,
+  agent,
+  drh,
+  admin,
+}
+
+extension TypeUtilisateurExtension on TypeUtilisateur {
+  String get label {
+    switch (this) {
+      case TypeUtilisateur.client:
+        return 'Client';
+      case TypeUtilisateur.agent:
+        return 'Agent';
+      case TypeUtilisateur.drh:
+        return 'DRH';
+      case TypeUtilisateur.admin:
+        return 'Administrateur';
+    }
   }
 }

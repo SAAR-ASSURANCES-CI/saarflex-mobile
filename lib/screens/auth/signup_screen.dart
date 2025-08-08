@@ -237,7 +237,6 @@ class _SignupScreenState extends State<SignupScreen> {
                             ),
                             const SizedBox(height: 24),
 
-                            // Checkbox
                             _buildTermsCheckbox(),
                             const SizedBox(height: 32),
 
@@ -275,16 +274,15 @@ class _SignupScreenState extends State<SignupScreen> {
       return;
     }
 
-    final success = await authProvider.signup(
-      name: _lastNameController.text.trim(),
-      email: _emailController.text.trim(),
-      phone: _phoneController.text.trim(),
-      password: _passwordController.text,
-    );
+final success = await authProvider.signup(
+  nom: _lastNameController.text.trim(),       
+  email: _emailController.text.trim(),
+  telephone: _phoneController.text.trim(),   
+  password: _passwordController.text,
+);
 
     if (success) {
       _showSuccessSnackBar('Compte créé avec succès !');
-      // Navigator.pushReplacementNamed(context, '/dashboard');
     }
   }
 

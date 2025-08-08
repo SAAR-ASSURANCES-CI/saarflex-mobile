@@ -560,11 +560,10 @@ class _LoginScreenState extends State<LoginScreen> {
       _showErrorSnackBar('Veuillez corriger les erreurs du formulaire');
       return;
     }
-
-    final success = await authProvider.login(
-      email: _emailController.text.trim(),
-      password: _passwordController.text,
-    );
+final success = await authProvider.login(
+  email: _emailController.text.trim(),
+  password: _passwordController.text,
+);
 
     if (success) {
       _showSuccessSnackBar('Connexion réussie !');

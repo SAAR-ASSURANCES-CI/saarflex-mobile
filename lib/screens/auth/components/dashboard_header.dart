@@ -77,7 +77,7 @@ class DashboardHeader extends StatelessWidget {
             ),
           ),
           Text(
-            user?.name ?? "Utilisateur",
+            user?.nom ?? "Utilisateur",
             style: GoogleFonts.poppins(
               fontSize: 22,
               fontWeight: FontWeight.w700,

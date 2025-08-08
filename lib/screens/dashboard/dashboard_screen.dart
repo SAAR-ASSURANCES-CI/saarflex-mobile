@@ -7,7 +7,6 @@ import 'package:saarflex_app/screens/auth/components/dashboard_header.dart';
 import 'package:saarflex_app/screens/auth/components/info_card.dart';
 import '../../constants/colors.dart';
 import '../../providers/auth_provider.dart';
-import '../../providers/user_provider.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -17,19 +16,16 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  @override
+ @override
   void initState() {
     super.initState();
-    // Charger les données utilisateur au démarrage
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<UserProvider>().loadUserData();
-    });
+
   }
 
   @override
   Widget build(BuildContext context) {
-    return Consumer2<AuthProvider, UserProvider>(
-      builder: (context, authProvider, userProvider, child) {
+    return Consumer<AuthProvider>(
+      builder: (context, authProvider, child) {
         return Scaffold(
           body: Container(
             decoration: BoxDecoration(
@@ -47,12 +43,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: Column(
                 children: [
                   DashboardHeader(
-                    user: userProvider.user,
+                    user: authProvider.currentUser, 
                     onLogout: _handleLogout,
                     onNotification: () => _showComingSoon(context),
                     onSettings: () => _showComingSoon(context),
                   ),
-                  _buildContent(context, userProvider),
+                  _buildContent(context, authProvider),
                 ],
               ),
             ),
@@ -60,9 +56,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
         );
       },
     );
+   
   }
 
-  Widget _buildContent(BuildContext context, UserProvider userProvider) {
+  Widget _buildContent(BuildContext context, AuthProvider authProvider) {
     return Expanded(
       child: Container(
         decoration: BoxDecoration(
@@ -78,7 +75,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 20),
-              _buildWelcomeSection(),
+              _buildWelcomeSection(authProvider), 
               const SizedBox(height: 32),
               _buildQuickActionsSection(context),
               const SizedBox(height: 32),
@@ -96,7 +93,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildWelcomeSection() {
+ 
+
+  Widget _buildWelcomeSection(AuthProvider authProvider) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -110,7 +109,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
         const SizedBox(height: 8),
         Text(
-          "Gérez votre assurance en toute simplicité",
+          authProvider.currentUser != null 
+              ? "Bonjour ${authProvider.currentUser!.nom} !"
+              : "Gérez votre assurance en toute simplicité",
           style: GoogleFonts.poppins(
             fontSize: 16,
             fontWeight: FontWeight.w400,
@@ -121,7 +122,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildQuickActionsSection(BuildContext context) {
+
+Widget _buildQuickActionsSection(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -173,7 +175,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               color: Colors.green,
               onTap: () => _showComingSoon(context),
             ),
-          ],
+          ],  
         ),
       ],
     );
@@ -181,12 +183,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _handleLogout() async {
     final authProvider = context.read<AuthProvider>();
-    final userProvider = context.read<UserProvider>();
 
     final confirmed = await _showLogoutDialog(context);
     if (confirmed == true) {
-      authProvider.logout();
-      userProvider.clearUserData();
+      await authProvider.logout();
+      
       if (mounted) {
         Navigator.pushNamedAndRemoveUntil(
           context, 
@@ -197,7 +198,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
-  Future<bool?> _showLogoutDialog(BuildContext context) {
+
+Future<bool?> _showLogoutDialog(BuildContext context) {
     return showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
@@ -253,7 +255,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  void _showComingSoon(BuildContext context) {
+void _showComingSoon(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -271,3 +273,4 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 }
+

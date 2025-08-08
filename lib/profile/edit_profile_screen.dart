@@ -11,7 +11,6 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  // Controllers pour tous les champs
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _birthDateController = TextEditingController();
@@ -24,7 +23,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final _idNumberController = TextEditingController();
   final _idExpiryController = TextEditingController();
 
-  // Variables pour les dropdowns
   String _selectedGender = 'Masculin';
   String _selectedIdType = 'Carte Nationale d\'Identité';
 
@@ -79,7 +77,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         child: SafeArea(
           child: Column(
             children: [
-              // AppBar
               Padding(
                 padding: const EdgeInsets.all(12),
                 child: AppBar(
@@ -95,7 +92,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ),
                   ),
                   actions: [
-                    // Bouton de sauvegarde dans l'AppBar
                     Container(
                       margin: const EdgeInsets.only(right: 8),
                       decoration: BoxDecoration(
@@ -130,19 +126,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ),
               ),
 
-              // Contenu défilable
               Expanded(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(15),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Photo de profil modifiable
                       _buildProfilePhotoSection(),
 
                       const SizedBox(height: 32),
 
-                      // Informations personnelles
                       _buildSection(
                         title: "Informations personnelles",
                         icon: Icons.person_rounded,
@@ -204,7 +197,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
                       const SizedBox(height: 24),
 
-                      // Coordonnées
                       _buildSection(
                         title: "Coordonnées",
                         icon: Icons.contact_phone_rounded,
@@ -235,7 +227,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
                       const SizedBox(height: 24),
 
-                      // Pièce d'identité
                       _buildSection(
                         title: "Pièce d'identité",
                         icon: Icons.badge_rounded,
@@ -269,7 +260,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
                       const SizedBox(height: 32),
 
-                      // Boutons d'action
                       _buildActionButtons(),
 
                       const SizedBox(height: 24),
@@ -379,7 +369,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       ),
       child: Column(
         children: [
-          // En-tête de section
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
@@ -640,7 +629,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Widget _buildActionButtons() {
     return Column(
       children: [
-        // Bouton de sauvegarde principal
         Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(15),
@@ -708,7 +696,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
         const SizedBox(height: 16),
 
-        // Bouton d'annulation
         Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(15),
@@ -864,17 +851,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       _isLoading = true;
     });
 
-    // Simuler l'appel API
     await Future.delayed(const Duration(seconds: 2));
 
-    // TODO: Appeler votre service de mise à jour du profil
     print("Sauvegarde du profil...");
 
     setState(() {
       _isLoading = false;
     });
 
-    // Afficher un message de succès
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
@@ -887,7 +871,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       ),
     );
 
-    // Retourner à l'écran précédent
     Navigator.pop(context);
   }
 

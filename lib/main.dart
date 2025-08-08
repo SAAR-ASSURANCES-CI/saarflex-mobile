@@ -1,67 +1,149 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:saarflex_app/profile/profile_screen.dart';
-import 'package:saarflex_app/providers/auth_provider.dart';
-import 'package:saarflex_app/providers/user_provider.dart';
-import 'constants/colors.dart';
-import 'screens/auth/welcome_screen.dart';
-import 'screens/auth/login_screen.dart';
-import 'screens/auth/signup_screen.dart';
-import 'screens/auth/reset_password_screen.dart';
-import 'screens/dashboard/dashboard_screen.dart';
+import 'package:google_fonts/google_fonts.dart';
 
-void main() {
-  runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
-        ChangeNotifierProvider(
-          create: (_) => UserProvider(),
-        ), 
-        
-      ],
-      child: const SaarflexApp(),
-    ),
-  );
+import 'providers/auth_provider.dart';
+import 'providers/user_provider.dart';
+
+import 'screens/loading_screen.dart';                   
+import 'screens/auth/welcome_screen.dart';              
+import 'screens/dashboard/dashboard_screen.dart';       
+import 'screens/auth/login_screen.dart';                
+import 'screens/auth/signup_screen.dart';               
+
+import 'constants/colors.dart';
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  runApp(const MyApp());
 }
 
-class SaarflexApp extends StatelessWidget {
-  const SaarflexApp({super.key});
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => AuthProvider(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider<AuthProvider>(
+          create: (_) => AuthProvider()..initializeAuth(),
+        ),
+        
+        ChangeNotifierProvider<UserProvider>(
+          create: (_) => UserProvider(),
+        ),
+        
+      ],
       child: MaterialApp(
-        title: 'Saarflex',
+        title: 'SAAR Assurance',
         debugShowCheckedModeBanner: false,
+        
         theme: ThemeData(
-          textTheme: GoogleFonts.poppinsTextTheme(),
+          primarySwatch: Colors.blue,
           primaryColor: AppColors.primary,
-          scaffoldBackgroundColor: AppColors.white,
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: AppColors.primary,
+          fontFamily: GoogleFonts.poppins().fontFamily,
+          
+          colorScheme: ColorScheme.light(
             primary: AppColors.primary,
             secondary: AppColors.secondary,
+            surface: AppColors.white,
+            background: AppColors.white,
           ),
-          useMaterial3: true,
+          
+          appBarTheme: AppBarTheme(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            titleTextStyle: GoogleFonts.poppins(
+              color: AppColors.primary,
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+            ),
+            iconTheme: IconThemeData(color: AppColors.primary),
+          ),
         ),
-        home: const WelcomeScreen(),
-
+        
+        home: const AuthenticationWrapper(),
+        
         routes: {
           '/welcome': (context) => const WelcomeScreen(),
           '/login': (context) => const LoginScreen(),
           '/signup': (context) => const SignupScreen(),
-          '/reset-password': (context) => const ResetPasswordScreen(),
           '/dashboard': (context) => const DashboardScreen(),
-          '/profile': (context) => const ProfileScreen(),
-        },
-
-        onUnknownRoute: (settings) {
-          return MaterialPageRoute(builder: (context) => const WelcomeScreen());
         },
       ),
+    );
+  }
+}
+
+class AuthenticationWrapper extends StatelessWidget {
+  const AuthenticationWrapper({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<AuthProvider>(
+      builder: (context, authProvider, child) {
+        
+        if (authProvider.isLoading) {
+          return const LoadingScreen();
+        }
+        
+        if (authProvider.isLoggedIn) {
+          return const DashboardScreen();
+        }
+        
+        return const WelcomeScreen();
+      },
+    );
+  }
+}
+
+class DebugAuthInfo extends StatelessWidget {
+  const DebugAuthInfo({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<AuthProvider>(
+      builder: (context, auth, _) {
+        return Container(
+          padding: const EdgeInsets.all(8),
+          margin: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.7),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'DEBUG AUTH STATE',
+                style: TextStyle(
+                  color: Colors.yellow,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
+              ),
+              Text(
+                'Loading: ${auth.isLoading}',
+                style: TextStyle(color: Colors.white, fontSize: 10),
+              ),
+              Text(
+                'Logged In: ${auth.isLoggedIn}',
+                style: TextStyle(color: Colors.white, fontSize: 10),
+              ),
+              Text(
+                'User: ${auth.currentUser?.nom ?? "None"}',
+                style: TextStyle(color: Colors.white, fontSize: 10),
+              ),
+              if (auth.errorMessage != null)
+                Text(
+                  'Error: ${auth.errorMessage}',
+                  style: TextStyle(color: Colors.red, fontSize: 10),
+                ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

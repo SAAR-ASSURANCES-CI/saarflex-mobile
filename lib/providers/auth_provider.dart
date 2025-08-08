@@ -1,44 +1,72 @@
 import 'package:flutter/material.dart';
+import '../services/api_service.dart';
+import '../models/user_model.dart';
 
 class AuthProvider extends ChangeNotifier {
-  // États simples
+  final ApiService _apiService = ApiService();
+
   bool _isLoading = false;
   bool _isLoggedIn = false;
-  String? _userEmail;
-  String? _userName;
+  User? _currentUser;
   String? _errorMessage;
+  String? _authToken;
 
-  // Getters (pour lire les états)
   bool get isLoading => _isLoading;
   bool get isLoggedIn => _isLoggedIn;
-  String? get userEmail => _userEmail;
-  String? get userName => _userName;
+  User? get currentUser => _currentUser;
   String? get errorMessage => _errorMessage;
+  String? get authToken => _authToken;
 
-  // Méthode d'inscription
+  String get userName => _currentUser?.displayName ?? 'Utilisateur';
+  String get userEmail => _currentUser?.email ?? '';
+  bool get isClient => _currentUser?.isClient ?? true;
+  bool get isAgent => _currentUser?.isAgent ?? false;
+  bool get isAdmin => _currentUser?.isAdmin ?? false;
+
+  Future<void> initializeAuth() async {
+    _setLoading(true);
+    try {
+      final isLoggedIn = await _apiService.isLoggedIn();
+      if (isLoggedIn) {
+        await loadUserProfile();
+      }
+    } catch (e) {
+      debugPrint('Erreur d\'initialisation auth: $e');
+      _isLoggedIn = false;
+      _currentUser = null;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
   Future<bool> signup({
-    required String name,
+    required String nom,
     required String email,
-    required String phone,
+    required String telephone,
     required String password,
   }) async {
     _setLoading(true);
     _clearError();
 
     try {
-      // Simuler l'appel API
-      await Future.delayed(const Duration(seconds: 2));
+      final authResponse = await _apiService.signup(
+        nom: nom,
+        email: email,
+        telephone: telephone,
+        password: password,
+      );
 
-      // TODO: Remplacer par votre vrai appel API
-      // final response = await _apiService.signup(...);
-
-      // Simuler le succès
-      _userName = name;
-      _userEmail = email;
+      _currentUser = authResponse.user;
+      _authToken = authResponse.token;
       _isLoggedIn = true;
 
       _setLoading(false);
       return true;
+
+    } on ApiException catch (e) {
+      _setError(_getErrorMessage(e));
+      _setLoading(false);
+      return false;
     } catch (e) {
       _setError('Erreur lors de la création du compte');
       _setLoading(false);
@@ -46,45 +74,109 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // Méthode de connexion
-  Future<bool> login({required String email, required String password}) async {
+  Future<bool> login({
+    required String email,
+    required String password,
+  }) async {
     _setLoading(true);
     _clearError();
 
     try {
-      // Simuler l'appel API
-      await Future.delayed(const Duration(seconds: 2));
+      final authResponse = await _apiService.login(
+        email: email,
+        password: password,
+      );
 
-      // TODO: Remplacer par votre vrai appel API
-      // final response = await _apiService.login(...);
-
-      // Simuler le succès
-      _userEmail = email;
-      _userName = 'Jean KOUAME'; // Récupéré de l'API
+      _currentUser = authResponse.user;
+      _authToken = authResponse.token;
       _isLoggedIn = true;
 
       _setLoading(false);
       return true;
+
+    } on ApiException catch (e) {
+      _setError(_getErrorMessage(e));
+      _setLoading(false);
+      return false;
     } catch (e) {
-      _setError('Email ou mot de passe incorrect');
+      _setError('Erreur de connexion');
       _setLoading(false);
       return false;
     }
   }
 
-  // Méthode de déconnexion
-  void logout() {
+  Future<void> logout() async {
+    _setLoading(true);
+    
+    try {
+      await _apiService.logout();
+    } catch (e) {
+      debugPrint('Erreur lors de la déconnexion: $e');
+    }
+
     _isLoggedIn = false;
-    _userEmail = null;
-    _userName = null;
+    _currentUser = null;
+    _authToken = null;
     _clearError();
-    notifyListeners();
+    _setLoading(false);
   }
 
-  // Méthodes privées pour modifier les états
+  Future<void> loadUserProfile() async {
+    if (!_isLoggedIn) return;
+
+    try {
+      final user = await _apiService.getUserProfile();
+      _currentUser = user;
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Erreur de chargement du profil: $e');
+    }
+  }
+
+  Future<bool> updateProfile(Map<String, dynamic> updates) async {
+    if (!_isLoggedIn) return false;
+
+    _setLoading(true);
+    _clearError();
+
+    try {
+      final updatedUser = await _apiService.updateProfile(updates);
+      _currentUser = updatedUser;
+      _setLoading(false);
+      return true;
+    } on ApiException catch (e) {
+      _setError(_getErrorMessage(e));
+      _setLoading(false);
+      return false;
+    } catch (e) {
+      _setError('Erreur lors de la mise à jour du profil');
+      _setLoading(false);
+      return false;
+    }
+  }
+
+  Future<bool> resetPassword(String email) async {
+    _setLoading(true);
+    _clearError();
+
+    try {
+      await _apiService.resetPassword(email);
+      _setLoading(false);
+      return true;
+    } on ApiException catch (e) {
+      _setError(_getErrorMessage(e));
+      _setLoading(false);
+      return false;
+    } catch (e) {
+      _setError('Erreur lors de la réinitialisation');
+      _setLoading(false);
+      return false;
+    }
+  }
+
   void _setLoading(bool loading) {
     _isLoading = loading;
-    notifyListeners(); // Notifie tous les widgets qui écoutent
+    notifyListeners();
   }
 
   void _setError(String error) {
@@ -95,5 +187,25 @@ class AuthProvider extends ChangeNotifier {
   void _clearError() {
     _errorMessage = null;
     notifyListeners();
+  }
+
+  String _getErrorMessage(ApiException e) {
+    if (e.statusCode == 401) {
+      return 'Email ou mot de passe incorrect';
+    } else if (e.statusCode == 422) {
+      return e.message;
+    } else if (e.message.contains('connexion internet')) {
+      return 'Vérifiez votre connexion internet';
+    }
+    return e.message;
+  }
+
+  bool hasRole(TypeUtilisateur role) {
+    return _currentUser?.typeUtilisateur == role;
+  }
+
+  bool canAccess(List<TypeUtilisateur> allowedRoles) {
+    if (_currentUser == null) return false;
+    return allowedRoles.contains(_currentUser!.typeUtilisateur);
   }
 }

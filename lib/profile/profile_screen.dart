@@ -1,9 +1,7 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:saarflex_app/profile/edit_profile_screen.dart';
 import '../../constants/colors.dart';
-// import 'edit_profile_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -13,7 +11,6 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  // Données utilisateur temporaires (en attendant votre service)
   final Map<String, String> userProfile = {
     'firstName': 'Jean',
     'lastName': 'KOUAME',
@@ -48,10 +45,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: SafeArea(
           child: Column(
             children: [
-              // Header avec photo de profil
               _buildHeader(),
 
-              // Contenu du profil
               Expanded(
                 child: Container(
                   decoration: BoxDecoration(
@@ -68,12 +63,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       children: [
                         const SizedBox(height: 20),
 
-                        // Bouton modifier
                         _buildEditButton(),
 
                         const SizedBox(height: 24),
 
-                        // Informations personnelles
                         _buildSection(
                           title: "Informations personnelles",
                           icon: Icons.person_rounded,
@@ -105,7 +98,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                         const SizedBox(height: 24),
 
-                        // Coordonnées
                         _buildSection(
                           title: "Coordonnées",
                           icon: Icons.contact_phone_rounded,
@@ -118,7 +110,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                         const SizedBox(height: 24),
 
-                        // Pièce d'identité
                         _buildSection(
                           title: "Pièce d'identité",
                           icon: Icons.badge_rounded,
@@ -137,7 +128,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                         const SizedBox(height: 32),
 
-                        // Actions
                         _buildActionButtons(),
 
                         const SizedBox(height: 24),
@@ -158,7 +148,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       padding: const EdgeInsets.all(24),
       child: Column(
         children: [
-          // AppBar
           Row(
             children: [
               Container(
@@ -189,7 +178,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
           const SizedBox(height: 32),
 
-          // Photo de profil large
           Container(
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
@@ -221,7 +209,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
           const SizedBox(height: 16),
 
-          // Nom complet
           Text(
             "${userProfile['firstName']} ${userProfile['lastName']}",
             style: GoogleFonts.poppins(
@@ -233,7 +220,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
           const SizedBox(height: 4),
 
-          // Profession
           Text(
             userProfile['profession']!,
             style: GoogleFonts.poppins(
@@ -317,7 +303,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
       child: Column(
         children: [
-          // En-tête de section
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
@@ -350,7 +335,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
 
-          // Champs
           Padding(
             padding: const EdgeInsets.all(20),
             child: Column(children: fields),
@@ -397,7 +381,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildActionButtons() {
     return Column(
       children: [
-        // Bouton de sécurité
         Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(15),
@@ -436,7 +419,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
         const SizedBox(height: 16),
 
-        // Bouton de déconnexion
         Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(15),
@@ -513,7 +495,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ElevatedButton(
               onPressed: () {
                 Navigator.pop(context);
-                // TODO: Appeler le service de déconnexion
                 print("Déconnexion");
               },
               style: ElevatedButton.styleFrom(
