@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:animate_do/animate_do.dart';
+import 'package:saarflex_app/screens/auth/login_screen.dart';
 import '../../constants/colors.dart';
 import 'signup_screen.dart';
 
@@ -133,14 +134,18 @@ class WelcomeScreen extends StatelessWidget {
 
                         const SizedBox(height: 80),
 
-                        // Bouton "Se connecter" avec animation FadeInUp
                         FadeInUp(
                           duration: const Duration(milliseconds: 800),
                           delay: const Duration(milliseconds: 900),
                           child: _buildModernButton(
                             text: 'Se connecter',
                             onPressed: () {
-                              // Ajouter la navigation vers la page de login ici
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const LoginScreen(),
+                                ),
+                              );
                             },
                             backgroundColor: AppColors.white,
                             textColor: AppColors.primary,
@@ -150,7 +155,6 @@ class WelcomeScreen extends StatelessWidget {
 
                         const SizedBox(height: 16),
 
-                        // Bouton "Créer un compte" avec animation FadeInUp
                         FadeInUp(
                           duration: const Duration(milliseconds: 800),
                           delay: const Duration(milliseconds: 1100),
@@ -172,7 +176,6 @@ class WelcomeScreen extends StatelessWidget {
 
                         const SizedBox(height: 20),
 
-                        // Footer sans animation (optionnel)
                         Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 20,

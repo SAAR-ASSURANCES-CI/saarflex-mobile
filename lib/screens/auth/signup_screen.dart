@@ -284,7 +284,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
     if (success) {
       _showSuccessSnackBar('Compte créé avec succès !');
-      Navigator.pushReplacementNamed(context, '/dashboard');
+      // Navigator.pushReplacementNamed(context, '/dashboard');
     }
   }
 

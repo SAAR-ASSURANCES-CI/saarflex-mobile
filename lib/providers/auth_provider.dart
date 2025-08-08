@@ -28,18 +28,17 @@ class AuthProvider extends ChangeNotifier {
     try {
       // Simuler l'appel API
       await Future.delayed(const Duration(seconds: 2));
-      
+
       // TODO: Remplacer par votre vrai appel API
       // final response = await _apiService.signup(...);
-      
+
       // Simuler le succès
       _userName = name;
       _userEmail = email;
       _isLoggedIn = true;
-      
+
       _setLoading(false);
       return true;
-      
     } catch (e) {
       _setError('Erreur lors de la création du compte');
       _setLoading(false);
@@ -48,28 +47,24 @@ class AuthProvider extends ChangeNotifier {
   }
 
   // Méthode de connexion
-  Future<bool> login({
-    required String email,
-    required String password,
-  }) async {
+  Future<bool> login({required String email, required String password}) async {
     _setLoading(true);
     _clearError();
 
     try {
       // Simuler l'appel API
       await Future.delayed(const Duration(seconds: 2));
-      
+
       // TODO: Remplacer par votre vrai appel API
       // final response = await _apiService.login(...);
-      
+
       // Simuler le succès
       _userEmail = email;
       _userName = 'Jean KOUAME'; // Récupéré de l'API
       _isLoggedIn = true;
-      
+
       _setLoading(false);
       return true;
-      
     } catch (e) {
       _setError('Email ou mot de passe incorrect');
       _setLoading(false);

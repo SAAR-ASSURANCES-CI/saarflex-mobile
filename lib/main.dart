@@ -5,6 +5,8 @@ import 'package:saarflex_app/providers/auth_provider.dart';
 import 'package:saarflex_app/screens/auth/signup_screen.dart';
 import 'constants/colors.dart';
 import 'screens/auth/welcome_screen.dart';
+import 'screens/auth/login_screen.dart';
+import 'screens/auth/signup_screen.dart';
 
 void main() {
   runApp(const SaarflexApp());
@@ -33,9 +35,15 @@ class SaarflexApp extends StatelessWidget {
         ),
         home: const WelcomeScreen(),
         routes: {
-        '/welcome': (context) => const WelcomeScreen(),
-        '/signup': (context) => const SignupScreen(),
-      },
+          '/welcome': (context) => const WelcomeScreen(),
+          '/login': (context) => const LoginScreen(),
+          '/signup': (context) => const SignupScreen(),
+        },
+
+        onUnknownRoute: (settings) {
+          return MaterialPageRoute(builder: (context) => const WelcomeScreen());
+        },
+
       ),
     );
   }
