@@ -1,15 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:saarflex_app/profile/profile_screen.dart';
 import 'package:saarflex_app/providers/auth_provider.dart';
-import 'package:saarflex_app/screens/auth/reset_password_screen.dart';
+import 'package:saarflex_app/providers/user_provider.dart';
 import 'constants/colors.dart';
 import 'screens/auth/welcome_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/signup_screen.dart';
+import 'screens/auth/reset_password_screen.dart';
+import 'screens/dashboard/dashboard_screen.dart';
 
 void main() {
-  runApp(const SaarflexApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(
+          create: (_) => UserProvider(),
+        ), 
+        
+      ],
+      child: const SaarflexApp(),
+    ),
+  );
 }
 
 class SaarflexApp extends StatelessWidget {
@@ -38,7 +52,10 @@ class SaarflexApp extends StatelessWidget {
           '/welcome': (context) => const WelcomeScreen(),
           '/login': (context) => const LoginScreen(),
           '/signup': (context) => const SignupScreen(),
-          '/reset-password': (context) => const ResetPasswordScreen(),        },
+          '/reset-password': (context) => const ResetPasswordScreen(),
+          '/dashboard': (context) => const DashboardScreen(),
+          '/profile': (context) => const ProfileScreen(),
+        },
 
         onUnknownRoute: (settings) {
           return MaterialPageRoute(builder: (context) => const WelcomeScreen());

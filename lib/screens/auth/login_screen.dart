@@ -568,7 +568,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (success) {
       _showSuccessSnackBar('Connexion réussie !');
-      // Navigator.pushReplacementNamed(context, '/dashboard');
+      Navigator.pushReplacementNamed(context, '/dashboard');
     }
   }
 
@@ -580,7 +580,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final cleanValue = value.trim();
 
     if (cleanValue.contains('@')) {
-      if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(cleanValue)) {
+      if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value.trim())) {
         return 'Format d\'email invalide';
       }
     } else {
@@ -588,6 +588,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!RegExp(r'^(\+225|0)?[0-9]{8,10}$').hasMatch(cleanPhone)) {
         return 'Numéro invalide (ex: 0712345678 ou +2250712345678)';
       }
+      return null;
     }
 
     return null;
@@ -597,8 +598,11 @@ class _LoginScreenState extends State<LoginScreen> {
     if (value == null || value.isEmpty) {
       return 'Le mot de passe est obligatoire';
     }
-    if (value.length < 6) {
-      return 'Au moins 6 caractères requis';
+    if (value.length < 8) {
+      return 'Au moins 8 caractères requis';
+    }
+    if (!RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)').hasMatch(value)) {
+      return 'Doit contenir : majuscule, minuscule, chiffre';
     }
     return null;
   }
