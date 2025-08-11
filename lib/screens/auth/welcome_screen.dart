@@ -38,7 +38,6 @@ class WelcomeScreen extends StatelessWidget {
                       children: [
                         const SizedBox(height: 80),
 
-                        // Logo avec animation FadeInDown
                         FadeInDown(
                           duration: const Duration(milliseconds: 800),
                           child: Container(
@@ -67,7 +66,6 @@ class WelcomeScreen extends StatelessWidget {
 
                         const SizedBox(height: 40),
 
-                        // Titre avec animation FadeInDown avec délai
                         FadeInDown(
                           duration: const Duration(milliseconds: 800),
                           delay: const Duration(milliseconds: 300),
@@ -106,7 +104,6 @@ class WelcomeScreen extends StatelessWidget {
 
                         const SizedBox(height: 20),
 
-                        // Sous-titre avec animation FadeInDown et délai
                         FadeInDown(
                           duration: const Duration(milliseconds: 800),
                           delay: const Duration(milliseconds: 600),

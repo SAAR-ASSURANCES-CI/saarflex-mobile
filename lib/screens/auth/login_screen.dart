@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:saarflex_app/screens/auth/reset_password_screen.dart';
 import 'package:saarflex_app/screens/auth/signup_screen.dart';
+import 'package:saarflex_app/widgets/form_helpers.dart';
 import '../../constants/colors.dart';
 import '../../providers/auth_provider.dart';
 
@@ -183,7 +184,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               label: 'Email ou téléphone',
                               icon: Icons.contact_page_rounded,
                               keyboardType: TextInputType.emailAddress,
-                              validator: _validateEmailOrPhone,
+                              validator: _validateEmail,
                             ),
 
                             const SizedBox(height: 16),
@@ -552,29 +553,43 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _handleLogin(AuthProvider authProvider) async {
-    setState(() {
-      _autovalidateMode = AutovalidateMode.onUserInteraction;
-    });
+  setState(() {
+    _autovalidateMode = AutovalidateMode.onUserInteraction;
+  });
 
-    if (!_formKey.currentState!.validate()) {
-      _showErrorSnackBar('Veuillez corriger les erreurs du formulaire');
-      return;
-    }
+  if (!_formKey.currentState!.validate()) {
+    FormHelpers.showErrorSnackBar(context, 'Veuillez corriger les erreurs du formulaire');
+    return;
+  }
 
+  FormHelpers.showLoadingDialog(
+    context,
+    title: "Connexion...",
+    subtitle: "Vérification de vos identifiants",
+  );
+
+  try {
     final success = await authProvider.login(
       email: _emailController.text.trim(),
       password: _passwordController.text,
     );
 
+    if (mounted) FormHelpers.hideLoadingDialog(context);
+
     if (success) {
-      _showSuccessSnackBar('Connexion réussie !');
+      FormHelpers.showSuccessSnackBar(context, 'Connexion réussie !');
       Navigator.pushReplacementNamed(context, '/dashboard');
     }
+  } catch (e) {
+    if (mounted) FormHelpers.hideLoadingDialog(context);
+    
+    
   }
+}
 
-  String? _validateEmailOrPhone(String? value) {
+  String? _validateEmail(String? value) {
     if (value == null || value.trim().isEmpty) {
-      return 'Email ou téléphone obligatoire';
+      return 'Email obligatoire';
     }
 
     final cleanValue = value.trim();
@@ -584,10 +599,6 @@ class _LoginScreenState extends State<LoginScreen> {
         return 'Format d\'email invalide';
       }
     } else {
-      String cleanPhone = value.replaceAll(RegExp(r'[\s-]'), '');
-      if (!RegExp(r'^(\+225|0)?[0-9]{8,10}$').hasMatch(cleanPhone)) {
-        return 'Numéro invalide (ex: 0712345678 ou +2250712345678)';
-      }
       return null;
     }
 
@@ -598,49 +609,28 @@ class _LoginScreenState extends State<LoginScreen> {
     if (value == null || value.isEmpty) {
       return 'Le mot de passe est obligatoire';
     }
+
+    final buffer = StringBuffer();
+
     if (value.length < 8) {
-      return 'Au moins 8 caractères requis';
+      buffer.writeln('• 8 caractères minimum');
     }
-    if (!RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)').hasMatch(value)) {
-      return 'Doit contenir : majuscule, minuscule, chiffre';
+    if (!value.contains(RegExp(r'[A-Z]'))) {
+      buffer.writeln('• Au moins une majuscule (A-Z)');
     }
-    return null;
-  }
+    if (!value.contains(RegExp(r'[a-z]'))) {
+      buffer.writeln('• Au moins une minuscule (a-z)');
+    }
+    if (!value.contains(RegExp(r'[0-9]'))) {
+      buffer.writeln('• Au moins un chiffre (0-9)');
+    }
+    if (!value.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))) {
+      buffer.writeln('• Au moins un caractère spécial (!@#\$% etc.)');
+    }
 
-  void _showErrorSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            Icon(Icons.error_outline, color: Colors.white),
-            const SizedBox(width: 8),
-            Expanded(child: Text(message)),
-          ],
-        ),
-        backgroundColor: Colors.red[400],
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        duration: const Duration(seconds: 4),
-      ),
-    );
-  }
+    if (buffer.isEmpty) return null;
 
-  void _showSuccessSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            Icon(Icons.check_circle_outline, color: Colors.white),
-            const SizedBox(width: 8),
-            Expanded(child: Text(message)),
-          ],
-        ),
-        backgroundColor: Colors.green[400],
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        duration: const Duration(seconds: 3),
-      ),
-    );
+    return "Votre mot de passe doit contenir:\n${buffer.toString()}";
   }
 
   @override

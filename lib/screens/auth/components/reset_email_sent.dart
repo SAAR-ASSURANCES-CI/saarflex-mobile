@@ -86,9 +86,7 @@ class ResetEmailSent extends StatelessWidget {
   Widget _buildBackButton(BuildContext context) {
     return ResetPasswordWidgets.buildModernButton(
       text: "Retour à la connexion",
-      onPressed: authProvider.isLoading 
-          ? null 
-          : () => Navigator.pop(context),
+      onPressed: authProvider.isLoading ? null : () => Navigator.pop(context),
       icon: Icons.login_rounded,
       backgroundColor: Colors.transparent,
       textColor: AppColors.primary,
@@ -129,9 +127,13 @@ class ResetEmailSent extends StatelessWidget {
   }
 
   Future<void> _handleResendEmail(BuildContext context) async {
-    ResetPasswordWidgets.showSuccessSnackBar(
-      context, 
-      "Email renvoyé avec succès !"
-    );
+    final success = await authProvider.forgotPassword(email);
+
+    if (success) {
+      ResetPasswordWidgets.showSuccessSnackBar(
+        context,
+        "Code renvoyé avec succès !",
+      );
+    }
   }
 }

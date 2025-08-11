@@ -1,9 +1,12 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import 'package:saarflex_app/profile/edit_profile_screen.dart';
+import 'package:saarflex_app/providers/auth_provider.dart';
+import 'package:saarflex_app/screens/auth/otp_verification_screen.dart';
+import 'package:saarflex_app/widgets/form_helpers.dart';
+import '../models/user_model.dart';
 import '../../constants/colors.dart';
-// import 'edit_profile_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -13,152 +16,132 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  // Données utilisateur temporaires (en attendant votre service)
-  final Map<String, String> userProfile = {
-    'firstName': 'Jean',
-    'lastName': 'KOUAME',
-    'birthDate': '15/03/1990',
-    'birthPlace': 'Abidjan, Côte d\'Ivoire',
-    'gender': 'Masculin',
-    'nationality': 'Ivoirienne',
-    'profession': 'Ingénieur Informatique',
-    'phone': '+225 07 12 34 56 78',
-    'email': 'jean.kouame@email.com',
-    'address': '12 Rue des Cocotiers, Cocody, Abidjan',
-    'idNumber': 'CI123456789',
-    'idType': 'Carte Nationale d\'Identité',
-    'idExpiry': '15/03/2030',
-  };
+  Future<void> _changePassword() async {
+    final authProvider = context.read<AuthProvider>();
+    final user = authProvider.currentUser;
+
+    if (user == null) {
+      FormHelpers.showErrorSnackBar(
+        context,
+        "Erreur : utilisateur non connecté",
+      );
+      return;
+    }
+
+    final confirmed = await FormHelpers.showConfirmationDialog(
+      context,
+      title: "Changer le mot de passe",
+      message:
+          "Un code de vérification sera envoyé à votre email pour confirmer le changement de mot de passe.",
+      confirmText: "Continuer",
+      cancelText: "Annuler",
+      confirmColor: Colors.orange,
+      icon: Icons.lock_reset_rounded,
+    );
+
+    if (confirmed != true) return;
+
+    FormHelpers.showLoadingDialog(
+      context,
+      title: "Envoi en cours...",
+      subtitle: "Nous envoyons le code de vérification\nà votre adresse email",
+    );
+
+    try {
+      final success = await authProvider.forgotPassword(user.email);
+      FormHelpers.hideLoadingDialog(context);
+
+      if (success) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => OtpVerificationScreen(email: user.email),
+          ),
+        );
+      }
+    } catch (e) {
+      FormHelpers.hideLoadingDialog(context);
+    }
+  }
+
+  String _getTypePieceIdentiteLabel(String? type) {
+    switch (type?.toLowerCase()) {
+      case 'cni':
+        return 'Carte Nationale d\'Identité';
+      case 'passport':
+        return 'Passeport';
+      case 'permis':
+        return 'Permis de conduire';
+      case 'carte_sejour':
+        return 'Carte de séjour';
+      default:
+        return type ?? 'Non renseigné';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              AppColors.primary,
-              AppColors.primary.withOpacity(0.8),
-              AppColors.white,
-            ],
-          ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              // Header avec photo de profil
-              _buildHeader(),
+    return Consumer<AuthProvider>(
+      builder: (context, authProvider, child) {
+        final user = authProvider.currentUser;
 
-              // Contenu du profil
-              Expanded(
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: AppColors.white,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(30),
-                      topRight: Radius.circular(30),
-                    ),
-                  ),
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 20),
-
-                        // Bouton modifier
-                        _buildEditButton(),
-
-                        const SizedBox(height: 24),
-
-                        // Informations personnelles
-                        _buildSection(
-                          title: "Informations personnelles",
-                          icon: Icons.person_rounded,
-                          fields: [
-                            _buildInfoField(
-                              "Prénom",
-                              userProfile['firstName']!,
-                            ),
-                            _buildInfoField("Nom", userProfile['lastName']!),
-                            _buildInfoField(
-                              "Date de naissance",
-                              userProfile['birthDate']!,
-                            ),
-                            _buildInfoField(
-                              "Lieu de naissance",
-                              userProfile['birthPlace']!,
-                            ),
-                            _buildInfoField("Sexe", userProfile['gender']!),
-                            _buildInfoField(
-                              "Nationalité",
-                              userProfile['nationality']!,
-                            ),
-                            _buildInfoField(
-                              "Profession",
-                              userProfile['profession']!,
-                            ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 24),
-
-                        // Coordonnées
-                        _buildSection(
-                          title: "Coordonnées",
-                          icon: Icons.contact_phone_rounded,
-                          fields: [
-                            _buildInfoField("Téléphone", userProfile['phone']!),
-                            _buildInfoField("Email", userProfile['email']!),
-                            _buildInfoField("Adresse", userProfile['address']!),
-                          ],
-                        ),
-
-                        const SizedBox(height: 24),
-
-                        // Pièce d'identité
-                        _buildSection(
-                          title: "Pièce d'identité",
-                          icon: Icons.badge_rounded,
-                          fields: [
-                            _buildInfoField(
-                              "Type de pièce",
-                              userProfile['idType']!,
-                            ),
-                            _buildInfoField("Numéro", userProfile['idNumber']!),
-                            _buildInfoField(
-                              "Date d'expiration",
-                              userProfile['idExpiry']!,
-                            ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 32),
-
-                        // Actions
-                        _buildActionButtons(),
-
-                        const SizedBox(height: 24),
-                      ],
-                    ),
-                  ),
-                ),
+        return Scaffold(
+          body: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  AppColors.primary,
+                  AppColors.primary.withOpacity(0.8),
+                  AppColors.white,
+                ],
               ),
-            ],
+            ),
+            child: SafeArea(
+              child: Column(
+                children: [
+                  _buildHeader(user),
+                  Expanded(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: AppColors.white,
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(30),
+                          topRight: Radius.circular(30),
+                        ),
+                      ),
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.all(24),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 20),
+                            _buildEditButton(),
+                            const SizedBox(height: 24),
+                            _buildUserSections(user),
+                            const SizedBox(height: 32),
+                            _buildActionButtons(),
+                            const SizedBox(height: 24),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(User? user) {
     return Container(
       padding: const EdgeInsets.all(24),
       child: Column(
         children: [
-          // AppBar
           Row(
             children: [
               Container(
@@ -187,9 +170,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ],
           ),
 
-          const SizedBox(height: 32),
+          const SizedBox(height: 20),
 
-          // Photo de profil large
           Container(
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
@@ -221,9 +203,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
           const SizedBox(height: 16),
 
-          // Nom complet
           Text(
-            "${userProfile['firstName']} ${userProfile['lastName']}",
+            user?.nom ?? "Utilisateur",
             style: GoogleFonts.poppins(
               fontSize: 28,
               fontWeight: FontWeight.w700,
@@ -233,9 +214,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
           const SizedBox(height: 4),
 
-          // Profession
           Text(
-            userProfile['profession']!,
+            user?.email ?? "Email non renseigné",
             style: GoogleFonts.poppins(
               fontSize: 16,
               fontWeight: FontWeight.w400,
@@ -266,7 +246,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             context,
             MaterialPageRoute(builder: (_) => const EditProfileScreen()),
           );
-          print("Naviguer vers EditProfileScreen");
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.secondary,
@@ -296,6 +275,51 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  Widget _buildUserSections(User? user) {
+    return Column(
+      children: [
+        _buildSection(
+          title: "Informations personnelles",
+          icon: Icons.person_rounded,
+          fields: [
+            _buildInfoField("Nom ", user?.nom ?? "Non renseigné"),
+            _buildInfoField("Prénoms ", user?.nom ?? "Non renseigné"),
+            _buildInfoField("Email", user?.email ?? "Non renseigné"),
+            _buildInfoField("Téléphone", user?.telephone ?? "Non renseigné"),
+            _buildInfoField("Sexe", user?.sexe ?? "Non renseigné"),
+            _buildInfoField(
+              "Lieu de naissance",
+              user?.lieuNaissance ?? "Non renseigné",
+            ),
+            _buildInfoField(
+              "Nationalité",
+              user?.nationalite ?? "Non renseignée",
+            ),
+            _buildInfoField("Profession", user?.profession ?? "Non renseignée"),
+            _buildInfoField("Adresse", user?.adresse ?? "Non renseignée"),
+          ],
+        ),
+
+        const SizedBox(height: 24),
+
+        _buildSection(
+          title: "Informations d'identité",
+          icon: Icons.badge_rounded,
+          fields: [
+            _buildInfoField(
+              "Type de pièce",
+              _getTypePieceIdentiteLabel(user?.typePieceIdentite),
+            ),
+            _buildInfoField(
+              "Numéro de pièce",
+              user?.numeroPieceIdentite ?? "Non renseigné",
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
   Widget _buildSection({
     required String title,
     required IconData icon,
@@ -317,7 +341,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
       child: Column(
         children: [
-          // En-tête de section
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
@@ -349,8 +372,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ],
             ),
           ),
-
-          // Champs
           Padding(
             padding: const EdgeInsets.all(20),
             child: Column(children: fields),
@@ -397,16 +418,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildActionButtons() {
     return Column(
       children: [
-        // Bouton de sécurité
         Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(15),
             border: Border.all(color: Colors.orange.withOpacity(0.3), width: 2),
           ),
           child: ElevatedButton(
-            onPressed: () {
-              print("Changer le mot de passe");
-            },
+            onPressed: () => _changePassword(),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.transparent,
               foregroundColor: Colors.orange,
@@ -436,7 +454,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
         const SizedBox(height: 16),
 
-        // Bouton de déconnexion
         Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(15),
@@ -477,62 +494,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _showLogoutDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
-          ),
-          title: Text(
-            "Déconnexion",
-            style: GoogleFonts.poppins(
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-              color: AppColors.primary,
-            ),
-          ),
-          content: Text(
-            "Êtes-vous sûr de vouloir vous déconnecter ?",
-            style: GoogleFonts.poppins(
-              fontSize: 16,
-              color: AppColors.primary.withOpacity(0.8),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(
-                "Annuler",
-                style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.w500,
-                  color: Colors.grey[600],
-                ),
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                // TODO: Appeler le service de déconnexion
-                print("Déconnexion");
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: Text(
-                "Déconnecter",
-                style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.white,
-                ),
-              ),
-            ),
-          ],
-        );
-      },
+    FormHelpers.showConfirmationDialog(
+      context,
+      title: "Déconnexion",
+      message: "Êtes-vous sûr de vouloir vous déconnecter ?",
+      confirmText: "Déconnecter",
+      cancelText: "Annuler",
+      confirmColor: Colors.red,
+      icon: Icons.logout_rounded,
+    ).then((confirmed) {
+      if (confirmed == true) {
+        _handleLogout();
+      }
+    });
+  }
+
+  Future<void> _handleLogout() async {
+    FormHelpers.showLoadingDialog(
+      context,
+      title: "Déconnexion...",
+      subtitle: "Fermeture de votre session",
     );
+
+    try {
+      await context.read<AuthProvider>().logout();
+      FormHelpers.hideLoadingDialog(context);
+      Navigator.pushNamedAndRemoveUntil(context, '/welcome', (route) => false);
+    } catch (e) {
+      FormHelpers.hideLoadingDialog(context);
+      FormHelpers.showErrorSnackBar(context, "Erreur lors de la déconnexion");
+    }
   }
 }

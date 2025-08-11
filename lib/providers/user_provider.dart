@@ -1,77 +1,95 @@
+// providers/user_provider.dart - VERSION SIMPLIFIÉE
 import 'package:flutter/material.dart';
 import '../models/user_model.dart';
+import '../services/api_service.dart';
 
 class UserProvider with ChangeNotifier {
-  User? _user;
+  final ApiService _apiService = ApiService();
+  
   bool _isLoading = false;
   String? _errorMessage;
 
-  User? get user => _user;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
-  Future<void> loadUserData() async {
-    if (_user != null) return;
-
-    _isLoading = true;
-    notifyListeners();
+  Future<User?> refreshUserProfile() async {
+    _setLoading(true);
+    _clearError();
 
     try {
-   
-      await Future.delayed(const Duration(seconds: 1));
-      _user = User(
-        id: 'user-123',
-        name: 'Jean KOUAME',
-        email: 'jean.kouame@email.com',
-        phone: '+2250701234567',
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      );
-      
-      _errorMessage = null;
+      final user = await _apiService.getUserProfile();
+      _setLoading(false);
+      return user;
+    } on ApiException catch (e) {
+      _setError(e.message);
+      _setLoading(false);
+      return null;
     } catch (e) {
-      _errorMessage = 'Erreur lors du chargement des données utilisateur';
-      debugPrint('Error loading user data: $e');
-    } finally {
-      _isLoading = false;
-      notifyListeners();
+      _setError('Erreur lors du chargement du profil');
+      _setLoading(false);
+      return null;
     }
   }
 
-  Future<void> updateUserProfile(Map<String, dynamic> updates) async {
-    if (_user == null) return;
-
-    _isLoading = true;
-    notifyListeners();
+  // Mettre à jour des informations spécifiques du profil
+  Future<bool> updateSpecificField(String field, dynamic value) async {
+    _setLoading(true);
+    _clearError();
 
     try {
-     
-      await Future.delayed(const Duration(seconds: 1));
-      _user = _user!.copyWith(
-        name: updates['name'] ?? _user!.name,
-        email: updates['email'] ?? _user!.email,
-        phone: updates['phone'] ?? _user!.phone,
-        updatedAt: DateTime.now(),
-      );
-      
-      _errorMessage = null;
+      await _apiService.updateProfile({field: value});
+      _setLoading(false);
+      return true;
+    } on ApiException catch (e) {
+      _setError(e.message);
+      _setLoading(false);
+      return false;
     } catch (e) {
-      _errorMessage = 'Erreur lors de la mise à jour du profil';
-      debugPrint('Error updating user profile: $e');
-    } finally {
-      _isLoading = false;
-      notifyListeners();
+      _setError('Erreur lors de la mise à jour');
+      _setLoading(false);
+      return false;
     }
   }
 
+  // Upload d'avatar (si nécessaire plus tard)
+  Future<bool> uploadAvatar(String imagePath) async {
+    _setLoading(true);
+    _clearError();
+
+    try {
+      // TODO: Implémenter l'upload d'image quand l'API sera prête
+      // await _apiService.uploadAvatar(imagePath);
+      
+      // Pour l'instant, simuler
+      await Future.delayed(Duration(seconds: 2));
+      _setLoading(false);
+      return true;
+    } catch (e) {
+      _setError('Erreur lors de l\'upload de l\'image');
+      _setLoading(false);
+      return false;
+    }
+  }
+
+  // Effacer les données utilisateur (appelé lors de la déconnexion)
   void clearUserData() {
-    _user = null;
-    _errorMessage = null;
+    _clearError();
     notifyListeners();
   }
 
-  void setUser(User user) {
-    _user = user;
+  // Méthodes utilitaires privées
+  void _setLoading(bool loading) {
+    _isLoading = loading;
+    notifyListeners();
+  }
+
+  void _setError(String error) {
+    _errorMessage = error;
+    notifyListeners();
+  }
+
+  void _clearError() {
+    _errorMessage = null;
     notifyListeners();
   }
 }
