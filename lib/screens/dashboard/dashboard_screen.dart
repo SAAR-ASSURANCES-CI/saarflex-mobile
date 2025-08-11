@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import 'package:saarflex_app/profile/profile_screen.dart';
 import 'package:saarflex_app/screens/auth/components/action_card.dart';
 import 'package:saarflex_app/screens/auth/components/dashboard_header.dart';
-// import 'package:saarflex_app/screens/auth/components/info_card.dart';
 import '../../constants/colors.dart';
 import '../../providers/auth_provider.dart';
 
@@ -76,15 +75,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               _buildWelcomeSection(authProvider),
               const SizedBox(height: 32),
               _buildQuickActionsSection(context),
-              // const SizedBox(height: 32),
-              // InfoCard(
-              //   icon: Icons.info_outline_rounded,
-              //   title: "Bienvenue sur SAAR Assurance !",
-              //   message:
-              //       "Votre espace personnel vous permet de gérer tous vos "
-              //       "contrats d'assurance. Commencez par compléter votre profil.",
-              // ),
-              // const SizedBox(height: 24),
+             const SizedBox(height: 24),
             ],
           ),
         ),

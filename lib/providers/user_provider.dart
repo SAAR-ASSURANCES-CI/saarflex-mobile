@@ -1,4 +1,3 @@
-// providers/user_provider.dart - VERSION SIMPLIFIÉE
 import 'package:flutter/material.dart';
 import '../models/user_model.dart';
 import '../services/api_service.dart';
@@ -31,7 +30,6 @@ class UserProvider with ChangeNotifier {
     }
   }
 
-  // Mettre à jour des informations spécifiques du profil
   Future<bool> updateSpecificField(String field, dynamic value) async {
     _setLoading(true);
     _clearError();
@@ -51,16 +49,12 @@ class UserProvider with ChangeNotifier {
     }
   }
 
-  // Upload d'avatar (si nécessaire plus tard)
   Future<bool> uploadAvatar(String imagePath) async {
     _setLoading(true);
     _clearError();
 
     try {
-      // TODO: Implémenter l'upload d'image quand l'API sera prête
-      // await _apiService.uploadAvatar(imagePath);
       
-      // Pour l'instant, simuler
       await Future.delayed(Duration(seconds: 2));
       _setLoading(false);
       return true;
@@ -71,13 +65,11 @@ class UserProvider with ChangeNotifier {
     }
   }
 
-  // Effacer les données utilisateur (appelé lors de la déconnexion)
   void clearUserData() {
     _clearError();
     notifyListeners();
   }
 
-  // Méthodes utilitaires privées
   void _setLoading(bool loading) {
     _isLoading = loading;
     notifyListeners();

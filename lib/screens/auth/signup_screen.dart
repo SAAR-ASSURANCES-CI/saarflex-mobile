@@ -88,7 +88,6 @@ class _SignupScreenState extends State<SignupScreen> {
                     ),
                   ),
 
-                  // Banner d'erreur moderne uniquement
                   if (authProvider.errorMessage != null)
                     FormHelpers.buildErrorBanner(authProvider.errorMessage!),
 
@@ -135,7 +134,7 @@ class _SignupScreenState extends State<SignupScreen> {
                               controller: _lastNameController,
                               focusNode: _nameFocus,
                               nextFocusNode: _emailFocus,
-                              label: 'Nom de famille',
+                              label: 'Nom complet',
                               icon: Icons.person_outline,
                               keyboardType: TextInputType.name,
                               validator: _validateName,
