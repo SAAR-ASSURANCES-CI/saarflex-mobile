@@ -1,4 +1,3 @@
-// screens/auth/new_password_screen.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -9,13 +8,12 @@ import 'login_screen.dart';
 class NewPasswordScreen extends StatefulWidget {
   final String email;
   final String code;
-  final bool isChangePassword; // Nouveau paramètre
-
+  final bool isChangePassword;
   const NewPasswordScreen({
     super.key,
     required this.email,
     required this.code,
-    this.isChangePassword = false, // Nouveau paramètre
+    this.isChangePassword = false, 
   });
 
   @override
@@ -507,7 +505,6 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
     if (success) {
       _showSuccessSnackBar('Mot de passe mis à jour avec succès !');
 
-      // Rediriger vers l'écran de connexion après un délai
       Future.delayed(const Duration(seconds: 2), () {
         if (mounted) {
           Navigator.pushAndRemoveUntil(

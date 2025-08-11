@@ -1,4 +1,3 @@
-// screens/auth/otp_verification_screen.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -403,7 +402,6 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
 
     if (success) {
       _showSuccessSnackBar('Code renvoyé avec succès !');
-      // Vider les champs
       for (var controller in _controllers) {
         controller.clear();
       }

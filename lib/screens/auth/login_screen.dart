@@ -181,7 +181,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               controller: _emailController,
                               focusNode: _emailFocus,
                               nextFocusNode: _passwordFocus,
-                              label: 'Email ou téléphone',
+                              label: 'Email',
                               icon: Icons.contact_page_rounded,
                               keyboardType: TextInputType.emailAddress,
                               validator: _validateEmail,

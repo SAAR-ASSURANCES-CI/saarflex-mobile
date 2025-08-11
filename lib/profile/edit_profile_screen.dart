@@ -14,7 +14,6 @@ class EditProfileScreen extends StatefulWidget {
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final _firstNameController = TextEditingController();
-  final _lastNameController = TextEditingController();
   final _birthDateController = TextEditingController();
   final _birthPlaceController = TextEditingController();
   final _nationalityController = TextEditingController();
@@ -52,10 +51,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       final nameParts = user.nom.split(' ');
       if (nameParts.length >= 2) {
         _firstNameController.text = nameParts.first;
-        _lastNameController.text = nameParts.sublist(1).join(' ');
       } else {
         _firstNameController.text = user.nom;
-        _lastNameController.text = '';
       }
 
       _emailController.text = user.email;
@@ -70,7 +67,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       _idExpiryController.text = '';
     } else {
       _firstNameController.text = '';
-      _lastNameController.text = '';
       _emailController.text = '';
       _phoneController.text = '';
       _birthDateController.text = '';
@@ -119,17 +115,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             children: [
                               _buildModernTextField(
                                 controller: _firstNameController,
-                                label: 'Nom',
+                                label: 'Nom complet',
                                 icon: Icons.person,
                                 keyboardType: TextInputType.name,
                               ),
-                              const SizedBox(height: 16),
-                              _buildModernTextField(
-                                controller: _lastNameController,
-                                label: 'Prénom',
-                                icon: Icons.person_outline,
-                                keyboardType: TextInputType.name,
-                              ),
+                             
                               const SizedBox(height: 16),
                               _buildDateField(
                                 controller: _birthDateController,
@@ -820,7 +810,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
       final profileData = {
         'nom':
-            '${_firstNameController.text.trim()} ${_lastNameController.text.trim()}',
+            '${_firstNameController.text.trim()} ',
         'lieu_naissance': _birthPlaceController.text.trim(),
         'sexe': _selectedGender.toLowerCase(),
         'nationalite': _nationalityController.text.trim(),
@@ -866,7 +856,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   void dispose() {
     _firstNameController.dispose();
-    _lastNameController.dispose();
     _birthDateController.dispose();
     _birthPlaceController.dispose();
     _nationalityController.dispose();

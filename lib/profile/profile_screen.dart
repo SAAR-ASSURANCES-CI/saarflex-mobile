@@ -283,7 +283,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           icon: Icons.person_rounded,
           fields: [
             _buildInfoField("Nom ", user?.nom ?? "Non renseigné"),
-            _buildInfoField("Prénoms ", user?.nom ?? "Non renseigné"),
             _buildInfoField("Email", user?.email ?? "Non renseigné"),
             _buildInfoField("Téléphone", user?.telephone ?? "Non renseigné"),
             _buildInfoField("Sexe", user?.sexe ?? "Non renseigné"),

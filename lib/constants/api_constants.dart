@@ -1,22 +1,12 @@
 class ApiConstants {
-  static const String _devBaseUrl = 'http://localhost:3000';
-  // static const String _stagingBaseUrl =
-  //     'https://staging-api.saar-assurance.com/api';
-  // static const String _prodBaseUrl = 'https://api.saar-assurance.com/api';
-
+  static const String _devBaseUrl = 'http://10.240.199.4:3000';
+    // 10.0.2.2:3000
   static const Environment environment = Environment.dev;
 
   static String get baseUrl {
     Environment.dev;
     return _devBaseUrl;
-    // switch (environment) {
-    //   case Environment.dev:
-    //     return _devBaseUrl;
-    //   case Environment.staging:
-    //     return _stagingBaseUrl;
-    //   case Environment.prod:
-    //     return _prodBaseUrl;
-    // }
+ 
   }
 
   static const String login = '/users/login';
