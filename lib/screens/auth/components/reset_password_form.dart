@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:saarflex_app/screens/auth/otp_verification_screen.dart';
 import '../../../constants/colors.dart';
 import '../../../providers/auth_provider.dart';
 import 'reset_password_widgets.dart';
@@ -126,8 +127,8 @@ class _ResetPasswordFormState extends State<ResetPasswordForm> {
   Widget _buildBackButton() {
     return ResetPasswordWidgets.buildModernButton(
       text: "Retour à la connexion",
-      onPressed: widget.authProvider.isLoading 
-          ? null 
+      onPressed: widget.authProvider.isLoading
+          ? null
           : () => Navigator.pop(context),
       icon: Icons.login_rounded,
       backgroundColor: Colors.transparent,
@@ -145,18 +146,26 @@ class _ResetPasswordFormState extends State<ResetPasswordForm> {
 
     if (!_formKey.currentState!.validate()) {
       ResetPasswordWidgets.showErrorSnackBar(
-        context, 
-        'Veuillez saisir un email valide'
+        context,
+        'Veuillez saisir un email valide',
       );
       return;
     }
 
-
-    widget.onEmailSent();
-    ResetPasswordWidgets.showSuccessSnackBar(
-      context, 
-      'Email de réinitialisation envoyé !'
+    // Appeler l'API pour envoyer le code
+    final success = await widget.authProvider.forgotPassword(
+      widget.emailController.text.trim(),
     );
+
+    if (success) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) =>
+              OtpVerificationScreen(email: widget.emailController.text.trim()),
+        ),
+      );
+    }
   }
 
   String? _validateEmail(String? value) {

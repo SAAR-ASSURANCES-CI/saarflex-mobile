@@ -5,14 +5,14 @@ import '../../../constants/colors.dart';
 
 class DashboardHeader extends StatelessWidget {
   final User? user;
-  final VoidCallback onLogout;
+  final VoidCallback onProfil;
   final VoidCallback onNotification;
   final VoidCallback onSettings;
 
   const DashboardHeader({
     super.key,
     required this.user,
-    required this.onLogout,
+    required this.onProfil,
     required this.onNotification,
     required this.onSettings,
   });
@@ -54,11 +54,7 @@ class DashboardHeader extends StatelessWidget {
           color: AppColors.secondary,
           borderRadius: BorderRadius.circular(17),
         ),
-        child: Icon(
-          Icons.person_rounded,
-          color: AppColors.primary,
-          size: 30,
-        ),
+        child: Icon(Icons.person_rounded, color: AppColors.primary, size: 30),
       ),
     );
   }
@@ -105,15 +101,9 @@ class DashboardHeader extends StatelessWidget {
           onTap: onNotification,
         ),
         const SizedBox(width: 8),
-        _buildHeaderButton(
-          icon: Icons.settings_rounded,
-          onTap: onSettings,
-        ),
+        // _buildHeaderButton(icon: Icons.settings_rounded, onTap: onSettings),
         const SizedBox(width: 8),
-        _buildHeaderButton(
-          icon: Icons.logout_rounded,
-          onTap: onLogout,
-        ),
+        _buildHeaderButton(icon: Icons.person_rounded, onTap: onProfil),
       ],
     );
   }

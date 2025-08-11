@@ -1,6 +1,9 @@
+
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:saarflex_app/widgets/form_helpers.dart';
 import '../../constants/colors.dart';
 import '../../providers/auth_provider.dart';
 
@@ -85,36 +88,9 @@ class _SignupScreenState extends State<SignupScreen> {
                     ),
                   ),
 
+                  // Banner d'erreur moderne uniquement
                   if (authProvider.errorMessage != null)
-                    Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 24),
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.red[50],
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.red[200]!),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.error_outline,
-                            color: Colors.red,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              authProvider.errorMessage!,
-                              style: GoogleFonts.poppins(
-                                color: Colors.red[700],
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    FormHelpers.buildErrorBanner(authProvider.errorMessage!),
 
                   Expanded(
                     child: Form(
@@ -270,19 +246,37 @@ class _SignupScreenState extends State<SignupScreen> {
     });
 
     if (!_formKey.currentState!.validate() || !_acceptTerms) {
-      _showErrorSnackBar('Veuillez corriger les erreurs du formulaire');
+      FormHelpers.showErrorSnackBar(
+        context,
+        'Veuillez corriger les erreurs du formulaire',
+      );
       return;
     }
 
-final success = await authProvider.signup(
-  nom: _lastNameController.text.trim(),       
-  email: _emailController.text.trim(),
-  telephone: _phoneController.text.trim(),   
-  password: _passwordController.text,
-);
+    FormHelpers.showLoadingDialog(
+      context,
+      title: "Création en cours...",
+      subtitle: "Création de votre compte SAAR",
+    );
 
-    if (success) {
-      _showSuccessSnackBar('Compte créé avec succès !');
+    try {
+      final success = await authProvider.signup(
+        nom: _lastNameController.text.trim(),
+        email: _emailController.text.trim(),
+        telephone: _phoneController.text.trim(),
+        password: _passwordController.text,
+      );
+
+      if (mounted) FormHelpers.hideLoadingDialog(context);
+
+      if (success) {
+        FormHelpers.showSuccessSnackBar(context, 'Compte créé avec succès !');
+        Future.delayed(const Duration(milliseconds: 500), () {
+          Navigator.pushReplacementNamed(context, '/dashboard');
+        });
+      }
+    } catch (e) {
+      if (mounted) FormHelpers.hideLoadingDialog(context);
     }
   }
 
@@ -412,7 +406,7 @@ final success = await authProvider.signup(
             title: Text(
               "J'accepte les conditions générales d'utilisation",
               style: GoogleFonts.poppins(
-                fontSize: 14,
+                fontSize: 12,
                 fontWeight: FontWeight.w500,
                 color: AppColors.primary,
               ),
@@ -431,12 +425,14 @@ final success = await authProvider.signup(
                 children: [
                   Icon(Icons.error_outline, size: 16, color: Colors.red),
                   const SizedBox(width: 8),
-                  Text(
-                    "Vous devez accepter les conditions d'utilisation",
-                    style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.red,
+                  Expanded(
+                    child: Text(
+                      "Vous devez accepter les conditions d'utilisation",
+                      style: GoogleFonts.poppins(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.red,
+                      ),
                     ),
                   ),
                 ],
@@ -564,8 +560,10 @@ final success = await authProvider.signup(
     if (value.length < 8) {
       return 'Au moins 8 caractères requis';
     }
-    if (!RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)').hasMatch(value)) {
-      return 'Doit contenir : majuscule, minuscule, chiffre';
+    if (!RegExp(
+      r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])',
+    ).hasMatch(value)) {
+      return 'Doit contenir : majuscule, minuscule, chiffre, caractère spécial';
     }
     return null;
   }
@@ -578,42 +576,6 @@ final success = await authProvider.signup(
       return 'Les mots de passe ne correspondent pas';
     }
     return null;
-  }
-
-  void _showErrorSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            Icon(Icons.error_outline, color: Colors.white),
-            const SizedBox(width: 8),
-            Expanded(child: Text(message)),
-          ],
-        ),
-        backgroundColor: Colors.red[400],
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        duration: const Duration(seconds: 4),
-      ),
-    );
-  }
-
-  void _showSuccessSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            Icon(Icons.check_circle_outline, color: Colors.white),
-            const SizedBox(width: 8),
-            Expanded(child: Text(message)),
-          ],
-        ),
-        backgroundColor: Colors.green[400],
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        duration: const Duration(seconds: 3),
-      ),
-    );
   }
 
   @override

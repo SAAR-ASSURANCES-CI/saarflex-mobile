@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:saarflex_app/profile/profile_screen.dart';
 import 'package:saarflex_app/screens/auth/components/action_card.dart';
 import 'package:saarflex_app/screens/auth/components/dashboard_header.dart';
-import 'package:saarflex_app/screens/auth/components/info_card.dart';
+// import 'package:saarflex_app/screens/auth/components/info_card.dart';
 import '../../constants/colors.dart';
 import '../../providers/auth_provider.dart';
 
@@ -16,10 +16,9 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
- @override
+  @override
   void initState() {
     super.initState();
-
   }
 
   @override
@@ -43,8 +42,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: Column(
                 children: [
                   DashboardHeader(
-                    user: authProvider.currentUser, 
-                    onLogout: _handleLogout,
+                    user: authProvider.currentUser,
+                    onProfil: _handleProfil,
                     onNotification: () => _showComingSoon(context),
                     onSettings: () => _showComingSoon(context),
                   ),
@@ -56,7 +55,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         );
       },
     );
-   
   }
 
   Widget _buildContent(BuildContext context, AuthProvider authProvider) {
@@ -75,25 +73,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 20),
-              _buildWelcomeSection(authProvider), 
+              _buildWelcomeSection(authProvider),
               const SizedBox(height: 32),
               _buildQuickActionsSection(context),
-              const SizedBox(height: 32),
-              InfoCard(
-                icon: Icons.info_outline_rounded,
-                title: "Bienvenue sur SAAR Assurance !",
-                message: "Votre espace personnel vous permet de gérer tous vos "
-                    "contrats d'assurance. Commencez par compléter votre profil.",
-              ),
-              const SizedBox(height: 24),
+              // const SizedBox(height: 32),
+              // InfoCard(
+              //   icon: Icons.info_outline_rounded,
+              //   title: "Bienvenue sur SAAR Assurance !",
+              //   message:
+              //       "Votre espace personnel vous permet de gérer tous vos "
+              //       "contrats d'assurance. Commencez par compléter votre profil.",
+              // ),
+              // const SizedBox(height: 24),
             ],
           ),
         ),
       ),
     );
   }
-
- 
 
   Widget _buildWelcomeSection(AuthProvider authProvider) {
     return Column(
@@ -109,7 +106,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
         const SizedBox(height: 8),
         Text(
-          authProvider.currentUser != null 
+          authProvider.currentUser != null
               ? "Bonjour ${authProvider.currentUser!.nom} !"
               : "Gérez votre assurance en toute simplicité",
           style: GoogleFonts.poppins(
@@ -122,8 +119,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-
-Widget _buildQuickActionsSection(BuildContext context) {
+  Widget _buildQuickActionsSection(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -145,17 +141,10 @@ Widget _buildQuickActionsSection(BuildContext context) {
           childAspectRatio: 1.1,
           children: [
             ActionCard(
-              title: "Mon Profil",
-              icon: Icons.person_rounded,
+              title: "Produits",
+              icon: Icons.production_quantity_limits_sharp,
               color: AppColors.primary,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const ProfileScreen(),
-                  ),
-                );
-              },
+              onTap: () => _showComingSoon(context),
             ),
             ActionCard(
               title: "Mes Contrats",
@@ -175,87 +164,20 @@ Widget _buildQuickActionsSection(BuildContext context) {
               color: Colors.green,
               onTap: () => _showComingSoon(context),
             ),
-          ],  
+          ],
         ),
       ],
     );
   }
 
-  Future<void> _handleLogout() async {
-    final authProvider = context.read<AuthProvider>();
-
-    final confirmed = await _showLogoutDialog(context);
-    if (confirmed == true) {
-      await authProvider.logout();
-      
-      if (mounted) {
-        Navigator.pushNamedAndRemoveUntil(
-          context, 
-          '/welcome', 
-          (route) => false,
-        );
-      }
-    }
-  }
-
-
-Future<bool?> _showLogoutDialog(BuildContext context) {
-    return showDialog<bool>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
-          ),
-          title: Text(
-            "Déconnexion",
-            style: GoogleFonts.poppins(
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-              color: AppColors.primary,
-            ),
-          ),
-          content: Text(
-            "Êtes-vous sûr de vouloir vous déconnecter ?",
-            style: GoogleFonts.poppins(
-              fontSize: 16,
-              color: AppColors.primary.withOpacity(0.8),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: Text(
-                "Annuler",
-                style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.w500,
-                  color: Colors.grey[600],
-                ),
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context, true),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: Text(
-                "Déconnecter",
-                style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.white,
-                ),
-              ),
-            ),
-          ],
-        );
-      },
+  Future<void> _handleProfil() async {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const ProfileScreen()),
     );
   }
 
-void _showComingSoon(BuildContext context) {
+  void _showComingSoon(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -273,4 +195,3 @@ void _showComingSoon(BuildContext context) {
     );
   }
 }
-

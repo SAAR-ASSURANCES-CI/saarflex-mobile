@@ -62,7 +62,6 @@ class AuthProvider extends ChangeNotifier {
 
       _setLoading(false);
       return true;
-
     } on ApiException catch (e) {
       _setError(_getErrorMessage(e));
       _setLoading(false);
@@ -74,10 +73,7 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> login({
-    required String email,
-    required String password,
-  }) async {
+  Future<bool> login({required String email, required String password}) async {
     _setLoading(true);
     _clearError();
 
@@ -87,13 +83,18 @@ class AuthProvider extends ChangeNotifier {
         password: password,
       );
 
-      _currentUser = authResponse.user;
       _authToken = authResponse.token;
       _isLoggedIn = true;
 
+      try {
+        final completeUser = await _apiService.getUserProfile();
+        _currentUser = completeUser;
+      } catch (profileError) {
+        _currentUser = authResponse.user;
+      }
+
       _setLoading(false);
       return true;
-
     } on ApiException catch (e) {
       _setError(_getErrorMessage(e));
       _setLoading(false);
@@ -107,7 +108,7 @@ class AuthProvider extends ChangeNotifier {
 
   Future<void> logout() async {
     _setLoading(true);
-    
+
     try {
       await _apiService.logout();
     } catch (e) {
@@ -155,12 +156,58 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> resetPassword(String email) async {
+  Future<bool> forgotPassword(String email) async {
     _setLoading(true);
     _clearError();
 
     try {
-      await _apiService.resetPassword(email);
+      await _apiService.forgotPassword(email);
+      _setLoading(false);
+      return true;
+    } on ApiException catch (e) {
+      _setError(_getErrorMessage(e));
+      _setLoading(false);
+      return false;
+    } catch (e) {
+      _setError('Erreur lors de l\'envoi');
+      _setLoading(false);
+      return false;
+    }
+  }
+
+  Future<bool> verifyOtp({required String email, required String code}) async {
+    _setLoading(true);
+    _clearError();
+
+    try {
+      await _apiService.verifyOtp(email: email, code: code);
+      _setLoading(false);
+      return true;
+    } on ApiException catch (e) {
+      _setError(_getErrorMessage(e));
+      _setLoading(false);
+      return false;
+    } catch (e) {
+      _setError('Code invalide');
+      _setLoading(false);
+      return false;
+    }
+  }
+
+  Future<bool> resetPasswordWithCode({
+    required String email,
+    required String code,
+    required String newPassword,
+  }) async {
+    _setLoading(true);
+    _clearError();
+
+    try {
+      await _apiService.resetPasswordWithCode(
+        email: email,
+        code: code,
+        newPassword: newPassword,
+      );
       _setLoading(false);
       return true;
     } on ApiException catch (e) {
@@ -182,6 +229,12 @@ class AuthProvider extends ChangeNotifier {
   void _setError(String error) {
     _errorMessage = error;
     notifyListeners();
+
+    Future.delayed(const Duration(seconds: 5), () {
+      if (_errorMessage == error) {
+        _clearError();
+      }
+    });
   }
 
   void _clearError() {
@@ -190,13 +243,6 @@ class AuthProvider extends ChangeNotifier {
   }
 
   String _getErrorMessage(ApiException e) {
-    if (e.statusCode == 401) {
-      return 'Email ou mot de passe incorrect';
-    } else if (e.statusCode == 422) {
-      return e.message;
-    } else if (e.message.contains('connexion internet')) {
-      return 'Vérifiez votre connexion internet';
-    }
     return e.message;
   }
 

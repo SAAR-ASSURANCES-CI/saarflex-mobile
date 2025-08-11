@@ -5,21 +5,22 @@ import 'package:google_fonts/google_fonts.dart';
 import 'providers/auth_provider.dart';
 import 'providers/user_provider.dart';
 
-import 'screens/loading_screen.dart';                   
-import 'screens/auth/welcome_screen.dart';              
-import 'screens/dashboard/dashboard_screen.dart';       
-import 'screens/auth/login_screen.dart';                
-import 'screens/auth/signup_screen.dart';               
+import 'screens/loading_screen.dart';
+import 'screens/auth/welcome_screen.dart';
+import 'screens/dashboard/dashboard_screen.dart';
+import 'screens/auth/login_screen.dart';
+import 'screens/auth/signup_screen.dart';
 
 import 'constants/colors.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  runApp(const MyApp());
+  runApp(const Saarflex());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class Saarflex extends StatelessWidget {
+  const Saarflex({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -28,28 +29,25 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider<AuthProvider>(
           create: (_) => AuthProvider()..initializeAuth(),
         ),
-        
-        ChangeNotifierProvider<UserProvider>(
-          create: (_) => UserProvider(),
-        ),
-        
+
+        ChangeNotifierProvider<UserProvider>(create: (_) => UserProvider()),
       ],
       child: MaterialApp(
         title: 'SAAR Assurance',
         debugShowCheckedModeBanner: false,
-        
+
         theme: ThemeData(
           primarySwatch: Colors.blue,
           primaryColor: AppColors.primary,
           fontFamily: GoogleFonts.poppins().fontFamily,
-          
+
           colorScheme: ColorScheme.light(
             primary: AppColors.primary,
             secondary: AppColors.secondary,
             surface: AppColors.white,
             background: AppColors.white,
           ),
-          
+
           appBarTheme: AppBarTheme(
             backgroundColor: Colors.transparent,
             elevation: 0,
@@ -61,9 +59,9 @@ class MyApp extends StatelessWidget {
             iconTheme: IconThemeData(color: AppColors.primary),
           ),
         ),
-        
+
         home: const AuthenticationWrapper(),
-        
+
         routes: {
           '/welcome': (context) => const WelcomeScreen(),
           '/login': (context) => const LoginScreen(),
@@ -82,15 +80,14 @@ class AuthenticationWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<AuthProvider>(
       builder: (context, authProvider, child) {
-        
         if (authProvider.isLoading) {
           return const LoadingScreen();
         }
-        
+
         if (authProvider.isLoggedIn) {
           return const DashboardScreen();
         }
-        
+
         return const WelcomeScreen();
       },
     );
