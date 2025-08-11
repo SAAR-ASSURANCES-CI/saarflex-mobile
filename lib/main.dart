@@ -61,13 +61,14 @@ class Saarflex extends StatelessWidget {
         ),
 
         home: const AuthenticationWrapper(),
-
+        
         routes: {
           '/welcome': (context) => const WelcomeScreen(),
           '/login': (context) => const LoginScreen(),
           '/signup': (context) => const SignupScreen(),
           '/dashboard': (context) => const DashboardScreen(),
         },
+
       ),
     );
   }
