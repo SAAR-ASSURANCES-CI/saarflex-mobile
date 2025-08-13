@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:saarflex_app/screens/dashboard/dashboard_screen.dart';
 import '../../constants/colors.dart';
 import '../../providers/auth_provider.dart';
-import 'login_screen.dart';
 
 class NewPasswordScreen extends StatefulWidget {
   final String email;
@@ -30,11 +30,13 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
     super.initState();
     _passwordController.addListener(_validateForm);
     _confirmPasswordController.addListener(_validateForm);
+    _autovalidateMode = AutovalidateMode.always;
   }
 
   void _validateForm() {
+    final isValid = _formKey.currentState?.validate() ?? false;
     setState(() {
-      _isFormValid = _formKey.currentState?.validate() ?? false;
+      _isFormValid = isValid;
     });
   }
 
@@ -105,7 +107,6 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
           ),
           child: Icon(Icons.lock_reset, color: AppColors.white, size: 28),
         ),
-        // Icon(Icons.lock_reset, size: 48, color: AppColors.primary),
         const SizedBox(height: 24),
         Text(
           "Créer un nouveau mot de passe",
@@ -151,42 +152,98 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
   }
 
   Widget _buildPasswordField() {
-    return TextFormField(
-      controller: _passwordController,
-      obscureText: _obscurePassword,
-      validator: _validatePassword,
-      decoration: InputDecoration(
-        labelText: "Nouveau mot de passe",
-        prefixIcon: Icon(Icons.lock_outline, color: AppColors.primary),
-        suffixIcon: IconButton(
-          icon: Icon(
-            _obscurePassword ? Icons.visibility_off : Icons.visibility,
-            color: AppColors.textSecondary,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "Nouveau mot de passe",
+          style: GoogleFonts.poppins(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
           ),
-          onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
         ),
-      ),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: _passwordController,
+          obscureText: _obscurePassword,
+          validator: _validatePassword,
+          onChanged: (value) => _validateForm(), // Ajout de onChanged
+          style: GoogleFonts.poppins(
+            fontSize: 16,
+            color: AppColors.textPrimary,
+          ),
+          decoration: InputDecoration(
+            hintText: 'Votre mot de passe',
+            prefixIcon: Icon(Icons.lock_outline, color: AppColors.primary),
+            suffixIcon: IconButton(
+              icon: Icon(
+                _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                color: AppColors.textSecondary,
+              ),
+              onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+            ),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey.shade300),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: AppColors.primary, width: 1.5),
+            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+          ),
+        ),
+      ],
     );
   }
 
   Widget _buildConfirmPasswordField() {
-    return TextFormField(
-      controller: _confirmPasswordController,
-      obscureText: _obscureConfirmPassword,
-      validator: _validateConfirmPassword,
-      decoration: InputDecoration(
-        labelText: "Confirmer le mot de passe",
-        prefixIcon: Icon(Icons.lock_outline, color: AppColors.primary),
-        suffixIcon: IconButton(
-          icon: Icon(
-            _obscureConfirmPassword ? Icons.visibility_off : Icons.visibility,
-            color: AppColors.textSecondary,
-          ),
-          onPressed: () => setState(
-            () => _obscureConfirmPassword = !_obscureConfirmPassword,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "Confirmer le mot de passe",
+          style: GoogleFonts.poppins(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
           ),
         ),
-      ),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: _confirmPasswordController,
+          obscureText: _obscureConfirmPassword,
+          validator: _validateConfirmPassword,
+          onChanged: (value) => _validateForm(), // Ajout de onChanged
+          style: GoogleFonts.poppins(
+            fontSize: 16,
+            color: AppColors.textPrimary,
+          ),
+          decoration: InputDecoration(
+            hintText: 'Confirmez votre mot de passe',
+            prefixIcon: Icon(Icons.lock_outline, color: AppColors.primary),
+            suffixIcon: IconButton(
+              icon: Icon(
+                _obscureConfirmPassword ? Icons.visibility_off : Icons.visibility,
+                color: AppColors.textSecondary,
+              ),
+              onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+            ),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey.shade300),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: AppColors.primary, width: 1.5),
+            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+          ),
+        ),
+      ],
     );
   }
 
@@ -252,7 +309,9 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
             ? null
             : () => _handleUpdatePassword(authProvider),
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
+          backgroundColor: _isFormValid
+              ? AppColors.primary
+              : AppColors.disabled,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -290,7 +349,7 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
 
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        MaterialPageRoute(builder: (_) => const DashboardScreen()),
         (route) => false,
       );
     }
@@ -298,23 +357,54 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
 
   String? _validatePassword(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Mot de passe requis';
+      return 'Veuillez saisir votre mot de passe';
     }
+    
     if (value.length < 8) {
-      return 'Minimum 8 caractères';
+      return 'Le mot de passe doit contenir au moins 8 caractères';
     }
-    if (!RegExp(
-      r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])',
-    ).hasMatch(value)) {
-      return 'Format invalide';
+    
+    // Vérification des caractères requis
+    List<String> missing = [];
+    
+    if (!RegExp(r'[a-z]').hasMatch(value)) {
+      missing.add('une minuscule');
     }
+    
+    if (!RegExp(r'[A-Z]').hasMatch(value)) {
+      missing.add('une majuscule');
+    }
+    
+    if (!RegExp(r'\d').hasMatch(value)) {
+      missing.add('un chiffre');
+    }
+    
+    if (!RegExp(r'[@$!%*?&]').hasMatch(value)) {
+      missing.add('un caractère spécial (@, !, %, *, ?, &)');
+    }
+    
+    if (missing.isNotEmpty) {
+      if (missing.length == 1) {
+        return 'Il manque ${missing.first}';
+      } else if (missing.length == 2) {
+        return 'Il manque ${missing.join(' et ')}';
+      } else {
+        return 'Il manque ${missing.sublist(0, missing.length - 1).join(', ')} et ${missing.last}';
+      }
+    }
+    
     return null;
   }
 
   String? _validateConfirmPassword(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Veuillez confirmer votre mot de passe';
+    }
+    
     if (value != _passwordController.text) {
       return 'Les mots de passe ne correspondent pas';
     }
+    
     return null;
   }
 

@@ -21,44 +21,64 @@ class DashboardHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(24),
-      child: Row(
-        children: [
-          _buildUserAvatar(),
-          const SizedBox(width: 16),
-          _buildUserInfo(),
-          _buildActionButtons(),
-        ],
+      decoration: BoxDecoration(
+        color: AppColors.primary,
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(24),
+          bottomRight: Radius.circular(24),
+        ),
+      ),
+      child: SafeArea(
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "SaarFlex",
+                  style: GoogleFonts.poppins(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.white,
+                  ),
+                ),
+                _buildActionButtons(),
+              ],
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                _buildUserAvatar(),
+                const SizedBox(width: 16),
+                _buildUserInfo(),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildUserAvatar() {
     return Container(
-      padding: const EdgeInsets.all(3),
+      width: 60,
+      height: 60,
       decoration: BoxDecoration(
-        gradient: AppColors.secondaryGradient,
-        borderRadius: BorderRadius.circular(24),
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.secondary.withOpacity(0.3),
-            spreadRadius: 2,
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.1),
+            spreadRadius: 0,
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
-      child: Container(
-        width: 70,
-        height: 70,
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(21),
-        ),
-        child: Icon(
-          Icons.person_rounded, 
-          color: AppColors.primary, 
-          size: 35
-        ),
+      child: Icon(
+        Icons.person_rounded, 
+        color: AppColors.primary, 
+        size: 30
       ),
     );
   }
@@ -85,24 +105,13 @@ class DashboardHeader extends StatelessWidget {
               color: AppColors.white,
             ),
           ),
-          const SizedBox(height: 2),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: AppColors.white.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: AppColors.white.withOpacity(0.2),
-                width: 1,
-              ),
-            ),
-            child: Text(
-              user?.email ?? "email@example.com",
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-                color: AppColors.white.withOpacity(0.95),
-              ),
+          const SizedBox(height: 4),
+          Text(
+            user?.email ?? "email@example.com",
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: AppColors.white.withOpacity(0.8),
             ),
           ),
         ],
@@ -117,11 +126,10 @@ class DashboardHeader extends StatelessWidget {
           icon: Icons.notifications_rounded,
           onTap: onNotification,
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 12),
         _buildHeaderButton(
           icon: Icons.person_rounded, 
           onTap: onProfil,
-          isProfile: true,
         ),
       ],
     );
@@ -130,40 +138,26 @@ class DashboardHeader extends StatelessWidget {
   Widget _buildHeaderButton({
     required IconData icon,
     required VoidCallback onTap,
-    bool isProfile = false,
   }) {
     return Container(
+      width: 44,
+      height: 44,
       decoration: BoxDecoration(
-        color: isProfile 
-            ? AppColors.secondary.withOpacity(0.2)
-            : AppColors.white.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(14),
+        color: AppColors.white.withOpacity(0.2),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isProfile 
-              ? AppColors.secondary.withOpacity(0.4)
-              : AppColors.white.withOpacity(0.3), 
-          width: 1
+          color: AppColors.white.withOpacity(0.3),
+          width: 1,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: isProfile 
-                ? AppColors.secondary.withOpacity(0.2)
-                : AppColors.shadowMedium,
-            spreadRadius: 0,
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
       ),
       child: IconButton(
         icon: Icon(
           icon, 
-          color: isProfile ? AppColors.secondary : AppColors.white, 
-          size: 22
+          color: AppColors.white, 
+          size: 20
         ),
         onPressed: onTap,
-        padding: const EdgeInsets.all(10),
-        constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+        padding: EdgeInsets.zero,
       ),
     );
   }

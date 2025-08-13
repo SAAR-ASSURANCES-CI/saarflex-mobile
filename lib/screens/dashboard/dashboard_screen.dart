@@ -25,9 +25,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       builder: (context, authProvider, child) {
         return Scaffold(
           body: Container(
-            decoration: BoxDecoration(
-              gradient: AppColors.saarGradient,
-            ),
+            color: AppColors.primary,
             child: SafeArea(
               child: Column(
                 children: [
@@ -53,24 +51,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
         decoration: BoxDecoration(
           color: AppColors.background,
           borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(30),
-            topRight: Radius.circular(30),
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
           ),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.shadowMedium,
-              spreadRadius: 0,
-              blurRadius: 20,
-              offset: const Offset(0, -5),
-            ),
-          ],
         ),
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 20),
+              const SizedBox(height: 15),
               _buildWelcomeSection(authProvider),
               const SizedBox(height: 32),
               _buildStatsCards(),

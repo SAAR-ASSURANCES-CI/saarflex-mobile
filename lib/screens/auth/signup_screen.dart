@@ -39,6 +39,7 @@ class _SignupScreenState extends State<SignupScreen> {
     _phoneController.addListener(_validateForm);
     _passwordController.addListener(_validateForm);
     _confirmPasswordController.addListener(_validateForm);
+    _autovalidateMode = AutovalidateMode.always;
   }
 
   void _validateForm() {
@@ -189,6 +190,7 @@ class _SignupScreenState extends State<SignupScreen> {
           focusNode: _nameFocus,
           textInputAction: TextInputAction.next,
           validator: _validateName,
+          onChanged: (value) => _validateForm(), // Ajout de onChanged
           onFieldSubmitted: (_) => _emailFocus.requestFocus(),
           style: GoogleFonts.poppins(
             fontSize: 16,
@@ -222,6 +224,7 @@ class _SignupScreenState extends State<SignupScreen> {
           keyboardType: TextInputType.emailAddress,
           textInputAction: TextInputAction.next,
           validator: _validateEmail,
+          onChanged: (value) => _validateForm(), // Ajout de onChanged
           onFieldSubmitted: (_) => _phoneFocus.requestFocus(),
           style: GoogleFonts.poppins(
             fontSize: 16,
@@ -255,6 +258,7 @@ class _SignupScreenState extends State<SignupScreen> {
           keyboardType: TextInputType.phone,
           textInputAction: TextInputAction.next,
           validator: _validatePhone,
+          onChanged: (value) => _validateForm(), // Ajout de onChanged
           onFieldSubmitted: (_) => _passwordFocus.requestFocus(),
           style: GoogleFonts.poppins(
             fontSize: 16,
@@ -288,6 +292,7 @@ class _SignupScreenState extends State<SignupScreen> {
           obscureText: _obscurePassword,
           textInputAction: TextInputAction.next,
           validator: _validatePassword,
+          onChanged: (value) => _validateForm(), // Ajout de onChanged
           onFieldSubmitted: (_) => _confirmPasswordFocus.requestFocus(),
           style: GoogleFonts.poppins(
             fontSize: 16,
@@ -332,6 +337,7 @@ class _SignupScreenState extends State<SignupScreen> {
           obscureText: _obscureConfirmPassword,
           textInputAction: TextInputAction.done,
           validator: _validateConfirmPassword,
+          onChanged: (value) => _validateForm(), // Ajout de onChanged
           style: GoogleFonts.poppins(
             fontSize: 16,
             color: AppColors.textPrimary,
@@ -455,10 +461,6 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 
   Future<void> _handleSignup(AuthProvider authProvider) async {
-    setState(() {
-      _autovalidateMode = AutovalidateMode.onUserInteraction;
-    });
-
     if (!_formKey.currentState!.validate() || !_acceptTerms) {
       if (!_acceptTerms) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -491,52 +493,130 @@ class _SignupScreenState extends State<SignupScreen> {
 
   String? _validateName(String? value) {
     if (value == null || value.trim().isEmpty) {
-      return 'Le nom est obligatoire';
+      return 'Veuillez saisir votre nom complet';
     }
     if (value.trim().length < 2) {
-      return 'Au moins 2 caractères requis';
+      return 'Le nom doit contenir au moins 2 caractères';
+    }
+    if (value.trim().length > 50) {
+      return 'Le nom ne doit pas dépasser 50 caractères';
+    }
+    // Vérification que le nom contient au moins des lettres
+    if (!RegExp(r'[a-zA-ZÀ-ÿ]').hasMatch(value)) {
+      return 'Le nom doit contenir au moins une lettre';
     }
     return null;
   }
 
   String? _validateEmail(String? value) {
     if (value == null || value.trim().isEmpty) {
-      return 'L\'email est obligatoire';
+      return 'Veuillez saisir votre adresse email';
     }
-    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value.trim())) {
-      return 'Format d\'email invalide';
+
+    final cleanValue = value.trim();
+    
+    // Vérification de la présence du @
+    if (!cleanValue.contains('@')) {
+      return 'L\'email doit contenir le symbole @';
     }
+    
+    // Vérification de la structure générale
+    if (cleanValue.startsWith('@') || cleanValue.endsWith('@')) {
+      return 'Format incorrect : exemple@domaine.com';
+    }
+    
+    // Vérification du domaine
+    final parts = cleanValue.split('@');
+    if (parts.length != 2 || parts[0].isEmpty || parts[1].isEmpty) {
+      return 'Format incorrect : exemple@domaine.com';
+    }
+    
+    // Vérification de l'extension du domaine
+    if (!parts[1].contains('.') || parts[1].endsWith('.') || parts[1].startsWith('.')) {
+      return 'Domaine invalide : exemple@domaine.com';
+    }
+    
+    // Validation complète avec regex
+    if (!RegExp(r'^[\w\.-]+@[\w\.-]+\.[a-zA-Z]{2,}$').hasMatch(cleanValue)) {
+      return 'Adresse email invalide';
+    }
+    
     return null;
   }
 
   String? _validatePhone(String? value) {
     if (value == null || value.trim().isEmpty) {
-      return 'Le téléphone est obligatoire';
+      return 'Veuillez saisir votre numéro de téléphone';
     }
-    String cleanPhone = value.replaceAll(RegExp(r'[\s-]'), '');
-    if (cleanPhone.length < 8) {
-      return 'Numéro trop court';
+    
+    String cleanPhone = value.replaceAll(RegExp(r'[\s\-\(\)\+]'), '');
+    
+    if (cleanPhone.length < 10) {
+      return 'Le numéro doit contenir au moins 10 chiffres';
     }
+    
+    if (cleanPhone.length > 15) {
+      return 'Le numéro ne doit pas dépasser 15 chiffres';
+    }
+    
+    // Vérification que le numéro ne contient que des chiffres
+    if (!RegExp(r'^[0-9]+$').hasMatch(cleanPhone)) {
+      return 'Le numéro ne doit contenir que des chiffres';
+    }
+    
     return null;
   }
 
   String? _validatePassword(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Le mot de passe est obligatoire';
+      return 'Veuillez saisir votre mot de passe';
     }
-    if (value.length < 6) {
-      return 'Au moins 6 caractères requis';
+    
+    if (value.length < 8) {
+      return 'Le mot de passe doit contenir au moins 8 caractères';
     }
+    
+    // Vérification des caractères requis
+    List<String> missing = [];
+    
+    if (!RegExp(r'[a-z]').hasMatch(value)) {
+      missing.add('une minuscule');
+    }
+    
+    if (!RegExp(r'[A-Z]').hasMatch(value)) {
+      missing.add('une majuscule');
+    }
+    
+    if (!RegExp(r'\d').hasMatch(value)) {
+      missing.add('un chiffre');
+    }
+    
+    if (!RegExp(r'[@$!%*?&]').hasMatch(value)) {
+      missing.add('un caractère spécial (@, !, %, *, ?, &)');
+    }
+    
+    if (missing.isNotEmpty) {
+      if (missing.length == 1) {
+        return 'Il manque ${missing.first}';
+      } else if (missing.length == 2) {
+        return 'Il manque ${missing.join(' et ')}';
+      } else {
+        return 'Il manque ${missing.sublist(0, missing.length - 1).join(', ')} et ${missing.last}';
+      }
+    }
+    
     return null;
   }
 
   String? _validateConfirmPassword(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Confirmer le mot de passe';
+      return 'Veuillez confirmer votre mot de passe';
     }
+    
     if (value != _passwordController.text) {
       return 'Les mots de passe ne correspondent pas';
     }
+    
     return null;
   }
 

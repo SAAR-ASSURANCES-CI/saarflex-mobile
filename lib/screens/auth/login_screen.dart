@@ -17,7 +17,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-
+  
   bool _obscurePassword = true;
   bool _rememberMe = false;
   bool _isFormValid = false;
@@ -31,6 +31,7 @@ class _LoginScreenState extends State<LoginScreen> {
     super.initState();
     _emailController.addListener(_validateForm);
     _passwordController.addListener(_validateForm);
+    _autovalidateMode = AutovalidateMode.always;
   }
 
   void _validateForm() {
@@ -180,6 +181,7 @@ class _LoginScreenState extends State<LoginScreen> {
           keyboardType: TextInputType.emailAddress,
           textInputAction: TextInputAction.next,
           validator: _validateEmail,
+          onChanged: (value) => _validateForm(), // Ajout de onChanged
           onFieldSubmitted: (_) => _passwordFocus.requestFocus(),
           style: GoogleFonts.poppins(
             fontSize: 16,
@@ -233,6 +235,7 @@ class _LoginScreenState extends State<LoginScreen> {
           obscureText: _obscurePassword,
           textInputAction: TextInputAction.done,
           validator: _validatePassword,
+          onChanged: (value) => _validateForm(), // Ajout de onChanged
           style: GoogleFonts.poppins(
             fontSize: 16,
             color: AppColors.textPrimary,
@@ -435,29 +438,82 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  String? _validateEmail(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'Email obligatoire';
-    }
-
-    final cleanValue = value.trim();
-    if (cleanValue.contains('@')) {
-      if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(cleanValue)) {
-        return 'Format d\'email invalide';
-      }
-    }
-    return null;
+ String? _validateEmail(String? value) {
+  if (value == null || value.trim().isEmpty) {
+    return 'Veuillez saisir votre adresse email';
   }
 
-  String? _validatePassword(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Le mot de passe est obligatoire';
-    }
-    if (value.length < 6) {
-      return 'Au moins 6 caractères requis';
-    }
-    return null;
+  final cleanValue = value.trim();
+  
+  // Vérification de la présence du @
+  if (!cleanValue.contains('@')) {
+    return 'L\'email doit contenir le symbole @';
   }
+  
+  // Vérification de la structure générale
+  if (cleanValue.startsWith('@') || cleanValue.endsWith('@')) {
+    return 'Format incorrect : exemple@domaine.com';
+  }
+  
+  // Vérification du domaine
+  final parts = cleanValue.split('@');
+  if (parts.length != 2 || parts[0].isEmpty || parts[1].isEmpty) {
+    return 'Format incorrect : exemple@domaine.com';
+  }
+  
+  // Vérification de l'extension du domaine
+  if (!parts[1].contains('.') || parts[1].endsWith('.') || parts[1].startsWith('.')) {
+    return 'Domaine invalide : exemple@domaine.com';
+  }
+  
+  // Validation complète avec regex
+  if (!RegExp(r'^[\w\.-]+@[\w\.-]+\.[a-zA-Z]{2,}$').hasMatch(cleanValue)) {
+    return 'Adresse email invalide';
+  }
+  
+  return null;
+}
+
+String? _validatePassword(String? value) {
+  if (value == null || value.isEmpty) {
+    return 'Veuillez saisir votre mot de passe';
+  }
+  
+  if (value.length < 8) {
+    return 'Le mot de passe doit contenir au moins 8 caractères';
+  }
+  
+  // Vérification des caractères requis
+  List<String> missing = [];
+  
+  if (!RegExp(r'[a-z]').hasMatch(value)) {
+    missing.add('une minuscule');
+  }
+  
+  if (!RegExp(r'[A-Z]').hasMatch(value)) {
+    missing.add('une majuscule');
+  }
+  
+  if (!RegExp(r'\d').hasMatch(value)) {
+    missing.add('un chiffre');
+  }
+  
+  if (!RegExp(r'[@$!%*?&]').hasMatch(value)) {
+    missing.add('un caractère spécial (@, !, %, *, ?, &)');
+  }
+  
+  if (missing.isNotEmpty) {
+    if (missing.length == 1) {
+      return 'Il manque ${missing.first}';
+    } else if (missing.length == 2) {
+      return 'Il manque ${missing.join(' et ')}';
+    } else {
+      return 'Il manque ${missing.sublist(0, missing.length - 1).join(', ')} et ${missing.last}';
+    }
+  }
+  
+  return null;
+}
 
   @override
   void dispose() {

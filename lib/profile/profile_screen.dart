@@ -86,42 +86,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
         final user = authProvider.currentUser;
 
         return Scaffold(
-          body: Container(
-            decoration: BoxDecoration(
-              gradient: AppColors.saarGradient,
+          backgroundColor: AppColors.background,
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            leading: IconButton(
+              icon: Icon(Icons.arrow_back_ios_rounded, color: AppColors.textPrimary),
+              onPressed: () => Navigator.pop(context),
             ),
-            child: SafeArea(
-              child: Column(
-                children: [
-                  _buildHeader(user),
-                  Expanded(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: AppColors.background,
-                        borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(30),
-                          topRight: Radius.circular(30),
-                        ),
-                      ),
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.all(24),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 20),
-                            _buildEditButton(),
-                            const SizedBox(height: 24),
-                            _buildUserSections(user),
-                            const SizedBox(height: 32),
-                            _buildActionButtons(),
-                            const SizedBox(height: 24),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+            title: Text(
+              "Mon Profil",
+              style: GoogleFonts.poppins(
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
               ),
+            ),
+            centerTitle: true,
+          ),
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                _buildProfileHeader(user),
+                const SizedBox(height: 32),
+                _buildEditButton(),
+                const SizedBox(height: 24),
+                _buildPersonalInfoSection(user),
+                const SizedBox(height: 20),
+                _buildIdentitySection(user),
+                const SizedBox(height: 32),
+                _buildActionButtons(),
+                const SizedBox(height: 20),
+              ],
             ),
           ),
         );
@@ -129,194 +126,112 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildHeader(User? user) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                  color: AppColors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: AppColors.white.withOpacity(0.3),
-                    width: 1,
-                  ),
-                ),
-                child: IconButton(
-                  icon: Icon(Icons.arrow_back_ios_rounded, color: AppColors.white),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Text(
-                "Mon Profil",
-                style: GoogleFonts.poppins(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.white,
-                ),
+  Widget _buildProfileHeader(User? user) {
+    return Column(
+      children: [
+        Container(
+          width: 100,
+          height: 100,
+          decoration: BoxDecoration(
+            color: AppColors.primary,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withOpacity(0.2),
+                spreadRadius: 0,
+                blurRadius: 20,
+                offset: const Offset(0, 8),
               ),
             ],
           ),
-
-          const SizedBox(height: 32),
-
-          Container(
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              gradient: AppColors.secondaryGradient,
-              borderRadius: BorderRadius.circular(68),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.shadowMedium,
-                  spreadRadius: 3,
-                  blurRadius: 20,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            child: Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(64),
-              ),
-              child: Icon(
-                Icons.person_rounded,
-                color: AppColors.primary,
-                size: 60,
-              ),
-            ),
+          child: Icon(
+            Icons.person_rounded,
+            color: AppColors.white,
+            size: 50,
           ),
-
-          const SizedBox(height: 20),
-
-          Text(
-            user?.nom ?? "Utilisateur",
-            style: GoogleFonts.poppins(
-              fontSize: 28,
-              fontWeight: FontWeight.w700,
-              color: AppColors.white,
-            ),
+        ),
+        const SizedBox(height: 16),
+        Text(
+          user?.nom ?? "Utilisateur",
+          style: GoogleFonts.poppins(
+            fontSize: 24,
+            fontWeight: FontWeight.w700,
+            color: AppColors.textPrimary,
           ),
-
-          const SizedBox(height: 8),
-
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: AppColors.white.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: AppColors.white.withOpacity(0.2),
-                width: 1,
-              ),
-            ),
-            child: Text(
-              user?.email ?? "Email non renseigné",
-              style: GoogleFonts.poppins(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: AppColors.white.withOpacity(0.95),
-              ),
-            ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          user?.email ?? "Email non renseigné",
+          style: GoogleFonts.poppins(
+            fontSize: 16,
+            fontWeight: FontWeight.w400,
+            color: AppColors.textSecondary,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
   Widget _buildEditButton() {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.secondary.withOpacity(0.3),
-            spreadRadius: 0,
-            blurRadius: 15,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: ElevatedButton(
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton.icon(
         onPressed: () {
           Navigator.push(
             context,
             MaterialPageRoute(builder: (_) => const EditProfileScreen()),
           );
         },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.secondary,
-          foregroundColor: AppColors.textPrimary,
-          minimumSize: const Size(double.infinity, 56),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+        icon: const Icon(Icons.edit_rounded, size: 18),
+        label: Text(
+          "Modifier mon profil",
+          style: GoogleFonts.poppins(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
           ),
-          elevation: 0,
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.edit_rounded, size: 20),
-            const SizedBox(width: 8),
-            Text(
-              "Modifier mon profil",
-              style: GoogleFonts.poppins(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.5,
-              ),
-            ),
-          ],
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          foregroundColor: AppColors.white,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          elevation: 2,
         ),
       ),
     );
   }
 
-  Widget _buildUserSections(User? user) {
-    return Column(
+  Widget _buildPersonalInfoSection(User? user) {
+    return _buildSection(
+      title: "Informations personnelles",
+      icon: Icons.person_rounded,
       children: [
-        _buildSection(
-          title: "Informations personnelles",
-          icon: Icons.person_rounded,
-          fields: [
-            _buildInfoField("Nom", user?.nom ?? "Non renseigné"),
-            _buildInfoField("Email", user?.email ?? "Non renseigné"),
-            _buildInfoField("Téléphone", user?.telephone ?? "Non renseigné"),
-            _buildInfoField("Sexe", user?.sexe ?? "Non renseigné"),
-            _buildInfoField(
-              "Lieu de naissance",
-              user?.lieuNaissance ?? "Non renseigné",
-            ),
-            _buildInfoField(
-              "Nationalité",
-              user?.nationalite ?? "Non renseignée",
-            ),
-            _buildInfoField("Profession", user?.profession ?? "Non renseignée"),
-            _buildInfoField("Adresse", user?.adresse ?? "Non renseignée"),
-          ],
+        _buildInfoRow("Nom", user?.nom ?? "Non renseigné"),
+        _buildInfoRow("Email", user?.email ?? "Non renseigné"),
+        _buildInfoRow("Téléphone", user?.telephone ?? "Non renseigné"),
+        _buildInfoRow("Sexe", user?.sexe ?? "Non renseigné"),
+        _buildInfoRow("Lieu de naissance", user?.lieuNaissance ?? "Non renseigné"),
+        _buildInfoRow("Nationalité", user?.nationalite ?? "Non renseignée"),
+        _buildInfoRow("Profession", user?.profession ?? "Non renseignée"),
+        _buildInfoRow("Adresse", user?.adresse ?? "Non renseignée"),
+      ],
+    );
+  }
+
+  Widget _buildIdentitySection(User? user) {
+    return _buildSection(
+      title: "Informations d'identité",
+      icon: Icons.badge_rounded,
+      children: [
+        _buildInfoRow(
+          "Type de pièce",
+          _getTypePieceIdentiteLabel(user?.typePieceIdentite),
         ),
-
-        const SizedBox(height: 24),
-
-        _buildSection(
-          title: "Informations d'identité",
-          icon: Icons.badge_rounded,
-          fields: [
-            _buildInfoField(
-              "Type de pièce",
-              _getTypePieceIdentiteLabel(user?.typePieceIdentite),
-            ),
-            _buildInfoField(
-              "Numéro de pièce",
-              user?.numeroPieceIdentite ?? "Non renseigné",
-            ),
-          ],
+        _buildInfoRow(
+          "Numéro de pièce",
+          user?.numeroPieceIdentite ?? "Non renseigné",
         ),
       ],
     );
@@ -325,57 +240,43 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildSection({
     required String title,
     required IconData icon,
-    required List<Widget> fields,
+    required List<Widget> children,
   }) {
     return Container(
+      width: double.infinity,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
         color: AppColors.surface,
-        border: Border.all(color: AppColors.border, width: 1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
         boxShadow: [
           BoxShadow(
             color: AppColors.shadow,
             spreadRadius: 0,
-            blurRadius: 10,
+            blurRadius: 8,
             offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
+          Padding(
             padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  AppColors.primary.withOpacity(0.05),
-                  AppColors.secondary.withOpacity(0.05),
-                ],
-              ),
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(20),
-                topRight: Radius.circular(20),
-              ),
-            ),
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    gradient: AppColors.primaryGradient,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.primary.withOpacity(0.3),
-                        spreadRadius: 0,
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
+                    color: AppColors.primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(icon, color: AppColors.white, size: 20),
+                  child: Icon(
+                    icon,
+                    color: AppColors.primary,
+                    size: 20,
+                  ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 12),
                 Text(
                   title,
                   style: GoogleFonts.poppins(
@@ -387,24 +288,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ],
             ),
           ),
+          const Divider(height: 1),
           Padding(
             padding: const EdgeInsets.all(20),
-            child: Column(children: fields),
+            child: Column(children: children),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildInfoField(String label, String value) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceVariant,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.borderLight),
-      ),
+  Widget _buildInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -425,7 +321,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: Text(
               value,
               style: GoogleFonts.poppins(
-                fontSize: 15,
+                fontSize: 14,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textPrimary,
               ),
@@ -439,90 +335,48 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildActionButtons() {
     return Column(
       children: [
-        Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.warning.withOpacity(0.3), width: 2),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.warning.withOpacity(0.1),
-                spreadRadius: 0,
-                blurRadius: 10,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: ElevatedButton(
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
             onPressed: () => _changePassword(),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.surface,
-              foregroundColor: AppColors.warning,
-              minimumSize: const Size(double.infinity, 56),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+            icon: const Icon(Icons.lock_reset_rounded, size: 18),
+            label: Text(
+              "Changer le mot de passe",
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
               ),
-              elevation: 0,
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.lock_reset_rounded, size: 20),
-                const SizedBox(width: 8),
-                Text(
-                  "Changer le mot de passe",
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ],
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.warning,
+              side: BorderSide(color: AppColors.warning),
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
           ),
         ),
-
-        const SizedBox(height: 16),
-
-        Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.error.withOpacity(0.3), width: 2),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.error.withOpacity(0.1),
-                spreadRadius: 0,
-                blurRadius: 10,
-                offset: const Offset(0, 2),
+        const SizedBox(height: 12),
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: () => _showLogoutDialog(),
+            icon: const Icon(Icons.logout_rounded, size: 18),
+            label: Text(
+              "Se déconnecter",
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
               ),
-            ],
-          ),
-          child: ElevatedButton(
-            onPressed: () {
-              _showLogoutDialog();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.surface,
-              foregroundColor: AppColors.error,
-              minimumSize: const Size(double.infinity, 56),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              elevation: 0,
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.logout_rounded, size: 20),
-                const SizedBox(width: 8),
-                Text(
-                  "Se déconnecter",
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ],
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.error,
+              side: BorderSide(color: AppColors.error),
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
           ),
         ),

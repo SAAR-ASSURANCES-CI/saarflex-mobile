@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-// import 'package:saarflex_app/screens/auth/otp_verification_screen.dart';
 import '../../../constants/colors.dart';
 import '../../../providers/auth_provider.dart';
 import 'reset_password_widgets.dart';
