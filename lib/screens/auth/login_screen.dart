@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:saarflex_app/screens/auth/reset_password_screen.dart';
 import 'package:saarflex_app/screens/auth/signup_screen.dart';
-import 'package:saarflex_app/widgets/form_helpers.dart';
 import '../../constants/colors.dart';
 import '../../providers/auth_provider.dart';
 
@@ -46,326 +45,49 @@ class _LoginScreenState extends State<LoginScreen> {
     return Consumer<AuthProvider>(
       builder: (context, authProvider, child) {
         return Scaffold(
-          body: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  AppColors.primary.withOpacity(0.1),
-                  AppColors.white,
-                  AppColors.white,
-                ],
+          backgroundColor: AppColors.background,
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            leading: IconButton(
+              icon: Icon(Icons.arrow_back, color: AppColors.primary),
+              onPressed: () => Navigator.pop(context),
+            ),
+            title: Text(
+              "Se connecter",
+              style: GoogleFonts.poppins(
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
               ),
             ),
-            child: SafeArea(
+          ),
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Form(
+              key: _formKey,
+              autovalidateMode: _autovalidateMode,
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.all(10),
-                    child: AppBar(
-                      backgroundColor: Colors.transparent,
-                      elevation: 0,
-                      foregroundColor: AppColors.primary,
-                      title: Text(
-                        "Se connecter",
-                        style: GoogleFonts.poppins(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w500,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                    ),
-                  ),
+                  const SizedBox(height: 20),
+                  _buildHeader(),
+                  const SizedBox(height: 40),
 
                   if (authProvider.errorMessage != null)
-                    Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 24),
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.red[50],
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.red[200]!),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.error_outline,
-                            color: Colors.red,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              authProvider.errorMessage!,
-                              style: GoogleFonts.poppins(
-                                color: Colors.red[700],
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    _buildErrorMessage(authProvider.errorMessage!),
 
-                  Expanded(
-                    child: Form(
-                      key: _formKey,
-                      autovalidateMode: _autovalidateMode,
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Center(
-                              child: Container(
-                                padding: const EdgeInsets.all(20),
-                                decoration: BoxDecoration(
-                                  color: AppColors.primary.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(
-                                    color: AppColors.primary.withOpacity(0.2),
-                                    width: 1,
-                                  ),
-                                ),
-                                child: Icon(
-                                  Icons.login_rounded,
-                                  size: 50,
-                                  color: AppColors.primary,
-                                ),
-                              ),
-                            ),
-
-                            const SizedBox(height: 32),
-
-                            Center(
-                              child: Column(
-                                children: [
-                                  Text(
-                                    "Bon retour !",
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 28,
-                                      fontWeight: FontWeight.w700,
-                                      color: AppColors.primary,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    "Connectez-vous à votre compte SAAR",
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w400,
-                                      color: AppColors.primary.withOpacity(0.7),
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ],
-                              ),
-                            ),
-
-                            const SizedBox(height: 40),
-
-                            Text(
-                              "Identifiants",
-                              style: GoogleFonts.poppins(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.primary,
-                              ),
-                            ),
-
-                            const SizedBox(height: 16),
-
-                            _buildModernTextFormField(
-                              controller: _emailController,
-                              focusNode: _emailFocus,
-                              nextFocusNode: _passwordFocus,
-                              label: 'Email',
-                              icon: Icons.contact_page_rounded,
-                              keyboardType: TextInputType.emailAddress,
-                              validator: _validateEmail,
-                            ),
-
-                            const SizedBox(height: 16),
-
-                            _buildModernTextFormField(
-                              controller: _passwordController,
-                              focusNode: _passwordFocus,
-                              label: 'Mot de passe',
-                              icon: Icons.lock_rounded,
-                              obscureText: _obscurePassword,
-                              validator: _validatePassword,
-                              textInputAction: TextInputAction.done,
-                              suffixIcon: IconButton(
-                                icon: Icon(
-                                  _obscurePassword
-                                      ? Icons.visibility_rounded
-                                      : Icons.visibility_off_rounded,
-                                  color: AppColors.primary.withOpacity(0.7),
-                                ),
-                                onPressed: () {
-                                  setState(() {
-                                    _obscurePassword = !_obscurePassword;
-                                  });
-                                },
-                              ),
-                            ),
-
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Row(
-                                    children: [
-                                      Checkbox(
-                                        value: _rememberMe,
-                                        onChanged: (value) {
-                                          setState(() {
-                                            _rememberMe = value ?? false;
-                                          });
-                                        },
-                                        activeColor: AppColors.primary,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            4,
-                                          ),
-                                        ),
-                                      ),
-                                      Flexible(
-                                        child: Text(
-                                          "Se souvenir de moi",
-                                          style: GoogleFonts.poppins(
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.w500,
-                                            color: AppColors.primary,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) =>
-                                            const ResetPasswordScreen(),
-                                      ),
-                                    );
-                                  },
-                                  child: Text(
-                                    "Mot de passe oublié ?",
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.primary,
-                                      decoration: TextDecoration.underline,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-
-                            const SizedBox(height: 20),
-
-                            _buildModernButton(
-                              text: "Se connecter",
-                              onPressed: _isFormValid
-                                  ? () => _handleLogin(authProvider)
-                                  : null,
-                              icon: Icons.login_rounded,
-                              isEnabled: _isFormValid,
-                              isLoading: authProvider.isLoading,
-                            ),
-
-                            const SizedBox(height: 20),
-
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Container(
-                                    height: 1,
-                                    color: AppColors.primary.withOpacity(0.3),
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                  ),
-                                  child: Text(
-                                    "OU",
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.primary.withOpacity(0.7),
-                                    ),
-                                  ),
-                                ),
-                                Expanded(
-                                  child: Container(
-                                    height: 1,
-                                    color: AppColors.primary.withOpacity(0.3),
-                                  ),
-                                ),
-                              ],
-                            ),
-
-                            const SizedBox(height: 20),
-
-                            Container(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(15),
-                                border: Border.all(
-                                  color: AppColors.primary.withOpacity(0.3),
-                                  width: 2,
-                                ),
-                              ),
-                              child: ElevatedButton(
-                                onPressed: authProvider.isLoading
-                                    ? null
-                                    : () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (_) =>
-                                                const SignupScreen(),
-                                          ),
-                                        );
-                                      },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.transparent,
-                                  foregroundColor: AppColors.primary,
-                                  minimumSize: const Size(double.infinity, 56),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(15),
-                                  ),
-                                  elevation: 0,
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(Icons.person_add_rounded, size: 20),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      "Créer un compte",
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
-                                        letterSpacing: 0.5,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-
-                            const SizedBox(height: 24),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
+                  _buildEmailField(),
+                  const SizedBox(height: 20),
+                  _buildPasswordField(),
+                  const SizedBox(height: 16),
+                  _buildRememberMeAndForgotPassword(),
+                  const SizedBox(height: 40),
+                  _buildLoginButton(authProvider),
+                  const SizedBox(height: 24),
+                  _buildDivider(),
+                  const SizedBox(height: 24),
+                  _buildSignupButton(authProvider),
                 ],
               ),
             ),
@@ -375,217 +97,343 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildModernTextFormField({
-    required TextEditingController controller,
-    required String label,
-    required IconData icon,
-    required String? Function(String?) validator,
-    FocusNode? focusNode,
-    FocusNode? nextFocusNode,
-    bool obscureText = false,
-    Widget? suffixIcon,
-    TextInputType? keyboardType,
-    TextInputAction? textInputAction,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: TextFormField(
-        controller: controller,
-        focusNode: focusNode,
-        obscureText: obscureText,
-        keyboardType: keyboardType,
-        textInputAction:
-            textInputAction ??
-            (nextFocusNode != null
-                ? TextInputAction.next
-                : TextInputAction.done),
-        validator: validator,
-        onFieldSubmitted: (_) {
-          if (nextFocusNode != null) {
-            FocusScope.of(context).requestFocus(nextFocusNode);
-          } else {
-            FocusScope.of(context).unfocus();
-          }
-        },
-        style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w500),
-        decoration: InputDecoration(
-          labelText: label,
-          labelStyle: GoogleFonts.poppins(
-            color: AppColors.primary.withOpacity(0.7),
-            fontWeight: FontWeight.w500,
-          ),
-          prefixIcon: Container(
-            margin: const EdgeInsets.all(12),
-            padding: const EdgeInsets.all(8),
+  Widget _buildHeader() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Center(
+          child: Container(
+            width: 60,
+            height: 60,
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10),
+              color: AppColors.primary,
+              borderRadius: BorderRadius.circular(16),
             ),
-            child: Icon(icon, color: AppColors.primary, size: 20),
-          ),
-          suffixIcon: suffixIcon,
-          filled: true,
-          fillColor: AppColors.white,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15),
-            borderSide: BorderSide(
-              color: AppColors.primary.withOpacity(0.2),
-              width: 1,
-            ),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15),
-            borderSide: BorderSide(
-              color: AppColors.primary.withOpacity(0.2),
-              width: 1,
-            ),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15),
-            borderSide: BorderSide(color: AppColors.primary, width: 2),
-          ),
-          errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15),
-            borderSide: BorderSide(color: Colors.red, width: 1),
-          ),
-          focusedErrorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15),
-            borderSide: BorderSide(color: Colors.red, width: 2),
-          ),
-          errorStyle: GoogleFonts.poppins(
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-            color: Colors.red,
-          ),
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 16,
+            child: Icon(Icons.login, color: AppColors.white, size: 28),
           ),
         ),
+        const SizedBox(height: 24),
+        Text(
+          "Bon retour !",
+          style: GoogleFonts.poppins(
+            fontSize: 28,
+            fontWeight: FontWeight.w700,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          "Connectez-vous à votre compte SAAR",
+          style: GoogleFonts.poppins(
+            fontSize: 16,
+            color: AppColors.textSecondary,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildErrorMessage(String message) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.error.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.error.withOpacity(0.3)),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.error_outline, color: AppColors.error, size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              message,
+              style: GoogleFonts.poppins(
+                color: AppColors.error,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildModernButton({
-    required String text,
-    required VoidCallback? onPressed,
-    required IconData icon,
-    required bool isEnabled,
-    required bool isLoading,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: isEnabled && !isLoading
-            ? [
-                BoxShadow(
-                  color: AppColors.primary.withOpacity(0.3),
-                  spreadRadius: 2,
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
+  Widget _buildEmailField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "Email",
+          style: GoogleFonts.poppins(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: _emailController,
+          focusNode: _emailFocus,
+          keyboardType: TextInputType.emailAddress,
+          textInputAction: TextInputAction.next,
+          validator: _validateEmail,
+          onFieldSubmitted: (_) => _passwordFocus.requestFocus(),
+          style: GoogleFonts.poppins(
+            fontSize: 16,
+            color: AppColors.textPrimary,
+          ),
+          decoration: InputDecoration(
+            hintText: 'Votre adresse email',
+            hintStyle: GoogleFonts.poppins(color: AppColors.textHint),
+            prefixIcon: Icon(Icons.email_outlined, color: AppColors.primary),
+            filled: true,
+            fillColor: AppColors.surface,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: AppColors.border),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: AppColors.border),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: AppColors.primary, width: 2),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: AppColors.error),
+            ),
+            contentPadding: const EdgeInsets.all(16),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPasswordField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "Mot de passe",
+          style: GoogleFonts.poppins(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: _passwordController,
+          focusNode: _passwordFocus,
+          obscureText: _obscurePassword,
+          textInputAction: TextInputAction.done,
+          validator: _validatePassword,
+          style: GoogleFonts.poppins(
+            fontSize: 16,
+            color: AppColors.textPrimary,
+          ),
+          decoration: InputDecoration(
+            hintText: 'Votre mot de passe',
+            hintStyle: GoogleFonts.poppins(color: AppColors.textHint),
+            prefixIcon: Icon(Icons.lock_outline, color: AppColors.primary),
+            suffixIcon: IconButton(
+              icon: Icon(
+                _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                color: AppColors.textSecondary,
+              ),
+              onPressed: () {
+                setState(() {
+                  _obscurePassword = !_obscurePassword;
+                });
+              },
+            ),
+            filled: true,
+            fillColor: AppColors.surface,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: AppColors.border),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: AppColors.border),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: AppColors.primary, width: 2),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: AppColors.error),
+            ),
+            contentPadding: const EdgeInsets.all(16),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRememberMeAndForgotPassword() {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          Row(
+            children: [
+              Checkbox(
+                value: _rememberMe,
+                onChanged: (value) {
+                  setState(() {
+                    _rememberMe = value ?? false;
+                  });
+                },
+                activeColor: AppColors.primary,
+              ),
+              Text(
+                "Se souvenir de moi",
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  color: AppColors.textSecondary,
                 ),
-              ]
-            : null,
+              ),
+            ],
+          ),
+          // const Spacer(),
+          TextButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ResetPasswordScreen()),
+              );
+            },
+            child: Text(
+              "Mot de passe oublié ?",
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: AppColors.primary,
+              ),
+            ),
+          ),
+        ],
       ),
+    );
+  }
+
+  Widget _buildLoginButton(AuthProvider authProvider) {
+    return SizedBox(
+      width: double.infinity,
+      height: 50,
       child: ElevatedButton(
-        onPressed: isLoading ? null : onPressed,
+        onPressed: authProvider.isLoading || !_isFormValid
+            ? null
+            : () => _handleLogin(authProvider),
         style: ElevatedButton.styleFrom(
-          backgroundColor: isEnabled ? AppColors.primary : Colors.grey[300],
-          foregroundColor: isEnabled ? AppColors.white : Colors.grey[600],
-          minimumSize: const Size(double.infinity, 56),
+          backgroundColor: _isFormValid
+              ? AppColors.primary
+              : AppColors.disabled,
+          foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
+            borderRadius: BorderRadius.circular(12),
           ),
           elevation: 0,
         ),
-        child: isLoading
-            ? Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        AppColors.white,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    "Connexion...",
-                    style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                ],
+        child: authProvider.isLoading
+            ? SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
               )
-            : Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(icon, size: 20),
-                  const SizedBox(width: 8),
-                  Text(
-                    text,
-                    style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                ],
+            : Text(
+                "Se connecter",
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
       ),
     );
   }
 
-  Future<void> _handleLogin(AuthProvider authProvider) async {
-  setState(() {
-    _autovalidateMode = AutovalidateMode.onUserInteraction;
-  });
-
-  if (!_formKey.currentState!.validate()) {
-    FormHelpers.showErrorSnackBar(context, 'Veuillez corriger les erreurs du formulaire');
-    return;
+  Widget _buildDivider() {
+    return Row(
+      children: [
+        Expanded(child: Container(height: 1, color: AppColors.border)),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Text(
+            "OU",
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: AppColors.textSecondary,
+            ),
+          ),
+        ),
+        Expanded(child: Container(height: 1, color: AppColors.border)),
+      ],
+    );
   }
 
-  FormHelpers.showLoadingDialog(
-    context,
-    title: "Connexion...",
-    subtitle: "Vérification de vos identifiants",
-  );
+  Widget _buildSignupButton(AuthProvider authProvider) {
+    return SizedBox(
+      width: double.infinity,
+      height: 50,
+      child: OutlinedButton(
+        onPressed: authProvider.isLoading
+            ? null
+            : () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const SignupScreen()),
+                );
+              },
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppColors.primary,
+          side: BorderSide(color: AppColors.primary),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+        child: Text(
+          "Créer un compte",
+          style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600),
+        ),
+      ),
+    );
+  }
 
-  try {
+  Future<void> _handleLogin(AuthProvider authProvider) async {
+    setState(() {
+      _autovalidateMode = AutovalidateMode.onUserInteraction;
+    });
+
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
     final success = await authProvider.login(
       email: _emailController.text.trim(),
       password: _passwordController.text,
     );
 
-    if (mounted) FormHelpers.hideLoadingDialog(context);
-
     if (success) {
-      FormHelpers.showSuccessSnackBar(context, 'Connexion réussie !');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Connexion réussie !'),
+          backgroundColor: AppColors.success,
+        ),
+      );
       Navigator.pushReplacementNamed(context, '/dashboard');
     }
-  } catch (e) {
-    if (mounted) FormHelpers.hideLoadingDialog(context);
-    
-    
   }
-}
 
   String? _validateEmail(String? value) {
     if (value == null || value.trim().isEmpty) {
@@ -593,15 +441,11 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     final cleanValue = value.trim();
-
     if (cleanValue.contains('@')) {
-      if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value.trim())) {
+      if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(cleanValue)) {
         return 'Format d\'email invalide';
       }
-    } else {
-      return null;
     }
-
     return null;
   }
 
@@ -609,28 +453,10 @@ class _LoginScreenState extends State<LoginScreen> {
     if (value == null || value.isEmpty) {
       return 'Le mot de passe est obligatoire';
     }
-
-    final buffer = StringBuffer();
-
-    if (value.length < 8) {
-      buffer.writeln('• 8 caractères minimum');
+    if (value.length < 6) {
+      return 'Au moins 6 caractères requis';
     }
-    if (!value.contains(RegExp(r'[A-Z]'))) {
-      buffer.writeln('• Au moins une majuscule (A-Z)');
-    }
-    if (!value.contains(RegExp(r'[a-z]'))) {
-      buffer.writeln('• Au moins une minuscule (a-z)');
-    }
-    if (!value.contains(RegExp(r'[0-9]'))) {
-      buffer.writeln('• Au moins un chiffre (0-9)');
-    }
-    if (!value.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))) {
-      buffer.writeln('• Au moins un caractère spécial (!@#\$% etc.)');
-    }
-
-    if (buffer.isEmpty) return null;
-
-    return "Votre mot de passe doit contenir:\n${buffer.toString()}";
+    return null;
   }
 
   @override

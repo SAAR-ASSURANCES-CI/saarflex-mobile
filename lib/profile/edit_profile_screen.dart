@@ -86,15 +86,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         return Scaffold(
           body: Container(
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  AppColors.primary.withOpacity(0.1),
-                  AppColors.white,
-                  AppColors.white,
-                ],
-              ),
+              gradient: AppColors.backgroundGradient,
             ),
             child: SafeArea(
               child: Column(
@@ -103,7 +95,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   _buildErrorDisplay(authProvider),
                   Expanded(
                     child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(16),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -237,52 +229,82 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Widget _buildAppBar(AuthProvider authProvider) {
-    return Padding(
-      padding: const EdgeInsets.all(12),
-      child: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        foregroundColor: AppColors.primary,
-        title: Text(
-          "Modifier le profil",
-          style: GoogleFonts.poppins(
-            fontSize: 24,
-            fontWeight: FontWeight.w500,
-            color: AppColors.primary,
-          ),
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: AppColors.primaryGradient,
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(24),
+          bottomRight: Radius.circular(24),
         ),
-        actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 8),
-            decoration: BoxDecoration(
-              color: AppColors.secondary,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.secondary.withOpacity(0.3),
-                  spreadRadius: 1,
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: IconButton(
-              icon: _isLoading || authProvider.isLoading
-                  ? SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
-                      ),
-                    )
-                  : Icon(Icons.save_rounded, color: Colors.black),
-              onPressed: _isLoading || authProvider.isLoading
-                  ? null
-                  : _saveProfile,
-            ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.shadow,
+            spreadRadius: 1,
+            blurRadius: 10,
+            offset: const Offset(0, 2),
           ),
         ],
+      ),
+      child: SafeArea(
+        child: Row(
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: AppColors.white.withOpacity(0.3),
+                  width: 1,
+                ),
+              ),
+              child: IconButton(
+                icon: Icon(Icons.arrow_back_ios_rounded, color: AppColors.white),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                "Modifier le profil",
+                style: GoogleFonts.poppins(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.white,
+                ),
+              ),
+            ),
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.secondary,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.secondaryDark.withOpacity(0.3),
+                    spreadRadius: 1,
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: IconButton(
+                icon: _isLoading || authProvider.isLoading
+                    ? SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(AppColors.textPrimary),
+                        ),
+                      )
+                    : Icon(Icons.save_rounded, color: AppColors.textPrimary, size: 22),
+                onPressed: _isLoading || authProvider.isLoading
+                    ? null
+                    : _saveProfile,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -293,22 +315,22 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 24),
-      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.red[50],
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.red[200]!),
+        color: AppColors.errorLight.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.error.withOpacity(0.3)),
       ),
       child: Row(
         children: [
-          Icon(Icons.error_outline, color: Colors.red, size: 20),
-          const SizedBox(width: 8),
+          Icon(Icons.error_outline_rounded, color: AppColors.error, size: 22),
+          const SizedBox(width: 12),
           Expanded(
             child: Text(
               authProvider.errorMessage!,
               style: GoogleFonts.poppins(
-                color: Colors.red[700],
+                color: AppColors.error,
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
               ),
@@ -328,27 +350,27 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               Container(
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
-                  color: AppColors.white,
-                  borderRadius: BorderRadius.circular(60),
+                  gradient: AppColors.secondaryGradient,
+                  borderRadius: BorderRadius.circular(68),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.primary.withOpacity(0.2),
+                      color: AppColors.secondary.withOpacity(0.3),
                       spreadRadius: 3,
-                      blurRadius: 10,
-                      offset: const Offset(0, 3),
+                      blurRadius: 15,
+                      offset: const Offset(0, 5),
                     ),
                   ],
                 ),
                 child: Container(
-                  width: 100,
-                  height: 100,
+                  width: 120,
+                  height: 120,
                   decoration: BoxDecoration(
-                    color: AppColors.secondary,
-                    borderRadius: BorderRadius.circular(56),
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(64),
                   ),
                   child: user?.avatarUrl != null
                       ? ClipRRect(
-                          borderRadius: BorderRadius.circular(56),
+                          borderRadius: BorderRadius.circular(64),
                           child: Image.network(
                             user!.avatarUrl!,
                             fit: BoxFit.cover,
@@ -356,32 +378,28 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               return Icon(
                                 Icons.person_rounded,
                                 color: AppColors.primary,
-                                size: 50,
+                                size: 60,
                               );
                             },
                           ),
                         )
                       : Icon(
                           Icons.person_rounded,
-                          color: const Color.fromARGB(255, 255, 0, 51),
-                          size: 50,
+                          color: AppColors.primary,
+                          size: 60,
                         ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-
+          const SizedBox(height: 16),
           if (user != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Text(
-                user.nom,
-                style: GoogleFonts.poppins(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.primary,
-                ),
+            Text(
+              user.nom,
+              style: GoogleFonts.poppins(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
               ),
             ),
         ],
@@ -397,12 +415,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.primary.withOpacity(0.1), width: 1),
-        color: AppColors.white,
+        color: AppColors.surface,
+        border: Border.all(color: AppColors.border, width: 1),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.05),
-            spreadRadius: 1,
+            color: AppColors.shadow,
+            spreadRadius: 0,
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -413,8 +431,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.05),
-              borderRadius: BorderRadius.only(
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.primary.withOpacity(0.05),
+                  AppColors.secondary.withOpacity(0.05),
+                ],
+              ),
+              borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(20),
                 topRight: Radius.circular(20),
               ),
@@ -422,20 +445,28 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(10),
+                    gradient: AppColors.primaryGradient,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withOpacity(0.3),
+                        spreadRadius: 0,
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
-                  child: Icon(icon, color: AppColors.primary, size: 20),
+                  child: Icon(icon, color: AppColors.white, size: 20),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 16),
                 Text(
                   title,
                   style: GoogleFonts.poppins(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.primary,
+                    color: AppColors.textPrimary,
                   ),
                 ),
               ],
@@ -459,12 +490,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(15),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 8,
+            color: AppColors.primary.withOpacity(0.08),
+            spreadRadius: 0,
+            blurRadius: 10,
             offset: const Offset(0, 2),
           ),
         ],
@@ -473,44 +504,42 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         controller: controller,
         keyboardType: keyboardType,
         maxLines: maxLines,
-        style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w500),
+        style: GoogleFonts.poppins(
+          fontSize: 16, 
+          fontWeight: FontWeight.w500,
+          color: AppColors.textPrimary,
+        ),
         decoration: InputDecoration(
           labelText: label,
           labelStyle: GoogleFonts.poppins(
-            color: AppColors.primary.withOpacity(0.7),
+            color: AppColors.textSecondary,
             fontWeight: FontWeight.w500,
           ),
           prefixIcon: Container(
-            margin: const EdgeInsets.all(12),
-            padding: const EdgeInsets.all(8),
+            margin: const EdgeInsets.all(14),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
+              gradient: AppColors.primaryGradient,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, color: AppColors.primary, size: 20),
+            child: Icon(icon, color: AppColors.white, size: 20),
           ),
           filled: true,
-          fillColor: AppColors.white,
+          fillColor: AppColors.surface,
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15),
-            borderSide: BorderSide(
-              color: AppColors.primary.withOpacity(0.2),
-              width: 1,
-            ),
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(color: AppColors.border, width: 1),
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15),
-            borderSide: BorderSide(
-              color: AppColors.primary.withOpacity(0.2),
-              width: 1,
-            ),
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(color: AppColors.border, width: 1),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15),
+            borderRadius: BorderRadius.circular(16),
             borderSide: BorderSide(color: AppColors.primary, width: 2),
           ),
           contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
+            horizontal: 20,
             vertical: 16,
           ),
         ),
@@ -527,12 +556,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(15),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 8,
+            color: AppColors.primary.withOpacity(0.08),
+            spreadRadius: 0,
+            blurRadius: 10,
             offset: const Offset(0, 2),
           ),
         ],
@@ -547,6 +576,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               style: GoogleFonts.poppins(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
+                color: AppColors.textPrimary,
               ),
             ),
           );
@@ -555,40 +585,34 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         decoration: InputDecoration(
           labelText: label,
           labelStyle: GoogleFonts.poppins(
-            color: AppColors.primary.withOpacity(0.7),
+            color: AppColors.textSecondary,
             fontWeight: FontWeight.w500,
           ),
           prefixIcon: Container(
-            margin: const EdgeInsets.all(12),
-            padding: const EdgeInsets.all(8),
+            margin: const EdgeInsets.all(14),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
+              gradient: AppColors.primaryGradient,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, color: AppColors.primary, size: 20),
+            child: Icon(icon, color: AppColors.white, size: 20),
           ),
           filled: true,
-          fillColor: AppColors.white,
+          fillColor: AppColors.surface,
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15),
-            borderSide: BorderSide(
-              color: AppColors.primary.withOpacity(0.2),
-              width: 1,
-            ),
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(color: AppColors.border, width: 1),
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15),
-            borderSide: BorderSide(
-              color: AppColors.primary.withOpacity(0.2),
-              width: 1,
-            ),
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(color: AppColors.border, width: 1),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15),
+            borderRadius: BorderRadius.circular(16),
             borderSide: BorderSide(color: AppColors.primary, width: 2),
           ),
           contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
+            horizontal: 20,
             vertical: 16,
           ),
         ),
@@ -603,12 +627,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(15),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 8,
+            color: AppColors.primary.withOpacity(0.08),
+            spreadRadius: 0,
+            blurRadius: 10,
             offset: const Offset(0, 2),
           ),
         ],
@@ -616,48 +640,50 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       child: TextField(
         controller: controller,
         readOnly: true,
-        style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w500),
+        style: GoogleFonts.poppins(
+          fontSize: 16, 
+          fontWeight: FontWeight.w500,
+          color: AppColors.textPrimary,
+        ),
         decoration: InputDecoration(
           labelText: label,
           labelStyle: GoogleFonts.poppins(
-            color: AppColors.primary.withOpacity(0.7),
+            color: AppColors.textSecondary,
             fontWeight: FontWeight.w500,
           ),
           prefixIcon: Container(
-            margin: const EdgeInsets.all(12),
-            padding: const EdgeInsets.all(8),
+            margin: const EdgeInsets.all(14),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
+              gradient: AppColors.primaryGradient,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, color: AppColors.primary, size: 20),
+            child: Icon(icon, color: AppColors.white, size: 20),
           ),
-          suffixIcon: IconButton(
-            icon: Icon(Icons.calendar_today, color: AppColors.primary),
-            onPressed: () => _selectDate(controller),
+          suffixIcon: Container(
+            margin: const EdgeInsets.all(14),
+            child: IconButton(
+              icon: Icon(Icons.calendar_today_rounded, 
+                color: AppColors.primary, size: 20),
+              onPressed: () => _selectDate(controller),
+            ),
           ),
           filled: true,
-          fillColor: AppColors.white,
+          fillColor: AppColors.surface,
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15),
-            borderSide: BorderSide(
-              color: AppColors.primary.withOpacity(0.2),
-              width: 1,
-            ),
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(color: AppColors.border, width: 1),
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15),
-            borderSide: BorderSide(
-              color: AppColors.primary.withOpacity(0.2),
-              width: 1,
-            ),
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(color: AppColors.border, width: 1),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15),
+            borderRadius: BorderRadius.circular(16),
             borderSide: BorderSide(color: AppColors.primary, width: 2),
           ),
           contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
+            horizontal: 20,
             vertical: 16,
           ),
         ),
@@ -670,12 +696,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       children: [
         Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(15),
+            borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
                 color: AppColors.secondary.withOpacity(0.3),
-                spreadRadius: 2,
-                blurRadius: 10,
+                spreadRadius: 0,
+                blurRadius: 15,
                 offset: const Offset(0, 4),
               ),
             ],
@@ -684,10 +710,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             onPressed: _isLoading ? null : _saveProfile,
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.secondary,
-              foregroundColor: Colors.black,
+              foregroundColor: AppColors.textPrimary,
               minimumSize: const Size(double.infinity, 56),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
+                borderRadius: BorderRadius.circular(16),
               ),
               elevation: 0,
             ),
@@ -701,7 +727,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
                           valueColor: AlwaysStoppedAnimation<Color>(
-                            Colors.black,
+                            AppColors.textPrimary,
                           ),
                         ),
                       ),
@@ -737,17 +763,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
         Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(15),
-            border: Border.all(color: Colors.grey.withOpacity(0.3), width: 2),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.border, width: 2),
           ),
           child: ElevatedButton(
             onPressed: _isLoading ? null : () => Navigator.pop(context),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.transparent,
-              foregroundColor: Colors.grey[600],
+              backgroundColor: AppColors.surface,
+              foregroundColor: AppColors.textSecondary,
               minimumSize: const Size(double.infinity, 56),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
+                borderRadius: BorderRadius.circular(16),
               ),
               elevation: 0,
             ),
@@ -784,8 +810,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             colorScheme: ColorScheme.light(
               primary: AppColors.primary,
               onPrimary: AppColors.white,
-              surface: AppColors.white,
-              onSurface: AppColors.primary,
+              surface: AppColors.surface,
+              onSurface: AppColors.textPrimary,
             ),
           ),
           child: child!,
@@ -837,10 +863,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ),
               ],
             ),
-            backgroundColor: Colors.green,
+            backgroundColor: AppColors.success,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(12),
             ),
           ),
         );

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:saarflex_app/screens/auth/otp_verification_screen.dart';
+// import 'package:saarflex_app/screens/auth/otp_verification_screen.dart';
 import '../../../constants/colors.dart';
 import '../../../providers/auth_provider.dart';
 import 'reset_password_widgets.dart';
@@ -8,6 +8,8 @@ import 'reset_password_widgets.dart';
 class ResetPasswordForm extends StatefulWidget {
   final TextEditingController emailController;
   final VoidCallback onEmailSent;
+  // final TextEditingController _emailController = TextEditingController(); // Add this line
+
   final AuthProvider authProvider;
 
   const ResetPasswordForm({
@@ -158,12 +160,13 @@ class _ResetPasswordFormState extends State<ResetPasswordForm> {
     );
 
     if (success) {
-      Navigator.push(
+      Navigator.pushNamed(
         context,
-        MaterialPageRoute(
-          builder: (_) =>
-              OtpVerificationScreen(email: widget.emailController.text.trim()),
-        ),
+        '/otp-verification',
+        arguments: {
+          'email': widget.emailController.text.trim(),
+          'fromForgotPassword': true,
+        },
       );
     }
   }

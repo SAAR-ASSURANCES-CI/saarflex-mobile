@@ -35,7 +35,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           "Un code de vérification sera envoyé à votre email pour confirmer le changement de mot de passe.",
       confirmText: "Continuer",
       cancelText: "Annuler",
-      confirmColor: Colors.orange,
+      confirmColor: AppColors.warning,
       icon: Icons.lock_reset_rounded,
     );
 
@@ -88,15 +88,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         return Scaffold(
           body: Container(
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  AppColors.primary,
-                  AppColors.primary.withOpacity(0.8),
-                  AppColors.white,
-                ],
-              ),
+              gradient: AppColors.saarGradient,
             ),
             child: SafeArea(
               child: Column(
@@ -105,8 +97,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Expanded(
                     child: Container(
                       decoration: BoxDecoration(
-                        color: AppColors.white,
-                        borderRadius: BorderRadius.only(
+                        color: AppColors.background,
+                        borderRadius: const BorderRadius.only(
                           topLeft: Radius.circular(30),
                           topRight: Radius.circular(30),
                         ),
@@ -154,7 +146,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
                 child: IconButton(
-                  icon: Icon(Icons.arrow_back, color: AppColors.white),
+                  icon: Icon(Icons.arrow_back_ios_rounded, color: AppColors.white),
                   onPressed: () => Navigator.pop(context),
                 ),
               ),
@@ -170,38 +162,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ],
           ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: 32),
 
           Container(
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
-              color: AppColors.white,
-              borderRadius: BorderRadius.circular(60),
+              gradient: AppColors.secondaryGradient,
+              borderRadius: BorderRadius.circular(68),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.3),
-                  spreadRadius: 5,
-                  blurRadius: 15,
-                  offset: const Offset(0, 5),
+                  color: AppColors.shadowMedium,
+                  spreadRadius: 3,
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
                 ),
               ],
             ),
             child: Container(
-              width: 100,
-              height: 100,
+              width: 120,
+              height: 120,
               decoration: BoxDecoration(
-                color: AppColors.secondary,
-                borderRadius: BorderRadius.circular(56),
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(64),
               ),
               child: Icon(
                 Icons.person_rounded,
                 color: AppColors.primary,
-                size: 50,
+                size: 60,
               ),
             ),
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
 
           Text(
             user?.nom ?? "Utilisateur",
@@ -212,14 +204,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
 
-          const SizedBox(height: 4),
+          const SizedBox(height: 8),
 
-          Text(
-            user?.email ?? "Email non renseigné",
-            style: GoogleFonts.poppins(
-              fontSize: 16,
-              fontWeight: FontWeight.w400,
-              color: AppColors.white.withOpacity(0.9),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: AppColors.white.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: AppColors.white.withOpacity(0.2),
+                width: 1,
+              ),
+            ),
+            child: Text(
+              user?.email ?? "Email non renseigné",
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: AppColors.white.withOpacity(0.95),
+              ),
             ),
           ),
         ],
@@ -230,12 +233,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildEditButton() {
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(15),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
             color: AppColors.secondary.withOpacity(0.3),
-            spreadRadius: 2,
-            blurRadius: 10,
+            spreadRadius: 0,
+            blurRadius: 15,
             offset: const Offset(0, 4),
           ),
         ],
@@ -249,10 +252,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.secondary,
-          foregroundColor: Colors.black,
+          foregroundColor: AppColors.textPrimary,
           minimumSize: const Size(double.infinity, 56),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
+            borderRadius: BorderRadius.circular(16),
           ),
           elevation: 0,
         ),
@@ -282,7 +285,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           title: "Informations personnelles",
           icon: Icons.person_rounded,
           fields: [
-            _buildInfoField("Nom ", user?.nom ?? "Non renseigné"),
+            _buildInfoField("Nom", user?.nom ?? "Non renseigné"),
             _buildInfoField("Email", user?.email ?? "Non renseigné"),
             _buildInfoField("Téléphone", user?.telephone ?? "Non renseigné"),
             _buildInfoField("Sexe", user?.sexe ?? "Non renseigné"),
@@ -327,12 +330,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.primary.withOpacity(0.1), width: 1),
-        color: AppColors.white,
+        color: AppColors.surface,
+        border: Border.all(color: AppColors.border, width: 1),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.05),
-            spreadRadius: 1,
+            color: AppColors.shadow,
+            spreadRadius: 0,
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -343,8 +346,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.05),
-              borderRadius: BorderRadius.only(
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.primary.withOpacity(0.05),
+                  AppColors.secondary.withOpacity(0.05),
+                ],
+              ),
+              borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(20),
                 topRight: Radius.circular(20),
               ),
@@ -352,20 +360,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(10),
+                    gradient: AppColors.primaryGradient,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withOpacity(0.3),
+                        spreadRadius: 0,
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
-                  child: Icon(icon, color: AppColors.primary, size: 20),
+                  child: Icon(icon, color: AppColors.white, size: 20),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 16),
                 Text(
                   title,
                   style: GoogleFonts.poppins(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.primary,
+                    color: AppColors.textPrimary,
                   ),
                 ),
               ],
@@ -381,8 +397,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildInfoField(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceVariant,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.borderLight),
+      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -393,7 +415,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               style: GoogleFonts.poppins(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
-                color: AppColors.primary.withOpacity(0.7),
+                color: AppColors.textSecondary,
               ),
             ),
           ),
@@ -405,7 +427,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               style: GoogleFonts.poppins(
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
-                color: AppColors.primary,
+                color: AppColors.textPrimary,
               ),
             ),
           ),
@@ -419,17 +441,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
       children: [
         Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(15),
-            border: Border.all(color: Colors.orange.withOpacity(0.3), width: 2),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.warning.withOpacity(0.3), width: 2),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.warning.withOpacity(0.1),
+                spreadRadius: 0,
+                blurRadius: 10,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: ElevatedButton(
             onPressed: () => _changePassword(),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.transparent,
-              foregroundColor: Colors.orange,
+              backgroundColor: AppColors.surface,
+              foregroundColor: AppColors.warning,
               minimumSize: const Size(double.infinity, 56),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
+                borderRadius: BorderRadius.circular(16),
               ),
               elevation: 0,
             ),
@@ -455,19 +485,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
         Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(15),
-            border: Border.all(color: Colors.red.withOpacity(0.3), width: 2),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.error.withOpacity(0.3), width: 2),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.error.withOpacity(0.1),
+                spreadRadius: 0,
+                blurRadius: 10,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: ElevatedButton(
             onPressed: () {
               _showLogoutDialog();
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.transparent,
-              foregroundColor: Colors.red,
+              backgroundColor: AppColors.surface,
+              foregroundColor: AppColors.error,
               minimumSize: const Size(double.infinity, 56),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
+                borderRadius: BorderRadius.circular(16),
               ),
               elevation: 0,
             ),
@@ -499,7 +537,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       message: "Êtes-vous sûr de vouloir vous déconnecter ?",
       confirmText: "Déconnecter",
       cancelText: "Annuler",
-      confirmColor: Colors.red,
+      confirmColor: AppColors.error,
       icon: Icons.logout_rounded,
     ).then((confirmed) {
       if (confirmed == true) {
