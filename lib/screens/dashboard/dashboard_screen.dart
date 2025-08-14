@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:saarflex_app/profile/profile_screen.dart';
 import 'package:saarflex_app/screens/auth/components/dashboard_header.dart';
+import 'package:saarflex_app/screens/products/product_list_screen.dart';
 import '../../constants/colors.dart';
 import '../../providers/auth_provider.dart';
 
@@ -197,10 +198,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
           childAspectRatio: 1.1,
           children: [
             _buildActionCard(
-              "Produits",
+              "Offres Assurance",
               Icons.shopping_bag_rounded,
               AppColors.primary,
-              () => _showComingSoon(context),
+               () => _navigateToProducts(),
             ),
             _buildActionCard(
               "Mes Contrats",
@@ -246,7 +247,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           onTap: onTap,
           borderRadius: BorderRadius.circular(20),
           child: Container(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(0),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: color.withOpacity(0.2), width: 1),
@@ -332,4 +333,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
-}
+  
+void _navigateToProducts() {
+  Navigator.push(
+    context,
+    MaterialPageRoute(builder: (_) => const ProductListScreen()),
+  );
+}}
