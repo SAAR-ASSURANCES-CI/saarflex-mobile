@@ -15,7 +15,7 @@ class ResetPasswordHeader extends StatelessWidget {
     return Column(
       children: [
         _buildIcon(),
-        const SizedBox(height: 24),
+        const SizedBox(height: 32),
         _buildTitle(),
         const SizedBox(height: 12),
         _buildSubtitle(),
@@ -25,23 +25,25 @@ class ResetPasswordHeader extends StatelessWidget {
 
   Widget _buildIcon() {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: isEmailSent 
-            ? AppColors.secondary.withOpacity(0.2)
-            : AppColors.primary.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isEmailSent 
-              ? AppColors.secondary.withOpacity(0.3)
-              : AppColors.primary.withOpacity(0.2),
-          width: 1,
-        ),
+        gradient: isEmailSent 
+            ? AppColors.secondaryGradient
+            : AppColors.primaryGradient,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: (isEmailSent ? AppColors.secondary : AppColors.primary).withOpacity(0.3),
+            spreadRadius: 0,
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
       child: Icon(
         isEmailSent ? Icons.mark_email_read_rounded : Icons.lock_reset_rounded,
         size: 50,
-        color: isEmailSent ? AppColors.secondary : AppColors.primary,
+        color: isEmailSent ? AppColors.textPrimary : AppColors.white,
       ),
     );
   }
@@ -50,26 +52,29 @@ class ResetPasswordHeader extends StatelessWidget {
     return Text(
       isEmailSent ? "Email envoyé !" : "Réinitialiser votre mot de passe",
       style: GoogleFonts.poppins(
-        fontSize: 26,
+        fontSize: 28,
         fontWeight: FontWeight.w700,
-        color: AppColors.primary,
+        color: AppColors.textPrimary,
       ),
       textAlign: TextAlign.center,
     );
   }
 
   Widget _buildSubtitle() {
-    return Text(
-      isEmailSent 
-          ? "Vérifiez votre boîte mail et suivez les instructions pour créer un nouveau mot de passe."
-          : "Saisissez votre adresse email pour recevoir un lien de réinitialisation.",
-      style: GoogleFonts.poppins(
-        fontSize: 16,
-        fontWeight: FontWeight.w400,
-        color: AppColors.primary.withOpacity(0.7),
-        height: 1.4,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Text(
+        isEmailSent 
+            ? "Vérifiez votre boîte mail et suivez les instructions pour créer un nouveau mot de passe."
+            : "Saisissez votre adresse email pour recevoir un lien de réinitialisation.",
+        style: GoogleFonts.poppins(
+          fontSize: 16,
+          fontWeight: FontWeight.w400,
+          color: AppColors.textSecondary,
+          height: 1.5,
+        ),
+        textAlign: TextAlign.center,
       ),
-      textAlign: TextAlign.center,
     );
   }
 }
