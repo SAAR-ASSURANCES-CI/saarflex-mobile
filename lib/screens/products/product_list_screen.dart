@@ -1,4 +1,5 @@
 // lib/screens/products/product_list_screen.dart
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -14,36 +15,53 @@ class ProductListScreen extends StatefulWidget {
   State<ProductListScreen> createState() => _ProductListScreenState();
 }
 
-class _ProductListScreenState extends State<ProductListScreen>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-  final TextEditingController _searchController = TextEditingController();
+class _ProductListScreenState extends State<ProductListScreen> {
+  late PageController _pageController;
+  late Timer _timer;
+  int _currentPage = 0;
+  bool _userInteracting = false;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
-    _tabController.addListener(_onTabChanged);
+    _pageController = PageController(viewportFraction: 0.85);
     
     // Charger les produits au démarrage
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ProductProvider>().loadProducts();
+      _startAutoScroll();
     });
   }
 
-  void _onTabChanged() {
-    final productProvider = context.read<ProductProvider>();
-    switch (_tabController.index) {
-      case 0:
-        productProvider.filterByType(null); // Tous
-        break;
-      case 1:
-        productProvider.filterByType(ProductType.vie);
-        break;
-      case 2:
-        productProvider.filterByType(ProductType.nonVie);
-        break;
-    }
+  void _startAutoScroll() {
+    _timer = Timer.periodic(const Duration(milliseconds: 3000), (timer) { // 2 secondes au lieu de 3
+      if (!_userInteracting && _pageController.hasClients) {
+        final products = context.read<ProductProvider>().allProducts;
+        if (products.isNotEmpty) {
+          _currentPage = (_currentPage + 1) % products.take(5).length;
+          _pageController.animateToPage(
+            _currentPage,
+            duration: const Duration(milliseconds: 300), // Animation plus rapide : 300ms au lieu de 500ms
+            curve: Curves.easeInOut,
+          );
+        }
+      }
+    });
+  }
+
+  void _onUserInteraction() {
+    setState(() {
+      _userInteracting = true;
+    });
+    
+    // Reprendre le scroll automatique après 5 secondes d'inactivité
+    Timer(const Duration(seconds: 5), () {
+      if (mounted) {
+        setState(() {
+          _userInteracting = false;
+        });
+      }
+    });
   }
 
   @override
@@ -51,24 +69,9 @@ class _ProductListScreenState extends State<ProductListScreen>
     return Consumer<ProductProvider>(
       builder: (context, productProvider, child) {
         return Scaffold(
-          backgroundColor: AppColors.background,
+          backgroundColor: Colors.white,
           appBar: _buildAppBar(),
-          body: Column(
-            children: [
-              _buildSearchBar(productProvider),
-              _buildTabBar(),
-              Expanded(
-                child: TabBarView(
-                  controller: _tabController,
-                  children: [
-                    _buildProductGrid(productProvider, null),
-                    _buildProductGrid(productProvider, ProductType.vie),
-                    _buildProductGrid(productProvider, ProductType.nonVie),
-                  ],
-                ),
-              ),
-            ],
-          ),
+          body: _buildBody(productProvider),
         );
       },
     );
@@ -76,10 +79,10 @@ class _ProductListScreenState extends State<ProductListScreen>
 
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      backgroundColor: AppColors.primary,
+      backgroundColor: AppColors.primary, // Rouge plus intense dans le header
       elevation: 0,
       leading: IconButton(
-        icon: Icon(Icons.arrow_back_ios_rounded, color: AppColors.white),
+        icon: Icon(Icons.arrow_back_ios_rounded, color: Colors.white),
         onPressed: () => Navigator.pop(context),
       ),
       title: Text(
@@ -87,160 +90,14 @@ class _ProductListScreenState extends State<ProductListScreen>
         style: GoogleFonts.poppins(
           fontSize: 20,
           fontWeight: FontWeight.w600,
-          color: AppColors.white,
+          color: Colors.white,
         ),
       ),
       centerTitle: true,
     );
   }
 
-  Widget _buildSearchBar(ProductProvider productProvider) {
-    return Container(
-      color: AppColors.primary,
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-      child: TextField(
-        controller: _searchController,
-        onChanged: (value) => productProvider.searchProducts(value),
-        style: GoogleFonts.poppins(
-          fontSize: 16,
-          color: AppColors.textPrimary,
-        ),
-        decoration: InputDecoration(
-          hintText: 'Rechercher un produit...',
-          hintStyle: GoogleFonts.poppins(
-            color: AppColors.textSecondary,
-            fontSize: 16,
-          ),
-          prefixIcon: Icon(
-            Icons.search_rounded,
-            color: AppColors.textSecondary,
-          ),
-          suffixIcon: _searchController.text.isNotEmpty
-              ? IconButton(
-                  icon: Icon(Icons.clear_rounded, color: AppColors.textSecondary),
-                  onPressed: () {
-                    _searchController.clear();
-                    productProvider.clearSearch();
-                  },
-                )
-              : null,
-          filled: true,
-          fillColor: AppColors.surface,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
-          ),
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 16,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTabBar() {
-    return Consumer<ProductProvider>(
-      builder: (context, productProvider, child) {
-        final counts = productProvider.productCountByType;
-        
-        return Container(
-          color: AppColors.surface,
-          child: TabBar(
-            controller: _tabController,
-            labelColor: AppColors.primary,
-            unselectedLabelColor: AppColors.textSecondary,
-            indicatorColor: AppColors.primary,
-            indicatorWeight: 3,
-            labelStyle: GoogleFonts.poppins(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
-            unselectedLabelStyle: GoogleFonts.poppins(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-            ),
-            tabs: [
-              Tab(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text('Tous'),
-                    const SizedBox(width: 3),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        '${productProvider.totalProductsCount}',
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Tab(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text('Vie'),
-                    const SizedBox(width: 3),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: ProductType.vie.color.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        '${counts[ProductType.vie] ?? 0}',
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: ProductType.vie.color,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Tab(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text('Non-Vie'),
-                    const SizedBox(width: 3),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: ProductType.nonVie.color.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        '${counts[ProductType.nonVie] ?? 0}',
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: ProductType.nonVie.color,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildProductGrid(ProductProvider productProvider, ProductType? filterType) {
+  Widget _buildBody(ProductProvider productProvider) {
     if (productProvider.isLoading) {
       return _buildLoadingState();
     }
@@ -249,146 +106,252 @@ class _ProductListScreenState extends State<ProductListScreen>
       return _buildErrorState(productProvider.errorMessage!, productProvider);
     }
 
-    final products = productProvider.filteredProducts;
+    final products = productProvider.allProducts;
     
     if (products.isEmpty) {
-      return _buildEmptyState(filterType);
+      return _buildEmptyState();
     }
 
-    return RefreshIndicator(
-      onRefresh: () => productProvider.refresh(),
-      color: AppColors.primary,
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: GridView.builder(
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            childAspectRatio: 0.75, // Changé de 0.85 à 0.75 pour plus de hauteur
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-          ),
-          itemCount: products.length,
-          itemBuilder: (context, index) {
-            return _buildProductCard(products[index]);
-          },
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Section des derniers produits (horizontal)
+        _buildLatestProductsSection(products),
+        
+        // Tous les produits (vertical)
+        Expanded(
+          child: _buildAllProductsList(products, productProvider),
         ),
+      ],
+    );
+  }
+
+  Widget _buildLatestProductsSection(List<Product> products) {
+    // Prendre les 5 derniers produits (simulé par les 5 premiers pour la démo)
+    final latestProducts = products.take(5).toList();
+
+    return Container(
+      margin: const EdgeInsets.only(top: 20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            AppColors.primary.withOpacity(0.02),
+            Colors.white,
+          ],
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 5, 20, 0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Derniers produits ajoutés',
+                  style: GoogleFonts.poppins(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: const Color.fromARGB(255, 0, 0, 0),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            height: 160,
+            child: NotificationListener<ScrollNotification>(
+              onNotification: (scrollNotification) {
+                if (scrollNotification is ScrollStartNotification) {
+                  _onUserInteraction();
+                }
+                return false;
+              },
+              child: PageView.builder(
+                controller: _pageController,
+                onPageChanged: (index) {
+                  setState(() {
+                    _currentPage = index % latestProducts.length;
+                  });
+                },
+                itemBuilder: (context, index) {
+                  final productIndex = index % latestProducts.length;
+                  return _buildHorizontalProductCard(latestProducts[productIndex]);
+                },
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          // Indicateurs de page avec style rouge
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(
+              latestProducts.length,
+              (index) => Container(
+                margin: const EdgeInsets.symmetric(horizontal: 3),
+                width: _currentPage == index ? 20 : 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  gradient: _currentPage == index 
+                      ? LinearGradient(
+                          colors: [AppColors.primary, AppColors.primary.withOpacity(0.7)]
+                        )
+                      : null,
+                  color: _currentPage == index ? null : Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+        ],
       ),
     );
   }
 
-  Widget _buildProductCard(Product product) {
+  Widget _buildHorizontalProductCard(Product product) {
     return Container(
+      width: 300,
+      margin: const EdgeInsets.symmetric(horizontal: 8),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppColors.primary.withOpacity(0.15),
+          width: 1.5,
+        ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadow,
+            color: AppColors.primary.withOpacity(0.1),
             spreadRadius: 0,
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            blurRadius: 15,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () => _navigateToProductDetail(product),
+          onTap: () {
+            _onUserInteraction();
+            _navigateToProductDetail(product);
+          },
           borderRadius: BorderRadius.circular(16),
           child: Padding(
-            padding: const EdgeInsets.all(12), // Réduit de 16 à 12
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            padding: const EdgeInsets.all(18),
+            child: Row(
               children: [
-                // Icône et type
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: product.displayColor.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(
-                        product.displayIcon,
-                        color: product.displayColor,
-                        size: 24,
-                      ),
+                // Icône avec plus de rouge
+                Container(
+                  width: 55,
+                  height: 55,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        AppColors.primary.withOpacity(0.2),
+                        AppColors.primary.withOpacity(0.1),
+                      ],
                     ),
-                    const Spacer(),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: product.displayColor.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        product.typeShortLabel,
-                        style: GoogleFonts.poppins(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                          color: product.displayColor,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: AppColors.primary.withOpacity(0.3),
+                      width: 1,
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.shield_rounded,
+                    color: AppColors.primary,
+                    size: 28,
+                  ),
+                ),
+                
+                const SizedBox(width: 14),
+                
+                // Contenu
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Badge type avec plus de rouge
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          gradient: product.type == ProductType.vie 
+                              ? LinearGradient(colors: [
+                                  AppColors.secondary.withOpacity(0.3),
+                                  AppColors.secondary.withOpacity(0.2),
+                                ])
+                              : LinearGradient(colors: [
+                                  AppColors.primary.withOpacity(0.25),
+                                  AppColors.primary.withOpacity(0.15),
+                                ]),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: product.type == ProductType.vie 
+                                ? AppColors.secondary.withOpacity(0.4)
+                                : AppColors.primary.withOpacity(0.4),
+                            width: 1,
+                          ),
+                        ),
+                        child: Text(
+                          product.typeShortLabel,
+                          style: GoogleFonts.poppins(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: product.type == ProductType.vie 
+                                ? AppColors.secondary
+                                : AppColors.primary,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                
-                const SizedBox(height: 12), // Réduit de 16 à 12
-                
-                // Nom du produit
-                Text(
-                  product.nom,
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                
-                const SizedBox(height: 6), // Réduit de 8 à 6
-                
-                // Description courte
-                Expanded(
-                  child: Text(
-                    product.description,
-                    style: GoogleFonts.poppins(
-                      fontSize: 11, // Réduit de 12 à 11
-                      fontWeight: FontWeight.w400,
-                      color: AppColors.textSecondary,
-                      height: 1.3, // Réduit de 1.4 à 1.3
-                    ),
-                    maxLines: 2, // Réduit de 3 à 2 lignes
-                    overflow: TextOverflow.ellipsis,
+                      
+                      const SizedBox(height: 8),
+                      
+                      // Nom
+                      Text(
+                        product.nom,
+                        style: GoogleFonts.poppins(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.black87,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      
+                      const SizedBox(height: 4),
+                      
+                      // Description courte
+                      Text(
+                        product.description,
+                        style: GoogleFonts.poppins(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w400,
+                          color: Colors.grey.shade600,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
                 ),
                 
-                const SizedBox(height: 8), // Réduit de 12 à 8
-                
-                // Bouton d'action
-                SizedBox(
-                  width: double.infinity,
-                  height: 32, // Hauteur fixe pour éviter le débordement
-                  child: ElevatedButton(
-                    onPressed: () => _navigateToProductDetail(product),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: product.displayColor,
-                      foregroundColor: AppColors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      elevation: 0,
-                      padding: const EdgeInsets.symmetric(vertical: 4), // Padding réduit
-                    ),
-                    child: Text(
-                      'Détails',
-                      style: GoogleFonts.poppins(
-                        fontSize: 11, // Réduit de 12 à 11
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+                // Flèche avec accent rouge
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    Icons.arrow_forward_ios_rounded,
+                    color: AppColors.primary,
+                    size: 16,
                   ),
                 ),
               ],
@@ -399,21 +362,223 @@ class _ProductListScreenState extends State<ProductListScreen>
     );
   }
 
-  Widget _buildLoadingState() {
+  Widget _buildAllProductsList(List<Product> products, ProductProvider productProvider) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Tous nos produits',
+                style: GoogleFonts.poppins(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: const Color.fromARGB(255, 0, 0, 0),
+                ),
+              ),
+            ],
+          )
+        ),
+        const SizedBox(height: 20),
+        Expanded(
+          child: RefreshIndicator(
+            onRefresh: () => productProvider.refresh(),
+            color: AppColors.primary,
+            child: ListView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              itemCount: products.length,
+              itemBuilder: (context, index) {
+                return _buildVerticalProductCard(products[index]);
+              },
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildVerticalProductCard(Product product) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppColors.primary.withOpacity(0.12),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withOpacity(0.08),
+            spreadRadius: 0,
+            blurRadius: 12,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => _navigateToProductDetail(product),
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.all(18),
+            child: Row(
+              children: [
+                // Icône avec plus de rouge
+                Container(
+                  width: 55,
+                  height: 55,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        AppColors.primary.withOpacity(0.18),
+                        AppColors.primary.withOpacity(0.08),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: AppColors.primary.withOpacity(0.25),
+                      width: 1,
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.shield_rounded,
+                    color: AppColors.primary,
+                    size: 28,
+                  ),
+                ),
+                
+                const SizedBox(width: 18),
+                
+                // Contenu
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Badge type avec plus de rouge
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          gradient: product.type == ProductType.vie 
+                              ? LinearGradient(colors: [
+                                  AppColors.secondary.withOpacity(0.25),
+                                  AppColors.secondary.withOpacity(0.15),
+                                ])
+                              : LinearGradient(colors: [
+                                  AppColors.primary.withOpacity(0.2),
+                                  AppColors.primary.withOpacity(0.1),
+                                ]),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: product.type == ProductType.vie 
+                                ? AppColors.secondary.withOpacity(0.3)
+                                : AppColors.primary.withOpacity(0.3),
+                            width: 1,
+                          ),
+                        ),
+                        child: Text(
+                          product.typeShortLabel,
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: product.type == ProductType.vie 
+                                ? AppColors.secondary
+                                : AppColors.primary,
+                          ),
+                        ),
+                      ),
+                      
+                      const SizedBox(height: 10),
+                      
+                      // Nom
+                      Text(
+                        product.nom,
+                        style: GoogleFonts.poppins(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      
+                      const SizedBox(height: 6),
+                      
+                      // Description
+                      Text(
+                        product.description,
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w400,
+                          color: Colors.grey.shade600,
+                          height: 1.4,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                
+                const SizedBox(width: 16),
+                
+                // Flèche avec fond rouge plus visible
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        AppColors.primary.withOpacity(0.15),
+                        AppColors.primary.withOpacity(0.08),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: AppColors.primary.withOpacity(0.2),
+                      width: 1,
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.arrow_forward_ios_rounded,
+                    color: AppColors.primary,
+                    size: 16,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }  Widget _buildLoadingState() {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+          Container(
+            width: 60,
+            height: 60,
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                strokeWidth: 3,
+              ),
+            ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
           Text(
             'Chargement des produits...',
             style: GoogleFonts.poppins(
               fontSize: 16,
               fontWeight: FontWeight.w500,
-              color: AppColors.textSecondary,
+              color: Colors.grey.shade600,
             ),
           ),
         ],
@@ -429,15 +594,16 @@ class _ProductListScreenState extends State<ProductListScreen>
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: const EdgeInsets.all(20),
+              width: 80,
+              height: 80,
               decoration: BoxDecoration(
-                color: AppColors.error.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(16),
+                color: AppColors.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(20),
               ),
               child: Icon(
                 Icons.error_outline_rounded,
-                color: AppColors.error,
-                size: 48,
+                color: AppColors.primary,
+                size: 40,
               ),
             ),
             const SizedBox(height: 24),
@@ -446,7 +612,7 @@ class _ProductListScreenState extends State<ProductListScreen>
               style: GoogleFonts.poppins(
                 fontSize: 20,
                 fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
+                color: Colors.black87,
               ),
             ),
             const SizedBox(height: 8),
@@ -455,7 +621,7 @@ class _ProductListScreenState extends State<ProductListScreen>
               style: GoogleFonts.poppins(
                 fontSize: 14,
                 fontWeight: FontWeight.w400,
-                color: AppColors.textSecondary,
+                color: Colors.grey.shade600,
               ),
               textAlign: TextAlign.center,
             ),
@@ -466,7 +632,7 @@ class _ProductListScreenState extends State<ProductListScreen>
               label: Text('Réessayer'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
-                foregroundColor: AppColors.white,
+                foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -479,21 +645,7 @@ class _ProductListScreenState extends State<ProductListScreen>
     );
   }
 
-  Widget _buildEmptyState(ProductType? filterType) {
-    String title;
-    String subtitle;
-    IconData icon;
-
-    if (filterType == null) {
-      title = 'Aucun produit disponible';
-      subtitle = 'Il n\'y a actuellement aucun produit d\'assurance disponible.';
-      icon = Icons.inventory_2_outlined;
-    } else {
-      title = 'Aucun produit ${filterType.label.toLowerCase()}';
-      subtitle = 'Il n\'y a actuellement aucun produit dans cette catégorie.';
-      icon = filterType.icon;
-    }
-
+  Widget _buildEmptyState() {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -501,33 +653,34 @@ class _ProductListScreenState extends State<ProductListScreen>
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: const EdgeInsets.all(20),
+              width: 80,
+              height: 80,
               decoration: BoxDecoration(
-                color: AppColors.textSecondary.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(16),
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(20),
               ),
               child: Icon(
-                icon,
-                color: AppColors.textSecondary,
-                size: 48,
+                Icons.inventory_2_outlined,
+                color: Colors.grey.shade500,
+                size: 40,
               ),
             ),
             const SizedBox(height: 24),
             Text(
-              title,
+              'Aucun produit disponible',
               style: GoogleFonts.poppins(
                 fontSize: 20,
                 fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
+                color: Colors.black87,
               ),
             ),
             const SizedBox(height: 8),
             Text(
-              subtitle,
+              'Il n\'y a actuellement aucun produit d\'assurance disponible.',
               style: GoogleFonts.poppins(
                 fontSize: 14,
                 fontWeight: FontWeight.w400,
-                color: AppColors.textSecondary,
+                color: Colors.grey.shade600,
               ),
               textAlign: TextAlign.center,
             ),
@@ -548,9 +701,8 @@ class _ProductListScreenState extends State<ProductListScreen>
 
   @override
   void dispose() {
-    _tabController.removeListener(_onTabChanged);
-    _tabController.dispose();
-    _searchController.dispose();
+    _timer.cancel();
+    _pageController.dispose();
     super.dispose();
   }
 }
