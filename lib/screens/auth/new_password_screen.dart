@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:saarflex_app/screens/dashboard/dashboard_screen.dart';
 import '../../constants/colors.dart';
 import '../../providers/auth_provider.dart';
+import '../../utils/error_handler.dart';
 
 class NewPasswordScreen extends StatefulWidget {
   final String email;
@@ -25,18 +26,42 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
   bool _isFormValid = false;
   AutovalidateMode _autovalidateMode = AutovalidateMode.disabled;
 
+  // Variables pour la gestion d'erreurs
+  List<String> _passwordErrors = [];
+  String? _confirmPasswordError;
+  String? _generalError;
+
   @override
   void initState() {
     super.initState();
     _passwordController.addListener(_validateForm);
     _confirmPasswordController.addListener(_validateForm);
-    _autovalidateMode = AutovalidateMode.always;
   }
 
   void _validateForm() {
-    final isValid = _formKey.currentState?.validate() ?? false;
+    // Validation du mot de passe
+    _passwordErrors = ErrorHandler.validatePassword(_passwordController.text);
+    
+    // Validation de la confirmation
+    if (_confirmPasswordController.text.isNotEmpty) {
+      if (_confirmPasswordController.text != _passwordController.text) {
+        _confirmPasswordError = 'Les mots de passe ne correspondent pas';
+      } else {
+        _confirmPasswordError = null;
+      }
+    } else if (_passwordController.text.isNotEmpty) {
+      _confirmPasswordError = 'Veuillez confirmer votre mot de passe';
+    } else {
+      _confirmPasswordError = null;
+    }
+
+    final isValid = _passwordErrors.isEmpty && _confirmPasswordError == null;
+
     setState(() {
       _isFormValid = isValid;
+      if (isValid) {
+        _generalError = null;
+      }
     });
   }
 
@@ -57,8 +82,16 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
                 children: [
                   _buildHeader(),
                   const SizedBox(height: 32),
-                  if (authProvider.errorMessage != null)
-                    _buildErrorMessage(authProvider.errorMessage!),
+
+                  // Afficher l'erreur générale s'il y en a une
+                  if (_generalError != null) ...[
+                    ErrorHandler.buildAutoDisappearingErrorContainer(
+                      _generalError!,
+                      () => setState(() => _generalError = null),
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+
                   _buildPasswordField(),
                   const SizedBox(height: 24),
                   _buildConfirmPasswordField(),
@@ -99,55 +132,42 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Container(
-          width: 60,
-          height: 60,
+          width: 80,
+          height: 80,
           decoration: BoxDecoration(
-            color: AppColors.primary,
-            borderRadius: BorderRadius.circular(16),
+            gradient: AppColors.primaryGradient,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withOpacity(0.3),
+                spreadRadius: 0,
+                blurRadius: 15,
+                offset: const Offset(0, 5),
+              ),
+            ],
           ),
-          child: Icon(Icons.lock_reset, color: AppColors.white, size: 28),
+          child: Icon(Icons.lock_reset, color: AppColors.white, size: 40),
         ),
         const SizedBox(height: 24),
         Text(
           "Créer un nouveau mot de passe",
           style: GoogleFonts.poppins(
-            fontSize: 24,
+            fontSize: 28,
             fontWeight: FontWeight.w700,
             color: AppColors.textPrimary,
           ),
+          textAlign: TextAlign.center,
         ),
         const SizedBox(height: 8),
         Text(
-          "Votre mot de passe doit respecter les critères de sécurité.",
+          "Votre mot de passe doit respecter les critères de sécurité ci-dessous.",
           style: GoogleFonts.poppins(
             fontSize: 16,
             color: AppColors.textSecondary,
           ),
+          textAlign: TextAlign.center,
         ),
       ],
-    );
-  }
-
-  Widget _buildErrorMessage(String message) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.error.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.error_outline, color: AppColors.error),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              message,
-              style: GoogleFonts.poppins(color: AppColors.error, fontSize: 14),
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -167,14 +187,13 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
         TextFormField(
           controller: _passwordController,
           obscureText: _obscurePassword,
-          validator: _validatePassword,
-          onChanged: (value) => _validateForm(), // Ajout de onChanged
           style: GoogleFonts.poppins(
             fontSize: 16,
             color: AppColors.textPrimary,
           ),
           decoration: InputDecoration(
-            hintText: 'Votre mot de passe',
+            hintText: 'Votre nouveau mot de passe',
+            hintStyle: GoogleFonts.poppins(color: AppColors.textHint),
             prefixIcon: Icon(Icons.lock_outline, color: AppColors.primary),
             suffixIcon: IconButton(
               icon: Icon(
@@ -183,18 +202,39 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
               ),
               onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
             ),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            filled: true,
+            fillColor: AppColors.surface,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: AppColors.border),
+            ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey.shade300),
+              borderSide: BorderSide(
+                color: _passwordErrors.isNotEmpty
+                    ? AppColors.error.withOpacity(0.5)
+                    : AppColors.border,
+              ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.primary, width: 1.5),
+              borderSide: BorderSide(
+                color: _passwordErrors.isNotEmpty ? AppColors.error : AppColors.primary,
+                width: 2,
+              ),
             ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: AppColors.error),
+            ),
+            contentPadding: const EdgeInsets.all(16),
           ),
         ),
+        // Afficher les erreurs de mot de passe
+        if (_passwordErrors.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          ErrorHandler.buildErrorList(_passwordErrors),
+        ],
       ],
     );
   }
@@ -215,14 +255,13 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
         TextFormField(
           controller: _confirmPasswordController,
           obscureText: _obscureConfirmPassword,
-          validator: _validateConfirmPassword,
-          onChanged: (value) => _validateForm(), // Ajout de onChanged
           style: GoogleFonts.poppins(
             fontSize: 16,
             color: AppColors.textPrimary,
           ),
           decoration: InputDecoration(
             hintText: 'Confirmez votre mot de passe',
+            hintStyle: GoogleFonts.poppins(color: AppColors.textHint),
             prefixIcon: Icon(Icons.lock_outline, color: AppColors.primary),
             suffixIcon: IconButton(
               icon: Icon(
@@ -231,18 +270,54 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
               ),
               onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
             ),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            filled: true,
+            fillColor: AppColors.surface,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: AppColors.border),
+            ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey.shade300),
+              borderSide: BorderSide(
+                color: _confirmPasswordError != null
+                    ? AppColors.error.withOpacity(0.5)
+                    : AppColors.border,
+              ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.primary, width: 1.5),
+              borderSide: BorderSide(
+                color: _confirmPasswordError != null ? AppColors.error : AppColors.primary,
+                width: 2,
+              ),
             ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: AppColors.error),
+            ),
+            contentPadding: const EdgeInsets.all(16),
           ),
         ),
+        // Afficher l'erreur de confirmation
+        if (_confirmPasswordError != null) ...[
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Icon(Icons.error_outline, color: AppColors.error, size: 16),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  _confirmPasswordError!,
+                  style: GoogleFonts.poppins(
+                    color: AppColors.error,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ],
     );
   }
@@ -251,44 +326,71 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
     final requirements = [
       "Au moins 8 caractères",
       "Une lettre majuscule",
-      "Une lettre minuscule",
+      "Une lettre minuscule", 
       "Un chiffre",
-      "Un caractère spécial",
+      "Un caractère spécial (@, !, %, *, ?, &)",
     ];
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.surfaceVariant,
-        borderRadius: BorderRadius.circular(12),
+        gradient: LinearGradient(
+          colors: [
+            AppColors.primary.withOpacity(0.05),
+            AppColors.secondary.withOpacity(0.05),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.primary.withOpacity(0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "Critères de sécurité :",
-            style: GoogleFonts.poppins(
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
-            ),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.security_rounded,
+                  color: AppColors.primary,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                "Critères de sécurité",
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                  fontSize: 16,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 16),
           ...requirements.map(
             (req) => Padding(
               padding: const EdgeInsets.symmetric(vertical: 4),
               child: Row(
                 children: [
                   Icon(
-                    Icons.check_circle_outline,
+                    Icons.check_circle_outline_rounded,
                     size: 16,
                     color: AppColors.success,
                   ),
-                  const SizedBox(width: 8),
-                  Text(
-                    req,
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      color: AppColors.textSecondary,
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      req,
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        color: AppColors.textSecondary,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                 ],
@@ -303,7 +405,7 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
   Widget _buildUpdateButton(AuthProvider authProvider) {
     return SizedBox(
       width: double.infinity,
-      height: 50,
+      height: 56,
       child: ElevatedButton(
         onPressed: !_isFormValid || authProvider.isLoading
             ? null
@@ -312,100 +414,123 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
           backgroundColor: _isFormValid
               ? AppColors.primary
               : AppColors.disabled,
+          foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(16),
           ),
+          elevation: _isFormValid ? 3 : 0,
         ),
         child: authProvider.isLoading
-            ? const CircularProgressIndicator(color: Colors.white)
-            : Text(
-                "Mettre à jour",
-                style: GoogleFonts.poppins(
-                  color: AppColors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
+            ? Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    "Mise à jour...",
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              )
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.check_circle_rounded, size: 20),
+                  const SizedBox(width: 8),
+                  Text(
+                    "Mettre à jour",
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
               ),
       ),
     );
   }
 
   Future<void> _handleUpdatePassword(AuthProvider authProvider) async {
-    if (!_formKey.currentState!.validate()) return;
+    setState(() {
+      _autovalidateMode = AutovalidateMode.onUserInteraction;
+      _generalError = null;
+    });
 
-    final success = await authProvider.resetPasswordWithCode(
-      email: widget.email,
-      code: widget.code,
-      newPassword: _passwordController.text,
-    );
+    _validateForm();
 
-    if (success && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Mot de passe mis à jour avec succès !'),
-          backgroundColor: AppColors.success,
-        ),
+    if (!_isFormValid) {
+      setState(() {
+        _generalError = "Veuillez corriger les erreurs ci-dessus";
+      });
+      return;
+    }
+
+    try {
+      final success = await authProvider.resetPasswordWithCode(
+        email: widget.email,
+        code: widget.code,
+        newPassword: _passwordController.text,
       );
 
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (_) => const DashboardScreen()),
-        (route) => false,
-      );
-    }
-  }
+      if (success && mounted) {
+        ErrorHandler.showSuccessSnackBar(
+          context, 
+          'Mot de passe mis à jour avec succès !',
+        );
 
-  String? _validatePassword(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Veuillez saisir votre mot de passe';
-    }
-    
-    if (value.length < 8) {
-      return 'Le mot de passe doit contenir au moins 8 caractères';
-    }
-    
-    // Vérification des caractères requis
-    List<String> missing = [];
-    
-    if (!RegExp(r'[a-z]').hasMatch(value)) {
-      missing.add('une minuscule');
-    }
-    
-    if (!RegExp(r'[A-Z]').hasMatch(value)) {
-      missing.add('une majuscule');
-    }
-    
-    if (!RegExp(r'\d').hasMatch(value)) {
-      missing.add('un chiffre');
-    }
-    
-    if (!RegExp(r'[@$!%*?&]').hasMatch(value)) {
-      missing.add('un caractère spécial (@, !, %, *, ?, &)');
-    }
-    
-    if (missing.isNotEmpty) {
-      if (missing.length == 1) {
-        return 'Il manque ${missing.first}';
-      } else if (missing.length == 2) {
-        return 'Il manque ${missing.join(' et ')}';
-      } else {
-        return 'Il manque ${missing.sublist(0, missing.length - 1).join(', ')} et ${missing.last}';
+        // Rediriger vers le dashboard après un délai
+        Future.delayed(const Duration(seconds: 1), () {
+          if (mounted) {
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (_) => const DashboardScreen()),
+              (route) => false,
+            );
+          }
+        });
+      } else if (mounted) {
+        // Gestion des erreurs spécifiques
+        String errorMessage = 'Erreur lors de la mise à jour';
+
+        if (authProvider.errorMessage != null) {
+          final message = authProvider.errorMessage!.toLowerCase();
+
+          if (message.contains('code') && (message.contains('invalid') || message.contains('incorrect'))) {
+            errorMessage = 'Code de vérification invalide ou expiré';
+          } else if (message.contains('expired')) {
+            errorMessage = 'Session expirée. Recommencez le processus';
+          } else if (message.contains('password') && message.contains('weak')) {
+            errorMessage = 'Mot de passe trop faible. Utilisez un mot de passe plus complexe';
+          } else if (message.contains('network') || message.contains('connexion')) {
+            errorMessage = 'Problème de connexion internet';
+          } else if (message.contains('server') || message.contains('serveur')) {
+            errorMessage = 'Erreur du serveur. Réessayez plus tard';
+          } else {
+            errorMessage = authProvider.errorMessage!;
+          }
+        }
+
+        setState(() {
+          _generalError = errorMessage;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _generalError = 'Une erreur inattendue s\'est produite';
+        });
       }
     }
-    
-    return null;
-  }
-
-  String? _validateConfirmPassword(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Veuillez confirmer votre mot de passe';
-    }
-    
-    if (value != _passwordController.text) {
-      return 'Les mots de passe ne correspondent pas';
-    }
-    
-    return null;
   }
 
   @override

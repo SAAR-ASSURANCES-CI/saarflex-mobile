@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:saarflex_app/screens/auth/reset_password_screen.dart';
 import 'package:saarflex_app/screens/auth/signup_screen.dart';
+import 'package:saarflex_app/utils/error_handler.dart';
 import '../../constants/colors.dart';
 import '../../providers/auth_provider.dart';
 
@@ -17,7 +18,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  
+
   bool _obscurePassword = true;
   bool _rememberMe = false;
   bool _isFormValid = false;
@@ -26,18 +27,29 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailFocus = FocusNode();
   final _passwordFocus = FocusNode();
 
+  // Pour stocker les erreurs de validation
+  String? _emailError;
+  String? _passwordError;
+  String? _generalError;
+
   @override
   void initState() {
     super.initState();
     _emailController.addListener(_validateForm);
     _passwordController.addListener(_validateForm);
-    _autovalidateMode = AutovalidateMode.always;
   }
 
   void _validateForm() {
-    final isValid = _formKey.currentState?.validate() ?? false;
+    _emailError = _validateEmail(_emailController.text);
+    _passwordError = _validatePassword(_passwordController.text);
+
+    final isValid = _emailError == null && _passwordError == null;
+
     setState(() {
       _isFormValid = isValid;
+      if (isValid) {
+        _generalError = null;
+      }
     });
   }
 
@@ -47,22 +59,7 @@ class _LoginScreenState extends State<LoginScreen> {
       builder: (context, authProvider, child) {
         return Scaffold(
           backgroundColor: AppColors.background,
-          appBar: AppBar(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            leading: IconButton(
-              icon: Icon(Icons.arrow_back, color: AppColors.primary),
-              onPressed: () => Navigator.pop(context),
-            ),
-            title: Text(
-              "Se connecter",
-              style: GoogleFonts.poppins(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
-              ),
-            ),
-          ),
+          appBar: _buildAppBar(),
           body: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
             child: Form(
@@ -75,8 +72,16 @@ class _LoginScreenState extends State<LoginScreen> {
                   _buildHeader(),
                   const SizedBox(height: 40),
 
-                  if (authProvider.errorMessage != null)
-                    _buildErrorMessage(authProvider.errorMessage!),
+                  // Afficher l'erreur générale s'il y en a une
+                  if (_generalError != null) ...[
+                    ErrorHandler.buildAutoDisappearingErrorContainer(
+                      _generalError!,
+                      () => setState(
+                        () => _generalError = null,
+                      ), // Fonction pour supprimer l'erreur
+                    ),
+                    const SizedBox(height: 20),
+                  ],
 
                   _buildEmailField(),
                   const SizedBox(height: 20),
@@ -95,6 +100,25 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         );
       },
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      leading: IconButton(
+        icon: Icon(Icons.arrow_back, color: AppColors.primary),
+        onPressed: () => Navigator.pop(context),
+      ),
+      title: Text(
+        "Se connecter",
+        style: GoogleFonts.poppins(
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+          color: AppColors.textPrimary,
+        ),
+      ),
     );
   }
 
@@ -134,34 +158,6 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildErrorMessage(String message) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 20),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.error.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.error.withOpacity(0.3)),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.error_outline, color: AppColors.error, size: 20),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              message,
-              style: GoogleFonts.poppins(
-                color: AppColors.error,
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildEmailField() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -180,8 +176,6 @@ class _LoginScreenState extends State<LoginScreen> {
           focusNode: _emailFocus,
           keyboardType: TextInputType.emailAddress,
           textInputAction: TextInputAction.next,
-          validator: _validateEmail,
-          onChanged: (value) => _validateForm(), // Ajout de onChanged
           onFieldSubmitted: (_) => _passwordFocus.requestFocus(),
           style: GoogleFonts.poppins(
             fontSize: 16,
@@ -199,11 +193,20 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.border),
+              borderSide: BorderSide(
+                color: _emailError != null
+                    ? AppColors.error.withOpacity(0.5)
+                    : AppColors.border,
+              ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.primary, width: 2),
+              borderSide: BorderSide(
+                color: _emailError != null
+                    ? AppColors.error
+                    : AppColors.primary,
+                width: 2,
+              ),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -212,6 +215,26 @@ class _LoginScreenState extends State<LoginScreen> {
             contentPadding: const EdgeInsets.all(16),
           ),
         ),
+        // Afficher l'erreur spécifique à l'email
+        if (_emailError != null) ...[
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Icon(Icons.error_outline, color: AppColors.error, size: 16),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  _emailError!,
+                  style: GoogleFonts.poppins(
+                    color: AppColors.error,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ],
     );
   }
@@ -234,8 +257,6 @@ class _LoginScreenState extends State<LoginScreen> {
           focusNode: _passwordFocus,
           obscureText: _obscurePassword,
           textInputAction: TextInputAction.done,
-          validator: _validatePassword,
-          onChanged: (value) => _validateForm(), // Ajout de onChanged
           style: GoogleFonts.poppins(
             fontSize: 16,
             color: AppColors.textPrimary,
@@ -263,11 +284,20 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.border),
+              borderSide: BorderSide(
+                color: _passwordError != null
+                    ? AppColors.error.withOpacity(0.5)
+                    : AppColors.border,
+              ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.primary, width: 2),
+              borderSide: BorderSide(
+                color: _passwordError != null
+                    ? AppColors.error
+                    : AppColors.primary,
+                width: 2,
+              ),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -276,6 +306,26 @@ class _LoginScreenState extends State<LoginScreen> {
             contentPadding: const EdgeInsets.all(16),
           ),
         ),
+        // Afficher l'erreur spécifique au mot de passe
+        if (_passwordError != null) ...[
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Icon(Icons.error_outline, color: AppColors.error, size: 16),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  _passwordError!,
+                  style: GoogleFonts.poppins(
+                    color: AppColors.error,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ],
     );
   }
@@ -305,7 +355,6 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ],
           ),
-          // const Spacer(),
           TextButton(
             onPressed: () {
               Navigator.push(
@@ -413,107 +462,149 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  String? _validateEmail(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Veuillez saisir votre adresse email';
+    }
+
+    final cleanValue = value.trim();
+
+    if (!cleanValue.contains('@')) {
+      return 'L\'email doit contenir le symbole @';
+    }
+
+    if (cleanValue.startsWith('@') || cleanValue.endsWith('@')) {
+      return 'Format incorrect : exemple@domaine.com';
+    }
+
+    final parts = cleanValue.split('@');
+    if (parts.length != 2 || parts[0].isEmpty || parts[1].isEmpty) {
+      return 'Format incorrect : exemple@domaine.com';
+    }
+
+    if (!parts[1].contains('.') ||
+        parts[1].endsWith('.') ||
+        parts[1].startsWith('.')) {
+      return 'Domaine invalide : exemple@domaine.com';
+    }
+
+    if (!RegExp(r'^[\w\.-]+@[\w\.-]+\.[a-zA-Z]{2,}$').hasMatch(cleanValue)) {
+      return 'Adresse email invalide';
+    }
+
+    return null;
+  }
+
+  String? _validatePassword(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Veuillez saisir votre mot de passe';
+    }
+
+    if (value.length < 8) {
+      return 'Le mot de passe doit contenir au moins 8 caractères';
+    }
+
+    List<String> missing = [];
+
+    if (!RegExp(r'[a-z]').hasMatch(value)) {
+      missing.add('une minuscule');
+    }
+
+    if (!RegExp(r'[A-Z]').hasMatch(value)) {
+      missing.add('une majuscule');
+    }
+
+    if (!RegExp(r'\d').hasMatch(value)) {
+      missing.add('un chiffre');
+    }
+
+    if (!RegExp(r'[@$!%*?&]').hasMatch(value)) {
+      missing.add('un caractère spécial (@, !, %, *, ?, &)');
+    }
+
+    if (missing.isNotEmpty) {
+      if (missing.length == 1) {
+        return 'Il manque ${missing.first}';
+      } else if (missing.length == 2) {
+        return 'Il manque ${missing.join(' et ')}';
+      } else {
+        return 'Il manque ${missing.sublist(0, missing.length - 1).join(', ')} et ${missing.last}';
+      }
+    }
+
+    return null;
+  }
+
   Future<void> _handleLogin(AuthProvider authProvider) async {
     setState(() {
       _autovalidateMode = AutovalidateMode.onUserInteraction;
+      _generalError = null; // Effacer les erreurs précédentes
     });
 
-    if (!_formKey.currentState!.validate()) {
+    // Validation finale avant l'envoi
+    _validateForm();
+
+    if (!_isFormValid) {
+      setState(() {
+        _generalError = "Veuillez corriger les erreurs ci-dessus";
+      });
       return;
     }
 
-    final success = await authProvider.login(
-      email: _emailController.text.trim(),
-      password: _passwordController.text,
-    );
-
-    if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Connexion réussie !'),
-          backgroundColor: AppColors.success,
-        ),
+    try {
+      final success = await authProvider.login(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
       );
-      Navigator.pushReplacementNamed(context, '/dashboard');
+
+      if (success && mounted) {
+        ErrorHandler.showSuccessSnackBar(context, 'Connexion réussie !');
+        Navigator.pushReplacementNamed(context, '/dashboard');
+      } else if (mounted) {
+        // Gestion des erreurs d'API avec messages clairs
+        String errorMessage = 'Erreur de connexion';
+
+        if (authProvider.errorMessage != null) {
+          // Analyser le message d'erreur pour donner un feedback plus précis
+          final message = authProvider.errorMessage!.toLowerCase();
+
+          if (message.contains('email') &&
+              (message.contains('incorrect') ||
+                  message.contains('not found'))) {
+            errorMessage = 'identifiant ou mot de passe incorrect';
+          } else if (message.contains('password') ||
+              message.contains('mot de passe')) {
+            errorMessage = 'Mot de passe incorrect';
+          } else if (message.contains('connexion') ||
+              message.contains('network') ||
+              message.contains('internet')) {
+            errorMessage = 'Problème de connexion internet';
+          } else if (message.contains('serveur') ||
+              message.contains('server')) {
+            errorMessage = 'Erreur du serveur. Veuillez réessayer plus tard';
+          } else if (message.contains('timeout') || message.contains('délai')) {
+            errorMessage = 'Délai d\'attente dépassé. Vérifiez votre connexion';
+          } else if (message.contains('too many') ||
+              message.contains('trop de tentatives')) {
+            errorMessage =
+                'Trop de tentatives. Veuillez patienter quelques minutes';
+          } else {
+            errorMessage = authProvider.errorMessage!;
+          }
+        }
+
+        setState(() {
+          _generalError = errorMessage;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _generalError = 'Une erreur inattendue s\'est produite';
+        });
+      }
     }
   }
-
- String? _validateEmail(String? value) {
-  if (value == null || value.trim().isEmpty) {
-    return 'Veuillez saisir votre adresse email';
-  }
-
-  final cleanValue = value.trim();
-  
-  // Vérification de la présence du @
-  if (!cleanValue.contains('@')) {
-    return 'L\'email doit contenir le symbole @';
-  }
-  
-  // Vérification de la structure générale
-  if (cleanValue.startsWith('@') || cleanValue.endsWith('@')) {
-    return 'Format incorrect : exemple@domaine.com';
-  }
-  
-  // Vérification du domaine
-  final parts = cleanValue.split('@');
-  if (parts.length != 2 || parts[0].isEmpty || parts[1].isEmpty) {
-    return 'Format incorrect : exemple@domaine.com';
-  }
-  
-  // Vérification de l'extension du domaine
-  if (!parts[1].contains('.') || parts[1].endsWith('.') || parts[1].startsWith('.')) {
-    return 'Domaine invalide : exemple@domaine.com';
-  }
-  
-  // Validation complète avec regex
-  if (!RegExp(r'^[\w\.-]+@[\w\.-]+\.[a-zA-Z]{2,}$').hasMatch(cleanValue)) {
-    return 'Adresse email invalide';
-  }
-  
-  return null;
-}
-
-String? _validatePassword(String? value) {
-  if (value == null || value.isEmpty) {
-    return 'Veuillez saisir votre mot de passe';
-  }
-  
-  if (value.length < 8) {
-    return 'Le mot de passe doit contenir au moins 8 caractères';
-  }
-  
-  // Vérification des caractères requis
-  List<String> missing = [];
-  
-  if (!RegExp(r'[a-z]').hasMatch(value)) {
-    missing.add('une minuscule');
-  }
-  
-  if (!RegExp(r'[A-Z]').hasMatch(value)) {
-    missing.add('une majuscule');
-  }
-  
-  if (!RegExp(r'\d').hasMatch(value)) {
-    missing.add('un chiffre');
-  }
-  
-  if (!RegExp(r'[@$!%*?&]').hasMatch(value)) {
-    missing.add('un caractère spécial (@, !, %, *, ?, &)');
-  }
-  
-  if (missing.isNotEmpty) {
-    if (missing.length == 1) {
-      return 'Il manque ${missing.first}';
-    } else if (missing.length == 2) {
-      return 'Il manque ${missing.join(' et ')}';
-    } else {
-      return 'Il manque ${missing.sublist(0, missing.length - 1).join(', ')} et ${missing.last}';
-    }
-  }
-  
-  return null;
-}
 
   @override
   void dispose() {

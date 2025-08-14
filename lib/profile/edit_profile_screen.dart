@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:saarflex_app/providers/auth_provider.dart';
 import '../../constants/colors.dart';
+import '../../utils/error_handler.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -14,7 +15,6 @@ class EditProfileScreen extends StatefulWidget {
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   final _firstNameController = TextEditingController();
-  final _birthDateController = TextEditingController();
   final _birthPlaceController = TextEditingController();
   final _nationalityController = TextEditingController();
   final _professionController = TextEditingController();
@@ -22,7 +22,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final _emailController = TextEditingController();
   final _addressController = TextEditingController();
   final _idNumberController = TextEditingController();
-  final _idExpiryController = TextEditingController();
 
   String _selectedGender = 'Masculin';
   String _selectedIdType = 'Carte Nationale d\'Identité';
@@ -36,8 +35,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   ];
 
   bool _isLoading = false;
-  bool _hasChanges = false; // Variable pour tracker les modifications
-  Map<String, dynamic> _originalData = {}; // Stocker les données originales
+  bool _hasChanges = false;
+  Map<String, dynamic> _originalData = {};
+
+  // Map pour stocker les erreurs spécifiques par champ
+  Map<String, String?> _fieldErrors = {};
 
   @override
   void initState() {
@@ -47,9 +49,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   void _addListeners() {
-    // Ajouter des listeners sur tous les controllers
     _firstNameController.addListener(_checkForChanges);
-    _birthDateController.addListener(_checkForChanges);
     _birthPlaceController.addListener(_checkForChanges);
     _nationalityController.addListener(_checkForChanges);
     _professionController.addListener(_checkForChanges);
@@ -57,11 +57,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _emailController.addListener(_checkForChanges);
     _addressController.addListener(_checkForChanges);
     _idNumberController.addListener(_checkForChanges);
-    _idExpiryController.addListener(_checkForChanges);
   }
 
   void _checkForChanges() {
-    // Comparer les valeurs actuelles avec les originales
     final currentData = {
       'nom': _firstNameController.text.trim(),
       'email': _emailController.text.trim(),
@@ -71,8 +69,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       'profession': _professionController.text.trim(),
       'adresse': _addressController.text.trim(),
       'numero_piece_identite': _idNumberController.text.trim(),
-      'date_naissance': _birthDateController.text.trim(),
-      'date_expiration': _idExpiryController.text.trim(),
       'sexe': _selectedGender,
       'type_piece_identite': _selectedIdType,
     };
@@ -88,6 +84,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     if (_hasChanges != hasChanged) {
       setState(() {
         _hasChanges = hasChanged;
+        _fieldErrors.clear(); // Effacer les erreurs quand l'utilisateur modifie
       });
     }
   }
@@ -109,16 +106,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       _professionController.text = user.profession ?? '';
       _addressController.text = user.adresse ?? '';
       _idNumberController.text = user.numeroPieceIdentite ?? '';
-      
+
       if (user.sexe != null) {
         _selectedGender = user.sexe == 'masculin' ? 'Masculin' : 'Féminin';
       }
-      
+
       if (user.typePieceIdentite != null) {
         _selectedIdType = _getTypePieceIdentiteLabel(user.typePieceIdentite!);
       }
 
-      // Stocker les données originales pour comparaison
       _originalData = {
         'nom': user.nom,
         'email': user.email,
@@ -128,8 +124,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         'profession': user.profession ?? '',
         'adresse': user.adresse ?? '',
         'numero_piece_identite': user.numeroPieceIdentite ?? '',
-        'date_naissance': '',
-        'date_expiration': '',
         'sexe': _selectedGender,
         'type_piece_identite': _selectedIdType,
       };
@@ -151,59 +145,32 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
-  String? _validateRequired(String? value, String fieldName) {
-    if (value == null || value.trim().isEmpty) {
-      return '$fieldName est requis';
-    }
-    return null;
-  }
+  Map<String, String?> _validateChangedFields() {
+    Map<String, String?> errors = {};
 
-  String? _validateEmail(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'Email est requis';
+    // Vérifier seulement les champs qui ont été modifiés
+    if (_firstNameController.text.trim() != _originalData['nom']) {
+      final nameError = ErrorHandler.validateName(_firstNameController.text);
+      if (nameError != null) {
+        errors['nom'] = nameError;
+      }
     }
-    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
-      return 'Format d\'email invalide';
-    }
-    return null;
-  }
 
-  String? _validatePhone(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'Téléphone est requis';
+    if (_emailController.text.trim() != _originalData['email']) {
+      final emailError = ErrorHandler.validateEmail(_emailController.text);
+      if (emailError != null) {
+        errors['email'] = emailError;
+      }
     }
-    if (value.length < 8) {
-      return 'Numéro de téléphone invalide';
-    }
-    return null;
-  }
 
-  void _showMessage(String message, Color color, IconData icon) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            Icon(icon, color: Colors.white, size: 20),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                message,
-                style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.w500,
-                  fontSize: 14,
-                ),
-              ),
-            ),
-          ],
-        ),
-        backgroundColor: color,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        margin: const EdgeInsets.all(16),
-      ),
-    );
+    if (_phoneController.text.trim() != _originalData['telephone']) {
+      final phoneError = ErrorHandler.validatePhone(_phoneController.text);
+      if (phoneError != null) {
+        errors['telephone'] = phoneError;
+      }
+    }
+
+    return errors;
   }
 
   @override
@@ -223,6 +190,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   children: [
                     _buildProfileHeader(),
                     const SizedBox(height: 40),
+
+                    // Afficher les erreurs globales s'il y en a - CORRECTION ICI
+                    if (_fieldErrors.isNotEmpty) ...[
+                      ErrorHandler.buildErrorList(
+                        _fieldErrors.values
+                            .where((error) => error != null)
+                            .cast<String>()
+                            .toList(),
+                      ),
+                      const SizedBox(height: 20),
+                    ],
+
                     _buildPersonalSection(),
                     const SizedBox(height: 32),
                     _buildContactSection(),
@@ -267,7 +246,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   Widget _buildProfileHeader() {
     final user = context.read<AuthProvider>().currentUser;
-    
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
@@ -354,7 +333,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           ),
           const SizedBox(height: 4),
           Text(
-            "Les champs marqués * sont obligatoires",
+            "Vous pouvez modifier un ou plusieurs champs",
             style: GoogleFonts.poppins(
               fontSize: 14,
               fontWeight: FontWeight.w400,
@@ -375,23 +354,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           controller: _firstNameController,
           label: 'Nom complet',
           isRequired: true,
-          validator: (value) => _validateRequired(value, 'Le nom'),
+          hasError: _fieldErrors.containsKey('nom'),
         ),
         const SizedBox(height: 20),
         _buildDropdownField(
           value: _selectedGender,
           items: _genderOptions,
           label: 'Sexe',
-          isRequired: true,
           onChanged: (value) {
             setState(() => _selectedGender = value!);
             _onDropdownChanged();
           },
-        ),
-        const SizedBox(height: 20),
-        _buildDateField(
-          controller: _birthDateController,
-          label: 'Date de naissance',
         ),
         const SizedBox(height: 20),
         _buildTextField(
@@ -404,10 +377,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           label: 'Nationalité',
         ),
         const SizedBox(height: 20),
-        _buildTextField(
-          controller: _professionController,
-          label: 'Profession',
-        ),
+        _buildTextField(controller: _professionController, label: 'Profession'),
       ],
     );
   }
@@ -422,7 +392,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           label: 'Adresse email',
           isRequired: true,
           keyboardType: TextInputType.emailAddress,
-          validator: _validateEmail,
+          hasError: _fieldErrors.containsKey('email'),
         ),
         const SizedBox(height: 20),
         _buildTextField(
@@ -430,7 +400,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           label: 'Numéro de téléphone',
           isRequired: true,
           keyboardType: TextInputType.phone,
-          validator: _validatePhone,
+          hasError: _fieldErrors.containsKey('telephone'),
         ),
         const SizedBox(height: 20),
         _buildTextField(
@@ -461,11 +431,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           controller: _idNumberController,
           label: 'Numéro de pièce',
         ),
-        const SizedBox(height: 20),
-        _buildDateField(
-          controller: _idExpiryController,
-          label: 'Date d\'expiration',
-        ),
       ],
     );
   }
@@ -486,11 +451,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 color: AppColors.primary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(
-                icon,
-                color: AppColors.primary,
-                size: 20,
-              ),
+              child: Icon(icon, color: AppColors.primary, size: 20),
             ),
             const SizedBox(width: 12),
             Text(
@@ -515,8 +476,31 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     bool isRequired = false,
     TextInputType? keyboardType,
     int maxLines = 1,
-    String? Function(String?)? validator,
+    bool hasError = false,
   }) {
+    // Vérifier si le champ a été modifié
+    String originalKey = '';
+    if (controller == _firstNameController)
+      originalKey = 'nom';
+    else if (controller == _emailController)
+      originalKey = 'email';
+    else if (controller == _phoneController)
+      originalKey = 'telephone';
+    else if (controller == _birthPlaceController)
+      originalKey = 'lieu_naissance';
+    else if (controller == _nationalityController)
+      originalKey = 'nationalite';
+    else if (controller == _professionController)
+      originalKey = 'profession';
+    else if (controller == _addressController)
+      originalKey = 'adresse';
+    else if (controller == _idNumberController)
+      originalKey = 'numero_piece_identite';
+
+    bool isModified =
+        originalKey.isNotEmpty &&
+        controller.text.trim() != _originalData[originalKey];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -534,6 +518,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   text: ' *',
                   style: TextStyle(color: AppColors.error),
                 ),
+              if (isModified)
+                TextSpan(
+                  text: ' (modifié)',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
             ],
           ),
         ),
@@ -542,7 +535,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           controller: controller,
           keyboardType: keyboardType,
           maxLines: maxLines,
-          validator: validator,
+          onChanged: (value) {
+            // Validation en temps réel si nécessaire
+            _checkForChanges();
+
+            // Effacer l'erreur spécifique si elle existe
+            if (_fieldErrors.containsKey(originalKey)) {
+              setState(() {
+                _fieldErrors.remove(originalKey);
+              });
+            }
+          },
           style: GoogleFonts.poppins(
             fontSize: 16,
             fontWeight: FontWeight.w500,
@@ -562,11 +565,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.border.withOpacity(0.3)),
+              borderSide: BorderSide(
+                color: hasError
+                    ? AppColors.error.withOpacity(0.5)
+                    : isModified
+                    ? AppColors.primary.withOpacity(0.3)
+                    : AppColors.border.withOpacity(0.3),
+              ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.primary, width: 2),
+              borderSide: BorderSide(
+                color: hasError ? AppColors.error : AppColors.primary,
+                width: 2,
+              ),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -655,76 +667,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  Widget _buildDateField({
-    required TextEditingController controller,
-    required String label,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: GoogleFonts.poppins(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: controller,
-          readOnly: true,
-          style: GoogleFonts.poppins(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-            color: AppColors.textPrimary,
-          ),
-          decoration: InputDecoration(
-            hintText: 'Sélectionner une date',
-            hintStyle: GoogleFonts.poppins(
-              color: AppColors.textSecondary.withOpacity(0.6),
-              fontWeight: FontWeight.w400,
-            ),
-            suffixIcon: Icon(
-              Icons.calendar_today_rounded,
-              color: AppColors.textSecondary,
-              size: 20,
-            ),
-            filled: true,
-            fillColor: AppColors.surfaceVariant,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.border.withOpacity(0.3)),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.primary, width: 2),
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 16,
-            ),
-          ),
-          onTap: () => _selectDate(controller),
-        ),
-      ],
-    );
-  }
-
   Widget _buildSaveButton() {
     final bool isEnabled = _hasChanges && !_isLoading;
-    
+
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
         onPressed: isEnabled ? _saveProfile : null,
         style: ElevatedButton.styleFrom(
-          backgroundColor: isEnabled ? AppColors.primary : AppColors.textSecondary.withOpacity(0.3),
-          foregroundColor: isEnabled ? AppColors.white : AppColors.textSecondary,
+          backgroundColor: isEnabled
+              ? AppColors.primary
+              : AppColors.textSecondary.withOpacity(0.3),
+          foregroundColor: isEnabled
+              ? AppColors.white
+              : AppColors.textSecondary,
           padding: const EdgeInsets.symmetric(vertical: 18),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -740,7 +696,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     height: 20,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.white),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        AppColors.white,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -754,7 +712,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ],
               )
             : Text(
-                "Enregistrer les modifications",
+                _hasChanges
+                    ? "Enregistrer les modifications"
+                    : "Aucune modification",
                 style: GoogleFonts.poppins(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -764,113 +724,142 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  Future<void> _selectDate(TextEditingController controller) async {
-    try {
-      final DateTime? picked = await showDatePicker(
-        context: context,
-        initialDate: DateTime.now(),
-        firstDate: DateTime(1900),
-        lastDate: DateTime(2100),
-        builder: (context, child) {
-          return Theme(
-            data: ThemeData.light().copyWith(
-              primaryColor: Colors.blue,
-              colorScheme: const ColorScheme.light(
-                primary: Colors.blue,
-              ),
-            ),
-            child: child!,
-          );
-        },
-      );
-      
-      if (picked != null) {
-        controller.text = "${picked.day.toString().padLeft(2, '0')}/"
-            "${picked.month.toString().padLeft(2, '0')}/"
-            "${picked.year}";
-        _checkForChanges();
-      }
-      
-    } catch (e) {
-      // Gestion d'erreur silencieuse ou affichage d'un message à l'utilisateur
-    }
-  }
-
   Future<void> _saveProfile() async {
-    // Validation simple : vérifier que les champs requis ne sont pas vides
-    if (_firstNameController.text.trim().isEmpty ||
-        _emailController.text.trim().isEmpty ||
-        _phoneController.text.trim().isEmpty) {
-      _showMessage(
-        "Veuillez remplir tous les champs obligatoires",
-        AppColors.warning,
-        Icons.warning_rounded,
-      );
-      return;
-    }
-
-    // Validation simple de l'email
-    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(_emailController.text.trim())) {
-      _showMessage(
-        "Format d'email invalide",
-        AppColors.warning,
-        Icons.warning_rounded,
-      );
-      return;
-    }
-
     setState(() {
       _isLoading = true;
+      _fieldErrors.clear();
     });
 
     try {
+      // Validation des champs modifiés uniquement
+      final errors = _validateChangedFields();
+
+      if (errors.isNotEmpty) {
+        setState(() {
+          _fieldErrors = errors;
+          _isLoading = false;
+        });
+        ErrorHandler.showErrorSnackBar(
+          context,
+          'Veuillez corriger les erreurs ci-dessus',
+        );
+        return;
+      }
+
       final authProvider = context.read<AuthProvider>();
 
-      final profileData = {
-        'nom': _firstNameController.text.trim(),
-        'lieu_naissance': _birthPlaceController.text.trim(),
-        'sexe': _selectedGender.toLowerCase(),
-        'nationalite': _nationalityController.text.trim(),
-        'profession': _professionController.text.trim(),
-        'telephone': _phoneController.text.trim(),
-        'email': _emailController.text.trim(),
-        'adresse': _addressController.text.trim(),
-        'numero_piece_identite': _idNumberController.text.trim(),
-        'type_piece_identite': _selectedIdType,
-      };
+      // Construire les données à envoyer - seulement les champs modifiés
+      final Map<String, dynamic> profileData = {};
+
+      if (_firstNameController.text.trim() != _originalData['nom']) {
+        profileData['nom'] = _firstNameController.text.trim();
+      }
+
+      if (_emailController.text.trim() != _originalData['email']) {
+        profileData['email'] = _emailController.text.trim();
+      }
+
+      if (_phoneController.text.trim() != _originalData['telephone']) {
+        profileData['telephone'] = _phoneController.text.trim();
+      }
+
+      if (_birthPlaceController.text.trim() !=
+          _originalData['lieu_naissance']) {
+        profileData['lieu_naissance'] = _birthPlaceController.text.trim();
+      }
+
+      if (_nationalityController.text.trim() != _originalData['nationalite']) {
+        profileData['nationalite'] = _nationalityController.text.trim();
+      }
+
+      if (_professionController.text.trim() != _originalData['profession']) {
+        profileData['profession'] = _professionController.text.trim();
+      }
+
+      if (_addressController.text.trim() != _originalData['adresse']) {
+        profileData['adresse'] = _addressController.text.trim();
+      }
+
+      if (_idNumberController.text.trim() !=
+          _originalData['numero_piece_identite']) {
+        profileData['numero_piece_identite'] = _idNumberController.text.trim();
+      }
+
+      if (_selectedGender != _originalData['sexe']) {
+        profileData['sexe'] = _selectedGender.toLowerCase();
+      }
+
+      if (_selectedIdType != _originalData['type_piece_identite']) {
+        profileData['type_piece_identite'] = _selectedIdType;
+      }
+
+      // Vérifier qu'il y a au moins un champ à modifier
+      if (profileData.isEmpty) {
+        setState(() {
+          _isLoading = false;
+        });
+        ErrorHandler.showWarningSnackBar(
+          context,
+          'Aucune modification détectée',
+        );
+        return;
+      }
 
       final success = await authProvider.updateProfile(profileData);
 
-      if (success) {
-        _showMessage(
-          "Profil mis à jour avec succès !",
-          AppColors.success,
-          Icons.check_circle_outline,
+      if (success && mounted) {
+        ErrorHandler.showSuccessSnackBar(
+          context,
+          'Profil mis à jour avec succès !',
         );
-        
-        // Réinitialiser l'état des modifications après sauvegarde réussie
-        _loadUserData(); // Recharger les données comme nouvelles données "originales"
+
+        // Recharger les données pour mettre à jour les valeurs originales
+        _loadUserData();
         setState(() {
           _hasChanges = false;
         });
-        
+
         // Retourner à l'écran précédent après un délai
         Future.delayed(const Duration(seconds: 1), () {
           if (mounted) Navigator.pop(context);
         });
-      } else {
-        _showMessage(
-          "Erreur lors de la mise à jour du profil",
-          AppColors.error,
-          Icons.error_outline,
-        );
+      } else if (mounted) {
+        // Gestion des erreurs spécifiques de l'API avec ErrorHandler
+        String errorMessage = 'Erreur lors de la mise à jour du profil';
+
+        if (authProvider.errorMessage != null) {
+          final apiError = authProvider.errorMessage!.toLowerCase();
+
+          if (apiError.contains('email') && apiError.contains('already')) {
+            errorMessage =
+                'Cette adresse email est déjà utilisée par un autre compte';
+          } else if (apiError.contains('phone') &&
+              apiError.contains('already')) {
+            errorMessage =
+                'Ce numéro de téléphone est déjà utilisé par un autre compte';
+          } else if (apiError.contains('validation')) {
+            errorMessage = 'Données invalides, vérifiez vos informations';
+          } else if (apiError.contains('connexion') ||
+              apiError.contains('internet') ||
+              apiError.contains('network')) {
+            errorMessage = 'Problème de connexion, vérifiez votre internet';
+          } else if (apiError.contains('server') ||
+              apiError.contains('serveur')) {
+            errorMessage = 'Erreur du serveur, réessayez plus tard';
+          } else {
+            errorMessage = authProvider.errorMessage!;
+          }
+        }
+
+        ErrorHandler.showErrorSnackBar(context, errorMessage);
       }
     } catch (e) {
-      _showMessage(
-        "Une erreur s'est produite. Veuillez réessayer.",
-        AppColors.error,
-        Icons.error_outline,
-      );
+      if (mounted) {
+        ErrorHandler.showErrorSnackBar(
+          context,
+          'Une erreur inattendue s\'est produite. Veuillez réessayer.',
+        );
+      }
     } finally {
       if (mounted) {
         setState(() {
@@ -884,7 +873,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   void dispose() {
     // Retirer les listeners avant de disposer les controllers
     _firstNameController.removeListener(_checkForChanges);
-    _birthDateController.removeListener(_checkForChanges);
     _birthPlaceController.removeListener(_checkForChanges);
     _nationalityController.removeListener(_checkForChanges);
     _professionController.removeListener(_checkForChanges);
@@ -892,10 +880,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _emailController.removeListener(_checkForChanges);
     _addressController.removeListener(_checkForChanges);
     _idNumberController.removeListener(_checkForChanges);
-    _idExpiryController.removeListener(_checkForChanges);
 
     _firstNameController.dispose();
-    _birthDateController.dispose();
     _birthPlaceController.dispose();
     _nationalityController.dispose();
     _professionController.dispose();
@@ -903,7 +889,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _emailController.dispose();
     _addressController.dispose();
     _idNumberController.dispose();
-    _idExpiryController.dispose();
     super.dispose();
   }
 }
