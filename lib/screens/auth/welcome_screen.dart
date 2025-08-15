@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:animate_do/animate_do.dart';
@@ -11,243 +12,187 @@ class WelcomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              AppColors.primary,
-              AppColors.primary.withOpacity(0.8),
-              AppColors.primary.withOpacity(0.9),
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32.0),
+          child: Column(
+            children: [
+              // Section du logo et titre (60% de l'écran)
+              Expanded(
+                flex: 6,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const SizedBox(height: 100),
+
+                    // Logo SAAR
+                    FadeInDown(
+                      duration: const Duration(milliseconds: 800),
+                      child: Container(
+                        // width: 20,
+                        height: 140,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primary.withOpacity(0.15),
+                              spreadRadius: 0,
+                              blurRadius: 20,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: Image.asset(
+                            'lib/assets/images/saar.png',
+                            fit: BoxFit.cover,
+                            semanticLabel: "Logo SAAR Assurance",
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 50),
+
+                    // Slogan
+                    FadeInUp(
+                      duration: const Duration(milliseconds: 800),
+                      delay: const Duration(milliseconds: 500),
+                      child: Text(
+                        'SAAR Assurances\nUn réservoir de sécurité',
+                        style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w400,
+                          color: AppColors.textSecondary,
+                          height: 1.4,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+
+                    const Spacer(),
+                  ],
+                ),
+              ),
+
+              // Section des boutons (40% de l'écran)
+              Expanded(
+                flex: 4,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    // Bouton Se connecter
+                    FadeInUp(
+                      duration: const Duration(milliseconds: 600),
+                      delay: const Duration(milliseconds: 700),
+                      child: _buildSimpleButton(
+                        text: 'Se connecter',
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const LoginScreen(),
+                            ),
+                          );
+                        },
+                        isPrimary: true,
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // Bouton Créer un compte
+                    FadeInUp(
+                      duration: const Duration(milliseconds: 600),
+                      delay: const Duration(milliseconds: 900),
+                      child: _buildSimpleButton(
+                        text: 'Créer un compte',
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const SignupScreen(),
+                            ),
+                          );
+                        },
+                        isPrimary: false,
+                      ),
+                    ),
+
+                    const SizedBox(height: 32),
+
+                    // Conditions d'utilisation
+                    FadeInUp(
+                      duration: const Duration(milliseconds: 400),
+                      delay: const Duration(milliseconds: 1100),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Text(
+                          "En continuant, vous acceptez nos Conditions Générales d'Utilisation",
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            color: AppColors.textHint,
+                            fontWeight: FontWeight.w400,
+                            height: 1.4,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 40),
+                  ],
+                ),
+              ),
             ],
-          ),
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0),
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return SingleChildScrollView(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: constraints.maxHeight,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        const SizedBox(height: 80),
-
-                        FadeInDown(
-                          duration: const Duration(milliseconds: 800),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(20),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.3),
-                                  spreadRadius: 5,
-                                  blurRadius: 15,
-                                  offset: const Offset(0, 8),
-                                ),
-                              ],
-                            ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(20),
-                              child: Image.asset(
-                                'lib/assets/images/welcome_img.png',
-                                height:
-                                    MediaQuery.of(context).size.height * 0.15,
-                                semanticLabel: "Logo SAAR Assurance",
-                              ),
-                            ),
-                          ),
-                        ),
-
-                        const SizedBox(height: 40),
-
-                        FadeInDown(
-                          duration: const Duration(milliseconds: 800),
-                          delay: const Duration(milliseconds: 300),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 10,
-                            ),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(15),
-                              color: Colors.white.withOpacity(0.1),
-                              border: Border.all(
-                                color: Colors.white.withOpacity(0.3),
-                                width: 1,
-                              ),
-                            ),
-                            child: Text(
-                              'BIENVENUE',
-                              style: GoogleFonts.poppins(
-                                fontSize: 42,
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.white,
-                                letterSpacing: 2.0,
-                                shadows: [
-                                  Shadow(
-                                    color: Colors.black.withOpacity(0.3),
-                                    offset: const Offset(2, 2),
-                                    blurRadius: 4,
-                                  ),
-                                ],
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ),
-
-                        const SizedBox(height: 20),
-
-                        FadeInDown(
-                          duration: const Duration(milliseconds: 800),
-                          delay: const Duration(milliseconds: 600),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 30,
-                              vertical: 15,
-                            ),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(25),
-                              color: Colors.white.withOpacity(0.15),
-                            ),
-                            child: Text(
-                              'SAAR Assurance\nVotre assurance à portée de main',
-                              style: GoogleFonts.poppins(
-                                fontSize: 16,
-                                color: AppColors.white,
-                                fontWeight: FontWeight.w500,
-                                height: 1.4,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ),
-
-                        const SizedBox(height: 80),
-
-                        FadeInUp(
-                          duration: const Duration(milliseconds: 800),
-                          delay: const Duration(milliseconds: 900),
-                          child: _buildModernButton(
-                            text: 'Se connecter',
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => const LoginScreen(),
-                                ),
-                              );
-                            },
-                            backgroundColor: AppColors.white,
-                            textColor: AppColors.primary,
-                            isPrimary: true,
-                          ),
-                        ),
-
-                        const SizedBox(height: 16),
-
-                        FadeInUp(
-                          duration: const Duration(milliseconds: 800),
-                          delay: const Duration(milliseconds: 1100),
-                          child: _buildModernButton(
-                            text: 'Créer un compte',
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => const SignupScreen(),
-                                ),
-                              );
-                            },
-                            backgroundColor: AppColors.secondary,
-                            textColor: Colors.black,
-                            isPrimary: false,
-                          ),
-                        ),
-
-                        const SizedBox(height: 20),
-
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 12,
-                          ),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
-                            color: Colors.white.withOpacity(0.1),
-                          ),
-                          child: Text(
-                            "En continuant, vous acceptez nos Conditions Générales d'Utilisation",
-                            style: GoogleFonts.poppins(
-                              fontSize: 11,
-                              color: AppColors.white.withOpacity(0.8),
-                              fontWeight: FontWeight.w400,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-
-                        const SizedBox(height: 30),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildModernButton({
+  Widget _buildSimpleButton({
     required String text,
     required VoidCallback onPressed,
-    required Color backgroundColor,
-    required Color textColor,
     required bool isPrimary,
   }) {
     return Container(
+      width: double.infinity,
+      height: 54,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-            color: backgroundColor.withOpacity(0.3),
-            spreadRadius: 2,
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(12),
+        color: isPrimary ? AppColors.primary : AppColors.surface,
+        border: isPrimary
+            ? null
+            : Border.all(color: AppColors.border, width: 1.5),
+        boxShadow: isPrimary
+            ? [
+                BoxShadow(
+                  color: AppColors.primary.withOpacity(0.25),
+                  spreadRadius: 0,
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ]
+            : null,
       ),
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: backgroundColor,
-          foregroundColor: textColor,
-          minimumSize: const Size(double.infinity, 56),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
-            side: isPrimary
-                ? BorderSide.none
-                : BorderSide(
-                    color: AppColors.secondary.withOpacity(0.5),
-                    width: 2,
-                  ),
-          ),
-          elevation: 0,
-        ),
-        child: Text(
-          text,
-          style: GoogleFonts.poppins(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.5,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(12),
+          child: Center(
+            child: Text(
+              text,
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: isPrimary ? AppColors.white : AppColors.textPrimary,
+                letterSpacing: 0.5,
+              ),
+            ),
           ),
         ),
       ),

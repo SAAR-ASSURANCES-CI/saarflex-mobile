@@ -14,12 +14,12 @@ class ResetPasswordWidgets {
   }) {
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(15),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 8,
+            color: AppColors.primary.withOpacity(0.08),
+            spreadRadius: 0,
+            blurRadius: 10,
             offset: const Offset(0, 2),
           ),
         ],
@@ -28,57 +28,55 @@ class ResetPasswordWidgets {
         controller: controller,
         keyboardType: keyboardType,
         validator: validator,
-        style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w500),
+        style: GoogleFonts.poppins(
+          fontSize: 16, 
+          fontWeight: FontWeight.w500,
+          color: AppColors.textPrimary,
+        ),
         decoration: InputDecoration(
           labelText: label,
           labelStyle: GoogleFonts.poppins(
-            color: AppColors.primary.withOpacity(0.7),
+            color: AppColors.textSecondary,
             fontWeight: FontWeight.w500,
           ),
           prefixIcon: Container(
-            margin: const EdgeInsets.all(12),
-            padding: const EdgeInsets.all(8),
+            margin: const EdgeInsets.all(14),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
+              gradient: AppColors.primaryGradient,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, color: AppColors.primary, size: 20),
+            child: Icon(icon, color: AppColors.white, size: 20),
           ),
           filled: true,
-          fillColor: AppColors.white,
+          fillColor: AppColors.surface,
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15),
-            borderSide: BorderSide(
-              color: AppColors.primary.withOpacity(0.2),
-              width: 1,
-            ),
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(color: AppColors.border, width: 1),
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15),
-            borderSide: BorderSide(
-              color: AppColors.primary.withOpacity(0.2),
-              width: 1,
-            ),
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(color: AppColors.border, width: 1),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15),
+            borderRadius: BorderRadius.circular(16),
             borderSide: BorderSide(color: AppColors.primary, width: 2),
           ),
           errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15),
-            borderSide: BorderSide(color: Colors.red, width: 1),
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(color: AppColors.error, width: 1),
           ),
           focusedErrorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15),
-            borderSide: BorderSide(color: Colors.red, width: 2),
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(color: AppColors.error, width: 2),
           ),
           errorStyle: GoogleFonts.poppins(
             fontSize: 12,
             fontWeight: FontWeight.w500,
-            color: Colors.red,
+            color: AppColors.error,
           ),
           contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
+            horizontal: 20,
             vertical: 16,
           ),
         ),
@@ -100,12 +98,12 @@ class ResetPasswordWidgets {
     
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(15),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: !isOutlined && isEnabled && !isLoading ? [
           BoxShadow(
             color: backgroundColor.withOpacity(0.3),
-            spreadRadius: 2,
-            blurRadius: 10,
+            spreadRadius: 0,
+            blurRadius: 15,
             offset: const Offset(0, 4),
           ),
         ] : null,
@@ -116,11 +114,11 @@ class ResetPasswordWidgets {
       child: ElevatedButton(
         onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: isEnabled ? backgroundColor : Colors.grey[300],
-          foregroundColor: isEnabled ? (textColor ?? AppColors.white) : Colors.grey[600],
+          backgroundColor: isEnabled ? backgroundColor : AppColors.disabled,
+          foregroundColor: isEnabled ? (textColor ?? AppColors.white) : AppColors.disabledText,
           minimumSize: const Size(double.infinity, 56),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
+            borderRadius: BorderRadius.circular(16),
           ),
           elevation: 0,
         ),
@@ -179,15 +177,24 @@ class ResetPasswordWidgets {
       SnackBar(
         content: Row(
           children: [
-            Icon(Icons.error_outline, color: Colors.white),
-            const SizedBox(width: 8),
-            Expanded(child: Text(message)),
+            Icon(Icons.error_outline_rounded, color: Colors.white, size: 20),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                message,
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white,
+                ),
+              ),
+            ),
           ],
         ),
-        backgroundColor: Colors.red[400],
+        backgroundColor: AppColors.error,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         duration: const Duration(seconds: 4),
+        margin: const EdgeInsets.all(16),
       ),
     );
   }
@@ -197,15 +204,24 @@ class ResetPasswordWidgets {
       SnackBar(
         content: Row(
           children: [
-            Icon(Icons.check_circle_outline, color: Colors.white),
-            const SizedBox(width: 8),
-            Expanded(child: Text(message)),
+            Icon(Icons.check_circle_outline_rounded, color: Colors.white, size: 20),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                message,
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white,
+                ),
+              ),
+            ),
           ],
         ),
-        backgroundColor: AppColors.secondary,
+        backgroundColor: AppColors.success,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         duration: const Duration(seconds: 3),
+        margin: const EdgeInsets.all(16),
       ),
     );
   }

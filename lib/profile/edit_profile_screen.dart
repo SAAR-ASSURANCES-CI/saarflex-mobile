@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:saarflex_app/providers/auth_provider.dart';
-import '../models/user_model.dart';
 import '../../constants/colors.dart';
+import '../../utils/error_handler.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -13,8 +13,8 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
+  final _formKey = GlobalKey<FormState>();
   final _firstNameController = TextEditingController();
-  final _birthDateController = TextEditingController();
   final _birthPlaceController = TextEditingController();
   final _nationalityController = TextEditingController();
   final _professionController = TextEditingController();
@@ -22,7 +22,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final _emailController = TextEditingController();
   final _addressController = TextEditingController();
   final _idNumberController = TextEditingController();
-  final _idExpiryController = TextEditingController();
 
   String _selectedGender = 'Masculin';
   String _selectedIdType = 'Carte Nationale d\'Identité';
@@ -36,11 +35,62 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   ];
 
   bool _isLoading = false;
+  bool _hasChanges = false;
+  Map<String, dynamic> _originalData = {};
+
+  // Map pour stocker les erreurs spécifiques par champ
+  Map<String, String?> _fieldErrors = {};
 
   @override
   void initState() {
     super.initState();
     _loadUserData();
+    _addListeners();
+  }
+
+  void _addListeners() {
+    _firstNameController.addListener(_checkForChanges);
+    _birthPlaceController.addListener(_checkForChanges);
+    _nationalityController.addListener(_checkForChanges);
+    _professionController.addListener(_checkForChanges);
+    _phoneController.addListener(_checkForChanges);
+    _emailController.addListener(_checkForChanges);
+    _addressController.addListener(_checkForChanges);
+    _idNumberController.addListener(_checkForChanges);
+  }
+
+  void _checkForChanges() {
+    final currentData = {
+      'nom': _firstNameController.text.trim(),
+      'email': _emailController.text.trim(),
+      'telephone': _phoneController.text.trim(),
+      'lieu_naissance': _birthPlaceController.text.trim(),
+      'nationalite': _nationalityController.text.trim(),
+      'profession': _professionController.text.trim(),
+      'adresse': _addressController.text.trim(),
+      'numero_piece_identite': _idNumberController.text.trim(),
+      'sexe': _selectedGender,
+      'type_piece_identite': _selectedIdType,
+    };
+
+    bool hasChanged = false;
+    for (String key in currentData.keys) {
+      if (currentData[key] != _originalData[key]) {
+        hasChanged = true;
+        break;
+      }
+    }
+
+    if (_hasChanges != hasChanged) {
+      setState(() {
+        _hasChanges = hasChanged;
+        _fieldErrors.clear(); // Effacer les erreurs quand l'utilisateur modifie
+      });
+    }
+  }
+
+  void _onDropdownChanged() {
+    _checkForChanges();
   }
 
   void _loadUserData() {
@@ -48,723 +98,499 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final user = authProvider.currentUser;
 
     if (user != null) {
-      final nameParts = user.nom.split(' ');
-      if (nameParts.length >= 2) {
-        _firstNameController.text = nameParts.first;
-      } else {
-        _firstNameController.text = user.nom;
-      }
-
+      _firstNameController.text = user.nom;
       _emailController.text = user.email;
       _phoneController.text = user.telephone ?? '';
+      _birthPlaceController.text = user.lieuNaissance ?? '';
+      _nationalityController.text = user.nationalite ?? '';
+      _professionController.text = user.profession ?? '';
+      _addressController.text = user.adresse ?? '';
+      _idNumberController.text = user.numeroPieceIdentite ?? '';
 
-      _birthDateController.text = '';
-      _birthPlaceController.text = '';
-      _nationalityController.text = '';
-      _professionController.text = '';
-      _addressController.text = '';
-      _idNumberController.text = '';
-      _idExpiryController.text = '';
-    } else {
-      _firstNameController.text = '';
-      _emailController.text = '';
-      _phoneController.text = '';
-      _birthDateController.text = '';
-      _birthPlaceController.text = '';
-      _nationalityController.text = '';
-      _professionController.text = '';
-      _addressController.text = '';
-      _idNumberController.text = '';
-      _idExpiryController.text = '';
+      if (user.sexe != null) {
+        _selectedGender = user.sexe == 'masculin' ? 'Masculin' : 'Féminin';
+      }
+
+      if (user.typePieceIdentite != null) {
+        _selectedIdType = _getTypePieceIdentiteLabel(user.typePieceIdentite!);
+      }
+
+      _originalData = {
+        'nom': user.nom,
+        'email': user.email,
+        'telephone': user.telephone ?? '',
+        'lieu_naissance': user.lieuNaissance ?? '',
+        'nationalite': user.nationalite ?? '',
+        'profession': user.profession ?? '',
+        'adresse': user.adresse ?? '',
+        'numero_piece_identite': user.numeroPieceIdentite ?? '',
+        'sexe': _selectedGender,
+        'type_piece_identite': _selectedIdType,
+      };
     }
+  }
+
+  String _getTypePieceIdentiteLabel(String type) {
+    switch (type.toLowerCase()) {
+      case 'cni':
+        return 'Carte Nationale d\'Identité';
+      case 'passport':
+        return 'Passeport';
+      case 'permis':
+        return 'Permis de Conduire';
+      case 'carte_sejour':
+        return 'Carte de Séjour';
+      default:
+        return 'Carte Nationale d\'Identité';
+    }
+  }
+
+  Map<String, String?> _validateChangedFields() {
+    Map<String, String?> errors = {};
+
+    // Vérifier seulement les champs qui ont été modifiés
+    if (_firstNameController.text.trim() != _originalData['nom']) {
+      final nameError = ErrorHandler.validateName(_firstNameController.text);
+      if (nameError != null) {
+        errors['nom'] = nameError;
+      }
+    }
+
+    if (_emailController.text.trim() != _originalData['email']) {
+      final emailError = ErrorHandler.validateEmail(_emailController.text);
+      if (emailError != null) {
+        errors['email'] = emailError;
+      }
+    }
+
+    if (_phoneController.text.trim() != _originalData['telephone']) {
+      final phoneError = ErrorHandler.validatePhone(_phoneController.text);
+      if (phoneError != null) {
+        errors['telephone'] = phoneError;
+      }
+    }
+
+    return errors;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<AuthProvider>(
-      builder: (context, authProvider, child) {
-        return Scaffold(
-          body: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  AppColors.primary.withOpacity(0.1),
-                  AppColors.white,
-                  AppColors.white,
-                ],
-              ),
-            ),
-            child: SafeArea(
-              child: Column(
-                children: [
-                  _buildAppBar(authProvider),
-                  _buildErrorDisplay(authProvider),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildProfilePhotoSection(authProvider.currentUser),
-                          const SizedBox(height: 32),
-                          _buildSection(
-                            title: "Informations personnelles",
-                            icon: Icons.person_rounded,
-                            children: [
-                              _buildModernTextField(
-                                controller: _firstNameController,
-                                label: 'Nom complet',
-                                icon: Icons.person,
-                                keyboardType: TextInputType.name,
-                              ),
-                             
-                              const SizedBox(height: 16),
-                              _buildDateField(
-                                controller: _birthDateController,
-                                label: 'Date de naissance',
-                                icon: Icons.calendar_today,
-                              ),
-                              const SizedBox(height: 16),
-                              _buildModernTextField(
-                                controller: _birthPlaceController,
-                                label: 'Lieu de naissance',
-                                icon: Icons.location_on,
-                                keyboardType: TextInputType.text,
-                              ),
-                              const SizedBox(height: 16),
-                              _buildDropdownField(
-                                value: _selectedGender,
-                                items: _genderOptions,
-                                label: 'Sexe',
-                                icon: Icons.wc,
-                                onChanged: (value) {
-                                  setState(() {
-                                    _selectedGender = value!;
-                                  });
-                                },
-                              ),
-                              const SizedBox(height: 16),
-                              _buildModernTextField(
-                                controller: _nationalityController,
-                                label: 'Nationalité',
-                                icon: Icons.flag,
-                                keyboardType: TextInputType.text,
-                              ),
-                              const SizedBox(height: 16),
-                              _buildModernTextField(
-                                controller: _professionController,
-                                label: 'Profession',
-                                icon: Icons.work,
-                                keyboardType: TextInputType.text,
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 24),
-                          _buildSection(
-                            title: "Coordonnées",
-                            icon: Icons.contact_phone_rounded,
-                            children: [
-                              _buildModernTextField(
-                                controller: _phoneController,
-                                label: 'Téléphone',
-                                icon: Icons.phone,
-                                keyboardType: TextInputType.phone,
-                              ),
-                              const SizedBox(height: 16),
-                              _buildModernTextField(
-                                controller: _emailController,
-                                label: 'Email',
-                                icon: Icons.email,
-                                keyboardType: TextInputType.emailAddress,
-                              ),
-                              const SizedBox(height: 16),
-                              _buildModernTextField(
-                                controller: _addressController,
-                                label: 'Adresse de résidence',
-                                icon: Icons.home,
-                                keyboardType: TextInputType.multiline,
-                                maxLines: 3,
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 24),
-                          _buildSection(
-                            title: "Pièce d'identité",
-                            icon: Icons.badge_rounded,
-                            children: [
-                              _buildDropdownField(
-                                value: _selectedIdType,
-                                items: _idTypeOptions,
-                                label: 'Type de pièce',
-                                icon: Icons.credit_card,
-                                onChanged: (value) {
-                                  setState(() {
-                                    _selectedIdType = value!;
-                                  });
-                                },
-                              ),
-                              const SizedBox(height: 16),
-                              _buildModernTextField(
-                                controller: _idNumberController,
-                                label: 'Numéro de pièce',
-                                icon: Icons.numbers,
-                                keyboardType: TextInputType.text,
-                              ),
-                              const SizedBox(height: 16),
-                              _buildDateField(
-                                controller: _idExpiryController,
-                                label: 'Date d\'expiration',
-                                icon: Icons.event_available,
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 32),
-                          _buildActionButtons(),
-                          const SizedBox(height: 24),
-                        ],
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: CustomScrollView(
+        slivers: [
+          _buildSliverAppBar(),
+          SliverPadding(
+            padding: const EdgeInsets.all(24),
+            sliver: SliverToBoxAdapter(
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildProfileHeader(),
+                    const SizedBox(height: 40),
+
+                    // Afficher les erreurs globales s'il y en a - CORRECTION ICI
+                    if (_fieldErrors.isNotEmpty) ...[
+                      ErrorHandler.buildErrorList(
+                        _fieldErrors.values
+                            .where((error) => error != null)
+                            .cast<String>()
+                            .toList(),
                       ),
-                    ),
-                  ),
-                ],
+                      const SizedBox(height: 20),
+                    ],
+
+                    _buildPersonalSection(),
+                    const SizedBox(height: 32),
+                    _buildContactSection(),
+                    const SizedBox(height: 32),
+                    _buildIdentitySection(),
+                    const SizedBox(height: 40),
+                    _buildSaveButton(),
+                    const SizedBox(height: 20),
+                  ],
+                ),
               ),
             ),
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 
-  Widget _buildAppBar(AuthProvider authProvider) {
-    return Padding(
-      padding: const EdgeInsets.all(12),
-      child: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        foregroundColor: AppColors.primary,
+  Widget _buildSliverAppBar() {
+    return SliverAppBar(
+      expandedHeight: 120,
+      floating: false,
+      pinned: true,
+      backgroundColor: AppColors.primary,
+      leading: IconButton(
+        icon: Icon(Icons.arrow_back_ios_rounded, color: AppColors.white),
+        onPressed: () => Navigator.pop(context),
+      ),
+      flexibleSpace: FlexibleSpaceBar(
         title: Text(
-          "Modifier le profil",
+          "Édition du profil",
           style: GoogleFonts.poppins(
-            fontSize: 24,
-            fontWeight: FontWeight.w500,
-            color: AppColors.primary,
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+            color: AppColors.white,
           ),
         ),
-        actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 8),
-            decoration: BoxDecoration(
-              color: AppColors.secondary,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.secondary.withOpacity(0.3),
-                  spreadRadius: 1,
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: IconButton(
-              icon: _isLoading || authProvider.isLoading
-                  ? SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
-                      ),
-                    )
-                  : Icon(Icons.save_rounded, color: Colors.black),
-              onPressed: _isLoading || authProvider.isLoading
-                  ? null
-                  : _saveProfile,
-            ),
-          ),
-        ],
+        centerTitle: true,
       ),
     );
   }
 
-  Widget _buildErrorDisplay(AuthProvider authProvider) {
-    if (authProvider.errorMessage == null) {
-      return const SizedBox.shrink();
-    }
+  Widget _buildProfileHeader() {
+    final user = context.read<AuthProvider>().currentUser;
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 24),
-      padding: const EdgeInsets.all(12),
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.red[50],
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.red[200]!),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.error_outline, color: Colors.red, size: 20),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              authProvider.errorMessage!,
-              style: GoogleFonts.poppins(
-                color: Colors.red[700],
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.shadow,
+            spreadRadius: 0,
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildProfilePhotoSection(User? user) {
-    return Center(
       child: Column(
         children: [
           Stack(
             children: [
               Container(
-                padding: const EdgeInsets.all(4),
+                width: 90,
+                height: 90,
                 decoration: BoxDecoration(
-                  color: AppColors.white,
-                  borderRadius: BorderRadius.circular(60),
+                  color: AppColors.primary,
+                  shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.primary.withOpacity(0.2),
-                      spreadRadius: 3,
-                      blurRadius: 10,
-                      offset: const Offset(0, 3),
+                      color: AppColors.primary.withOpacity(0.3),
+                      spreadRadius: 0,
+                      blurRadius: 15,
+                      offset: const Offset(0, 5),
                     ),
                   ],
                 ),
+                child: user?.avatarUrl != null
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(45),
+                        child: Image.network(
+                          user!.avatarUrl!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Icon(
+                              Icons.person_rounded,
+                              color: AppColors.white,
+                              size: 45,
+                            );
+                          },
+                        ),
+                      )
+                    : Icon(
+                        Icons.person_rounded,
+                        color: AppColors.white,
+                        size: 45,
+                      ),
+              ),
+              Positioned(
+                bottom: 0,
+                right: 0,
                 child: Container(
-                  width: 100,
-                  height: 100,
+                  width: 28,
+                  height: 28,
                   decoration: BoxDecoration(
                     color: AppColors.secondary,
-                    borderRadius: BorderRadius.circular(56),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppColors.white, width: 2),
                   ),
-                  child: user?.avatarUrl != null
-                      ? ClipRRect(
-                          borderRadius: BorderRadius.circular(56),
-                          child: Image.network(
-                            user!.avatarUrl!,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Icon(
-                                Icons.person_rounded,
-                                color: AppColors.primary,
-                                size: 50,
-                              );
-                            },
-                          ),
-                        )
-                      : Icon(
-                          Icons.person_rounded,
-                          color: const Color.fromARGB(255, 255, 0, 51),
-                          size: 50,
-                        ),
+                  child: Icon(
+                    Icons.camera_alt_rounded,
+                    color: AppColors.white,
+                    size: 16,
+                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-
-          if (user != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Text(
-                user.nom,
-                style: GoogleFonts.poppins(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.primary,
-                ),
-              ),
+          const SizedBox(height: 16),
+          Text(
+            "Modifiez vos informations",
+            style: GoogleFonts.poppins(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
             ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            "Vous pouvez modifier un ou plusieurs champs",
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w400,
+              color: AppColors.textSecondary,
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildSection({
+  Widget _buildPersonalSection() {
+    return _buildFormSection(
+      title: "Informations personnelles",
+      icon: Icons.person_rounded,
+      children: [
+        _buildTextField(
+          controller: _firstNameController,
+          label: 'Nom complet',
+          isRequired: true,
+          hasError: _fieldErrors.containsKey('nom'),
+        ),
+        const SizedBox(height: 20),
+        _buildDropdownField(
+          value: _selectedGender,
+          items: _genderOptions,
+          label: 'Sexe',
+          onChanged: (value) {
+            setState(() => _selectedGender = value!);
+            _onDropdownChanged();
+          },
+        ),
+        const SizedBox(height: 20),
+        _buildTextField(
+          controller: _birthPlaceController,
+          label: 'Lieu de naissance',
+        ),
+        const SizedBox(height: 20),
+        _buildTextField(
+          controller: _nationalityController,
+          label: 'Nationalité',
+        ),
+        const SizedBox(height: 20),
+        _buildTextField(controller: _professionController, label: 'Profession'),
+      ],
+    );
+  }
+
+  Widget _buildContactSection() {
+    return _buildFormSection(
+      title: "Coordonnées",
+      icon: Icons.contact_phone_rounded,
+      children: [
+        _buildTextField(
+          controller: _emailController,
+          label: 'Adresse email',
+          isRequired: true,
+          keyboardType: TextInputType.emailAddress,
+          hasError: _fieldErrors.containsKey('email'),
+        ),
+        const SizedBox(height: 20),
+        _buildTextField(
+          controller: _phoneController,
+          label: 'Numéro de téléphone',
+          isRequired: true,
+          keyboardType: TextInputType.phone,
+          hasError: _fieldErrors.containsKey('telephone'),
+        ),
+        const SizedBox(height: 20),
+        _buildTextField(
+          controller: _addressController,
+          label: 'Adresse de résidence',
+          maxLines: 3,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildIdentitySection() {
+    return _buildFormSection(
+      title: "Pièce d'identité",
+      icon: Icons.badge_rounded,
+      children: [
+        _buildDropdownField(
+          value: _selectedIdType,
+          items: _idTypeOptions,
+          label: 'Type de pièce',
+          onChanged: (value) {
+            setState(() => _selectedIdType = value!);
+            _onDropdownChanged();
+          },
+        ),
+        const SizedBox(height: 20),
+        _buildTextField(
+          controller: _idNumberController,
+          label: 'Numéro de pièce',
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFormSection({
     required String title,
     required IconData icon,
     required List<Widget> children,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.primary.withOpacity(0.1), width: 1),
-        color: AppColors.white,
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withOpacity(0.05),
-            spreadRadius: 1,
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.05),
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(20),
-                topRight: Radius.circular(20),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(icon, color: AppColors.primary, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              title,
+              style: GoogleFonts.poppins(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
               ),
             ),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(icon, color: AppColors.primary, size: 20),
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  title,
-                  style: GoogleFonts.poppins(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.primary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(children: children),
-          ),
-        ],
-      ),
+          ],
+        ),
+        const SizedBox(height: 20),
+        ...children,
+      ],
     );
   }
 
-  Widget _buildModernTextField({
+  Widget _buildTextField({
     required TextEditingController controller,
     required String label,
-    required IconData icon,
+    bool isRequired = false,
     TextInputType? keyboardType,
     int maxLines = 1,
+    bool hasError = false,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: TextField(
-        controller: controller,
-        keyboardType: keyboardType,
-        maxLines: maxLines,
-        style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w500),
-        decoration: InputDecoration(
-          labelText: label,
-          labelStyle: GoogleFonts.poppins(
-            color: AppColors.primary.withOpacity(0.7),
-            fontWeight: FontWeight.w500,
-          ),
-          prefixIcon: Container(
-            margin: const EdgeInsets.all(12),
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, color: AppColors.primary, size: 20),
-          ),
-          filled: true,
-          fillColor: AppColors.white,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15),
-            borderSide: BorderSide(
-              color: AppColors.primary.withOpacity(0.2),
-              width: 1,
-            ),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15),
-            borderSide: BorderSide(
-              color: AppColors.primary.withOpacity(0.2),
-              width: 1,
-            ),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15),
-            borderSide: BorderSide(color: AppColors.primary, width: 2),
-          ),
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 16,
-          ),
-        ),
-      ),
-    );
-  }
+    // Vérifier si le champ a été modifié
+    String originalKey = '';
+    if (controller == _firstNameController)
+      originalKey = 'nom';
+    else if (controller == _emailController)
+      originalKey = 'email';
+    else if (controller == _phoneController)
+      originalKey = 'telephone';
+    else if (controller == _birthPlaceController)
+      originalKey = 'lieu_naissance';
+    else if (controller == _nationalityController)
+      originalKey = 'nationalite';
+    else if (controller == _professionController)
+      originalKey = 'profession';
+    else if (controller == _addressController)
+      originalKey = 'adresse';
+    else if (controller == _idNumberController)
+      originalKey = 'numero_piece_identite';
 
-  Widget _buildDropdownField({
-    required String value,
-    required List<String> items,
-    required String label,
-    required IconData icon,
-    required ValueChanged<String?> onChanged,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: DropdownButtonFormField<String>(
-        value: value,
-        items: items.map((String item) {
-          return DropdownMenuItem<String>(
-            value: item,
-            child: Text(
-              item,
-              style: GoogleFonts.poppins(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          );
-        }).toList(),
-        onChanged: onChanged,
-        decoration: InputDecoration(
-          labelText: label,
-          labelStyle: GoogleFonts.poppins(
-            color: AppColors.primary.withOpacity(0.7),
-            fontWeight: FontWeight.w500,
-          ),
-          prefixIcon: Container(
-            margin: const EdgeInsets.all(12),
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, color: AppColors.primary, size: 20),
-          ),
-          filled: true,
-          fillColor: AppColors.white,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15),
-            borderSide: BorderSide(
-              color: AppColors.primary.withOpacity(0.2),
-              width: 1,
-            ),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15),
-            borderSide: BorderSide(
-              color: AppColors.primary.withOpacity(0.2),
-              width: 1,
-            ),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15),
-            borderSide: BorderSide(color: AppColors.primary, width: 2),
-          ),
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 16,
-          ),
-        ),
-      ),
-    );
-  }
+    bool isModified =
+        originalKey.isNotEmpty &&
+        controller.text.trim() != _originalData[originalKey];
 
-  Widget _buildDateField({
-    required TextEditingController controller,
-    required String label,
-    required IconData icon,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: TextField(
-        controller: controller,
-        readOnly: true,
-        style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w500),
-        decoration: InputDecoration(
-          labelText: label,
-          labelStyle: GoogleFonts.poppins(
-            color: AppColors.primary.withOpacity(0.7),
-            fontWeight: FontWeight.w500,
-          ),
-          prefixIcon: Container(
-            margin: const EdgeInsets.all(12),
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, color: AppColors.primary, size: 20),
-          ),
-          suffixIcon: IconButton(
-            icon: Icon(Icons.calendar_today, color: AppColors.primary),
-            onPressed: () => _selectDate(controller),
-          ),
-          filled: true,
-          fillColor: AppColors.white,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15),
-            borderSide: BorderSide(
-              color: AppColors.primary.withOpacity(0.2),
-              width: 1,
-            ),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15),
-            borderSide: BorderSide(
-              color: AppColors.primary.withOpacity(0.2),
-              width: 1,
-            ),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15),
-            borderSide: BorderSide(color: AppColors.primary, width: 2),
-          ),
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 16,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildActionButtons() {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(15),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.secondary.withOpacity(0.3),
-                spreadRadius: 2,
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: ElevatedButton(
-            onPressed: _isLoading ? null : _saveProfile,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.secondary,
-              foregroundColor: Colors.black,
-              minimumSize: const Size(double.infinity, 56),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
-              ),
-              elevation: 0,
+        RichText(
+          text: TextSpan(
+            text: label,
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: AppColors.textPrimary,
             ),
-            child: _isLoading
-                ? Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            Colors.black,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        "Sauvegarde...",
-                        style: GoogleFonts.poppins(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  )
-                : Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.save_rounded, size: 20),
-                      const SizedBox(width: 8),
-                      Text(
-                        "Sauvegarder les modifications",
-                        style: GoogleFonts.poppins(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    ],
-                  ),
-          ),
-        ),
-
-        const SizedBox(height: 16),
-
-        Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(15),
-            border: Border.all(color: Colors.grey.withOpacity(0.3), width: 2),
-          ),
-          child: ElevatedButton(
-            onPressed: _isLoading ? null : () => Navigator.pop(context),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.transparent,
-              foregroundColor: Colors.grey[600],
-              minimumSize: const Size(double.infinity, 56),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
-              ),
-              elevation: 0,
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.cancel_outlined, size: 20),
-                const SizedBox(width: 8),
-                Text(
-                  "Annuler",
+            children: [
+              if (isRequired)
+                TextSpan(
+                  text: ' *',
+                  style: TextStyle(color: AppColors.error),
+                ),
+              if (isModified)
+                TextSpan(
+                  text: ' (modifié)',
                   style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.5,
+                    fontSize: 12,
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
-              ],
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: controller,
+          keyboardType: keyboardType,
+          maxLines: maxLines,
+          onChanged: (value) {
+            // Validation en temps réel si nécessaire
+            _checkForChanges();
+
+            // Effacer l'erreur spécifique si elle existe
+            if (_fieldErrors.containsKey(originalKey)) {
+              setState(() {
+                _fieldErrors.remove(originalKey);
+              });
+            }
+          },
+          style: GoogleFonts.poppins(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            color: AppColors.textPrimary,
+          ),
+          decoration: InputDecoration(
+            hintText: 'Saisir $label',
+            hintStyle: GoogleFonts.poppins(
+              color: AppColors.textSecondary.withOpacity(0.6),
+              fontWeight: FontWeight.w400,
+            ),
+            filled: true,
+            fillColor: AppColors.surfaceVariant,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: hasError
+                    ? AppColors.error.withOpacity(0.5)
+                    : isModified
+                    ? AppColors.primary.withOpacity(0.3)
+                    : AppColors.border.withOpacity(0.3),
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: hasError ? AppColors.error : AppColors.primary,
+                width: 2,
+              ),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: AppColors.error, width: 1),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: AppColors.error, width: 2),
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 16,
             ),
           ),
         ),
@@ -772,91 +598,290 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  Future<void> _selectDate(TextEditingController controller) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(1900),
-      lastDate: DateTime(2100),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.light(
-              primary: AppColors.primary,
-              onPrimary: AppColors.white,
-              surface: AppColors.white,
-              onSurface: AppColors.primary,
+  Widget _buildDropdownField({
+    required String value,
+    required List<String> items,
+    required String label,
+    bool isRequired = false,
+    required ValueChanged<String?> onChanged,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        RichText(
+          text: TextSpan(
+            text: label,
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: AppColors.textPrimary,
+            ),
+            children: [
+              if (isRequired)
+                TextSpan(
+                  text: ' *',
+                  style: TextStyle(color: AppColors.error),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        DropdownButtonFormField<String>(
+          value: value,
+          items: items.map((String item) {
+            return DropdownMenuItem<String>(
+              value: item,
+              child: Text(
+                item,
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            );
+          }).toList(),
+          onChanged: onChanged,
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: AppColors.surfaceVariant,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: AppColors.border.withOpacity(0.3)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: AppColors.primary, width: 2),
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 16,
             ),
           ),
-          child: child!,
-        );
-      },
+        ),
+      ],
     );
-    if (picked != null) {
-      controller.text =
-          "${picked.day.toString().padLeft(2, '0')}/"
-          "${picked.month.toString().padLeft(2, '0')}/"
-          "${picked.year}";
-    }
+  }
+
+  Widget _buildSaveButton() {
+    final bool isEnabled = _hasChanges && !_isLoading;
+
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: isEnabled ? _saveProfile : null,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: isEnabled
+              ? AppColors.primary
+              : AppColors.textSecondary.withOpacity(0.3),
+          foregroundColor: isEnabled
+              ? AppColors.white
+              : AppColors.textSecondary,
+          padding: const EdgeInsets.symmetric(vertical: 18),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          elevation: isEnabled ? 3 : 0,
+        ),
+        child: _isLoading
+            ? Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        AppColors.white,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    "Enregistrement...",
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              )
+            : Text(
+                _hasChanges
+                    ? "Enregistrer les modifications"
+                    : "Aucune modification",
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+      ),
+    );
   }
 
   Future<void> _saveProfile() async {
     setState(() {
       _isLoading = true;
+      _fieldErrors.clear();
     });
 
     try {
+      // Validation des champs modifiés uniquement
+      final errors = _validateChangedFields();
+
+      if (errors.isNotEmpty) {
+        setState(() {
+          _fieldErrors = errors;
+          _isLoading = false;
+        });
+        ErrorHandler.showErrorSnackBar(
+          context,
+          'Veuillez corriger les erreurs ci-dessus',
+        );
+        return;
+      }
+
       final authProvider = context.read<AuthProvider>();
 
-      final profileData = {
-        'nom':
-            '${_firstNameController.text.trim()} ',
-        'lieu_naissance': _birthPlaceController.text.trim(),
-        'sexe': _selectedGender.toLowerCase(),
-        'nationalite': _nationalityController.text.trim(),
-        'profession': _professionController.text.trim(),
-        'telephone': _phoneController.text.trim(),
-        'email': _emailController.text.trim(),
-        'adresse': _addressController.text.trim(),
-        'numero_piece_identite': _idNumberController.text.trim(),
-        'type_piece_identite': _selectedIdType,
-      };
+      // Construire les données à envoyer - seulement les champs modifiés
+      final Map<String, dynamic> profileData = {};
+
+      if (_firstNameController.text.trim() != _originalData['nom']) {
+        profileData['nom'] = _firstNameController.text.trim();
+      }
+
+      if (_emailController.text.trim() != _originalData['email']) {
+        profileData['email'] = _emailController.text.trim();
+      }
+
+      if (_phoneController.text.trim() != _originalData['telephone']) {
+        profileData['telephone'] = _phoneController.text.trim();
+      }
+
+      if (_birthPlaceController.text.trim() !=
+          _originalData['lieu_naissance']) {
+        profileData['lieu_naissance'] = _birthPlaceController.text.trim();
+      }
+
+      if (_nationalityController.text.trim() != _originalData['nationalite']) {
+        profileData['nationalite'] = _nationalityController.text.trim();
+      }
+
+      if (_professionController.text.trim() != _originalData['profession']) {
+        profileData['profession'] = _professionController.text.trim();
+      }
+
+      if (_addressController.text.trim() != _originalData['adresse']) {
+        profileData['adresse'] = _addressController.text.trim();
+      }
+
+      if (_idNumberController.text.trim() !=
+          _originalData['numero_piece_identite']) {
+        profileData['numero_piece_identite'] = _idNumberController.text.trim();
+      }
+
+      if (_selectedGender != _originalData['sexe']) {
+        profileData['sexe'] = _selectedGender.toLowerCase();
+      }
+
+      if (_selectedIdType != _originalData['type_piece_identite']) {
+        profileData['type_piece_identite'] = _selectedIdType;
+      }
+
+      // Vérifier qu'il y a au moins un champ à modifier
+      if (profileData.isEmpty) {
+        setState(() {
+          _isLoading = false;
+        });
+        ErrorHandler.showWarningSnackBar(
+          context,
+          'Aucune modification détectée',
+        );
+        return;
+      }
 
       final success = await authProvider.updateProfile(profileData);
 
-      if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                Icon(Icons.check_circle_outline, color: Colors.white),
-                const SizedBox(width: 8),
-                Text(
-                  "Profil mis à jour avec succès !",
-                  style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
-                ),
-              ],
-            ),
-            backgroundColor: Colors.green,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
+      if (success && mounted) {
+        ErrorHandler.showSuccessSnackBar(
+          context,
+          'Profil mis à jour avec succès !',
         );
-        Navigator.pop(context);
+
+        // Recharger les données pour mettre à jour les valeurs originales
+        _loadUserData();
+        setState(() {
+          _hasChanges = false;
+        });
+
+        // Retourner à l'écran précédent après un délai
+        Future.delayed(const Duration(seconds: 1), () {
+          if (mounted) Navigator.pop(context);
+        });
+      } else if (mounted) {
+        // Gestion des erreurs spécifiques de l'API avec ErrorHandler
+        String errorMessage = 'Erreur lors de la mise à jour du profil';
+
+        if (authProvider.errorMessage != null) {
+          final apiError = authProvider.errorMessage!.toLowerCase();
+
+          if (apiError.contains('email') && apiError.contains('already')) {
+            errorMessage =
+                'Cette adresse email est déjà utilisée par un autre compte';
+          } else if (apiError.contains('phone') &&
+              apiError.contains('already')) {
+            errorMessage =
+                'Ce numéro de téléphone est déjà utilisé par un autre compte';
+          } else if (apiError.contains('validation')) {
+            errorMessage = 'Données invalides, vérifiez vos informations';
+          } else if (apiError.contains('connexion') ||
+              apiError.contains('internet') ||
+              apiError.contains('network')) {
+            errorMessage = 'Problème de connexion, vérifiez votre internet';
+          } else if (apiError.contains('server') ||
+              apiError.contains('serveur')) {
+            errorMessage = 'Erreur du serveur, réessayez plus tard';
+          } else {
+            errorMessage = authProvider.errorMessage!;
+          }
+        }
+
+        ErrorHandler.showErrorSnackBar(context, errorMessage);
+      }
+    } catch (e) {
+      if (mounted) {
+        ErrorHandler.showErrorSnackBar(
+          context,
+          'Une erreur inattendue s\'est produite. Veuillez réessayer.',
+        );
       }
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
   @override
   void dispose() {
+    // Retirer les listeners avant de disposer les controllers
+    _firstNameController.removeListener(_checkForChanges);
+    _birthPlaceController.removeListener(_checkForChanges);
+    _nationalityController.removeListener(_checkForChanges);
+    _professionController.removeListener(_checkForChanges);
+    _phoneController.removeListener(_checkForChanges);
+    _emailController.removeListener(_checkForChanges);
+    _addressController.removeListener(_checkForChanges);
+    _idNumberController.removeListener(_checkForChanges);
+
     _firstNameController.dispose();
-    _birthDateController.dispose();
     _birthPlaceController.dispose();
     _nationalityController.dispose();
     _professionController.dispose();
@@ -864,7 +889,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _emailController.dispose();
     _addressController.dispose();
     _idNumberController.dispose();
-    _idExpiryController.dispose();
     super.dispose();
   }
 }

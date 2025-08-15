@@ -18,6 +18,8 @@ class User {
   final String? numeroPieceIdentite;
   final String? typePieceIdentite;
   final bool? profilComplet;
+   final DateTime? dateNaissance;
+  final DateTime? dateExpirationPiece;
 
   User({
     required this.id,
@@ -38,6 +40,8 @@ class User {
     this.numeroPieceIdentite,
     this.typePieceIdentite,
     this.profilComplet,
+    this.dateNaissance,
+    this.dateExpirationPiece,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -69,6 +73,13 @@ class User {
       numeroPieceIdentite: json['numero_piece_identite'],
       typePieceIdentite: json['type_piece_identite'],
       profilComplet: json['profil_complet'],
+
+       dateNaissance: json['date_naissance'] != null
+          ? DateTime.parse(json['date_naissance'])
+          : null,
+      dateExpirationPiece: json['date_expiration_piece'] != null
+          ? DateTime.parse(json['date_expiration_piece'])
+          : null,
     );
   }
 
