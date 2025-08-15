@@ -1,4 +1,3 @@
-// lib/services/product_service.dart
 import '../models/product_model.dart';
 
 class ProductService {
@@ -6,9 +5,7 @@ class ProductService {
   factory ProductService() => _instance;
   ProductService._internal();
 
-  // Données statiques pour les tests
   static final List<Product> _staticProducts = [
-    // Produits Assurance Vie
     Product(
       id: 'vie_1',
       nom: 'Assurance Vie Épargne',
@@ -34,7 +31,6 @@ class ProductService {
       description: 'Préservez vos revenus en cas d\'invalidité temporaire ou permanente. Compensation financière pour maintenir votre niveau de vie et celui de votre famille face aux aléas de la vie.',
     ),
 
-    // Produits Assurance Non-Vie
     Product(
       id: 'non_vie_1',
       nom: 'Assurance Auto',
@@ -61,20 +57,16 @@ class ProductService {
     ),
   ];
 
-  /// Récupère tous les produits
   Future<List<Product>> getAllProducts() async {
-    // Simulation d'un délai réseau
     await Future.delayed(const Duration(milliseconds: 500));
     return List.from(_staticProducts);
   }
 
-  /// Récupère les produits par type
   Future<List<Product>> getProductsByType(ProductType type) async {
     await Future.delayed(const Duration(milliseconds: 300));
     return _staticProducts.where((product) => product.type == type).toList();
   }
 
-  /// Récupère un produit par son ID
   Future<Product?> getProductById(String id) async {
     await Future.delayed(const Duration(milliseconds: 200));
     try {
@@ -84,7 +76,6 @@ class ProductService {
     }
   }
 
-  /// Recherche de produits par nom
   Future<List<Product>> searchProducts(String query) async {
     await Future.delayed(const Duration(milliseconds: 400));
     if (query.isEmpty) return getAllProducts();
@@ -97,7 +88,6 @@ class ProductService {
     }).toList();
   }
 
-  /// Filtre les produits par type avec recherche
   Future<List<Product>> filterProducts({
     ProductType? type,
     String? searchQuery,
@@ -106,12 +96,10 @@ class ProductService {
     
     List<Product> filteredProducts = List.from(_staticProducts);
     
-    // Filtrer par type si spécifié
     if (type != null) {
       filteredProducts = filteredProducts.where((product) => product.type == type).toList();
     }
     
-    // Filtrer par recherche si spécifiée
     if (searchQuery != null && searchQuery.isNotEmpty) {
       final lowerQuery = searchQuery.toLowerCase();
       filteredProducts = filteredProducts.where((product) {
@@ -123,7 +111,6 @@ class ProductService {
     return filteredProducts;
   }
 
-  /// Obtient le nombre de produits par type
   Map<ProductType, int> getProductCountByType() {
     final Map<ProductType, int> count = {};
     for (ProductType type in ProductType.values) {
@@ -132,16 +119,13 @@ class ProductService {
     return count;
   }
 
-  /// Vérifie si un produit existe
   bool productExists(String id) {
     return _staticProducts.any((product) => product.id == id);
   }
 
-  /// Récupère les produits les plus populaires (simulation)
   Future<List<Product>> getFeaturedProducts({int limit = 3}) async {
     await Future.delayed(const Duration(milliseconds: 300));
     
-    // Retourne les premiers produits comme "populaires" pour la démo
     return _staticProducts.take(limit).toList();
   }
 }

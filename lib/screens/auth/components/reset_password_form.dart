@@ -7,7 +7,6 @@ import 'reset_password_widgets.dart';
 class ResetPasswordForm extends StatefulWidget {
   final TextEditingController emailController;
   final VoidCallback onEmailSent;
-  // final TextEditingController _emailController = TextEditingController(); // Add this line
 
   final AuthProvider authProvider;
 
@@ -153,7 +152,6 @@ class _ResetPasswordFormState extends State<ResetPasswordForm> {
       return;
     }
 
-    // Appeler l'API pour envoyer le code
     final success = await widget.authProvider.forgotPassword(
       widget.emailController.text.trim(),
     );

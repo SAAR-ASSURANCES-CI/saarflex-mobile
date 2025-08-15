@@ -27,7 +27,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailFocus = FocusNode();
   final _passwordFocus = FocusNode();
 
-  // Pour stocker les erreurs de validation
   String? _emailError;
   String? _passwordError;
   String? _generalError;
@@ -72,13 +71,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   _buildHeader(),
                   const SizedBox(height: 40),
 
-                  // Afficher l'erreur générale s'il y en a une
                   if (_generalError != null) ...[
                     ErrorHandler.buildAutoDisappearingErrorContainer(
                       _generalError!,
                       () => setState(
                         () => _generalError = null,
-                      ), // Fonction pour supprimer l'erreur
+                      ),
                     ),
                     const SizedBox(height: 20),
                   ],
@@ -215,7 +213,6 @@ class _LoginScreenState extends State<LoginScreen> {
             contentPadding: const EdgeInsets.all(16),
           ),
         ),
-        // Afficher l'erreur spécifique à l'email
         if (_emailError != null) ...[
           const SizedBox(height: 8),
           Row(
@@ -306,7 +303,6 @@ class _LoginScreenState extends State<LoginScreen> {
             contentPadding: const EdgeInsets.all(16),
           ),
         ),
-        // Afficher l'erreur spécifique au mot de passe
         if (_passwordError != null) ...[
           const SizedBox(height: 8),
           Row(
@@ -538,10 +534,9 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _handleLogin(AuthProvider authProvider) async {
     setState(() {
       _autovalidateMode = AutovalidateMode.onUserInteraction;
-      _generalError = null; // Effacer les erreurs précédentes
+      _generalError = null; 
     });
 
-    // Validation finale avant l'envoi
     _validateForm();
 
     if (!_isFormValid) {
@@ -561,11 +556,9 @@ class _LoginScreenState extends State<LoginScreen> {
         ErrorHandler.showSuccessSnackBar(context, 'Connexion réussie !');
         Navigator.pushReplacementNamed(context, '/dashboard');
       } else if (mounted) {
-        // Gestion des erreurs d'API avec messages clairs
         String errorMessage = 'Erreur de connexion';
 
         if (authProvider.errorMessage != null) {
-          // Analyser le message d'erreur pour donner un feedback plus précis
           final message = authProvider.errorMessage!.toLowerCase();
 
           if (message.contains('email') &&

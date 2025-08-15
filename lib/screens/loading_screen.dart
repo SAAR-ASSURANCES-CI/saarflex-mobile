@@ -152,7 +152,6 @@ class LoadingScreen extends StatelessWidget {
               );
             },
             onEnd: () {
-              // Animation completed - could trigger a new cycle if needed
             },
           ),
         );

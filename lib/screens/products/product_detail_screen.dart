@@ -1,4 +1,3 @@
-// lib/screens/products/product_detail_screen.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -10,10 +9,7 @@ import '../../widgets/form_helpers.dart';
 class ProductDetailScreen extends StatefulWidget {
   final String productId;
 
-  const ProductDetailScreen({
-    super.key,
-    required this.productId,
-  });
+  const ProductDetailScreen({super.key, required this.productId});
 
   @override
   State<ProductDetailScreen> createState() => _ProductDetailScreenState();
@@ -37,8 +33,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           body: productProvider.isLoadingDetail
               ? _buildLoadingState()
               : productProvider.selectedProduct == null
-                  ? _buildErrorState(productProvider)
-                  : _buildProductDetail(productProvider.selectedProduct!),
+              ? _buildErrorState(productProvider)
+              : _buildProductDetail(productProvider.selectedProduct!),
         );
       },
     );
@@ -151,7 +147,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               ),
               const SizedBox(height: 12),
               Text(
-                productProvider.errorMessage ?? 'Ce produit n\'existe pas ou n\'est plus disponible.',
+                productProvider.errorMessage ??
+                    'Ce produit n\'existe pas ou n\'est plus disponible.',
                 style: GoogleFonts.poppins(
                   fontSize: 16,
                   fontWeight: FontWeight.w400,
@@ -238,7 +235,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       child: SafeArea(
         child: Column(
           children: [
-            // AppBar
             Padding(
               padding: const EdgeInsets.all(16),
               child: Row(
@@ -256,9 +252,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     ),
                     child: IconButton(
                       icon: Icon(
-                        Icons.arrow_back_ios_rounded, 
-                        color: AppColors.white, 
-                        size: 20
+                        Icons.arrow_back_ios_rounded,
+                        color: AppColors.white,
+                        size: 20,
                       ),
                       onPressed: () => Navigator.pop(context),
                       padding: EdgeInsets.zero,
@@ -275,17 +271,15 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       textAlign: TextAlign.center,
                     ),
                   ),
-                  const SizedBox(width: 44), // Pour équilibrer
+                  const SizedBox(width: 44),
                 ],
               ),
             ),
-            
-            // Contenu du header avec les infos produit
+
             Padding(
-              padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
+              padding: const EdgeInsets.fromLTRB(24, 0, 24, 0),
               child: Column(
                 children: [
-                  // Icône du produit
                   Container(
                     width: 80,
                     height: 80,
@@ -307,9 +301,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       size: 40,
                     ),
                   ),
-                  const SizedBox(height: 20),
-                  
-                  // Nom du produit
+                  const SizedBox(height: 15),
+
                   Text(
                     product.nom,
                     style: GoogleFonts.poppins(
@@ -320,8 +313,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 8),
-                  
-                  // Sous-titre
+
                   Text(
                     'Produit d\'assurance ${product.typeShortLabel.toLowerCase()}',
                     style: GoogleFonts.poppins(
@@ -331,28 +323,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 16),
-                  
-                  // Badge type
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: AppColors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: AppColors.white.withOpacity(0.3),
-                        width: 1,
-                      ),
-                    ),
-                    child: Text(
-                      product.typeLabel,
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.white,
-                      ),
-                    ),
-                  ),
+                  // const SizedBox(height: 16),
                 ],
               ),
             ),
@@ -447,9 +418,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   Widget _buildInfoRow(
-    String label, 
-    String value, 
-    IconData icon, 
+    String label,
+    String value,
+    IconData icon,
     Color color, {
     bool isFirst = false,
     bool isLast = false,
@@ -457,9 +428,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        border: !isLast ? Border(
-          bottom: BorderSide(color: AppColors.border, width: 1),
-        ) : null,
+        border: !isLast
+            ? Border(bottom: BorderSide(color: AppColors.border, width: 1))
+            : null,
       ),
       child: Row(
         children: [
@@ -535,7 +506,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   void _handleSimulateQuote(Product product) {
-    // TODO: Implémenter la simulation de devis
     FormHelpers.showInfoSnackBar(
       context,
       'Simulation de devis pour "${product.nom}" - Fonctionnalité à venir !',

@@ -1,4 +1,3 @@
-// lib/screens/products/product_list_screen.dart
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -26,7 +25,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
     super.initState();
     _pageController = PageController(viewportFraction: 0.85);
     
-    // Charger les produits au démarrage
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ProductProvider>().loadProducts();
       _startAutoScroll();
@@ -34,14 +32,14 @@ class _ProductListScreenState extends State<ProductListScreen> {
   }
 
   void _startAutoScroll() {
-    _timer = Timer.periodic(const Duration(milliseconds: 3000), (timer) { // 2 secondes au lieu de 3
+    _timer = Timer.periodic(const Duration(milliseconds: 3000), (timer) { 
       if (!_userInteracting && _pageController.hasClients) {
         final products = context.read<ProductProvider>().allProducts;
         if (products.isNotEmpty) {
           _currentPage = (_currentPage + 1) % products.take(5).length;
           _pageController.animateToPage(
             _currentPage,
-            duration: const Duration(milliseconds: 300), // Animation plus rapide : 300ms au lieu de 500ms
+            duration: const Duration(milliseconds: 300), 
             curve: Curves.easeInOut,
           );
         }
@@ -54,7 +52,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
       _userInteracting = true;
     });
     
-    // Reprendre le scroll automatique après 5 secondes d'inactivité
     Timer(const Duration(seconds: 5), () {
       if (mounted) {
         setState(() {
@@ -79,7 +76,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      backgroundColor: AppColors.primary, // Rouge plus intense dans le header
+      backgroundColor: AppColors.primary,
       elevation: 0,
       leading: IconButton(
         icon: Icon(Icons.arrow_back_ios_rounded, color: Colors.white),
@@ -115,10 +112,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Section des derniers produits (horizontal)
         _buildLatestProductsSection(products),
         
-        // Tous les produits (vertical)
         Expanded(
           child: _buildAllProductsList(products, productProvider),
         ),
@@ -127,7 +122,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
   }
 
   Widget _buildLatestProductsSection(List<Product> products) {
-    // Prendre les 5 derniers produits (simulé par les 5 premiers pour la démo)
     final latestProducts = products.take(5).toList();
 
     return Container(
@@ -186,7 +180,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          // Indicateurs de page avec style rouge
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: List.generate(
@@ -245,7 +238,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
             padding: const EdgeInsets.all(18),
             child: Row(
               children: [
-                // Icône avec plus de rouge
                 Container(
                   width: 55,
                   height: 55,
@@ -271,13 +263,11 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 
                 const SizedBox(width: 14),
                 
-                // Contenu
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // Badge type avec plus de rouge
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
@@ -312,7 +302,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       
                       const SizedBox(height: 8),
                       
-                      // Nom
                       Text(
                         product.nom,
                         style: GoogleFonts.poppins(
@@ -326,7 +315,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       
                       const SizedBox(height: 4),
                       
-                      // Description courte
                       Text(
                         product.description,
                         style: GoogleFonts.poppins(
@@ -341,7 +329,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
                   ),
                 ),
                 
-                // Flèche avec accent rouge
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
@@ -428,7 +415,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
             padding: const EdgeInsets.all(18),
             child: Row(
               children: [
-                // Icône avec plus de rouge
                 Container(
                   width: 55,
                   height: 55,
@@ -454,12 +440,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 
                 const SizedBox(width: 18),
                 
-                // Contenu
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Badge type avec plus de rouge
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                         decoration: BoxDecoration(
@@ -494,7 +478,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       
                       const SizedBox(height: 10),
                       
-                      // Nom
                       Text(
                         product.nom,
                         style: GoogleFonts.poppins(
@@ -506,7 +489,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       
                       const SizedBox(height: 6),
                       
-                      // Description
                       Text(
                         product.description,
                         style: GoogleFonts.poppins(
@@ -524,7 +506,6 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 
                 const SizedBox(width: 16),
                 
-                // Flèche avec fond rouge plus visible
                 Container(
                   width: 36,
                   height: 36,

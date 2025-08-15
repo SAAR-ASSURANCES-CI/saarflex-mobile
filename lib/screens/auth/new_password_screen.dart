@@ -26,7 +26,6 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
   bool _isFormValid = false;
   AutovalidateMode _autovalidateMode = AutovalidateMode.disabled;
 
-  // Variables pour la gestion d'erreurs
   List<String> _passwordErrors = [];
   String? _confirmPasswordError;
   String? _generalError;
@@ -39,10 +38,8 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
   }
 
   void _validateForm() {
-    // Validation du mot de passe
     _passwordErrors = ErrorHandler.validatePassword(_passwordController.text);
     
-    // Validation de la confirmation
     if (_confirmPasswordController.text.isNotEmpty) {
       if (_confirmPasswordController.text != _passwordController.text) {
         _confirmPasswordError = 'Les mots de passe ne correspondent pas';
@@ -83,7 +80,6 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
                   _buildHeader(),
                   const SizedBox(height: 32),
 
-                  // Afficher l'erreur générale s'il y en a une
                   if (_generalError != null) ...[
                     ErrorHandler.buildAutoDisappearingErrorContainer(
                       _generalError!,
@@ -230,7 +226,6 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
             contentPadding: const EdgeInsets.all(16),
           ),
         ),
-        // Afficher les erreurs de mot de passe
         if (_passwordErrors.isNotEmpty) ...[
           const SizedBox(height: 12),
           ErrorHandler.buildErrorList(_passwordErrors),
@@ -298,7 +293,6 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
             contentPadding: const EdgeInsets.all(16),
           ),
         ),
-        // Afficher l'erreur de confirmation
         if (_confirmPasswordError != null) ...[
           const SizedBox(height: 8),
           Row(
@@ -488,7 +482,6 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
           'Mot de passe mis à jour avec succès !',
         );
 
-        // Rediriger vers le dashboard après un délai
         Future.delayed(const Duration(seconds: 1), () {
           if (mounted) {
             Navigator.pushAndRemoveUntil(
@@ -499,7 +492,6 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
           }
         });
       } else if (mounted) {
-        // Gestion des erreurs spécifiques
         String errorMessage = 'Erreur lors de la mise à jour';
 
         if (authProvider.errorMessage != null) {

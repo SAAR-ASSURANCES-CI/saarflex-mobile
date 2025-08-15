@@ -31,7 +31,7 @@ class Saarflex extends StatelessWidget {
         ChangeNotifierProvider<AuthProvider>(
           create: (_) => AuthProvider()..initializeAuth(),
         ),
-    ChangeNotifierProvider<ProductProvider>(create: (_) => ProductProvider()), // ← Cette ligne
+    ChangeNotifierProvider<ProductProvider>(create: (_) => ProductProvider()),
 
         ChangeNotifierProvider<UserProvider>(create: (_) => UserProvider()),
       ],

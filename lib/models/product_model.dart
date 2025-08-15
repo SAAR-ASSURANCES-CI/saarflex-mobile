@@ -27,18 +27,18 @@ extension ProductTypeExtension on ProductType {
   IconData get icon {
     switch (this) {
       case ProductType.vie:
-        return Icons.favorite_rounded; // Cœur pour Vie
+        return Icons.favorite_rounded; 
       case ProductType.nonVie:
-        return Icons.directions_car_rounded; // Voiture pour Non-Vie
+        return Icons.directions_car_rounded; 
     }
   }
 
   Color get color {
     switch (this) {
       case ProductType.vie:
-        return const Color(0xFF10B981); // Vert pour Vie
+        return const Color(0xFF10B981); 
       case ProductType.nonVie:
-        return const Color(0xFF3B82F6); // Bleu pour Non-Vie
+        return const Color(0xFF3B82F6); 
     }
   }
 }

@@ -38,7 +38,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   bool _hasChanges = false;
   Map<String, dynamic> _originalData = {};
 
-  // Map pour stocker les erreurs spécifiques par champ
   Map<String, String?> _fieldErrors = {};
 
   @override
@@ -84,7 +83,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     if (_hasChanges != hasChanged) {
       setState(() {
         _hasChanges = hasChanged;
-        _fieldErrors.clear(); // Effacer les erreurs quand l'utilisateur modifie
+        _fieldErrors.clear();
       });
     }
   }
@@ -148,7 +147,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Map<String, String?> _validateChangedFields() {
     Map<String, String?> errors = {};
 
-    // Vérifier seulement les champs qui ont été modifiés
     if (_firstNameController.text.trim() != _originalData['nom']) {
       final nameError = ErrorHandler.validateName(_firstNameController.text);
       if (nameError != null) {
@@ -191,7 +189,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     _buildProfileHeader(),
                     const SizedBox(height: 40),
 
-                    // Afficher les erreurs globales s'il y en a - CORRECTION ICI
                     if (_fieldErrors.isNotEmpty) ...[
                       ErrorHandler.buildErrorList(
                         _fieldErrors.values
@@ -478,7 +475,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     int maxLines = 1,
     bool hasError = false,
   }) {
-    // Vérifier si le champ a été modifié
     String originalKey = '';
     if (controller == _firstNameController)
       originalKey = 'nom';
@@ -536,10 +532,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           keyboardType: keyboardType,
           maxLines: maxLines,
           onChanged: (value) {
-            // Validation en temps réel si nécessaire
             _checkForChanges();
 
-            // Effacer l'erreur spécifique si elle existe
             if (_fieldErrors.containsKey(originalKey)) {
               setState(() {
                 _fieldErrors.remove(originalKey);
@@ -731,7 +725,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     });
 
     try {
-      // Validation des champs modifiés uniquement
       final errors = _validateChangedFields();
 
       if (errors.isNotEmpty) {
@@ -748,7 +741,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
       final authProvider = context.read<AuthProvider>();
 
-      // Construire les données à envoyer - seulement les champs modifiés
       final Map<String, dynamic> profileData = {};
 
       if (_firstNameController.text.trim() != _originalData['nom']) {
@@ -793,7 +785,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         profileData['type_piece_identite'] = _selectedIdType;
       }
 
-      // Vérifier qu'il y a au moins un champ à modifier
       if (profileData.isEmpty) {
         setState(() {
           _isLoading = false;
@@ -813,18 +804,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           'Profil mis à jour avec succès !',
         );
 
-        // Recharger les données pour mettre à jour les valeurs originales
         _loadUserData();
         setState(() {
           _hasChanges = false;
         });
 
-        // Retourner à l'écran précédent après un délai
         Future.delayed(const Duration(seconds: 1), () {
           if (mounted) Navigator.pop(context);
         });
       } else if (mounted) {
-        // Gestion des erreurs spécifiques de l'API avec ErrorHandler
         String errorMessage = 'Erreur lors de la mise à jour du profil';
 
         if (authProvider.errorMessage != null) {
@@ -871,7 +859,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   void dispose() {
-    // Retirer les listeners avant de disposer les controllers
     _firstNameController.removeListener(_checkForChanges);
     _birthPlaceController.removeListener(_checkForChanges);
     _nationalityController.removeListener(_checkForChanges);

@@ -1,4 +1,3 @@
-// lib/utils/error_handler.dart
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -6,7 +5,6 @@ import '../constants/colors.dart';
 import '../services/api_service.dart';
 
 class ErrorHandler {
-  // Messages d'erreur pour l'authentification
   static const Map<String, String> _authErrors = {
     'email_not_found': 'Aucun compte trouvé',
     'invalid_password': 'Mot de passe incorrect',
@@ -26,7 +24,6 @@ class ErrorHandler {
     'unknown_error': 'Une erreur inattendue s\'est produite',
   };
 
-  // Messages d'erreur pour le profil
   static const Map<String, String> _profileErrors = {
     'name_required': 'Le nom est obligatoire',
     'name_too_short': 'Le nom doit contenir au moins 2 caractères',
@@ -53,7 +50,6 @@ class ErrorHandler {
     'no_changes': 'Aucune modification détectée',
   };
 
-  // Messages d'erreur généraux
   static const Map<String, String> _generalErrors = {
     'connection_error': 'Problème de connexion. Vérifiez votre internet',
     'server_unavailable': 'Service temporairement indisponible',
@@ -63,11 +59,9 @@ class ErrorHandler {
     'unsupported_format': 'Format de fichier non supporté',
   };
 
-  /// Convertit une ApiException en message utilisateur compréhensible
   static String getAuthErrorMessage(ApiException exception) {
     final message = exception.message.toLowerCase();
 
-    // Vérifier les mots-clés dans le message d'erreur
     if (message.contains('email') &&
         message.contains('not') &&
         message.contains('found')) {
@@ -96,7 +90,6 @@ class ErrorHandler {
       return _authErrors['timeout']!;
     }
 
-    // Vérifier par code de statut
     switch (exception.statusCode) {
       case 401:
         return _authErrors['invalid_password']!;
@@ -119,7 +112,6 @@ class ErrorHandler {
     }
   }
 
-  /// Convertit une ApiException en message pour la mise à jour de profil
   static String getProfileErrorMessage(ApiException exception) {
     final message = exception.message.toLowerCase();
 
@@ -139,7 +131,6 @@ class ErrorHandler {
       return _generalErrors['connection_error']!;
     }
 
-    // Vérifier par code de statut
     switch (exception.statusCode) {
       case 409:
         return _profileErrors['email_exists']!;
@@ -152,7 +143,6 @@ class ErrorHandler {
     }
   }
 
-  /// Valide un email et retourne un message d'erreur si invalide
   static String? validateEmail(String? email) {
     if (email == null || email.trim().isEmpty) {
       return _profileErrors['email_required'];
@@ -186,7 +176,6 @@ class ErrorHandler {
     return null;
   }
 
-  /// Valide un mot de passe et retourne les erreurs spécifiques
   static List<String> validatePassword(String? password) {
     List<String> errors = [];
 
@@ -218,7 +207,6 @@ class ErrorHandler {
     return errors;
   }
 
-  /// Valide un nom
   static String? validateName(String? name) {
     if (name == null || name.trim().isEmpty) {
       return _profileErrors['name_required'];
@@ -239,7 +227,6 @@ class ErrorHandler {
     return null;
   }
 
-  /// Valide un numéro de téléphone
   static String? validatePhone(String? phone) {
     if (phone == null || phone.trim().isEmpty) {
       return _profileErrors['phone_required'];
@@ -262,7 +249,6 @@ class ErrorHandler {
     return null;
   }
 
-  /// Affiche un SnackBar d'erreur avec style cohérent
   static void showErrorSnackBar(BuildContext context, String message) {
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
@@ -292,7 +278,6 @@ class ErrorHandler {
     );
   }
 
-  /// Affiche un SnackBar de succès
   static void showSuccessSnackBar(BuildContext context, String message) {
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
@@ -326,7 +311,6 @@ class ErrorHandler {
     );
   }
 
-  /// Affiche un SnackBar d'avertissement
   static void showWarningSnackBar(BuildContext context, String message) {
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
@@ -356,7 +340,6 @@ class ErrorHandler {
     );
   }
 
-  /// Construit un widget d'erreur réutilisable
   static Widget buildErrorContainer(String message) {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8),
@@ -385,7 +368,6 @@ class ErrorHandler {
     );
   }
 
-  /// Construit un widget d'erreur qui disparaît automatiquement après 5 secondes
   static Widget buildAutoDisappearingErrorContainer(
     String message,
     VoidCallback onDismiss,
@@ -393,7 +375,6 @@ class ErrorHandler {
     return _AutoDismissErrorWidget(message: message, onDismiss: onDismiss);
   }
 
-  /// Construit un widget de liste d'erreurs
   static Widget buildErrorList(List<String> errors) {
     final nonNullErrors = errors.whereType<String>().toList();
     if (nonNullErrors.isEmpty) return const SizedBox.shrink();
@@ -442,7 +423,6 @@ class ErrorHandler {
   }
 }
 
-// CLASSE POUR GÉRER L'AUTO-DISPARITION DES ERREURS
 class _AutoDismissErrorWidget extends StatefulWidget {
   final String message;
   final VoidCallback onDismiss;
@@ -464,13 +444,11 @@ class _AutoDismissErrorWidgetState extends State<_AutoDismissErrorWidget> {
   @override
   void initState() {
     super.initState();
-    // Créer le timer pour auto-supprimer après 5 secondes
     _timer = Timer(const Duration(seconds: 2), () {
       if (mounted && isVisible) {
         setState(() {
           isVisible = false;
         });
-        // Attendre la fin de l'animation avant d'appeler onDismiss
         Timer(const Duration(milliseconds: 300), () {
           if (mounted) {
             widget.onDismiss();
@@ -482,7 +460,6 @@ class _AutoDismissErrorWidgetState extends State<_AutoDismissErrorWidget> {
 
   @override
   void dispose() {
-    // IMPORTANT : Annuler le timer pour éviter l'erreur
     _timer?.cancel();
     super.dispose();
   }
@@ -530,7 +507,6 @@ class _AutoDismissErrorWidgetState extends State<_AutoDismissErrorWidget> {
                       ),
                     ),
                   ),
-                  // Bouton pour fermer manuellement
                   IconButton(
                     onPressed: _dismissManually,
                     icon: Icon(Icons.close, color: AppColors.error, size: 18),

@@ -5,19 +5,17 @@ import '../services/product_service.dart';
 class ProductProvider extends ChangeNotifier {
   final ProductService _productService = ProductService();
 
-  // États de chargement
   bool _isLoading = false;
   bool _isLoadingDetail = false;
   String? _errorMessage;
 
-  // Données
   List<Product> _allProducts = [];
   List<Product> _filteredProducts = [];
   Product? _selectedProduct;
   ProductType? _selectedFilter;
   String _searchQuery = '';
 
-  // Getters
+
   bool get isLoading => _isLoading;
   bool get isLoadingDetail => _isLoadingDetail;
   String? get errorMessage => _errorMessage;
@@ -27,7 +25,6 @@ class ProductProvider extends ChangeNotifier {
   ProductType? get selectedFilter => _selectedFilter;
   String get searchQuery => _searchQuery;
 
-  // Getters calculés
   int get totalProductsCount => _allProducts.length;
   int get filteredProductsCount => _filteredProducts.length;
   
@@ -45,7 +42,6 @@ class ProductProvider extends ChangeNotifier {
   bool get hasFilteredProducts => _filteredProducts.isNotEmpty;
   bool get isFiltered => _selectedFilter != null || _searchQuery.isNotEmpty;
 
-  /// Charge tous les produits
   Future<void> loadProducts() async {
     _setLoading(true);
     _clearError();
@@ -60,7 +56,6 @@ class ProductProvider extends ChangeNotifier {
     }
   }
 
-  /// Charge un produit spécifique par ID
   Future<void> loadProductById(String id) async {
     _setLoadingDetail(true);
     _clearError();
@@ -77,21 +72,18 @@ class ProductProvider extends ChangeNotifier {
     }
   }
 
-  /// Filtre les produits par type
   void filterByType(ProductType? type) {
     _selectedFilter = type;
     _applyCurrentFilters();
     notifyListeners();
   }
 
-  /// Recherche dans les produits
   void searchProducts(String query) {
     _searchQuery = query.trim();
     _applyCurrentFilters();
     notifyListeners();
   }
 
-  /// Efface tous les filtres
   void clearFilters() {
     _selectedFilter = null;
     _searchQuery = '';
@@ -99,23 +91,19 @@ class ProductProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Efface la recherche uniquement
   void clearSearch() {
     _searchQuery = '';
     _applyCurrentFilters();
     notifyListeners();
   }
 
-  /// Applique les filtres actuels
   void _applyCurrentFilters() {
     List<Product> filtered = List.from(_allProducts);
 
-    // Filtre par type
     if (_selectedFilter != null) {
       filtered = filtered.where((product) => product.type == _selectedFilter).toList();
     }
 
-    // Filtre par recherche
     if (_searchQuery.isNotEmpty) {
       final lowerQuery = _searchQuery.toLowerCase();
       filtered = filtered.where((product) {
@@ -128,24 +116,20 @@ class ProductProvider extends ChangeNotifier {
     _filteredProducts = filtered;
   }
 
-  /// Rafraîchit les données
   Future<void> refresh() async {
     await loadProducts();
   }
 
-  /// Sélectionne un produit
   void selectProduct(Product product) {
     _selectedProduct = product;
     notifyListeners();
   }
 
-  /// Désélectionne le produit actuel
   void clearSelectedProduct() {
     _selectedProduct = null;
     notifyListeners();
   }
 
-  /// Obtient les produits mis en avant
   Future<List<Product>> getFeaturedProducts({int limit = 3}) async {
     try {
       return await _productService.getFeaturedProducts(limit: limit);
@@ -154,12 +138,10 @@ class ProductProvider extends ChangeNotifier {
     }
   }
 
-  /// Vérifie si un produit existe
   bool productExists(String id) {
     return _productService.productExists(id);
   }
 
-  // Méthodes privées pour la gestion d'état
   void _setLoading(bool loading) {
     _isLoading = loading;
     notifyListeners();
@@ -174,7 +156,6 @@ class ProductProvider extends ChangeNotifier {
     _errorMessage = error;
     notifyListeners();
 
-    // Auto-effacement de l'erreur après 5 secondes
     Future.delayed(const Duration(seconds: 5), () {
       if (_errorMessage == error) {
         _clearError();
@@ -187,7 +168,6 @@ class ProductProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Remet à zéro toutes les données
   void reset() {
     _allProducts.clear();
     _filteredProducts.clear();
