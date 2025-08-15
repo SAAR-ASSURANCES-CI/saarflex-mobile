@@ -5,6 +5,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'providers/auth_provider.dart';
 import 'providers/user_provider.dart';
 
+import 'providers/product_provider.dart';
+
 import 'screens/loading_screen.dart';
 import 'screens/auth/welcome_screen.dart';
 import 'screens/dashboard/dashboard_screen.dart';
@@ -29,6 +31,7 @@ class Saarflex extends StatelessWidget {
         ChangeNotifierProvider<AuthProvider>(
           create: (_) => AuthProvider()..initializeAuth(),
         ),
+    ChangeNotifierProvider<ProductProvider>(create: (_) => ProductProvider()),
 
         ChangeNotifierProvider<UserProvider>(create: (_) => UserProvider()),
       ],

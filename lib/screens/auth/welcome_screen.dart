@@ -18,7 +18,6 @@ class WelcomeScreen extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 32.0),
           child: Column(
             children: [
-              // Section du logo et titre (60% de l'écran)
               Expanded(
                 flex: 6,
                 child: Column(
@@ -26,11 +25,9 @@ class WelcomeScreen extends StatelessWidget {
                   children: [
                     const SizedBox(height: 100),
 
-                    // Logo SAAR
                     FadeInDown(
                       duration: const Duration(milliseconds: 800),
                       child: Container(
-                        // width: 20,
                         height: 140,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(20),
@@ -56,7 +53,6 @@ class WelcomeScreen extends StatelessWidget {
 
                     const SizedBox(height: 50),
 
-                    // Slogan
                     FadeInUp(
                       duration: const Duration(milliseconds: 800),
                       delay: const Duration(milliseconds: 500),
@@ -77,13 +73,11 @@ class WelcomeScreen extends StatelessWidget {
                 ),
               ),
 
-              // Section des boutons (40% de l'écran)
               Expanded(
                 flex: 4,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    // Bouton Se connecter
                     FadeInUp(
                       duration: const Duration(milliseconds: 600),
                       delay: const Duration(milliseconds: 700),
@@ -103,7 +97,6 @@ class WelcomeScreen extends StatelessWidget {
 
                     const SizedBox(height: 16),
 
-                    // Bouton Créer un compte
                     FadeInUp(
                       duration: const Duration(milliseconds: 600),
                       delay: const Duration(milliseconds: 900),
@@ -123,7 +116,6 @@ class WelcomeScreen extends StatelessWidget {
 
                     const SizedBox(height: 32),
 
-                    // Conditions d'utilisation
                     FadeInUp(
                       duration: const Duration(milliseconds: 400),
                       delay: const Duration(milliseconds: 1100),
