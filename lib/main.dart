@@ -12,6 +12,7 @@ import 'screens/auth/welcome_screen.dart';
 import 'screens/dashboard/dashboard_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/signup_screen.dart';
+import 'package:flutter_localizations/flutter_localizations.dart'; // Ajoutez cet import
 
 import 'constants/colors.dart';
 
@@ -37,6 +38,17 @@ class Saarflex extends StatelessWidget {
       ],
       child: MaterialApp(
         title: 'SAAR Assurance',
+         // Ajout de la localisation française
+      localizationsDelegates: [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: [
+        const Locale('fr', 'FR'), // Français
+        const Locale('en', 'US'), // Anglais (optionnel)
+      ],
+      locale: const Locale('fr', 'FR'),
         debugShowCheckedModeBanner: false,
 
         theme: ThemeData(
