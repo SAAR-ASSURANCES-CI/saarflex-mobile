@@ -491,15 +491,48 @@ class _LoginScreenState extends State<LoginScreen> {
     return null;
   }
 
-  String? _validatePassword(String? value) {
+   String? _validatePassword(String? value) {
     if (value == null || value.isEmpty) {
       return 'Veuillez saisir votre mot de passe';
     }
 
-    // Pour le login, on vérifie juste qu'il y a un mot de passe
-    // Pas besoin de vérifier la complexité ici
+    // 🔹 Ajout de la vérification de complexité
+    if (value.length < 8) {
+      return 'Le mot de passe doit contenir au moins 8 caractères';
+    }
+
+    List<String> missing = [];
+
+    if (!RegExp(r'[a-z]').hasMatch(value)) {
+      missing.add('une minuscule');
+    }
+
+    if (!RegExp(r'[A-Z]').hasMatch(value)) {
+      missing.add('une majuscule');
+    }
+
+    if (!RegExp(r'\d').hasMatch(value)) {
+      missing.add('un chiffre');
+    }
+
+    if (!RegExp(r'[@$!%*?&]').hasMatch(value)) {
+      missing.add('un caractère spécial (@, !, %, *, ?, &)');
+    }
+
+    if (missing.isNotEmpty) {
+      if (missing.length == 1) {
+        return 'Il manque ${missing.first}';
+      } else if (missing.length == 2) {
+        return 'Il manque ${missing.join(' et ')}';
+      } else {
+        return 'Il manque ${missing.sublist(0, missing.length - 1).join(', ')} et ${missing.last}';
+      }
+    }
+    // 🔹 Fin ajout vérification
+
     return null;
   }
+
 
   Future<void> _handleLogin(AuthProvider authProvider) async {
     setState(() {
