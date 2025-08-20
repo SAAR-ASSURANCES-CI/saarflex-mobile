@@ -16,9 +16,13 @@ class ProductListScreen extends StatefulWidget {
 
 class _ProductListScreenState extends State<ProductListScreen> {
   late PageController _pageController;
-  late Timer _timer;
+  Timer? _timer;
   int _currentPage = 0;
   bool _userInteracting = false;
+  bool _disposed = false;
+
+  List<Product>? _cachedLatestProducts;
+  List<Product>? _cachedAllProducts;
 
   @override
   void initState() {
@@ -26,20 +30,33 @@ class _ProductListScreenState extends State<ProductListScreen> {
     _pageController = PageController(viewportFraction: 0.85);
     
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ProductProvider>().loadProducts();
-      _startAutoScroll();
+      if (!_disposed) {
+        context.read<ProductProvider>().loadProducts();
+        _startAutoScrollOptimized();
+      }
     });
   }
 
-  void _startAutoScroll() {
-    _timer = Timer.periodic(const Duration(milliseconds: 3000), (timer) { 
-      if (!_userInteracting && _pageController.hasClients) {
-        final products = context.read<ProductProvider>().allProducts;
-        if (products.isNotEmpty) {
-          _currentPage = (_currentPage + 1) % products.take(5).length;
+  void _startAutoScrollOptimized() {
+    _timer?.cancel();
+    
+    _timer = Timer.periodic(const Duration(seconds: 8), (timer) { 
+      if (_disposed) {
+        timer.cancel();
+        return;
+      }
+      
+      if (!_userInteracting && 
+          _pageController.hasClients && 
+          mounted) {
+        
+        final products = _cachedLatestProducts;
+        if (products != null && products.isNotEmpty) {
+          _currentPage = (_currentPage + 1) % products.length;
+          
           _pageController.animateToPage(
             _currentPage,
-            duration: const Duration(milliseconds: 300), 
+            duration: const Duration(milliseconds: 250), 
             curve: Curves.easeInOut,
           );
         }
@@ -47,24 +64,28 @@ class _ProductListScreenState extends State<ProductListScreen> {
     });
   }
 
-  void _onUserInteraction() {
-    setState(() {
-      _userInteracting = true;
-    });
-    
-    Timer(const Duration(seconds: 5), () {
-      if (mounted) {
-        setState(() {
-          _userInteracting = false;
-        });
-      }
-    });
+  void _onUserInteractionOptimized() {
+    if (!_userInteracting) {
+      setState(() {
+        _userInteracting = true;
+      });
+      
+      Timer(const Duration(seconds: 6), () { 
+        if (mounted && !_disposed) {
+          setState(() {
+            _userInteracting = false;
+          });
+        }
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<ProductProvider>(
       builder: (context, productProvider, child) {
+        _updateCache(productProvider);
+        
         return Scaffold(
           backgroundColor: Colors.white,
           appBar: _buildAppBar(),
@@ -72,6 +93,14 @@ class _ProductListScreenState extends State<ProductListScreen> {
         );
       },
     );
+  }
+
+  void _updateCache(ProductProvider productProvider) {
+    final allProducts = productProvider.allProducts;
+    if (_cachedAllProducts != allProducts) {
+      _cachedAllProducts = allProducts;
+      _cachedLatestProducts = allProducts.take(5).toList();
+    }
   }
 
   PreferredSizeWidget _buildAppBar() {
@@ -103,7 +132,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
       return _buildErrorState(productProvider.errorMessage!, productProvider);
     }
 
-    final products = productProvider.allProducts;
+    final products = _cachedAllProducts ?? [];
     
     if (products.isEmpty) {
       return _buildEmptyState();
@@ -112,7 +141,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildLatestProductsSection(products),
+        _buildLatestProductsSection(),
         
         Expanded(
           child: _buildAllProductsList(products, productProvider),
@@ -121,8 +150,12 @@ class _ProductListScreenState extends State<ProductListScreen> {
     );
   }
 
-  Widget _buildLatestProductsSection(List<Product> products) {
-    final latestProducts = products.take(5).toList();
+  Widget _buildLatestProductsSection() {
+    final latestProducts = _cachedLatestProducts ?? [];
+    
+    if (latestProducts.isEmpty) {
+      return const SizedBox.shrink();
+    }
 
     return Container(
       margin: const EdgeInsets.only(top: 20),
@@ -161,16 +194,19 @@ class _ProductListScreenState extends State<ProductListScreen> {
             child: NotificationListener<ScrollNotification>(
               onNotification: (scrollNotification) {
                 if (scrollNotification is ScrollStartNotification) {
-                  _onUserInteraction();
+                  _onUserInteractionOptimized();
                 }
                 return false;
               },
               child: PageView.builder(
                 controller: _pageController,
                 onPageChanged: (index) {
-                  setState(() {
-                    _currentPage = index % latestProducts.length;
-                  });
+                  final newPage = index % latestProducts.length;
+                  if (_currentPage != newPage) {
+                    setState(() {
+                      _currentPage = newPage;
+                    });
+                  }
                 },
                 itemBuilder: (context, index) {
                   final productIndex = index % latestProducts.length;
@@ -180,26 +216,30 @@ class _ProductListScreenState extends State<ProductListScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(
-              latestProducts.length,
-              (index) => Container(
-                margin: const EdgeInsets.symmetric(horizontal: 3),
-                width: _currentPage == index ? 20 : 8,
-                height: 8,
-                decoration: BoxDecoration(
-                  gradient: _currentPage == index 
-                      ? LinearGradient(
-                          colors: [AppColors.primary, AppColors.primary.withOpacity(0.7)]
-                        )
-                      : null,
-                  color: _currentPage == index ? null : Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(4),
+          if (latestProducts.length > 1)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                latestProducts.length,
+                (index) => AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  margin: const EdgeInsets.symmetric(horizontal: 3),
+                  width: _currentPage == index ? 20 : 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    gradient: _currentPage == index 
+                        ? LinearGradient(
+                            colors: [AppColors.primary, AppColors.primary.withOpacity(0.7)]
+                          )
+                        : null,
+                    color: _currentPage == index 
+                        ? null 
+                        : Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
                 ),
               ),
             ),
-          ),
           const SizedBox(height: 20),
         ],
       ),
@@ -208,309 +248,63 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
   Widget _buildHorizontalProductCard(Product product) {
     return Container(
-      width: 300,
       margin: const EdgeInsets.symmetric(horizontal: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppColors.primary.withOpacity(0.15),
-          width: 1.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withOpacity(0.1),
-            spreadRadius: 0,
-            blurRadius: 15,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
+      child: Card(
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: InkWell(
-          onTap: () {
-            _onUserInteraction();
-            _navigateToProductDetail(product);
-          },
           borderRadius: BorderRadius.circular(16),
-          child: Padding(
-            padding: const EdgeInsets.all(18),
+          onTap: () => _navigateToProductDetail(product),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  AppColors.primary.withOpacity(0.05),
+                  AppColors.primary.withOpacity(0.02),
+                ],
+              ),
+            ),
             child: Row(
               children: [
-                Container(
-                  width: 55,
-                  height: 55,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        AppColors.primary.withOpacity(0.2),
-                        AppColors.primary.withOpacity(0.1),
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: AppColors.primary.withOpacity(0.3),
-                      width: 1,
-                    ),
-                  ),
-                  child: Icon(
-                    Icons.shield_rounded,
-                    color: AppColors.primary,
-                    size: 28,
-                  ),
-                ),
-                
-                const SizedBox(width: 14),
-                
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          gradient: product.type == ProductType.vie 
-                              ? LinearGradient(colors: [
-                                  AppColors.secondary.withOpacity(0.3),
-                                  AppColors.secondary.withOpacity(0.2),
-                                ])
-                              : LinearGradient(colors: [
-                                  AppColors.primary.withOpacity(0.25),
-                                  AppColors.primary.withOpacity(0.15),
-                                ]),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: product.type == ProductType.vie 
-                                ? AppColors.secondary.withOpacity(0.4)
-                                : AppColors.primary.withOpacity(0.4),
-                            width: 1,
-                          ),
+                      Text(
+                        product.nom,
+                        style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimary,
                         ),
-                        child: Text(
-                          product.typeShortLabel,
-                          style: GoogleFonts.poppins(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: product.type == ProductType.vie 
-                                ? AppColors.secondary
-                                : AppColors.primary,
-                          ),
-                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      
                       const SizedBox(height: 8),
-                      
-                      Text(
-                        product.nom,
-                        style: GoogleFonts.poppins(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.black87,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      
-                      const SizedBox(height: 4),
-                      
                       Text(
                         product.description,
                         style: GoogleFonts.poppins(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w400,
-                          color: Colors.grey.shade600,
+                          fontSize: 12,
+                          color: AppColors.textSecondary,
                         ),
-                        maxLines: 2,
+                        maxLines: 3,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
                 ),
-                
+                const SizedBox(width: 12),
                 Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(
-                    Icons.arrow_forward_ios_rounded,
-                    color: AppColors.primary,
-                    size: 16,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAllProductsList(List<Product> products, ProductProvider productProvider) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Tous nos produits',
-                style: GoogleFonts.poppins(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: const Color.fromARGB(255, 0, 0, 0),
-                ),
-              ),
-            ],
-          )
-        ),
-        const SizedBox(height: 20),
-        Expanded(
-          child: RefreshIndicator(
-            onRefresh: () => productProvider.refresh(),
-            color: AppColors.primary,
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              itemCount: products.length,
-              itemBuilder: (context, index) {
-                return _buildVerticalProductCard(products[index]);
-              },
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildVerticalProductCard(Product product) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppColors.primary.withOpacity(0.12),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withOpacity(0.08),
-            spreadRadius: 0,
-            blurRadius: 12,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () => _navigateToProductDetail(product),
-          borderRadius: BorderRadius.circular(16),
-          child: Padding(
-            padding: const EdgeInsets.all(18),
-            child: Row(
-              children: [
-                Container(
-                  width: 55,
-                  height: 55,
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [
-                        AppColors.primary.withOpacity(0.18),
-                        AppColors.primary.withOpacity(0.08),
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: AppColors.primary.withOpacity(0.25),
-                      width: 1,
-                    ),
-                  ),
-                  child: Icon(
-                    Icons.shield_rounded,
-                    color: AppColors.primary,
-                    size: 28,
-                  ),
-                ),
-                
-                const SizedBox(width: 18),
-                
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                        decoration: BoxDecoration(
-                          gradient: product.type == ProductType.vie 
-                              ? LinearGradient(colors: [
-                                  AppColors.secondary.withOpacity(0.25),
-                                  AppColors.secondary.withOpacity(0.15),
-                                ])
-                              : LinearGradient(colors: [
-                                  AppColors.primary.withOpacity(0.2),
-                                  AppColors.primary.withOpacity(0.1),
-                                ]),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: product.type == ProductType.vie 
-                                ? AppColors.secondary.withOpacity(0.3)
-                                : AppColors.primary.withOpacity(0.3),
-                            width: 1,
-                          ),
-                        ),
-                        child: Text(
-                          product.typeShortLabel,
-                          style: GoogleFonts.poppins(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: product.type == ProductType.vie 
-                                ? AppColors.secondary
-                                : AppColors.primary,
-                          ),
-                        ),
-                      ),
-                      
-                      const SizedBox(height: 10),
-                      
-                      Text(
-                        product.nom,
-                        style: GoogleFonts.poppins(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      
-                      const SizedBox(height: 6),
-                      
-                      Text(
-                        product.description,
-                        style: GoogleFonts.poppins(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w400,
-                          color: Colors.grey.shade600,
-                          height: 1.4,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-                
-                const SizedBox(width: 16),
-                
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                       colors: [
                         AppColors.primary.withOpacity(0.15),
                         AppColors.primary.withOpacity(0.08),
@@ -534,7 +328,110 @@ class _ProductListScreenState extends State<ProductListScreen> {
         ),
       ),
     );
-  }  Widget _buildLoadingState() {
+  }
+
+  Widget _buildAllProductsList(List<Product> products, ProductProvider productProvider) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Tous nos produits',
+            style: GoogleFonts.poppins(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Expanded(
+            child: ListView.separated(
+              itemCount: products.length,
+              separatorBuilder: (context, index) => const SizedBox(height: 12),
+              itemBuilder: (context, index) {
+                return _buildVerticalProductCard(products[index]);
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildVerticalProductCard(Product product) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () => _navigateToProductDetail(product),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  product.type == ProductType.vie
+                      ? Icons.favorite_outline
+                      : Icons.security_outlined,
+                  color: AppColors.primary,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      product.nom,
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      product.typeLabel,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      product.description,
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        color: AppColors.textSecondary,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.arrow_forward_ios_rounded,
+                color: AppColors.primary,
+                size: 16,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoadingState() {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -574,18 +471,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Icon(
-                Icons.error_outline_rounded,
-                color: AppColors.primary,
-                size: 40,
-              ),
+            Icon(
+              Icons.error_outline,
+              color: AppColors.error,
+              size: 64,
             ),
             const SizedBox(height: 24),
             Text(
@@ -593,7 +482,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
               style: GoogleFonts.poppins(
                 fontSize: 20,
                 fontWeight: FontWeight.w600,
-                color: Colors.black87,
+                color: AppColors.textPrimary,
               ),
             ),
             const SizedBox(height: 8),
@@ -601,15 +490,14 @@ class _ProductListScreenState extends State<ProductListScreen> {
               errorMessage,
               style: GoogleFonts.poppins(
                 fontSize: 14,
-                fontWeight: FontWeight.w400,
-                color: Colors.grey.shade600,
+                color: AppColors.textSecondary,
               ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
-              onPressed: () => productProvider.refresh(),
-              icon: Icon(Icons.refresh_rounded),
+              onPressed: () => productProvider.loadProducts(),
+              icon: Icon(Icons.refresh),
               label: Text('Réessayer'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
@@ -682,7 +570,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
   @override
   void dispose() {
-    _timer.cancel();
+    _disposed = true; 
+    _timer?.cancel(); 
     _pageController.dispose();
     super.dispose();
   }
