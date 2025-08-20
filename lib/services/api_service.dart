@@ -120,7 +120,6 @@ class ApiService {
     }
   }
 
-  // Méthode helper pour parser les dates avec gestion des différents formats
   DateTime? _parseDate(dynamic dateValue, String fieldName) {
     if (dateValue == null) {
       print('$fieldName: null');
@@ -131,7 +130,6 @@ class ApiService {
       String dateStr = dateValue.toString();
       print('Tentative de parsing de $fieldName: $dateStr');
       
-      // Si c'est au format DD-MM-YYYY (comme 19-08-1995)
       if (dateStr.contains('-') && dateStr.length == 10) {
         List<String> parts = dateStr.split('-');
         if (parts.length == 3) {
@@ -145,7 +143,6 @@ class ApiService {
         }
       }
       
-      // Si c'est au format DD/MM/YYYY (comme 19/08/1995)
       if (dateStr.contains('/') && dateStr.length == 10) {
         List<String> parts = dateStr.split('/');
         if (parts.length == 3) {
@@ -159,7 +156,6 @@ class ApiService {
         }
       }
       
-      // Sinon, essayer le format ISO standard
       final parsedDate = DateTime.parse(dateStr);
       print('$fieldName parsée avec succès (format ISO): $parsedDate');
       return parsedDate;
@@ -167,17 +163,14 @@ class ApiService {
     } catch (e) {
       print('Erreur lors du parsing de $fieldName: $dateValue, erreur: $e');
       
-      // Dernière tentative avec intl
       try {
         String dateStr = dateValue.toString();
         if (dateStr.contains('-')) {
-          // Format DD-MM-YYYY
           final DateFormat formatter = DateFormat('dd-MM-yyyy');
           DateTime parsedDate = formatter.parse(dateStr);
           print('$fieldName parsée avec succès (intl DD-MM-YYYY): $parsedDate');
           return parsedDate;
         } else if (dateStr.contains('/')) {
-          // Format DD/MM/YYYY
           final DateFormat formatter = DateFormat('dd/MM/yyyy');
           DateTime parsedDate = formatter.parse(dateStr);
           print('$fieldName parsée avec succès (intl DD/MM/YYYY): $parsedDate');
@@ -204,12 +197,6 @@ class ApiService {
       headers: _defaultHeaders,
       body: json.encode(body),
     );
-
-    print('=== DEBUG LOGIN ===');
-    print('Status Code: ${response.statusCode}');
-    print('Response Body: ${response.body}');
-    print('===================');
-
     if (response.statusCode == 200 || response.statusCode == 201) {
       final responseData = json.decode(response.body);
       final data = responseData['data'] ?? responseData;
@@ -235,7 +222,6 @@ class ApiService {
       await _saveToken(token);
       return AuthResponse(user: user, token: token);
     } else {
-      // Nouvelle gestion d'erreur spécifique
       final responseBody = json.decode(response.body);
       final errorMessage = responseBody['message']?.toString().toLowerCase() ?? '';
 
@@ -247,7 +233,6 @@ class ApiService {
         }
       }
       
-      // Gestion des autres erreurs
       _handleHttpError(response);
       throw ApiException('Erreur de connexion', response.statusCode);
     }
@@ -379,7 +364,6 @@ class ApiService {
               ? data['numero_piece_identite']
               : null,
           typePieceIdentite: profilAJour ? data['type_piece_identite'] : null,
-          // Parsing intelligent des dates
           dateNaissance: _parseDate(data['date_naissance'], 'date_naissance'),
           dateExpirationPiece: _parseDate(data['date_expiration_piece_identite'], 'date_expiration_piece_identite'),
           profilComplet: profilAJour,
@@ -403,18 +387,11 @@ class ApiService {
     try {
       final url = '$baseUrl/users/me';
 
-      print('=== API DEBUG ===');
-      print('URL: $url');
-      print('Données envoyées: ${json.encode(userData)}');
-
       final response = await http.patch(
         Uri.parse(url),
         headers: await _authHeaders,
         body: json.encode(userData),
       );
-
-      print('Status Code: ${response.statusCode}');
-      print('Response Body: ${response.body}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final responseData = json.decode(response.body);
@@ -448,7 +425,6 @@ class ApiService {
           numeroPieceIdentite: data['numero_piece_identite'],
           typePieceIdentite: data['type_piece_identite'],
           profilComplet: profilAJour,
-          // Parsing intelligent des dates
           dateNaissance: _parseDate(data['date_naissance'], 'date_naissance'),
           dateExpirationPiece: _parseDate(data['date_expiration_piece_identite'], 'date_expiration_piece_identite'),
         );

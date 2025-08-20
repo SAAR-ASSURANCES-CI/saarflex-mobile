@@ -106,6 +106,25 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  Future<bool> forgotPassword(String email) async {
+    _setLoading(true);
+    _clearError();
+
+    try {
+      await _apiService.forgotPassword(email);
+      _setLoading(false);
+      return true;
+    } on ApiException catch (e) {
+      _setError(_getErrorMessage(e));
+      _setLoading(false);
+      return false;
+    } catch (e) {
+      _setError('Erreur lors de l\'envoi');
+      _setLoading(false);
+      return false;
+    }
+  }
+
   Future<void> logout() async {
     _setLoading(true);
 
@@ -156,25 +175,6 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> forgotPassword(String email) async {
-    _setLoading(true);
-    _clearError();
-
-    try {
-      await _apiService.forgotPassword(email);
-      _setLoading(false);
-      return true;
-    } on ApiException catch (e) {
-      _setError(_getErrorMessage(e));
-      _setLoading(false);
-      return false;
-    } catch (e) {
-      _setError('Erreur lors de l\'envoi');
-      _setLoading(false);
-      return false;
-    }
-  }
-
   Future<bool> verifyOtp({required String email, required String code}) async {
     _setLoading(true);
     _clearError();
@@ -219,6 +219,10 @@ class AuthProvider extends ChangeNotifier {
       _setLoading(false);
       return false;
     }
+  }
+
+  void clearError() {
+    _clearError();
   }
 
   void _setLoading(bool loading) {

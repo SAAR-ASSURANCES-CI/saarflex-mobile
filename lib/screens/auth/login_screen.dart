@@ -496,7 +496,6 @@ class _LoginScreenState extends State<LoginScreen> {
       return 'Veuillez saisir votre mot de passe';
     }
 
-    // 🔹 Ajout de la vérification de complexité
     if (value.length < 8) {
       return 'Le mot de passe doit contenir au moins 8 caractères';
     }
@@ -528,7 +527,6 @@ class _LoginScreenState extends State<LoginScreen> {
         return 'Il manque ${missing.sublist(0, missing.length - 1).join(', ')} et ${missing.last}';
       }
     }
-    // 🔹 Fin ajout vérification
 
     return null;
   }
