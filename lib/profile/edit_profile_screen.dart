@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:saarflex_app/providers/auth_provider.dart';
+import 'package:intl/intl.dart';
 import '../../constants/colors.dart';
 import '../../utils/error_handler.dart';
 
@@ -25,6 +26,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   String _selectedGender = 'Masculin';
   String _selectedIdType = 'Carte Nationale d\'Identité';
+  
+  DateTime? _selectedBirthDate;
+  DateTime? _selectedExpirationDate;
 
   final List<String> _genderOptions = ['Masculin', 'Féminin'];
   final List<String> _idTypeOptions = [
@@ -58,76 +62,117 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _idNumberController.addListener(_checkForChanges);
   }
 
-  void _checkForChanges() {
-    final currentData = {
-      'nom': _firstNameController.text.trim(),
-      'email': _emailController.text.trim(),
-      'telephone': _phoneController.text.trim(),
-      'lieu_naissance': _birthPlaceController.text.trim(),
-      'nationalite': _nationalityController.text.trim(),
-      'profession': _professionController.text.trim(),
-      'adresse': _addressController.text.trim(),
-      'numero_piece_identite': _idNumberController.text.trim(),
-      'sexe': _selectedGender,
-      'type_piece_identite': _selectedIdType,
-    };
 
-    bool hasChanged = false;
-    for (String key in currentData.keys) {
-      if (currentData[key] != _originalData[key]) {
-        hasChanged = true;
-        break;
-      }
-    }
 
-    if (_hasChanges != hasChanged) {
-      setState(() {
-        _hasChanges = hasChanged;
-        _fieldErrors.clear();
-      });
+
+
+void _checkForChanges() {
+  String? currentBirthDate;
+  String? currentExpirationDate;
+  
+  if (_selectedBirthDate != null) {
+    currentBirthDate = DateFormat('dd-MM-yyyy').format(_selectedBirthDate!);
+  }
+  
+  if (_selectedExpirationDate != null) {
+    currentExpirationDate = DateFormat('dd-MM-yyyy').format(_selectedExpirationDate!);
+  }
+
+  final currentData = {
+    'nom': _firstNameController.text.trim(),
+    'email': _emailController.text.trim(),
+    'telephone': _phoneController.text.trim(),
+    'lieu_naissance': _birthPlaceController.text.trim(),
+    'nationalite': _nationalityController.text.trim(),
+    'profession': _professionController.text.trim(),
+    'adresse': _addressController.text.trim(),
+    'numero_piece_identite': _idNumberController.text.trim(),
+    'sexe': _selectedGender,
+    'type_piece_identite': _selectedIdType,
+    'date_naissance': currentBirthDate,
+    'date_expiration_piece_identite': currentExpirationDate,
+  };
+
+  bool hasChanged = false;
+  for (String key in currentData.keys) {
+    if (currentData[key] != _originalData[key]) {
+      hasChanged = true;
+      break;
     }
   }
+
+  if (_hasChanges != hasChanged) {
+    setState(() {
+      _hasChanges = hasChanged;
+      _fieldErrors.clear();
+    });
+  }
+}
+
 
   void _onDropdownChanged() {
     _checkForChanges();
   }
 
-  void _loadUserData() {
-    final authProvider = context.read<AuthProvider>();
-    final user = authProvider.currentUser;
-
-    if (user != null) {
-      _firstNameController.text = user.nom;
-      _emailController.text = user.email;
-      _phoneController.text = user.telephone ?? '';
-      _birthPlaceController.text = user.lieuNaissance ?? '';
-      _nationalityController.text = user.nationalite ?? '';
-      _professionController.text = user.profession ?? '';
-      _addressController.text = user.adresse ?? '';
-      _idNumberController.text = user.numeroPieceIdentite ?? '';
-
-      if (user.sexe != null) {
-        _selectedGender = user.sexe == 'masculin' ? 'Masculin' : 'Féminin';
-      }
-
-      if (user.typePieceIdentite != null) {
-        _selectedIdType = _getTypePieceIdentiteLabel(user.typePieceIdentite!);
-      }
-
-      _originalData = {
-        'nom': user.nom,
-        'email': user.email,
-        'telephone': user.telephone ?? '',
-        'lieu_naissance': user.lieuNaissance ?? '',
-        'nationalite': user.nationalite ?? '',
-        'profession': user.profession ?? '',
-        'adresse': user.adresse ?? '',
-        'numero_piece_identite': user.numeroPieceIdentite ?? '',
-        'sexe': _selectedGender,
-        'type_piece_identite': _selectedIdType,
-      };
-    }
+  void _onDateChanged() {
+    _checkForChanges();
   }
+
+
+
+
+void _loadUserData() {
+  final authProvider = context.read<AuthProvider>();
+  final user = authProvider.currentUser;
+
+  if (user != null) {
+    _firstNameController.text = user.nom;
+    _emailController.text = user.email;
+    _phoneController.text = user.telephone ?? '';
+    _birthPlaceController.text = user.lieuNaissance ?? '';
+    _nationalityController.text = user.nationalite ?? '';
+    _professionController.text = user.profession ?? '';
+    _addressController.text = user.adresse ?? '';
+    _idNumberController.text = user.numeroPieceIdentite ?? '';
+
+    _selectedBirthDate = user.dateNaissance;
+    _selectedExpirationDate = user.dateExpirationPiece;
+
+    if (user.sexe != null) {
+      _selectedGender = user.sexe == 'masculin' ? 'Masculin' : 'Féminin';
+    }
+
+    if (user.typePieceIdentite != null) {
+      _selectedIdType = _getTypePieceIdentiteLabel(user.typePieceIdentite!);
+    }
+
+    String? originalBirthDate;
+    String? originalExpirationDate;
+    
+    if (user.dateNaissance != null) {
+      originalBirthDate = DateFormat('dd-MM-yyyy').format(user.dateNaissance!);
+    }
+    
+    if (user.dateExpirationPiece != null) {
+      originalExpirationDate = DateFormat('dd-MM-yyyy').format(user.dateExpirationPiece!);
+    }
+
+    _originalData = {
+      'nom': user.nom,
+      'email': user.email,
+      'telephone': user.telephone ?? '',
+      'lieu_naissance': user.lieuNaissance ?? '',
+      'nationalite': user.nationalite ?? '',
+      'profession': user.profession ?? '',
+      'adresse': user.adresse ?? '',
+      'numero_piece_identite': user.numeroPieceIdentite ?? '',
+      'sexe': _selectedGender,
+      'type_piece_identite': _selectedIdType,
+      'date_naissance': originalBirthDate,
+      'date_expiration_piece_identite': originalExpirationDate,
+    };
+  }
+}
 
   String _getTypePieceIdentiteLabel(String type) {
     switch (type.toLowerCase()) {
@@ -168,6 +213,25 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       }
     }
 
+    if (_selectedBirthDate != null) {
+      final now = DateTime.now();
+      final minAge = DateTime(now.year - 120, now.month, now.day);
+      final maxAge = DateTime(now.year - 16, now.month, now.day);
+
+      if (_selectedBirthDate!.isAfter(maxAge)) {
+        errors['date_naissance'] = 'Vous devez avoir au moins 16 ans';
+      } else if (_selectedBirthDate!.isBefore(minAge)) {
+        errors['date_naissance'] = 'Date de naissance invalide';
+      }
+    }
+
+    if (_selectedExpirationDate != null) {
+      final now = DateTime.now();
+      if (_selectedExpirationDate!.isBefore(now)) {
+        errors['date_expiration_piece_identite'] = 'La date d\'expiration ne peut pas être dans le passé';
+      }
+    }
+
     return errors;
   }
 
@@ -175,68 +239,54 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: CustomScrollView(
-        slivers: [
-          _buildSliverAppBar(),
-          SliverPadding(
-            padding: const EdgeInsets.all(24),
-            sliver: SliverToBoxAdapter(
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildProfileHeader(),
-                    const SizedBox(height: 40),
-
-                    if (_fieldErrors.isNotEmpty) ...[
-                      ErrorHandler.buildErrorList(
-                        _fieldErrors.values
-                            .where((error) => error != null)
-                            .cast<String>()
-                            .toList(),
-                      ),
-                      const SizedBox(height: 20),
-                    ],
-
-                    _buildPersonalSection(),
-                    const SizedBox(height: 32),
-                    _buildContactSection(),
-                    const SizedBox(height: 32),
-                    _buildIdentitySection(),
-                    const SizedBox(height: 40),
-                    _buildSaveButton(),
-                    const SizedBox(height: 20),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSliverAppBar() {
-    return SliverAppBar(
-      expandedHeight: 120,
-      floating: false,
-      pinned: true,
-      backgroundColor: AppColors.primary,
-      leading: IconButton(
-        icon: Icon(Icons.arrow_back_ios_rounded, color: AppColors.white),
-        onPressed: () => Navigator.pop(context),
-      ),
-      flexibleSpace: FlexibleSpaceBar(
-        title: Text(
+      appBar: AppBar(
+        backgroundColor: AppColors.primary,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text(
           "Édition du profil",
-          style: GoogleFonts.poppins(
+          style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w600,
-            color: AppColors.white,
+            color: Colors.white,
           ),
         ),
         centerTitle: true,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildProfileHeader(),
+              const SizedBox(height: 40),
+
+              if (_fieldErrors.isNotEmpty) ...[
+                ErrorHandler.buildErrorList(
+                  _fieldErrors.values
+                      .where((error) => error != null)
+                      .cast<String>()
+                      .toList(),
+                ),
+                const SizedBox(height: 20),
+              ],
+
+              _buildPersonalSection(),
+              const SizedBox(height: 32),
+              _buildContactSection(),
+              const SizedBox(height: 32),
+              _buildIdentitySection(),
+              const SizedBox(height: 40),
+              _buildSaveButton(),
+              const SizedBox(height: 20),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -364,6 +414,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           },
         ),
         const SizedBox(height: 20),
+        _buildDateField(
+          selectedDate: _selectedBirthDate,
+          label: 'Date de naissance',
+          onDateSelected: (date) {
+            setState(() => _selectedBirthDate = date);
+            _onDateChanged();
+          },
+          hasError: _fieldErrors.containsKey('date_naissance'),
+          isRequired: false,
+        ),
+        const SizedBox(height: 20),
         _buildTextField(
           controller: _birthPlaceController,
           label: 'Lieu de naissance',
@@ -427,6 +488,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         _buildTextField(
           controller: _idNumberController,
           label: 'Numéro de pièce',
+        ),
+        const SizedBox(height: 20),
+        _buildDateField(
+          selectedDate: _selectedExpirationDate,
+          label: 'Date d\'expiration de la pièce',
+          onDateSelected: (date) {
+            setState(() => _selectedExpirationDate = date);
+            _onDateChanged();
+          },
+          hasError: _fieldErrors.containsKey('date_expiration_piece_identite'),
+          isRequired: false,
+          isExpirationDate: true,
         ),
       ],
     );
@@ -592,6 +665,115 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
+  Widget _buildDateField({
+    required DateTime? selectedDate,
+    required String label,
+    required Function(DateTime?) onDateSelected,
+    bool isRequired = false,
+    bool hasError = false,
+    bool isExpirationDate = false,
+  }) {
+    String originalKey = isExpirationDate ? 'date_expiration_piece_identite' : 'date_naissance';
+    String? originalDateStr = _originalData[originalKey];
+    DateTime? originalDate = originalDateStr != null ? DateTime.tryParse(originalDateStr) : null;
+    
+    bool isModified = selectedDate != originalDate;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        RichText(
+          text: TextSpan(
+            text: label,
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: AppColors.textPrimary,
+            ),
+            children: [
+              if (isRequired)
+                TextSpan(
+                  text: ' *',
+                  style: TextStyle(color: AppColors.error),
+                ),
+              if (isModified)
+                TextSpan(
+                  text: ' (modifié)',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        InkWell(
+          onTap: () => _selectDate(context, selectedDate, onDateSelected, isExpirationDate),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceVariant,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: hasError
+                    ? AppColors.error.withOpacity(0.5)
+                    : isModified
+                    ? AppColors.primary.withOpacity(0.3)
+                    : AppColors.border.withOpacity(0.3),
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.calendar_today_rounded,
+                  color: hasError ? AppColors.error : AppColors.primary,
+                  size: 20,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    selectedDate != null
+                        ? _formatDate(selectedDate)
+                        : 'Sélectionner $label',
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: selectedDate != null
+                          ? AppColors.textPrimary
+                          : AppColors.textSecondary.withOpacity(0.6),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        if (hasError && _fieldErrors[originalKey] != null) ...[
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Icon(Icons.error_outline, color: AppColors.error, size: 16),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  _fieldErrors[originalKey]!,
+                  style: GoogleFonts.poppins(
+                    color: AppColors.error,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ],
+    );
+  }
+
   Widget _buildDropdownField({
     required String value,
     required List<String> items,
@@ -659,6 +841,49 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ),
       ],
     );
+  }
+
+  Future<void> _selectDate(
+    BuildContext context,
+    DateTime? currentDate,
+    Function(DateTime?) onDateSelected,
+    bool isExpirationDate,
+  ) async {
+    final DateTime now = DateTime.now();
+    final DateTime firstDate = isExpirationDate
+        ? now 
+        : DateTime(now.year - 120, now.month, now.day); 
+    final DateTime lastDate = isExpirationDate
+        ? DateTime(now.year + 20, now.month, now.day) 
+        : DateTime(now.year - 16, now.month, now.day); 
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: currentDate ?? (isExpirationDate ? now : lastDate),
+      firstDate: firstDate,
+      lastDate: lastDate,
+      locale: const Locale('fr', 'FR'),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: AppColors.primary,
+              onPrimary: AppColors.white,
+              surface: AppColors.surface,
+              onSurface: AppColors.textPrimary,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null) {
+      onDateSelected(picked);
+    }
+  }
+
+  String _formatDate(DateTime date) {
+    return "${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}";
   }
 
   Widget _buildSaveButton() {
@@ -740,8 +965,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       }
 
       final authProvider = context.read<AuthProvider>();
-
       final Map<String, dynamic> profileData = {};
+
+      print('=== DEBUG PROFIL ===');
+      print('Date naissance originale: ${_originalData['date_naissance']}');
+      print('Date expiration originale: ${_originalData['date_expiration_piece_identite']}');
+      print('Date naissance sélectionnée: $_selectedBirthDate');
+      print('Date expiration sélectionnée: $_selectedExpirationDate');
 
       if (_firstNameController.text.trim() != _originalData['nom']) {
         profileData['nom'] = _firstNameController.text.trim();
@@ -755,8 +985,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         profileData['telephone'] = _phoneController.text.trim();
       }
 
-      if (_birthPlaceController.text.trim() !=
-          _originalData['lieu_naissance']) {
+      if (_birthPlaceController.text.trim() != _originalData['lieu_naissance']) {
         profileData['lieu_naissance'] = _birthPlaceController.text.trim();
       }
 
@@ -772,8 +1001,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         profileData['adresse'] = _addressController.text.trim();
       }
 
-      if (_idNumberController.text.trim() !=
-          _originalData['numero_piece_identite']) {
+      if (_idNumberController.text.trim() != _originalData['numero_piece_identite']) {
         profileData['numero_piece_identite'] = _idNumberController.text.trim();
       }
 
@@ -784,6 +1012,32 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       if (_selectedIdType != _originalData['type_piece_identite']) {
         profileData['type_piece_identite'] = _selectedIdType;
       }
+
+      if (_selectedBirthDate != null) {
+  String newBirthDate = DateFormat('dd-MM-yyyy').format(_selectedBirthDate!);
+  print('Date naissance formatée pour API: $newBirthDate');
+  
+  String originalFormatted = _originalData['date_naissance'] ?? '';
+  
+  if (newBirthDate != originalFormatted) {
+    profileData['date_naissance'] = newBirthDate;
+    print('Date naissance ajoutée aux données: $newBirthDate');
+  }
+}
+
+if (_selectedExpirationDate != null) {
+  String newExpirationDate = DateFormat('dd-MM-yyyy').format(_selectedExpirationDate!);
+  print('Date expiration formatée pour API: $newExpirationDate');
+  
+  String originalFormatted = _originalData['date_expiration_piece_identite'] ?? '';
+  
+  if (newExpirationDate != originalFormatted) {
+    profileData['date_expiration_piece_identite'] = newExpirationDate;
+    print('Date expiration ajoutée aux données: $newExpirationDate');
+  }
+}
+
+      print('Données finales à envoyer: $profileData');
 
       if (profileData.isEmpty) {
         setState(() {
@@ -817,22 +1071,21 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
         if (authProvider.errorMessage != null) {
           final apiError = authProvider.errorMessage!.toLowerCase();
+          print('Erreur API: $apiError');
 
-          if (apiError.contains('email') && apiError.contains('already')) {
-            errorMessage =
-                'Cette adresse email est déjà utilisée par un autre compte';
-          } else if (apiError.contains('phone') &&
-              apiError.contains('already')) {
-            errorMessage =
-                'Ce numéro de téléphone est déjà utilisé par un autre compte';
+          if (apiError.contains('date')) {
+            errorMessage = 'Erreur avec les dates. Vérifiez le format.';
+          } else if (apiError.contains('email') && apiError.contains('already')) {
+            errorMessage = 'Cette adresse email est déjà utilisée par un autre compte';
+          } else if (apiError.contains('phone') && apiError.contains('already')) {
+            errorMessage = 'Ce numéro de téléphone est déjà utilisé par un autre compte';
           } else if (apiError.contains('validation')) {
             errorMessage = 'Données invalides, vérifiez vos informations';
-          } else if (apiError.contains('connexion') ||
-              apiError.contains('internet') ||
-              apiError.contains('network')) {
+          } else if (apiError.contains('connexion') || 
+                     apiError.contains('internet') || 
+                     apiError.contains('network')) {
             errorMessage = 'Problème de connexion, vérifiez votre internet';
-          } else if (apiError.contains('server') ||
-              apiError.contains('serveur')) {
+          } else if (apiError.contains('server') || apiError.contains('serveur')) {
             errorMessage = 'Erreur du serveur, réessayez plus tard';
           } else {
             errorMessage = authProvider.errorMessage!;
@@ -842,6 +1095,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ErrorHandler.showErrorSnackBar(context, errorMessage);
       }
     } catch (e) {
+      print('Exception dans _saveProfile: $e');
       if (mounted) {
         ErrorHandler.showErrorSnackBar(
           context,

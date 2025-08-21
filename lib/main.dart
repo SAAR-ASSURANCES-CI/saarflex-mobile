@@ -7,11 +7,11 @@ import 'providers/user_provider.dart';
 
 import 'providers/product_provider.dart';
 
-import 'screens/loading_screen.dart';
 import 'screens/auth/welcome_screen.dart';
 import 'screens/dashboard/dashboard_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/signup_screen.dart';
+import 'package:flutter_localizations/flutter_localizations.dart'; 
 
 import 'constants/colors.dart';
 
@@ -37,6 +37,16 @@ class Saarflex extends StatelessWidget {
       ],
       child: MaterialApp(
         title: 'SAAR Assurance',
+      localizationsDelegates: [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: [
+        const Locale('fr', 'FR'), 
+        const Locale('en', 'US'), 
+      ],
+      locale: const Locale('fr', 'FR'),
         debugShowCheckedModeBanner: false,
 
         theme: ThemeData(
@@ -85,8 +95,29 @@ class AuthenticationWrapper extends StatelessWidget {
     return Consumer<AuthProvider>(
       builder: (context, authProvider, child) {
         if (authProvider.isLoading) {
-          return const LoadingScreen();
-        }
+  return Scaffold(
+    backgroundColor: AppColors.background,
+    body: Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+          ),
+          const SizedBox(height: 20),
+          Text(
+            'Chargement en cours...',
+            style: GoogleFonts.poppins(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: AppColors.textSecondary,
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
 
         if (authProvider.isLoggedIn) {
           return const DashboardScreen();

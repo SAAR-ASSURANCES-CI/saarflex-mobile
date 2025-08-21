@@ -79,6 +79,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  String? _formatDate(DateTime? date) {
+    if (date == null) return null;
+    return "${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}";
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<AuthProvider>(
@@ -145,9 +150,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ],
           ),
           child: Icon(
-            Icons.person_rounded,
-            color: AppColors.white,
-            size: 50,
+            Icons.person_rounded, 
+            color: AppColors.white, 
+            size: 50
           ),
         ),
         const SizedBox(height: 16),
@@ -212,6 +217,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _buildInfoRow("Email", user?.email ?? "Non renseigné"),
         _buildInfoRow("Téléphone", user?.telephone ?? "Non renseigné"),
         _buildInfoRow("Sexe", user?.sexe ?? "Non renseigné"),
+        _buildInfoRow("Date de naissance", _formatDate(user?.dateNaissance) ?? "Non renseignée"),
         _buildInfoRow("Lieu de naissance", user?.lieuNaissance ?? "Non renseigné"),
         _buildInfoRow("Nationalité", user?.nationalite ?? "Non renseignée"),
         _buildInfoRow("Profession", user?.profession ?? "Non renseignée"),
@@ -232,6 +238,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _buildInfoRow(
           "Numéro de pièce",
           user?.numeroPieceIdentite ?? "Non renseigné",
+        ),
+        _buildInfoRow(
+          "Date d'expiration",
+          _formatDate(user?.dateExpirationPiece) ?? "Non renseignée",
+          isExpirationDate: true,
         ),
       ],
     );
@@ -298,7 +309,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildInfoRow(String label, String value) {
+  Widget _buildInfoRow(String label, String value, {bool isExpirationDate = false}) {
+    Color? valueColor;
+    
+    if (isExpirationDate && value != "Non renseignée") {
+      try {
+        final parts = value.split('/');
+        if (parts.length == 3) {
+          final day = int.parse(parts[0]);
+          final month = int.parse(parts[1]);
+          final year = int.parse(parts[2]);
+          final expirationDate = DateTime(year, month, day);
+          final now = DateTime.now();
+          final daysUntilExpiration = expirationDate.difference(now).inDays;
+          
+          if (daysUntilExpiration < 0) {
+            valueColor = AppColors.error;
+          } else if (daysUntilExpiration <= 30) {
+            valueColor = AppColors.warning;
+          } else {
+            valueColor = AppColors.success;
+          }
+        }
+      } catch (e) {
+        valueColor = AppColors.textPrimary;
+      }
+    }
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(
@@ -318,13 +355,43 @@ class _ProfileScreenState extends State<ProfileScreen> {
           const SizedBox(width: 16),
           Expanded(
             flex: 3,
-            child: Text(
-              value,
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
-              ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    value,
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: valueColor ?? AppColors.textPrimary,
+                    ),
+                  ),
+                ),
+                if (isExpirationDate && valueColor == AppColors.warning)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8),
+                    child: Tooltip(
+                      message: "Expire bientôt",
+                      child: Icon(
+                        Icons.warning_rounded,
+                        color: AppColors.warning,
+                        size: 16,
+                      ),
+                    ),
+                  ),
+                if (isExpirationDate && valueColor == AppColors.error)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8),
+                    child: Tooltip(
+                      message: "Pièce expirée",
+                      child: Icon(
+                        Icons.error_rounded,
+                        color: AppColors.error,
+                        size: 16,
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ),
         ],

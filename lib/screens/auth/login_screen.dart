@@ -6,6 +6,7 @@ import 'package:saarflex_app/screens/auth/signup_screen.dart';
 import 'package:saarflex_app/utils/error_handler.dart';
 import '../../constants/colors.dart';
 import '../../providers/auth_provider.dart';
+import '../../utils/validation_cache.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -31,25 +32,71 @@ class _LoginScreenState extends State<LoginScreen> {
   String? _passwordError;
   String? _generalError;
 
+  final String _emailValidationKey = 'login_email';
+  final String _passwordValidationKey = 'login_password';
+
   @override
   void initState() {
     super.initState();
-    _emailController.addListener(_validateForm);
-    _passwordController.addListener(_validateForm);
+    _emailController.addListener(_debouncedEmailValidation);
+    _passwordController.addListener(_debouncedPasswordValidation);
   }
 
-  void _validateForm() {
-    _emailError = _validateEmail(_emailController.text);
-    _passwordError = _validatePassword(_passwordController.text);
+  void _debouncedEmailValidation() {
+    ValidationCache.debounceValidation(
+      _emailValidationKey,
+      () => _validateEmailOptimized(),
+      delay: Duration(milliseconds: 400),
+    );
+  }
 
-    final isValid = _emailError == null && _passwordError == null;
+  void _debouncedPasswordValidation() {
+    ValidationCache.debounceValidation(
+      _passwordValidationKey,
+      () => _validatePasswordOptimized(),
+      delay: Duration(milliseconds: 400),
+    );
+  }
 
-    setState(() {
-      _isFormValid = isValid;
-      if (isValid) {
+  void _validateEmailOptimized() {
+    if (!mounted) return;
+    
+    final newEmailError = ValidationCache.validateEmailOptimized(_emailController.text);
+    
+    if (_emailError != newEmailError) {
+      setState(() {
+        _emailError = newEmailError;
+        _updateFormValidity();
+      });
+    }
+  }
+
+  void _validatePasswordOptimized() {
+    if (!mounted) return;
+    
+    final passwordErrors = ValidationCache.validatePasswordOptimized(_passwordController.text);
+    final newPasswordError = passwordErrors.isEmpty ? null : passwordErrors.first;
+    
+    if (_passwordError != newPasswordError) {
+      setState(() {
+        _passwordError = newPasswordError;
+        _updateFormValidity();
+      });
+    }
+  }
+
+  void _updateFormValidity() {
+    final newIsValid = _emailError == null && 
+                       _passwordError == null &&
+                       _emailController.text.isNotEmpty &&
+                       _passwordController.text.isNotEmpty;
+
+    if (_isFormValid != newIsValid) {
+      _isFormValid = newIsValid;
+      if (newIsValid) {
         _generalError = null;
       }
-    });
+    }
   }
 
   @override
@@ -74,9 +121,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   if (_generalError != null) ...[
                     ErrorHandler.buildAutoDisappearingErrorContainer(
                       _generalError!,
-                      () => setState(
-                        () => _generalError = null,
-                      ),
+                      () => setState(() => _generalError = null),
                     ),
                     const SizedBox(height: 20),
                   ],
@@ -84,14 +129,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   _buildEmailField(),
                   const SizedBox(height: 20),
                   _buildPasswordField(),
-                  const SizedBox(height: 16),
-                  _buildRememberMeAndForgotPassword(),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 10),
+                  _buildOptionsRow(),
+                  const SizedBox(height: 30),
                   _buildLoginButton(authProvider),
-                  const SizedBox(height: 24),
-                  _buildDivider(),
-                  const SizedBox(height: 24),
-                  _buildSignupButton(authProvider),
                 ],
               ),
             ),
@@ -157,91 +198,66 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Widget _buildEmailField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          "Email",
-          style: GoogleFonts.poppins(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: _emailController,
-          focusNode: _emailFocus,
-          keyboardType: TextInputType.emailAddress,
-          textInputAction: TextInputAction.next,
-          onFieldSubmitted: (_) => _passwordFocus.requestFocus(),
-          style: GoogleFonts.poppins(
-            fontSize: 16,
-            color: AppColors.textPrimary,
-          ),
-          decoration: InputDecoration(
-            hintText: 'Votre adresse email',
-            hintStyle: GoogleFonts.poppins(color: AppColors.textHint),
-            prefixIcon: Icon(Icons.email_outlined, color: AppColors.primary),
-            filled: true,
-            fillColor: AppColors.surface,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.border),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: _emailError != null
-                    ? AppColors.error.withOpacity(0.5)
-                    : AppColors.border,
-              ),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: _emailError != null
-                    ? AppColors.error
-                    : AppColors.primary,
-                width: 2,
-              ),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.error),
-            ),
-            contentPadding: const EdgeInsets.all(16),
-          ),
-        ),
-        if (_emailError != null) ...[
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Icon(Icons.error_outline, color: AppColors.error, size: 16),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  _emailError!,
-                  style: GoogleFonts.poppins(
-                    color: AppColors.error,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ],
+    return _buildFormField(
+      controller: _emailController,
+      focusNode: _emailFocus,
+      label: "Email",
+      hintText: 'Votre adresse email',
+      icon: Icons.email_outlined,
+      error: _emailError,
+      keyboardType: TextInputType.emailAddress,
+      textInputAction: TextInputAction.next,
+      onFieldSubmitted: (_) => _passwordFocus.requestFocus(),
     );
   }
 
   Widget _buildPasswordField() {
+    return _buildFormField(
+      controller: _passwordController,
+      focusNode: _passwordFocus,
+      label: "Mot de passe",
+      hintText: 'Votre mot de passe',
+      icon: Icons.lock_outline,
+      error: _passwordError,
+      obscureText: _obscurePassword,
+      textInputAction: TextInputAction.done,
+      onFieldSubmitted: (_) {
+        if (_isFormValid) {
+          _handleLogin(context.read<AuthProvider>());
+        }
+      },
+      suffixIcon: IconButton(
+        icon: Icon(
+          _obscurePassword ? Icons.visibility_off : Icons.visibility,
+          color: AppColors.textSecondary,
+        ),
+        onPressed: () {
+          setState(() {
+            _obscurePassword = !_obscurePassword;
+          });
+        },
+      ),
+    );
+  }
+
+  Widget _buildFormField({
+    required TextEditingController controller,
+    required FocusNode focusNode,
+    required String label,
+    required String hintText,
+    required IconData icon,
+    String? error,
+    bool obscureText = false,
+    TextInputType? keyboardType,
+    TextInputAction? textInputAction,
+    Widget? suffixIcon,
+    Function(String)? onFieldSubmitted,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "Mot de passe",
+          label,
           style: GoogleFonts.poppins(
             fontSize: 16,
             fontWeight: FontWeight.w600,
@@ -250,29 +266,21 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
         const SizedBox(height: 8),
         TextFormField(
-          controller: _passwordController,
-          focusNode: _passwordFocus,
-          obscureText: _obscurePassword,
-          textInputAction: TextInputAction.done,
+          controller: controller,
+          focusNode: focusNode,
+          obscureText: obscureText,
+          keyboardType: keyboardType,
+          textInputAction: textInputAction,
+          onFieldSubmitted: onFieldSubmitted,
           style: GoogleFonts.poppins(
             fontSize: 16,
             color: AppColors.textPrimary,
           ),
           decoration: InputDecoration(
-            hintText: 'Votre mot de passe',
+            hintText: hintText,
             hintStyle: GoogleFonts.poppins(color: AppColors.textHint),
-            prefixIcon: Icon(Icons.lock_outline, color: AppColors.primary),
-            suffixIcon: IconButton(
-              icon: Icon(
-                _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                color: AppColors.textSecondary,
-              ),
-              onPressed: () {
-                setState(() {
-                  _obscurePassword = !_obscurePassword;
-                });
-              },
-            ),
+            prefixIcon: Icon(icon, color: AppColors.primary),
+            suffixIcon: suffixIcon,
             filled: true,
             fillColor: AppColors.surface,
             border: OutlineInputBorder(
@@ -282,7 +290,7 @@ class _LoginScreenState extends State<LoginScreen> {
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(
-                color: _passwordError != null
+                color: error != null
                     ? AppColors.error.withOpacity(0.5)
                     : AppColors.border,
               ),
@@ -290,9 +298,7 @@ class _LoginScreenState extends State<LoginScreen> {
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(
-                color: _passwordError != null
-                    ? AppColors.error
-                    : AppColors.primary,
+                color: error != null ? AppColors.error : AppColors.primary,
                 width: 2,
               ),
             ),
@@ -303,7 +309,7 @@ class _LoginScreenState extends State<LoginScreen> {
             contentPadding: const EdgeInsets.all(16),
           ),
         ),
-        if (_passwordError != null) ...[
+        if (error != null) ...[
           const SizedBox(height: 8),
           Row(
             children: [
@@ -311,7 +317,7 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  _passwordError!,
+                  error,
                   style: GoogleFonts.poppins(
                     color: AppColors.error,
                     fontSize: 12,
@@ -326,14 +332,17 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildRememberMeAndForgotPassword() {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: [
-          Row(
-            children: [
-              Checkbox(
+
+    Widget _buildOptionsRow() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Row(
+          children: [
+            SizedBox(
+              width: 20,
+              height: 20,
+              child: Checkbox(
                 value: _rememberMe,
                 onChanged: (value) {
                   setState(() {
@@ -342,71 +351,80 @@ class _LoginScreenState extends State<LoginScreen> {
                 },
                 activeColor: AppColors.primary,
               ),
-              Text(
-                "Se souvenir de moi",
-                style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  color: AppColors.textSecondary,
-                ),
-              ),
-            ],
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const ResetPasswordScreen()),
-              );
-            },
-            child: Text(
-              "Mot de passe oublié ?",
+            ),
+            const SizedBox(width: 8),
+            Text(
+              "Se souvenir de moi",
               style: GoogleFonts.poppins(
                 fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: AppColors.primary,
+                color: AppColors.textSecondary,
               ),
             ),
+          ],
+        ),
+        TextButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const ResetPasswordScreen()),
+            );
+          },
+          child: Text(
+            "Mot de passe oublié ?",
+            style: GoogleFonts.poppins(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: AppColors.primary,
+            ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
   Widget _buildLoginButton(AuthProvider authProvider) {
-    return SizedBox(
-      width: double.infinity,
-      height: 50,
-      child: ElevatedButton(
-        onPressed: authProvider.isLoading || !_isFormValid
-            ? null
-            : () => _handleLogin(authProvider),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: _isFormValid
-              ? AppColors.primary
-              : AppColors.disabled,
-          foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          elevation: 0,
-        ),
-        child: authProvider.isLoading
-            ? SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
-              )
-            : Text(
-                "Se connecter",
-                style: GoogleFonts.poppins(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
+    return Column(
+      children: [
+        SizedBox(
+          width: double.infinity,
+          height: 50,
+          child: ElevatedButton(
+            onPressed: authProvider.isLoading || !_isFormValid
+                ? null
+                : () => _handleLogin(authProvider),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _isFormValid
+                  ? AppColors.primary
+                  : AppColors.disabled,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
               ),
-      ),
+              elevation: 0,
+            ),
+            child: authProvider.isLoading
+                ? SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  )
+                : Text(
+                    "Se connecter",
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+          ),
+        ),
+        const SizedBox(height: 24),
+        _buildDivider(),
+        const SizedBox(height: 24),
+        _buildSignupButton(authProvider),
+      ],
     );
   }
 
@@ -444,7 +462,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 );
               },
         style: OutlinedButton.styleFrom(
-          foregroundColor: AppColors.primary,
           side: BorderSide(color: AppColors.primary),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -452,97 +469,23 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
         child: Text(
           "Créer un compte",
-          style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600),
+          style: GoogleFonts.poppins(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: AppColors.primary,
+          ),
         ),
       ),
     );
   }
 
-  String? _validateEmail(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'Veuillez saisir votre adresse email';
-    }
-
-    final cleanValue = value.trim();
-
-    if (!cleanValue.contains('@')) {
-      return 'L\'email doit contenir le symbole @';
-    }
-
-    if (cleanValue.startsWith('@') || cleanValue.endsWith('@')) {
-      return 'Format incorrect : exemple@domaine.com';
-    }
-
-    final parts = cleanValue.split('@');
-    if (parts.length != 2 || parts[0].isEmpty || parts[1].isEmpty) {
-      return 'Format incorrect : exemple@domaine.com';
-    }
-
-    if (!parts[1].contains('.') ||
-        parts[1].endsWith('.') ||
-        parts[1].startsWith('.')) {
-      return 'Domaine invalide : exemple@domaine.com';
-    }
-
-    if (!RegExp(r'^[\w\.-]+@[\w\.-]+\.[a-zA-Z]{2,}$').hasMatch(cleanValue)) {
-      return 'Adresse email invalide';
-    }
-
-    return null;
-  }
-
-  String? _validatePassword(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Veuillez saisir votre mot de passe';
-    }
-
-    if (value.length < 8) {
-      return 'Le mot de passe doit contenir au moins 8 caractères';
-    }
-
-    List<String> missing = [];
-
-    if (!RegExp(r'[a-z]').hasMatch(value)) {
-      missing.add('une minuscule');
-    }
-
-    if (!RegExp(r'[A-Z]').hasMatch(value)) {
-      missing.add('une majuscule');
-    }
-
-    if (!RegExp(r'\d').hasMatch(value)) {
-      missing.add('un chiffre');
-    }
-
-    if (!RegExp(r'[@$!%*?&]').hasMatch(value)) {
-      missing.add('un caractère spécial (@, !, %, *, ?, &)');
-    }
-
-    if (missing.isNotEmpty) {
-      if (missing.length == 1) {
-        return 'Il manque ${missing.first}';
-      } else if (missing.length == 2) {
-        return 'Il manque ${missing.join(' et ')}';
-      } else {
-        return 'Il manque ${missing.sublist(0, missing.length - 1).join(', ')} et ${missing.last}';
-      }
-    }
-
-    return null;
-  }
-
   Future<void> _handleLogin(AuthProvider authProvider) async {
     setState(() {
+      _generalError = null;
       _autovalidateMode = AutovalidateMode.onUserInteraction;
-      _generalError = null; 
     });
 
-    _validateForm();
-
-    if (!_isFormValid) {
-      setState(() {
-        _generalError = "Veuillez corriger les erreurs ci-dessus";
-      });
+    if (!_formKey.currentState!.validate()) {
       return;
     }
 
@@ -553,41 +496,10 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (success && mounted) {
-        ErrorHandler.showSuccessSnackBar(context, 'Connexion réussie !');
         Navigator.pushReplacementNamed(context, '/dashboard');
       } else if (mounted) {
-        String errorMessage = 'Erreur de connexion';
-
-        if (authProvider.errorMessage != null) {
-          final message = authProvider.errorMessage!.toLowerCase();
-
-          if (message.contains('email') &&
-              (message.contains('incorrect') ||
-                  message.contains('not found'))) {
-            errorMessage = 'identifiant ou mot de passe incorrect';
-          } else if (message.contains('password') ||
-              message.contains('mot de passe')) {
-            errorMessage = 'Mot de passe incorrect';
-          } else if (message.contains('connexion') ||
-              message.contains('network') ||
-              message.contains('internet')) {
-            errorMessage = 'Problème de connexion internet';
-          } else if (message.contains('serveur') ||
-              message.contains('server')) {
-            errorMessage = 'Erreur du serveur. Veuillez réessayer plus tard';
-          } else if (message.contains('timeout') || message.contains('délai')) {
-            errorMessage = 'Délai d\'attente dépassé. Vérifiez votre connexion';
-          } else if (message.contains('too many') ||
-              message.contains('trop de tentatives')) {
-            errorMessage =
-                'Trop de tentatives. Veuillez patienter quelques minutes';
-          } else {
-            errorMessage = authProvider.errorMessage!;
-          }
-        }
-
         setState(() {
-          _generalError = errorMessage;
+          _generalError = authProvider.errorMessage ?? 'Erreur de connexion';
         });
       }
     } catch (e) {

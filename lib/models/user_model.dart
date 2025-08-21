@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+
 class User {
   final String id;
   final String nom;
@@ -18,7 +20,7 @@ class User {
   final String? numeroPieceIdentite;
   final String? typePieceIdentite;
   final bool? profilComplet;
-   final DateTime? dateNaissance;
+  final DateTime? dateNaissance;
   final DateTime? dateExpirationPiece;
 
   User({
@@ -43,6 +45,70 @@ class User {
     this.dateNaissance,
     this.dateExpirationPiece,
   });
+
+  static DateTime? _parseDate(dynamic dateValue, String fieldName) {
+    if (dateValue == null) {
+      print('$fieldName: null');
+      return null;
+    }
+    
+    try {
+      String dateStr = dateValue.toString();
+      print('Tentative de parsing de $fieldName: $dateStr');
+      
+      if (dateStr.contains('-') && dateStr.length == 10) {
+        List<String> parts = dateStr.split('-');
+        if (parts.length == 3) {
+          int day = int.parse(parts[0]);
+          int month = int.parse(parts[1]);
+          int year = int.parse(parts[2]);
+          
+          DateTime parsedDate = DateTime(year, month, day);
+          print('$fieldName parsée avec succès (format DD-MM-YYYY): $parsedDate');
+          return parsedDate;
+        }
+      }
+      
+      if (dateStr.contains('/') && dateStr.length == 10) {
+        List<String> parts = dateStr.split('/');
+        if (parts.length == 3) {
+          int day = int.parse(parts[0]);
+          int month = int.parse(parts[1]);
+          int year = int.parse(parts[2]);
+          
+          DateTime parsedDate = DateTime(year, month, day);
+          print('$fieldName parsée avec succès (format DD/MM/YYYY): $parsedDate');
+          return parsedDate;
+        }
+      }
+      
+      final parsedDate = DateTime.parse(dateStr);
+      print('$fieldName parsée avec succès (format ISO): $parsedDate');
+      return parsedDate;
+      
+    } catch (e) {
+      print('Erreur lors du parsing de $fieldName: $dateValue, erreur: $e');
+      
+      try {
+        String dateStr = dateValue.toString();
+        if (dateStr.contains('-')) {
+          final DateFormat formatter = DateFormat('dd-MM-yyyy');
+          DateTime parsedDate = formatter.parse(dateStr);
+          print('$fieldName parsée avec succès (intl DD-MM-YYYY): $parsedDate');
+          return parsedDate;
+        } else if (dateStr.contains('/')) {
+          final DateFormat formatter = DateFormat('dd/MM/yyyy');
+          DateTime parsedDate = formatter.parse(dateStr);
+          print('$fieldName parsée avec succès (intl DD/MM/YYYY): $parsedDate');
+          return parsedDate;
+        }
+      } catch (e2) {
+        print('Échec total du parsing de $fieldName: $e2');
+      }
+      
+      return null;
+    }
+  }
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
@@ -73,13 +139,8 @@ class User {
       numeroPieceIdentite: json['numero_piece_identite'],
       typePieceIdentite: json['type_piece_identite'],
       profilComplet: json['profil_complet'],
-
-       dateNaissance: json['date_naissance'] != null
-          ? DateTime.parse(json['date_naissance'])
-          : null,
-      dateExpirationPiece: json['date_expiration_piece'] != null
-          ? DateTime.parse(json['date_expiration_piece'])
-          : null,
+      dateNaissance: _parseDate(json['date_naissance'], 'date_naissance'),
+      dateExpirationPiece: _parseDate(json['date_expiration_piece_identite'], 'date_expiration_piece_identite'),
     );
   }
 
@@ -103,6 +164,8 @@ class User {
       'numero_piece_identite': numeroPieceIdentite,
       'type_piece_identite': typePieceIdentite,
       'profil_complet': profilComplet,
+      'date_naissance': dateNaissance?.toIso8601String(),
+      'date_expiration_piece_identite': dateExpirationPiece?.toIso8601String(),
     };
   }
 
@@ -125,6 +188,8 @@ class User {
     String? numeroPieceIdentite,
     String? typePieceIdentite,
     bool? profilComplet,
+    DateTime? dateNaissance,
+    DateTime? dateExpirationPiece,
   }) {
     return User(
       id: id ?? this.id,
@@ -145,6 +210,8 @@ class User {
       numeroPieceIdentite: numeroPieceIdentite ?? this.numeroPieceIdentite,
       typePieceIdentite: typePieceIdentite ?? this.typePieceIdentite,
       profilComplet: profilComplet ?? this.profilComplet,
+      dateNaissance: dateNaissance ?? this.dateNaissance,
+      dateExpirationPiece: dateExpirationPiece ?? this.dateExpirationPiece,
     );
   }
 
