@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import '../../constants/colors.dart';
-import '../../providers/auth_provider.dart';
-import 'otp_verification_screen.dart';
+import 'package:saarflex_app/constants/colors.dart';
+import 'package:saarflex_app/providers/auth_provider.dart';
+import 'package:saarflex_app/screens/auth/otp_verification_screen.dart';
+
 
 
 class ResetPasswordScreen extends StatefulWidget {
@@ -335,7 +336,7 @@ Future<void> _handleReset(AuthProvider authProvider) async {
 }
 
 Future<void> _proceedWithPasswordReset(AuthProvider authProvider, String email) async {
-  authProvider._clearError(); 
+  authProvider.clearError(); 
   
   final success = await authProvider.forgotPassword(email);
 
