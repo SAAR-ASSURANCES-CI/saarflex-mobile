@@ -18,7 +18,7 @@ class WelcomeScreen extends StatelessWidget {
           child: Column(
             children: [
               const SizedBox(height: 20),
-              
+
               Expanded(
                 flex: 7,
                 child: Column(
@@ -58,10 +58,10 @@ class WelcomeScreen extends StatelessWidget {
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Container(
+                                  SizedBox(
                                     width: 250,
                                     height: 250,
-                                    
+
                                     child: Padding(
                                       padding: const EdgeInsets.all(16),
                                       child: Image.asset(
@@ -71,7 +71,6 @@ class WelcomeScreen extends StatelessWidget {
                                       ),
                                     ),
                                   ),
-                                  
                                 ],
                               ),
                             ),
@@ -79,9 +78,9 @@ class WelcomeScreen extends StatelessWidget {
                         ),
                       ),
                     ),
-                    
+
                     const SizedBox(height: 40),
-                    
+
                     FadeInUp(
                       duration: const Duration(milliseconds: 800),
                       delay: const Duration(milliseconds: 300),
@@ -96,9 +95,9 @@ class WelcomeScreen extends StatelessWidget {
                         textAlign: TextAlign.center,
                       ),
                     ),
-                    
+
                     const SizedBox(height: 16),
-                    
+
                     FadeInUp(
                       duration: const Duration(milliseconds: 800),
                       delay: const Duration(milliseconds: 500),
@@ -116,7 +115,7 @@ class WelcomeScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              
+
               Expanded(
                 flex: 3,
                 child: Column(
@@ -169,9 +168,9 @@ class WelcomeScreen extends StatelessWidget {
                         ),
                       ),
                     ),
-                    
+
                     const SizedBox(height: 16),
-                    
+
                     FadeInUp(
                       duration: const Duration(milliseconds: 600),
                       delay: const Duration(milliseconds: 900),
@@ -210,9 +209,9 @@ class WelcomeScreen extends StatelessWidget {
                         ),
                       ),
                     ),
-                    
+
                     const SizedBox(height: 12),
-                    
+
                     FadeInUp(
                       duration: const Duration(milliseconds: 400),
                       delay: const Duration(milliseconds: 1100),
@@ -230,7 +229,7 @@ class WelcomeScreen extends StatelessWidget {
                         ),
                       ),
                     ),
-                    
+
                     const SizedBox(height: 20),
                   ],
                 ),
