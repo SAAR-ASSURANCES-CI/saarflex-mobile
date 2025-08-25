@@ -50,7 +50,11 @@ class Product {
   final String description;
   final String? conditionsPdf;
   final IconData? customIcon;
-
+  
+  final String? iconPath;      // Icône depuis le back office (ex: "icon-saar-nansou.svg")
+  final String? statut;       
+  final DateTime? createdAt;   
+  final Map<String, dynamic>? branche;
   Product({
     required this.id,
     required this.nom,
@@ -58,19 +62,38 @@ class Product {
     required this.description,
     this.conditionsPdf,
     this.customIcon,
+    this.iconPath,
+    this.statut,
+    this.createdAt,
+    this.branche,
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
       id: json['id'],
       nom: json['nom'],
-      type: ProductType.values.firstWhere(
-        (e) => e.toString().split('.').last == json['type'],
-        orElse: () => ProductType.nonVie,
-      ),
+      type: _parseProductType(json['type']),
       description: json['description'],
       conditionsPdf: json['conditions_pdf'],
+      iconPath: json['icon'],
+      statut: json['statut'],
+      createdAt: json['created_at'] != null 
+          ? DateTime.parse(json['created_at']) 
+          : null,
+      branche: json['branche'],
     );
+  }
+
+  static ProductType _parseProductType(String? typeString) {
+    switch (typeString?.toLowerCase()) {
+      case 'vie':
+        return ProductType.vie;
+      case 'non-vie':
+      case 'nonvie':
+        return ProductType.nonVie;
+      default:
+        return ProductType.nonVie; 
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -80,6 +103,10 @@ class Product {
       'type': type.toString().split('.').last,
       'description': description,
       'conditions_pdf': conditionsPdf,
+      'icon': iconPath,
+      'statut': statut,
+      'created_at': createdAt?.toIso8601String(),
+      'branche': branche,
     };
   }
 
@@ -90,6 +117,10 @@ class Product {
     String? description,
     String? conditionsPdf,
     IconData? customIcon,
+    String? iconPath,
+    String? statut,
+    DateTime? createdAt,
+    Map<String, dynamic>? branche,
   }) {
     return Product(
       id: id ?? this.id,
@@ -98,6 +129,10 @@ class Product {
       description: description ?? this.description,
       conditionsPdf: conditionsPdf ?? this.conditionsPdf,
       customIcon: customIcon ?? this.customIcon,
+      iconPath: iconPath ?? this.iconPath,
+      statut: statut ?? this.statut,
+      createdAt: createdAt ?? this.createdAt,
+      branche: branche ?? this.branche,
     );
   }
 
@@ -107,6 +142,9 @@ class Product {
   String get typeShortLabel => type.shortLabel;
 
   bool get hasConditions => conditionsPdf != null && conditionsPdf!.isNotEmpty;
+  
+  bool get isActive => statut?.toLowerCase() == 'actif';
+  String get brancheName => branche?['nom'] ?? 'Non définie';
 
   @override
   bool operator ==(Object other) =>
@@ -118,6 +156,6 @@ class Product {
 
   @override
   String toString() {
-    return 'Product{id: $id, nom: $nom, type: $type}';
+    return 'Product{id: $id, nom: $nom, type: $type, statut: $statut}';
   }
 }

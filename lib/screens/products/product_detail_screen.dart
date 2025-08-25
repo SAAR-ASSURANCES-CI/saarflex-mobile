@@ -201,20 +201,31 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   topRight: Radius.circular(24),
                 ),
               ),
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 20),
-                    _buildProductInfo(product),
-                    const SizedBox(height: 24),
-                    _buildDescriptionSection(product),
-                    const SizedBox(height: 32),
-                    _buildSimulateButton(product),
-                    const SizedBox(height: 20),
-                  ],
-                ),
+              child: Column(
+                children: [
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+                      child: _buildDescriptionSection(product),
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: AppColors.background,
+                      border: Border(
+                        top: BorderSide(
+                          color: AppColors.border.withOpacity(0.3),
+                          width: 1,
+                        ),
+                      ),
+                    ),
+                    child: SafeArea(
+                      top: false,
+                      child: _buildSimulateButton(product),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -315,7 +326,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   const SizedBox(height: 8),
 
                   Text(
-                    'Produit d\'assurance ${product.typeShortLabel.toLowerCase()}',
+                    product.brancheName.toUpperCase(),
                     style: GoogleFonts.poppins(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
@@ -323,7 +334,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  // const SizedBox(height: 16),
+                  const SizedBox(height: 16),
                 ],
               ),
             ),
@@ -348,133 +359,35 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         const SizedBox(height: 12),
         Container(
           width: double.infinity,
+          constraints: BoxConstraints(
+            minHeight: 100,
+            maxHeight: MediaQuery.of(context).size.height * 0.4,
+          ),
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             color: AppColors.white,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: AppColors.border, width: 1),
           ),
-          child: Text(
-            product.description,
-            style: GoogleFonts.poppins(
-              fontSize: 16,
-              fontWeight: FontWeight.w400,
-              color: AppColors.textPrimary,
-              height: 1.6,
+          child: SingleChildScrollView(
+            child: Text(
+              product.description,
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                fontWeight: FontWeight.w400,
+                color: AppColors.textPrimary,
+                height: 1.6,
+              ),
             ),
           ),
         ),
+        const SizedBox(height: 24),
       ],
-    );
-  }
-
-  Widget _buildProductInfo(Product product) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Informations',
-          style: GoogleFonts.poppins(
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        const SizedBox(height: 12),
-        Container(
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.border, width: 1),
-          ),
-          child: Column(
-            children: [
-              _buildInfoRow(
-                'Type de produit',
-                product.typeLabel,
-                Icons.category_rounded,
-                AppColors.primary,
-                isFirst: true,
-              ),
-              _buildInfoRow(
-                'Catégorie',
-                product.typeShortLabel,
-                Icons.label_rounded,
-                AppColors.secondary,
-              ),
-              _buildInfoRow(
-                'Disponibilité',
-                'Disponible',
-                Icons.check_circle_rounded,
-                AppColors.success,
-                isLast: true,
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildInfoRow(
-    String label,
-    String value,
-    IconData icon,
-    Color color, {
-    bool isFirst = false,
-    bool isLast = false,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        border: !isLast
-            ? Border(bottom: BorderSide(color: AppColors.border, width: 1))
-            : null,
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, color: AppColors.white, size: 20),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  value,
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
     );
   }
 
   Widget _buildSimulateButton(Product product) {
-    return Container(
+    return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
         onPressed: () => _handleSimulateQuote(product),
