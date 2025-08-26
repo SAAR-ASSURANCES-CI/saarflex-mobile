@@ -967,12 +967,6 @@ void _loadUserData() {
       final authProvider = context.read<AuthProvider>();
       final Map<String, dynamic> profileData = {};
 
-      print('=== DEBUG PROFIL ===');
-      print('Date naissance originale: ${_originalData['date_naissance']}');
-      print('Date expiration originale: ${_originalData['date_expiration_piece_identite']}');
-      print('Date naissance sélectionnée: $_selectedBirthDate');
-      print('Date expiration sélectionnée: $_selectedExpirationDate');
-
       if (_firstNameController.text.trim() != _originalData['nom']) {
         profileData['nom'] = _firstNameController.text.trim();
       }
@@ -1015,29 +1009,24 @@ void _loadUserData() {
 
       if (_selectedBirthDate != null) {
   String newBirthDate = DateFormat('dd-MM-yyyy').format(_selectedBirthDate!);
-  print('Date naissance formatée pour API: $newBirthDate');
   
   String originalFormatted = _originalData['date_naissance'] ?? '';
   
   if (newBirthDate != originalFormatted) {
     profileData['date_naissance'] = newBirthDate;
-    print('Date naissance ajoutée aux données: $newBirthDate');
   }
 }
 
 if (_selectedExpirationDate != null) {
   String newExpirationDate = DateFormat('dd-MM-yyyy').format(_selectedExpirationDate!);
-  print('Date expiration formatée pour API: $newExpirationDate');
   
   String originalFormatted = _originalData['date_expiration_piece_identite'] ?? '';
   
   if (newExpirationDate != originalFormatted) {
     profileData['date_expiration_piece_identite'] = newExpirationDate;
-    print('Date expiration ajoutée aux données: $newExpirationDate');
   }
 }
 
-      print('Données finales à envoyer: $profileData');
 
       if (profileData.isEmpty) {
         setState(() {
@@ -1071,7 +1060,6 @@ if (_selectedExpirationDate != null) {
 
         if (authProvider.errorMessage != null) {
           final apiError = authProvider.errorMessage!.toLowerCase();
-          print('Erreur API: $apiError');
 
           if (apiError.contains('date')) {
             errorMessage = 'Erreur avec les dates. Vérifiez le format.';
@@ -1095,7 +1083,6 @@ if (_selectedExpirationDate != null) {
         ErrorHandler.showErrorSnackBar(context, errorMessage);
       }
     } catch (e) {
-      print('Exception dans _saveProfile: $e');
       if (mounted) {
         ErrorHandler.showErrorSnackBar(
           context,

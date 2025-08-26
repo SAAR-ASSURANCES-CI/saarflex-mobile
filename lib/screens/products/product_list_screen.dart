@@ -95,13 +95,28 @@ class _ProductListScreenState extends State<ProductListScreen> {
     );
   }
 
-  void _updateCache(ProductProvider productProvider) {
-    final allProducts = productProvider.allProducts;
-    if (_cachedAllProducts != allProducts) {
-      _cachedAllProducts = allProducts;
-      _cachedLatestProducts = allProducts.take(5).toList();
-    }
+
+void _updateCache(ProductProvider productProvider) {
+  final allProducts = productProvider.allProducts;
+  if (_cachedAllProducts != allProducts) {
+    _cachedAllProducts = allProducts;
+    
+    final sortedProducts = List<Product>.from(allProducts);
+    sortedProducts.sort((a, b) {
+      if (a.createdAt != null && b.createdAt != null) {
+        return b.createdAt!.compareTo(a.createdAt!);
+      }
+      if (a.createdAt != null) return -1;
+      if (b.createdAt != null) return 1;
+      return 0;
+    });
+    
+    _cachedLatestProducts = sortedProducts.take(5).toList();
   }
+}
+
+
+
 
   PreferredSizeWidget _buildAppBar() {
     return AppBar(

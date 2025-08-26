@@ -15,7 +15,6 @@ class ProductProvider extends ChangeNotifier {
   ProductType? _selectedFilter;
   String _searchQuery = '';
 
-
   bool get isLoading => _isLoading;
   bool get isLoadingDetail => _isLoadingDetail;
   String? get errorMessage => _errorMessage;
@@ -28,8 +27,8 @@ class ProductProvider extends ChangeNotifier {
   int get totalProductsCount => _allProducts.length;
   int get filteredProductsCount => _filteredProducts.length;
   
-  Map<ProductType, int> get productCountByType {
-    return _productService.getProductCountByType();
+  Future<Map<ProductType, int>> get productCountByType async {
+    return await _productService.getProductCountByType();
   }
 
   List<Product> get vieProducts => 
@@ -72,14 +71,18 @@ class ProductProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> refresh() async {
+    await loadProducts();
+  }
+
   void filterByType(ProductType? type) {
     _selectedFilter = type;
     _applyCurrentFilters();
     notifyListeners();
   }
 
-  void searchProducts(String query) {
-    _searchQuery = query.trim();
+  void search(String query) {
+    _searchQuery = query;
     _applyCurrentFilters();
     notifyListeners();
   }
@@ -91,19 +94,13 @@ class ProductProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void clearSearch() {
-    _searchQuery = '';
-    _applyCurrentFilters();
-    notifyListeners();
-  }
-
   void _applyCurrentFilters() {
     List<Product> filtered = List.from(_allProducts);
-
+    
     if (_selectedFilter != null) {
       filtered = filtered.where((product) => product.type == _selectedFilter).toList();
     }
-
+    
     if (_searchQuery.isNotEmpty) {
       final lowerQuery = _searchQuery.toLowerCase();
       filtered = filtered.where((product) {
@@ -112,34 +109,8 @@ class ProductProvider extends ChangeNotifier {
                product.typeLabel.toLowerCase().contains(lowerQuery);
       }).toList();
     }
-
+    
     _filteredProducts = filtered;
-  }
-
-  Future<void> refresh() async {
-    await loadProducts();
-  }
-
-  void selectProduct(Product product) {
-    _selectedProduct = product;
-    notifyListeners();
-  }
-
-  void clearSelectedProduct() {
-    _selectedProduct = null;
-    notifyListeners();
-  }
-
-  Future<List<Product>> getFeaturedProducts({int limit = 3}) async {
-    try {
-      return await _productService.getFeaturedProducts(limit: limit);
-    } catch (e) {
-      return [];
-    }
-  }
-
-  bool productExists(String id) {
-    return _productService.productExists(id);
   }
 
   void _setLoading(bool loading) {
@@ -155,34 +126,10 @@ class ProductProvider extends ChangeNotifier {
   void _setError(String error) {
     _errorMessage = error;
     notifyListeners();
-
-    Future.delayed(const Duration(seconds: 5), () {
-      if (_errorMessage == error) {
-        _clearError();
-      }
-    });
   }
 
   void _clearError() {
     _errorMessage = null;
     notifyListeners();
-  }
-
-  void reset() {
-    _allProducts.clear();
-    _filteredProducts.clear();
-    _selectedProduct = null;
-    _selectedFilter = null;
-    _searchQuery = '';
-    _isLoading = false;
-    _isLoadingDetail = false;
-    _errorMessage = null;
-    notifyListeners();
-  }
-
-  @override
-  void dispose() {
-    reset();
-    super.dispose();
   }
 }

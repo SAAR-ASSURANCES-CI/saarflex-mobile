@@ -122,13 +122,11 @@ class ApiService {
 
   DateTime? _parseDate(dynamic dateValue, String fieldName) {
     if (dateValue == null) {
-      print('$fieldName: null');
       return null;
     }
     
     try {
       String dateStr = dateValue.toString();
-      print('Tentative de parsing de $fieldName: $dateStr');
       
       if (dateStr.contains('-') && dateStr.length == 10) {
         List<String> parts = dateStr.split('-');
@@ -138,7 +136,6 @@ class ApiService {
           int year = int.parse(parts[2]);
           
           DateTime parsedDate = DateTime(year, month, day);
-          print('$fieldName parsée avec succès (format DD-MM-YYYY): $parsedDate');
           return parsedDate;
         }
       }
@@ -151,33 +148,29 @@ class ApiService {
           int year = int.parse(parts[2]);
           
           DateTime parsedDate = DateTime(year, month, day);
-          print('$fieldName parsée avec succès (format DD/MM/YYYY): $parsedDate');
           return parsedDate;
         }
       }
       
       final parsedDate = DateTime.parse(dateStr);
-      print('$fieldName parsée avec succès (format ISO): $parsedDate');
       return parsedDate;
       
     } catch (e) {
-      print('Erreur lors du parsing de $fieldName: $dateValue, erreur: $e');
       
       try {
         String dateStr = dateValue.toString();
         if (dateStr.contains('-')) {
           final DateFormat formatter = DateFormat('dd-MM-yyyy');
           DateTime parsedDate = formatter.parse(dateStr);
-          print('$fieldName parsée avec succès (intl DD-MM-YYYY): $parsedDate');
           return parsedDate;
         } else if (dateStr.contains('/')) {
           final DateFormat formatter = DateFormat('dd/MM/yyyy');
           DateTime parsedDate = formatter.parse(dateStr);
-          print('$fieldName parsée avec succès (intl DD/MM/YYYY): $parsedDate');
           return parsedDate;
         }
       } catch (e2) {
-        print('Échec total du parsing de $fieldName: $e2');
+        // print('Échec total du parsing de $fieldName: $e2');
+        return null;
       }
       
       return null;
@@ -398,7 +391,6 @@ class ApiService {
         final data = responseData['data'] ?? responseData;
         bool profilAJour = _checkIfProfilComplete(data);
 
-        print('Données reçues du serveur: $data');
 
         return User(
           id: data['id'],
@@ -429,19 +421,15 @@ class ApiService {
           dateExpirationPiece: _parseDate(data['date_expiration_piece_identite'], 'date_expiration_piece_identite'),
         );
       } else {
-        print('Erreur HTTP: ${response.statusCode}');
-        print('Corps de la réponse d\'erreur: ${response.body}');
         _handleHttpError(response);
         throw ApiException(
           'Erreur lors de la mise à jour',
           response.statusCode,
         );
       }
-    } on SocketException catch (e) {
-      print('Erreur de socket: $e');
+    } on SocketException {
       throw ApiException('Pas de connexion internet');
     } catch (e) {
-      print('Exception dans updateProfile: $e');
       if (e is ApiException) rethrow;
       throw ApiException('Erreur de mise à jour: ${e.toString()}');
     }
