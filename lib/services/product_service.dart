@@ -3,6 +3,8 @@ import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:saarflex_app/constants/api_constants.dart';
+import 'package:saarflex_app/models/critere_tarification_model.dart';
+import 'package:saarflex_app/utils/api_config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/product_model.dart';
@@ -128,4 +130,42 @@ Future<List<Product>> getFeaturedProducts({int limit = 3}) async {
   final products = await fetchProductsFromApi();
   return products.take(limit).toList();
 }
+
+
+Future<List<CritereTarification>> getProductCriteres(String productId) async {
+  try {
+    final response = await http.get(
+      Uri.parse('${ApiConfig.baseUrl}/produits/$productId/criteres'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> data = json.decode(response.body);
+      final List<dynamic> criteresJson = data['criteres'] ?? [];
+      
+      return criteresJson
+          .map((json) => CritereTarification.fromJson(json))
+          .toList();
+    } else {
+      throw Exception('Produit non trouvé ou critères indisponibles');
+    }
+  } catch (e) {
+    throw Exception('Erreur lors du chargement des critères: $e');
+  }
+}
+
+Future<List<Map<String, dynamic>>> getGrillesTarifaires(String productId) async {
+  return [
+    {
+      'id': '${productId}_grille_default',
+      'nom': 'Grille Standard',
+      'statut': 'actif',
+      'created_at': DateTime.now().toIso8601String(),
+    }
+  ];
+}
+
 }

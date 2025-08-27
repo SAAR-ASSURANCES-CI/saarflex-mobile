@@ -31,7 +31,6 @@ class AuthProvider extends ChangeNotifier {
         await loadUserProfile();
       }
     } catch (e) {
-      // debugPrint('Erreur d\'initialisation auth: $e');
       _isLoggedIn = false;
       _currentUser = null;
     } finally {
@@ -131,7 +130,6 @@ class AuthProvider extends ChangeNotifier {
     try {
       await _apiService.logout();
     } catch (e) {
-      // debugPrint('Erreur lors de la déconnexion: $e');
       _setError('Erreur lors de la déconnexion');
     }
 
@@ -150,7 +148,6 @@ class AuthProvider extends ChangeNotifier {
       _currentUser = user;
       notifyListeners();
     } catch (e) {
-      // debugPrint('Erreur de chargement du profil: $e');
       _setError('Erreur de chargement du profil');
     }
   }
