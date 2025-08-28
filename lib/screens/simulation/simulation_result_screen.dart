@@ -463,7 +463,17 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
           children: [
             if (authProvider.isLoggedIn) ...[
               ElevatedButton(
-                onPressed: provider.isSaving ? null : () => _sauvegarderDevis(provider),
+                onPressed: () {
+                  if (widget.resultat.statut == StatutDevis.sauvegarde) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Ce devis a déjà été sauvegardé.'),
+                        backgroundColor: AppColors.error,
+                      ),
+                    );
+                    return;
+                  }
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.secondary,
                   foregroundColor: AppColors.white,
@@ -517,43 +527,17 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
     );
   }
 
-  Future<void> _sauvegarderDevis(SimulationProvider provider) async {
-    await provider.sauvegarderDevis(
-      nomPersonnalise: _nomController.text.trim().isEmpty ? null : _nomController.text.trim(),
-      notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
-    );
-
-    if (!provider.hasError) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Devis sauvegardé avec succès'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
-    } else {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(provider.errorMessage ?? 'Erreur lors de la sauvegarde'),
-            backgroundColor: AppColors.error,
-          ),
-        );
-      }
-    }
-  }
-
   void _procederSouscription() {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Fonctionnalité de souscription à venir'),
+        content: Text('Redirection vers la souscription...'),
         backgroundColor: AppColors.primary,
       ),
     );
+    
   }
 
   String _formatDate(DateTime date) {
-    return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+    return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year} à ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
   }
 }

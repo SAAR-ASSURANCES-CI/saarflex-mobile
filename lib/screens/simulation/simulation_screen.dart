@@ -25,17 +25,17 @@ class SimulationScreen extends StatefulWidget {
 class _SimulationScreenState extends State<SimulationScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<SimulationProvider>().initierSimulation(
-        produitId: widget.produit.id,
-        grilleTarifaireId: widget.grilleTarifaireId,
-      );
-    });
-  }
 
+@override
+void initState() {
+  super.initState();
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    context.read<SimulationProvider>().initierSimulation(
+      produitId: widget.produit.id,
+      grilleTarifaireId: widget.grilleTarifaireId,
+    );
+  });
+}
   @override
   Widget build(BuildContext context) {
     return Consumer<SimulationProvider>(
@@ -404,24 +404,25 @@ class _SimulationScreenState extends State<SimulationScreen> {
     );
   }
 
-  Future<void> _simuler(SimulationProvider provider) async {
+Future<void> _simuler(SimulationProvider provider) async {
+  try {
     final authProvider = context.read<AuthProvider>();
     final utilisateurConnecte = authProvider.isLoggedIn;
     
     await provider.simulerDevis(utilisateurConnecte: utilisateurConnecte);
     
-    if (!provider.hasError && provider.dernierResultat != null) {
-      if (mounted) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => SimulationResultScreen(
-              produit: widget.produit,
-              resultat: provider.dernierResultat!,
-            ),
+    if (!provider.hasError && provider.dernierResultat != null && mounted) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => SimulationResultScreen(
+            produit: widget.produit,
+            resultat: provider.dernierResultat!,
           ),
-        );
-      }
+        ),
+      );
     }
+  } catch (e) {
   }
+}
 }

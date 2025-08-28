@@ -43,12 +43,10 @@ class ProductProvider extends ChangeNotifier {
   bool get isFiltered => _selectedFilter != null || _searchQuery.isNotEmpty;
 
 
-// Nouvelles propriétés pour les critères et grilles
 List<CritereTarification> _criteresProduit = [];
 Map<String, dynamic> _grillesTarifaires = {};
 bool _isLoadingCriteres = false;
 
-// Nouveaux getters
 List<CritereTarification> get criteresProduit => List.unmodifiable(_criteresProduit);
 Map<String, dynamic> get grillesTarifaires => _grillesTarifaires;
 bool get isLoadingCriteres => _isLoadingCriteres;
@@ -149,7 +147,6 @@ bool get isLoadingCriteres => _isLoadingCriteres;
     notifyListeners();
   }
 
-  // Charger les critères d'un produit
 Future<void> loadProductCriteres(String productId) async {
   _setLoadingCriteres(true);
   _clearError();
@@ -163,26 +160,32 @@ Future<void> loadProductCriteres(String productId) async {
   }
 }
 
-// Obtenir la grille tarifaire par défaut d'un produit
+
 Future<String?> getDefaultGrilleTarifaireId(String productId) async {
   try {
     final grilles = await _productService.getGrillesTarifaires(productId);
+    
     if (grilles.isNotEmpty) {
-      // Prendre la première grille active ou la première disponible
       final grilleActive = grilles.firstWhere(
         (grille) => grille['statut'] == 'actif',
         orElse: () => grilles.first,
       );
-      return grilleActive['id'];
+      
+      final grilleId = grilleActive['id']?.toString();
+      
+      if (grilleId != null && grilleId.isNotEmpty) {
+        return grilleId;
+      } else {
+        return null;
+      }
     }
     return null;
   } catch (e) {
-    _setError('Erreur lors du chargement de la grille tarifaire: ${e.toString()}');
+    _setError('Impossible de charger la grille tarifaire');
     return null;
   }
 }
 
-// Méthode privée pour gérer le loading des critères
 void _setLoadingCriteres(bool loading) {
   _isLoadingCriteres = loading;
   notifyListeners();

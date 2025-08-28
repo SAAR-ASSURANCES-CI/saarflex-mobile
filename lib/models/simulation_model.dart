@@ -109,9 +109,11 @@ class SimulationResponse {
   factory SimulationResponse.fromJson(Map<String, dynamic> json) {
     return SimulationResponse(
       id: json['id'],
-      primeCalculee: (json['prime_calculee'] ?? 0).toDouble(),
-      franchiseCalculee: (json['franchise_calculee'] ?? 0).toDouble(),
-      plafondCalcule: json['plafond_calcule']?.toDouble(),
+      primeCalculee: _parseDouble(json['prime_calculee']),
+      franchiseCalculee: _parseDouble(json['franchise_calculee']),
+      plafondCalcule: json['plafond_calcule'] != null 
+          ? _parseDouble(json['plafond_calcule'])
+          : null,
       detailsCalcul: DetailsCalcul.fromJson(json['details_calcul'] ?? {}),
       statut: _parseStatutDevis(json['statut']),
       expiresAt: json['expires_at'] != null 
@@ -119,6 +121,23 @@ class SimulationResponse {
           : null,
       createdAt: DateTime.parse(json['created_at']),
     );
+  }
+
+  static double _parseDouble(dynamic value) {
+    if (value == null) return 0.0;
+    
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    if (value is String) {
+      final cleanedValue = value
+          .replaceAll(' ', '')
+          .replaceAll(',', '.')
+          .replaceAll(RegExp(r'[^\d\.]'), '');
+      
+      return double.tryParse(cleanedValue) ?? 0.0;
+    }
+    
+    return 0.0;
   }
 
   static StatutDevis _parseStatutDevis(String? statutString) {

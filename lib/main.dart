@@ -19,7 +19,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   runApp(const Saarflex());
-}
+} 
 
 class Saarflex extends StatelessWidget {
   const Saarflex({super.key});
