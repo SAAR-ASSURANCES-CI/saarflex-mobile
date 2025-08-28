@@ -48,13 +48,11 @@ class User {
 
   static DateTime? _parseDate(dynamic dateValue, String fieldName) {
     if (dateValue == null) {
-      print('$fieldName: null');
       return null;
     }
     
     try {
       String dateStr = dateValue.toString();
-      print('Tentative de parsing de $fieldName: $dateStr');
       
       if (dateStr.contains('-') && dateStr.length == 10) {
         List<String> parts = dateStr.split('-');
@@ -64,7 +62,6 @@ class User {
           int year = int.parse(parts[2]);
           
           DateTime parsedDate = DateTime(year, month, day);
-          print('$fieldName parsée avec succès (format DD-MM-YYYY): $parsedDate');
           return parsedDate;
         }
       }
@@ -77,34 +74,27 @@ class User {
           int year = int.parse(parts[2]);
           
           DateTime parsedDate = DateTime(year, month, day);
-          print('$fieldName parsée avec succès (format DD/MM/YYYY): $parsedDate');
           return parsedDate;
         }
       }
       
       final parsedDate = DateTime.parse(dateStr);
-      print('$fieldName parsée avec succès (format ISO): $parsedDate');
       return parsedDate;
       
-    } catch (e) {
-      print('Erreur lors du parsing de $fieldName: $dateValue, erreur: $e');
-      
+    } catch (e) {      
       try {
         String dateStr = dateValue.toString();
         if (dateStr.contains('-')) {
           final DateFormat formatter = DateFormat('dd-MM-yyyy');
           DateTime parsedDate = formatter.parse(dateStr);
-          print('$fieldName parsée avec succès (intl DD-MM-YYYY): $parsedDate');
           return parsedDate;
         } else if (dateStr.contains('/')) {
           final DateFormat formatter = DateFormat('dd/MM/yyyy');
           DateTime parsedDate = formatter.parse(dateStr);
-          print('$fieldName parsée avec succès (intl DD/MM/YYYY): $parsedDate');
           return parsedDate;
         }
-      } catch (e2) {
-        print('Échec total du parsing de $fieldName: $e2');
-      }
+      // ignore: empty_catches
+      } catch (e2) {      }
       
       return null;
     }

@@ -51,7 +51,7 @@ class Product {
   final String? conditionsPdf;
   final IconData? customIcon;
   
-  final String? iconPath;      // Icône depuis le back office (ex: "icon-saar-nansou.svg")
+  final String? iconPath;    
   final String? statut;       
   final DateTime? createdAt;   
   final Map<String, dynamic>? branche;
