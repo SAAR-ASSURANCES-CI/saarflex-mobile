@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../constants/colors.dart';
 import '../../providers/simulation_provider.dart';
-import '../../providers/auth_provider.dart';
 import '../../widgets/dynamic_form_field.dart';
 import '../../models/product_model.dart';
 import 'simulation_result_screen.dart';
@@ -404,12 +403,11 @@ void initState() {
     );
   }
 
+// Dans simulation_screen.dart, modifiez l'appel :
 Future<void> _simuler(SimulationProvider provider) async {
   try {
-    final authProvider = context.read<AuthProvider>();
-    final utilisateurConnecte = authProvider.isLoggedIn;
-    
-    await provider.simulerDevis(utilisateurConnecte: utilisateurConnecte);
+    // APPEL SIMPLIFIÉ - Plus besoin de passer utilisateurConnecte
+    await provider.simulerDevis();
     
     if (!provider.hasError && provider.dernierResultat != null && mounted) {
       Navigator.push(
@@ -423,6 +421,7 @@ Future<void> _simuler(SimulationProvider provider) async {
       );
     }
   } catch (e) {
+    // Gestion d'erreur
   }
 }
 }

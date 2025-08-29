@@ -536,34 +536,36 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 Future<void> _navigateToSimulation(Product product) async {
   final productProvider = context.read<ProductProvider>();
   
-  final grilleId = await productProvider.getDefaultGrilleTarifaireId(product.id);
-  
-  if (grilleId != null && _isValidUUID(grilleId)) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => SimulationScreen(
-          produit: product,
-          grilleTarifaireId: grilleId,
+  try {
+    final grilleId = await productProvider.getDefaultGrilleTarifaireId(product.id);
+    
+    if (grilleId != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => SimulationScreen(
+            produit: product,
+            grilleTarifaireId: grilleId,
+          ),
         ),
-      ),
-    );
-  } else {
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Aucune grille tarifaire disponible pour ce produit'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  } catch (e) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Aucune grille tarifaire disponible pour ce produit'),
+        content: Text('Erreur lors de la préparation de la simulation'),
         backgroundColor: Colors.red,
       ),
     );
   }
-}
-
-
-bool _isValidUUID(String? uuid) {
-  if (uuid == null) return false;
-  final regex = RegExp(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$');
-  return regex.hasMatch(uuid.toLowerCase());
-}
+}}
 
   List<Map<String, dynamic>> _getProductFeatures(Product product) {
     switch (product.type) {
@@ -599,4 +601,3 @@ bool _isValidUUID(String? uuid) {
         }
     }
   }
-}

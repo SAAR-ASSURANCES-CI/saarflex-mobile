@@ -46,12 +46,11 @@ class SimulationProvider extends ChangeNotifier {
     return _validationErrors.isEmpty;
   }
 
-
-List<CritereTarification> get criteresProduitTries {
-  final criteres = List<CritereTarification>.from(_criteresProduit);
-  criteres.sort((a, b) => a.ordre.compareTo(b.ordre));
-  return criteres;
-}
+  List<CritereTarification> get criteresProduitTries {
+    final criteres = List<CritereTarification>.from(_criteresProduit);
+    criteres.sort((a, b) => a.ordre.compareTo(b.ordre));
+    return criteres;
+  }
 
   bool get canSimulate => isFormValid && !isSimulating && !isLoadingCriteres;
 
@@ -76,11 +75,11 @@ List<CritereTarification> get criteresProduitTries {
     _clearError();
 
     try {
-    _criteresProduit = await _simulationService.getCriteresProduit(
-      _produitId!,
-      page: 1,
-      limit: 100,
-    );
+      _criteresProduit = await _simulationService.getCriteresProduit(
+        _produitId!,
+        page: 1,
+        limit: 100,
+      );
       
       for (final critere in _criteresProduit) {
         if (critere.type == TypeCritere.booleen) {
@@ -97,34 +96,34 @@ List<CritereTarification> get criteresProduitTries {
     }
   }
 
-void updateCritereReponse(String nomCritere, dynamic valeur) {
-  if (_criteresReponses[nomCritere] == valeur) {
-    return;
+  void updateCritereReponse(String nomCritere, dynamic valeur) {
+    if (_criteresReponses[nomCritere] == valeur) {
+      return;
+    }
+    
+    _criteresReponses[nomCritere] = valeur;
+    _validationErrors.remove(nomCritere);
+    _validateCritere(nomCritere, valeur);
+    
+    notifyListeners(); 
   }
-  
-  _criteresReponses[nomCritere] = valeur;
-  _validationErrors.remove(nomCritere);
-  _validateCritere(nomCritere, valeur);
-  
-  notifyListeners(); 
-}
 
   void _validateCritere(String nomCritere, dynamic valeur) {
-      final critere = _criteresProduit.firstWhere(
-    (c) => c.nom == nomCritere,
-    orElse: () => throw Exception('Critère $nomCritere non trouvé'),
-  );
+    final critere = _criteresProduit.firstWhere(
+      (c) => c.nom == nomCritere,
+      orElse: () => throw Exception('Critère $nomCritere non trouvé'),
+    );
 
-  if (critere.type == TypeCritere.numerique && valeur != null) {
-    if (valeur is String) {
-      final numericValue = num.tryParse(valeur);
-      if (numericValue == null) {
-        _validationErrors[nomCritere] = 'Veuillez entrer un nombre valide';
-        return;
+    if (critere.type == TypeCritere.numerique && valeur != null) {
+      if (valeur is String) {
+        final numericValue = num.tryParse(valeur);
+        if (numericValue == null) {
+          _validationErrors[nomCritere] = 'Veuillez entrer un nombre valide';
+          return;
+        }
+        _criteresReponses[nomCritere] = numericValue;
       }
-      _criteresReponses[nomCritere] = numericValue;
     }
-  }
 
     if (critere.obligatoire && (valeur == null || valeur.toString().trim().isEmpty)) {
       _validationErrors[nomCritere] = 'Ce champ est obligatoire';
@@ -176,36 +175,74 @@ void updateCritereReponse(String nomCritere, dynamic valeur) {
     notifyListeners();
   }
 
-  Future<void> simulerDevis({bool utilisateurConnecte = false}) async {
-    validateForm();
-    
-    if (!isFormValid) {
-      _setError('Veuillez corriger les erreurs dans le formulaire');
-      return;
-    }
-
-    _setSimulating(true);
-    _clearError();
-
-    try {
-      final request = SimulationRequest(
-        produitId: _produitId!,
-        grilleTarifaireId: _grilleTarifaireId!,
-        criteresUtilisateur: Map.from(_criteresReponses),
-      );
-
-      if (utilisateurConnecte) {
-        _dernierResultat = await _simulationService.simulerDevisConnecte(request);
-      } else {
-        _dernierResultat = await _simulationService.simulerDevis(request);
-      }
-      
-    } catch (e) {
-      _setError(e.toString());
-    } finally {
-      _setSimulating(false);
-    }
+Future<void> simulerDevis() async {
+  validateForm();
+  
+  if (!isFormValid) {
+    print('=== ERREUR FORMULAIRE ===');
+    print('Formulaire invalide');
+    print('Erreurs: $_validationErrors');
+    _setError('Veuillez corriger les erreurs dans le formulaire');
+    return;
   }
+
+  _setSimulating(true);
+  _clearError();
+
+  try {
+    final request = SimulationRequest(
+      produitId: _produitId!,
+      grilleTarifaireId: _grilleTarifaireId!,
+      criteresUtilisateur: Map.from(_criteresReponses),
+    );
+
+    print('=== LANCEMENT SIMULATION ===');
+    print('Produit: $_produitId');
+    print('Grille: $_grilleTarifaireId');
+    print('Réponses: $_criteresReponses');
+
+    _dernierResultat = await _simulationService.simulerDevis(request);
+    
+    print('=== SIMULATION RÉUSSIE ===');
+    print('Résultat: ${_dernierResultat?.primeCalculee}');
+    
+  } catch (e) {
+    print('=== ERREUR PROVIDER ===');
+    print('Erreur: $e');
+    _setError(e.toString());
+  } finally {
+    _setSimulating(false);
+  }
+}
+
+  // // MÉTHODE SIMPLIFIÉE - Plus de distinction connecté/non-connecté
+  // Future<void> simulerDevis() async {
+  //   validateForm();
+    
+  //   if (!isFormValid) {
+  //     _setError('Veuillez corriger les erreurs dans le formulaire');
+  //     return;
+  //   }
+
+  //   _setSimulating(true);
+  //   _clearError();
+
+  //   try {
+  //     final request = SimulationRequest(
+  //       produitId: _produitId!,
+  //       grilleTarifaireId: _grilleTarifaireId!,
+  //       criteresUtilisateur: Map.from(_criteresReponses),
+  //     );
+
+  //     // APPEL UNIFIÉ - Plus de paramètre utilisateurConnecte
+  //     _dernierResultat = await _simulationService.simulerDevis(request);
+      
+  //   } catch (e) {
+  //     _setError(e.toString());
+  //   } finally {
+  //     _setSimulating(false);
+  //   }
+  // }
 
   Future<void> sauvegarderDevis({
     String? nomPersonnalise,
