@@ -25,16 +25,15 @@ class _SimulationScreenState extends State<SimulationScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
 
-@override
-void initState() {
-  super.initState();
-  WidgetsBinding.instance.addPostFrameCallback((_) {
-    context.read<SimulationProvider>().initierSimulation(
-      produitId: widget.produit.id,
-      grilleTarifaireId: widget.grilleTarifaireId,
-    );
-  });
-}
+ @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<SimulationProvider>().initierSimulation(
+        produitId: widget.produit.id,
+      );
+    });
+  }
   @override
   Widget build(BuildContext context) {
     return Consumer<SimulationProvider>(
@@ -113,7 +112,7 @@ void initState() {
           ),
           const SizedBox(height: 24),
           Text(
-            'Chargement des critères...',
+            'Chargement des critÃ¨res...',
             style: GoogleFonts.poppins(
               fontSize: 16,
               fontWeight: FontWeight.w500,
@@ -122,7 +121,7 @@ void initState() {
           ),
           const SizedBox(height: 8),
           Text(
-            'Préparation du formulaire personnalisé',
+            'PrÃ©paration du formulaire personnalisÃ©',
             style: GoogleFonts.poppins(
               fontSize: 14,
               fontWeight: FontWeight.w400,
@@ -186,7 +185,7 @@ void initState() {
                 ),
               ),
               child: Text(
-                'Réessayer',
+                'RÃ©essayer',
                 style: GoogleFonts.poppins(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -297,7 +296,7 @@ void initState() {
         ),
         const SizedBox(height: 8),
         Text(
-          'Complétez les champs ci-dessous pour obtenir votre devis personnalisé',
+          'ComplÃ©tez les champs ci-dessous pour obtenir votre devis personnalisÃ©',
           style: GoogleFonts.poppins(
             fontSize: 14,
             fontWeight: FontWeight.w400,
@@ -403,25 +402,23 @@ void initState() {
     );
   }
 
-// Dans simulation_screen.dart, modifiez l'appel :
 Future<void> _simuler(SimulationProvider provider) async {
-  try {
-    // APPEL SIMPLIFIÉ - Plus besoin de passer utilisateurConnecte
-    await provider.simulerDevis();
-    
-    if (!provider.hasError && provider.dernierResultat != null && mounted) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => SimulationResultScreen(
-            produit: widget.produit,
-            resultat: provider.dernierResultat!,
+    try {
+      await provider.simulerDevis();
+      
+      if (!provider.hasError && provider.dernierResultat != null && mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => SimulationResultScreen(
+              produit: widget.produit,
+              resultat: provider.dernierResultat!,
+            ),
           ),
-        ),
-      );
+        );
+      }
+    } catch (e) {
+      // Gestion d'erreur
     }
-  } catch (e) {
-    // Gestion d'erreur
   }
-}
 }

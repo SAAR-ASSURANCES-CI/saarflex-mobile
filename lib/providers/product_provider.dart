@@ -51,10 +51,6 @@ List<CritereTarification> get criteresProduit => List.unmodifiable(_criteresProd
 Map<String, dynamic> get grillesTarifaires => _grillesTarifaires;
 bool get isLoadingCriteres => _isLoadingCriteres;
 
-
-
-
-
   Future<void> loadProducts() async {
     _setLoading(true);
     _clearError();
@@ -163,14 +159,9 @@ Future<void> loadProductCriteres(String productId) async {
 
 
 
-// Dans ProductProvider.getDefaultGrilleTarifaireId(), ajoutez des logs :
 Future<String?> getDefaultGrilleTarifaireId(String productId) async {
   try {
     final grilles = await _productService.getGrillesTarifaires(productId);
-    
-    print('=== GRILLES DISPONIBLES ===');
-    print('Produit: $productId');
-    print('Grilles: $grilles'); // ← VOIR CE QUE ÇA RETOURNE
     
     if (grilles.isNotEmpty) {
       final grilleActive = grilles.firstWhere(
@@ -179,40 +170,13 @@ Future<String?> getDefaultGrilleTarifaireId(String productId) async {
       );
       
       final grilleId = grilleActive['id']?.toString();
-      print('Grille sélectionnée: $grilleId');
       return grilleId;
     }
     return null;
   } catch (e) {
-    print('Erreur grille: $e');
     return null;
   }
 }
-
-// Future<String?> getDefaultGrilleTarifaireId(String productId) async {
-//   try {
-//     final grilles = await _productService.getGrillesTarifaires(productId);
-    
-//     if (grilles.isNotEmpty) {
-//       final grilleActive = grilles.firstWhere(
-//         (grille) => grille['statut'] == 'actif',
-//         orElse: () => grilles.first,
-//       );
-      
-//       final grilleId = grilleActive['id']?.toString();
-      
-//       if (grilleId != null && grilleId.isNotEmpty) {
-//         return grilleId;
-//       } else {
-//         return null;
-//       }
-//     }
-//     return null;
-//   } catch (e) {
-//     _setError('Impossible de charger la grille tarifaire');
-//     return null;
-//   }
-// }
 
 void _setLoadingCriteres(bool loading) {
   _isLoadingCriteres = loading;

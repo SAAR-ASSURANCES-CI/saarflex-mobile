@@ -56,10 +56,9 @@ class SimulationProvider extends ChangeNotifier {
 
   Future<void> initierSimulation({
     required String produitId,
-    required String grilleTarifaireId,
   }) async {
     _produitId = produitId;
-    _grilleTarifaireId = grilleTarifaireId;
+    _grilleTarifaireId = null;
     _criteresReponses.clear();
     _validationErrors.clear();
     _dernierResultat = null;
@@ -175,74 +174,45 @@ class SimulationProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-Future<void> simulerDevis() async {
-  validateForm();
-  
-  if (!isFormValid) {
-    print('=== ERREUR FORMULAIRE ===');
-    print('Formulaire invalide');
-    print('Erreurs: $_validationErrors');
-    _setError('Veuillez corriger les erreurs dans le formulaire');
-    return;
-  }
-
-  _setSimulating(true);
-  _clearError();
-
-  try {
-    final request = SimulationRequest(
-      produitId: _produitId!,
-      grilleTarifaireId: _grilleTarifaireId!,
-      criteresUtilisateur: Map.from(_criteresReponses),
-    );
-
-    print('=== LANCEMENT SIMULATION ===');
-    print('Produit: $_produitId');
-    print('Grille: $_grilleTarifaireId');
-    print('Réponses: $_criteresReponses');
-
-    _dernierResultat = await _simulationService.simulerDevis(request);
+  Future<void> simulerDevis() async {
+    validateForm();
     
-    print('=== SIMULATION RÉUSSIE ===');
-    print('Résultat: ${_dernierResultat?.primeCalculee}');
-    
-  } catch (e) {
-    print('=== ERREUR PROVIDER ===');
-    print('Erreur: $e');
-    _setError(e.toString());
-  } finally {
-    _setSimulating(false);
-  }
-}
+    if (!isFormValid) {
+      _setError('Veuillez corriger les erreurs dans le formulaire');
+      return;
+    }
 
-  // // MÉTHODE SIMPLIFIÉE - Plus de distinction connecté/non-connecté
-  // Future<void> simulerDevis() async {
-  //   validateForm();
-    
-  //   if (!isFormValid) {
-  //     _setError('Veuillez corriger les erreurs dans le formulaire');
-  //     return;
-  //   }
+    _setSimulating(true);
+    _clearError();
 
-  //   _setSimulating(true);
-  //   _clearError();
-
-  //   try {
-  //     final request = SimulationRequest(
-  //       produitId: _produitId!,
-  //       grilleTarifaireId: _grilleTarifaireId!,
-  //       criteresUtilisateur: Map.from(_criteresReponses),
-  //     );
-
-  //     // APPEL UNIFIÉ - Plus de paramètre utilisateurConnecte
-  //     _dernierResultat = await _simulationService.simulerDevis(request);
+    try {
+      // 1. Récupérer la grille tarifaire automatiquement
+      final grilleId = await _simulationService.getGrilleTarifaireForProduit(_produitId!);
       
-  //   } catch (e) {
-  //     _setError(e.toString());
-  //   } finally {
-  //     _setSimulating(false);
-  //   }
-  // }
+      if (grilleId == null) {
+        _setError('Aucune grille tarifaire disponible pour ce produit');
+        return;
+      }
+
+      // 2. Stocker l'ID de la grille pour référence
+      _grilleTarifaireId = grilleId;
+
+      // 3. Préparer la requête avec produit ID, grille ID et critères
+      final request = SimulationRequest(
+        produitId: _produitId!,
+        grilleTarifaireId: grilleId,
+        criteresUtilisateur: Map.from(_criteresReponses),
+      );
+
+      // 4. Appeler la simulation
+      _dernierResultat = await _simulationService.simulerDevis(request);
+      
+    } catch (e) {
+      _setError(e.toString());
+    } finally {
+      _setSimulating(false);
+    }
+  }
 
   Future<void> sauvegarderDevis({
     String? nomPersonnalise,

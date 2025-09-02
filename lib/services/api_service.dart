@@ -169,7 +169,6 @@ class ApiService {
           return parsedDate;
         }
       } catch (e2) {
-        // print('Échec total du parsing de $fieldName: $e2');
         return null;
       }
       

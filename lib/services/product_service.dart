@@ -175,7 +175,6 @@ Future<List<CritereTarification>> getProductCriteres(String productId) async {
         return _generateDefaultGrille(productId);
       }
     } catch (e) {
-      print('Erreur lors du chargement des grilles: $e');
       return _generateDefaultGrille(productId);
     }
   }
