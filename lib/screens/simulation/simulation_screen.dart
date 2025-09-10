@@ -10,11 +10,17 @@ import 'simulation_result_screen.dart';
 class SimulationScreen extends StatefulWidget {
   final Product produit;
   final String grilleTarifaireId;
+  final bool assureEstSouscripteur;
+  final String? userId;
+  final Map<String, dynamic>? informationsAssure;
 
   const SimulationScreen({
     super.key,
     required this.produit,
     required this.grilleTarifaireId,
+    required this.assureEstSouscripteur,
+    this.userId,
+    this.informationsAssure,
   });
 
   @override
@@ -25,15 +31,30 @@ class _SimulationScreenState extends State<SimulationScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
 
+
+
+
  @override
   void initState() {
     super.initState();
+     print('🚀 SimulationScreen INIT - mounted: $mounted');
+  print('📋 Params - assureEstSouscripteur: ${widget.assureEstSouscripteur}');
+  print('📋 Params - hasInfos: ${widget.informationsAssure != null}');
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<SimulationProvider>().initierSimulation(
         produitId: widget.produit.id,
       );
     });
   }
+
+@override
+void dispose() {
+  print('🗑️ SimulationScreen DISPOSE - mounted: $mounted');
+  super.dispose();
+}
+
+
+
   @override
   Widget build(BuildContext context) {
     return Consumer<SimulationProvider>(
@@ -402,23 +423,46 @@ class _SimulationScreenState extends State<SimulationScreen> {
     );
   }
 
+
+
 Future<void> _simuler(SimulationProvider provider) async {
-    try {
-      await provider.simulerDevis();
-      
-      if (!provider.hasError && provider.dernierResultat != null && mounted) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => SimulationResultScreen(
-              produit: widget.produit,
-              resultat: provider.dernierResultat!,
-            ),
+  try {
+    final Map<String, dynamic> donneesSupplementaires = {
+      'assure_est_souscripteur': widget.assureEstSouscripteur,
+      'user_id': widget.userId,
+      if (!widget.assureEstSouscripteur && widget.informationsAssure != null)
+        'informations_assure': widget.informationsAssure,
+    };
+
+    await provider.simulerDevisSimplifie(donneesSupplementaires);
+    
+    if (!provider.hasError && provider.dernierResultat != null && mounted) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => SimulationResultScreen(
+            produit: widget.produit,
+            resultat: provider.dernierResultat!,
           ),
-        );
-      }
-    } catch (e) {
-      // Gestion d'erreur
+        ),
+      );
+    } else if (provider.hasError) {
+      // Afficher l'erreur spécifique
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(provider.errorMessage ?? 'Erreur lors de la simulation'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
+  } catch (e) {
+    // Gestion d'erreur générale
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Une erreur inattendue s\'est produite: $e'),
+        backgroundColor: Colors.red,
+      ),
+    );
   }
+}
 }

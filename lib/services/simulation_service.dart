@@ -7,43 +7,147 @@ import '../utils/api_config.dart';
 import '../utils/storage_helper.dart';
 
 class SimulationService {
-  static const String _basePath = '/simulation-devis';
+  static const String _basePath = '/simulation-devis-simplifie';
 
-  Future<SimulationResponse> simulerDevis(SimulationRequest request) async {
-    try {
-      final token = await StorageHelper.getToken();
-      final url = Uri.parse('${ApiConfig.baseUrl}$_basePath/simuler');
-      
-      final headers = {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        if (token != null) 'Authorization': 'Bearer $token',
-      };
 
-      final response = await http.post(
-        url,
-        headers: headers,
-        body: json.encode({
-          'produit_id': request.produitId,
-          'grille_tarifaire_id': request.grilleTarifaireId,
-          'criteres_utilisateur': request.criteresUtilisateur,
-        }),
-      );
 
-      print('API Simulation - Status: ${response.statusCode}');
 
-      if (response.statusCode == 200) {
-        return SimulationResponse.fromJson(json.decode(response.body));
-      } else {
-        final errorData = json.decode(response.body);
-        throw Exception(errorData['message'] ?? 'Erreur lors de la simulation');
-      }
-    } catch (e) {
-      print('Erreur Simulation: $e');
-      throw Exception(_getUserFriendlyError(e));
+
+// // Ajoutez cette méthode dans la classe SimulationService
+Future<SimulationResponse> simulerDevisSimplifie({
+  required String produitId,
+  required Map<String, dynamic> criteres,
+  required Map<String, dynamic> donneesSupplementaires,
+}) async {
+  try {
+    final token = await StorageHelper.getToken();
+    final url = Uri.parse('${ApiConfig.baseUrl}/simulation-devis-simplifie');
+    
+    final headers = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      if (token != null) 'Authorization': 'Bearer $token',
+    };
+
+    // Construction du corps avec données conditionnelles
+    final bodyData = {
+      'produit_id': produitId, // ← Utilisez produitId directement
+      'assure_est_souscripteur': donneesSupplementaires['assure_est_souscripteur'],
+      'criteres_utilisateur': _normaliserCriteres(criteres), // ← criteres directement
+      if (!donneesSupplementaires['assure_est_souscripteur'] && 
+          donneesSupplementaires['informations_assure'] != null)
+        'informations_assure': donneesSupplementaires['informations_assure'],
+    };
+
+    final response = await http.post(
+      url,
+      headers: headers,
+      body: json.encode(bodyData),
+    );
+
+    if (response.statusCode == 201) {
+      return SimulationResponse.fromJson(json.decode(response.body));
+    } else {
+      throw Exception('Erreur serveur');
     }
+  } catch (e) {
+    throw Exception(_getUserFriendlyError(e));
   }
+}
+// Future<SimulationResponse> simulerDevisPourAutrePersonne({
+//   required String produitId,
+//   required Map<String, dynamic> criteres,
+//   required Map<String, dynamic> informationsAssure,
+// }) async {
+//   try {
+//     final token = await StorageHelper.getToken();
+//     final url = Uri.parse('${ApiConfig.baseUrl}/simulation-devis-simplifie');
+    
+//     final headers = {
+//       'Content-Type': 'application/json',
+//       'Accept': 'application/json',
+//       if (token != null) 'Authorization': 'Bearer $token',
+//     };
 
+//     // ✅ Format exact comme Swagger
+//     final bodyData = {
+//       'produit_id': produitId,
+//       'assure_est_souscripteur': false,
+//       'criteres_utilisateur': _normaliserCriteres(criteres),
+//       'informations_assure': informationsAssure,
+//     };
+
+//     print('API Simulation Autre Personne - Données: ${json.encode(bodyData)}');
+
+//     final response = await http.post(
+//       url,
+//       headers: headers,
+//       body: json.encode(bodyData),
+//     );
+
+//     print('Status: ${response.statusCode}');
+//     print('Réponse: ${response.body}');
+
+//     if (response.statusCode == 201) {  // ✅ 201 pour création
+//       return SimulationResponse.fromJson(json.decode(response.body));
+//     } else {
+//       final errorData = json.decode(response.body);
+//       throw Exception(errorData['message'] ?? 'Erreur simulation');
+//     }
+//   } catch (e) {
+//     print('Erreur: $e');
+//     throw Exception(_getUserFriendlyError(e));
+//   }
+// }
+
+// ✅ MÉTHODE AMÉLIORÉE pour normaliser les critères
+Map<String, dynamic> _normaliserCriteres(Map<String, dynamic> criteresOriginaux) {
+  final Map<String, dynamic> criteresNormalises = {};
+  
+  for (final entry in criteresOriginaux.entries) {
+    final String key = entry.key;
+    final dynamic value = entry.value;
+    
+    // Corriger les noms des critères
+    String cleNormalisee = key;
+    
+    if (key.toLowerCase().contains('capital')) {
+      cleNormalisee = 'capital';
+    } else if (key.toLowerCase().contains('âge') || key.toLowerCase().contains('age')) {
+      cleNormalisee = 'Age assuré';
+    } else if (key.toLowerCase().contains('durée') || key.toLowerCase().contains('duree')) {
+      cleNormalisee = 'Durée de cotisation';
+    }
+    
+    // Corriger les formats des valeurs
+    dynamic valeurNormalisee = value;
+    
+    if (value is num) {
+      // Pour l'âge: convertir en entier sans décimaux
+      if (key.toLowerCase().contains('age') || key.toLowerCase().contains('âge')) {
+        valeurNormalisee = value.toInt().toString(); // "40" au lieu de "40.0"
+      } else {
+        valeurNormalisee = value.toString();
+      }
+    } else if (value is String) {
+      // Supprimer les espaces dans les montants
+      if (key.toLowerCase().contains('capital')) {
+        valeurNormalisee = value.replaceAll(' ', '');
+      }
+      // Pour l'âge: enlever les décimaux si présents
+      if ((key.toLowerCase().contains('age') || key.toLowerCase().contains('âge')) 
+          && valeurNormalisee.contains('.')) {
+        valeurNormalisee = valeurNormalisee.split('.')[0]; // "40" au lieu de "40.0"
+      }
+    }
+    
+    criteresNormalises[cleNormalisee] = valeurNormalisee;
+  }
+  
+  return criteresNormalises;
+}
+
+  
   Future<List<CritereTarification>> getCriteresProduit(
     String produitId, {
     int page = 1,

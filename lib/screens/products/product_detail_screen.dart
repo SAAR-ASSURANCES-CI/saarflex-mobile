@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:saarflex_app/providers/auth_provider.dart';
 import 'package:saarflex_app/screens/simulation/simulation_screen.dart';
+import 'package:saarflex_app/widgets/assure_selector_popup.dart';
 import '../../constants/colors.dart';
 import '../../models/product_model.dart';
 import '../../providers/product_provider.dart';
+import '../simulation/info_assure_screen.dart';
 class ProductDetailScreen extends StatefulWidget {
   final String productId;
 
@@ -534,38 +537,156 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
 
 Future<void> _navigateToSimulation(Product product) async {
-  final productProvider = context.read<ProductProvider>();
+  print('🔄 _navigateToSimulation CALLED - mounted: $mounted');
   
+  // ✅ VÉRIFICATION AVANT TOUT
+  if (!mounted) {
+    print('❌ ABORT: Widget already unmounted');
+    return;
+  }
+
+  final bool? isSelfAssured = await showDialog<bool>(
+    context: context,
+    builder: (context) => AssureSelectorDialog(
+      onConfirm: (value) {
+        print('✅ Popup choice: $value');
+        return Navigator.pop(context, value);
+      },
+    ),
+  );
+
+  // ✅ VÉRIFICATION APRÈS POPUP
+  if (!mounted) {
+    print('❌ ABORT: Widget unmounted after popup');
+    return;
+  }
+  
+  if (isSelfAssured == null) return;
+
   try {
+    print('📦 Fetching grille tarifaire...');
+    
+    // ✅ VÉRIFICATION AVANT APPEL ASYNC
+    if (!mounted) {
+      print('❌ ABORT: Widget unmounted before async call');
+      return;
+    }
+    
+    final productProvider = context.read<ProductProvider>();
     final grilleId = await productProvider.getDefaultGrilleTarifaireId(product.id);
     
-    if (grilleId != null) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
+    // ✅ VÉRIFICATION APRÈS APPEL ASYNC
+    if (!mounted) {
+      print('❌ ABORT: Widget unmounted during async call');
+      return;
+    }
+    
+    print('📦 Grille ID: $grilleId, mounted: $mounted');
+    
+    if (grilleId == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Aucune grille tarifaire disponible')),
+        );
+      }
+      return;
+    }
+
+    if (isSelfAssured) {
+      print('👤 Navigation pour moi-même');
+      if (mounted) {
+        Navigator.push(context, MaterialPageRoute(
           builder: (context) => SimulationScreen(
             produit: product,
             grilleTarifaireId: grilleId,
+            assureEstSouscripteur: true,
+            // userId: authProvider.currentUser?.id,
           ),
-        ),
-      );
+        ));
+      }
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Aucune grille tarifaire disponible pour ce produit'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      print('👥 Navigation pour autre personne');
+      if (mounted) {
+        Navigator.push(context, MaterialPageRoute(
+          builder: (context) => InfoAssureScreen(produit: product),
+        ));
+      }
     }
   } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Erreur lors de la préparation de la simulation'),
-        backgroundColor: Colors.red,
-      ),
-    );
+    print('❌ ERROR in _navigateToSimulation: $e');
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur: $e')),
+      );
+    }
   }
-}}
+}
+//  Future<void> _navigateToSimulation(Product product) async {
+//   final productProvider = context.read<ProductProvider>();
+//   final authProvider = context.read<AuthProvider>();
+  
+//   final bool? isSelfAssured = await showDialog<bool>(
+//     context: context,
+//     builder: (context) => AssureSelectorDialog(
+//       onConfirm: (value) => Navigator.pop(context, value),
+//     ),
+//   );
+
+//   if (isSelfAssured == null || !mounted) return;
+
+//   try {
+//     final grilleId = await productProvider.getDefaultGrilleTarifaireId(product.id);
+//     if (grilleId == null) {
+//       if (mounted) {
+//         ScaffoldMessenger.of(context).showSnackBar(
+//           SnackBar(content: Text('Aucune grille tarifaire disponible')),
+//         );
+//       }
+//       return;
+//     }
+
+//     if (isSelfAssured) {
+//       // POUR MOI-MÊME
+//       Navigator.push(context, MaterialPageRoute(
+//         builder: (context) => SimulationScreen(
+//           produit: product,
+//           grilleTarifaireId: grilleId,
+//           assureEstSouscripteur: true,
+//           userId: authProvider.currentUser?.id,
+//         ),
+//       ));
+//     } else {
+//       // POUR AUTRE PERSONNE - Formulaire d'abord
+//       final informationsAssure = await Navigator.push<Map<String, dynamic>>(
+//         context,
+//         MaterialPageRoute(
+//           builder: (context) => InfoAssureScreen(produit: product),
+//         ),
+//       );
+
+//       if (informationsAssure != null && mounted) {
+//         Navigator.push(context, MaterialPageRoute(
+//           builder: (context) => SimulationScreen(
+//             produit: product,
+//             grilleTarifaireId: grilleId,
+//             assureEstSouscripteur: false,
+//             informationsAssure: informationsAssure,
+//           ),
+//         ));
+//       }
+//     }
+//   } catch (e) {
+//     if (mounted) {
+//       ScaffoldMessenger.of(context).showSnackBar(
+//         SnackBar(content: Text('Erreur: $e')),
+//       );
+//     }
+//   }
+// }
+
+}
+
+
 
   List<Map<String, dynamic>> _getProductFeatures(Product product) {
     switch (product.type) {
