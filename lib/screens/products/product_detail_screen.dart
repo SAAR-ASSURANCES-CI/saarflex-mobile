@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:saarflex_app/providers/auth_provider.dart';
 import 'package:saarflex_app/screens/simulation/simulation_screen.dart';
 import 'package:saarflex_app/widgets/assure_selector_popup.dart';
 import '../../constants/colors.dart';
@@ -537,152 +536,57 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
 
 Future<void> _navigateToSimulation(Product product) async {
-  print('🔄 _navigateToSimulation CALLED - mounted: $mounted');
+  // 1. Récupérer le provider AVANT les async calls
+  // final productProvider = context.read<ProductProvider>();
   
-  // ✅ VÉRIFICATION AVANT TOUT
-  if (!mounted) {
-    print('❌ ABORT: Widget already unmounted');
-    return;
-  }
-
   final bool? isSelfAssured = await showDialog<bool>(
     context: context,
     builder: (context) => AssureSelectorDialog(
-      onConfirm: (value) {
-        print('✅ Popup choice: $value');
-        return Navigator.pop(context, value);
-      },
+      onConfirm: (value) => Navigator.pop(context, value),
     ),
   );
 
-  // ✅ VÉRIFICATION APRÈS POPUP
-  if (!mounted) {
-    print('❌ ABORT: Widget unmounted after popup');
-    return;
-  }
-  
-  if (isSelfAssured == null) return;
+  // 2. Vérifier mounted APRÈS chaque await
+  if (!mounted || isSelfAssured == null) return;
 
   try {
-    print('📦 Fetching grille tarifaire...');
-    
-    // ✅ VÉRIFICATION AVANT APPEL ASYNC
-    if (!mounted) {
-      print('❌ ABORT: Widget unmounted before async call');
-      return;
-    }
-    
-    final productProvider = context.read<ProductProvider>();
-    final grilleId = await productProvider.getDefaultGrilleTarifaireId(product.id);
-    
-    // ✅ VÉRIFICATION APRÈS APPEL ASYNC
-    if (!mounted) {
-      print('❌ ABORT: Widget unmounted during async call');
-      return;
-    }
-    
-    print('📦 Grille ID: $grilleId, mounted: $mounted');
-    
-    if (grilleId == null) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Aucune grille tarifaire disponible')),
-        );
-      }
-      return;
-    }
-
     if (isSelfAssured) {
-      print('👤 Navigation pour moi-même');
-      if (mounted) {
-        Navigator.push(context, MaterialPageRoute(
-          builder: (context) => SimulationScreen(
-            produit: product,
-            grilleTarifaireId: grilleId,
-            assureEstSouscripteur: true,
-            // userId: authProvider.currentUser?.id,
-          ),
-        ));
-      }
+      // POUR MOI-MÊME - aller directement à la simulation
+      Navigator.push(context, MaterialPageRoute(
+        builder: (context) => SimulationScreen(
+          produit: product,
+          assureEstSouscripteur: true,
+        ),
+      ));
     } else {
-      print('👥 Navigation pour autre personne');
-      if (mounted) {
-        Navigator.push(context, MaterialPageRoute(
+      // POUR AUTRE PERSONNE - Formulaire d'abord
+      final informationsAssure = await Navigator.push<Map<String, dynamic>>(
+        context,
+        MaterialPageRoute(
           builder: (context) => InfoAssureScreen(produit: product),
-        ));
-      }
+        ),
+      );
+
+      // 3. Vérifier mounted après navigation
+      if (!mounted || informationsAssure == null) return;
+
+      Navigator.push(context, MaterialPageRoute(
+        builder: (context) => SimulationScreen(
+          produit: product,
+          assureEstSouscripteur: false,
+          informationsAssure: informationsAssure,
+        ),
+      ));
     }
   } catch (e) {
-    print('❌ ERROR in _navigateToSimulation: $e');
+    // 4. Gestion d'erreur safe avec mounted check
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur: $e')),
+        SnackBar(content: Text('Erreur: ${e.toString()}')),
       );
     }
   }
 }
-//  Future<void> _navigateToSimulation(Product product) async {
-//   final productProvider = context.read<ProductProvider>();
-//   final authProvider = context.read<AuthProvider>();
-  
-//   final bool? isSelfAssured = await showDialog<bool>(
-//     context: context,
-//     builder: (context) => AssureSelectorDialog(
-//       onConfirm: (value) => Navigator.pop(context, value),
-//     ),
-//   );
-
-//   if (isSelfAssured == null || !mounted) return;
-
-//   try {
-//     final grilleId = await productProvider.getDefaultGrilleTarifaireId(product.id);
-//     if (grilleId == null) {
-//       if (mounted) {
-//         ScaffoldMessenger.of(context).showSnackBar(
-//           SnackBar(content: Text('Aucune grille tarifaire disponible')),
-//         );
-//       }
-//       return;
-//     }
-
-//     if (isSelfAssured) {
-//       // POUR MOI-MÊME
-//       Navigator.push(context, MaterialPageRoute(
-//         builder: (context) => SimulationScreen(
-//           produit: product,
-//           grilleTarifaireId: grilleId,
-//           assureEstSouscripteur: true,
-//           userId: authProvider.currentUser?.id,
-//         ),
-//       ));
-//     } else {
-//       // POUR AUTRE PERSONNE - Formulaire d'abord
-//       final informationsAssure = await Navigator.push<Map<String, dynamic>>(
-//         context,
-//         MaterialPageRoute(
-//           builder: (context) => InfoAssureScreen(produit: product),
-//         ),
-//       );
-
-//       if (informationsAssure != null && mounted) {
-//         Navigator.push(context, MaterialPageRoute(
-//           builder: (context) => SimulationScreen(
-//             produit: product,
-//             grilleTarifaireId: grilleId,
-//             assureEstSouscripteur: false,
-//             informationsAssure: informationsAssure,
-//           ),
-//         ));
-//       }
-//     }
-//   } catch (e) {
-//     if (mounted) {
-//       ScaffoldMessenger.of(context).showSnackBar(
-//         SnackBar(content: Text('Erreur: $e')),
-//       );
-//     }
-//   }
-// }
 
 }
 

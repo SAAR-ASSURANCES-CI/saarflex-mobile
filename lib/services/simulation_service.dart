@@ -14,10 +14,12 @@ class SimulationService {
 
 
 // // Ajoutez cette méthode dans la classe SimulationService
+
 Future<SimulationResponse> simulerDevisSimplifie({
   required String produitId,
   required Map<String, dynamic> criteres,
-  required Map<String, dynamic> donneesSupplementaires,
+  required bool assureEstSouscripteur,
+  Map<String, dynamic>? informationsAssure,
 }) async {
   try {
     final token = await StorageHelper.getToken();
@@ -29,35 +31,52 @@ Future<SimulationResponse> simulerDevisSimplifie({
       if (token != null) 'Authorization': 'Bearer $token',
     };
 
-    // Construction du corps avec données conditionnelles
-    final bodyData = {
-      'produit_id': produitId, // ← Utilisez produitId directement
-      'assure_est_souscripteur': donneesSupplementaires['assure_est_souscripteur'],
-      'criteres_utilisateur': _normaliserCriteres(criteres), // ← criteres directement
-      if (!donneesSupplementaires['assure_est_souscripteur'] && 
-          donneesSupplementaires['informations_assure'] != null)
-        'informations_assure': donneesSupplementaires['informations_assure'],
+    // Construction du payload
+    final payload = {
+      'produit_id': produitId,
+      'assure_est_souscripteur': assureEstSouscripteur,
+      'criteres_utilisateur': _normaliserCriteres(criteres),
     };
+
+    // Ajouter les infos assuré seulement si nécessaire
+    if (!assureEstSouscripteur && informationsAssure != null) {
+      payload['informations_assure'] = informationsAssure;
+    }
+
+    print('📤 Payload envoyé: ${json.encode(payload)}');
 
     final response = await http.post(
       url,
       headers: headers,
-      body: json.encode(bodyData),
+      body: json.encode(payload),
     );
 
-    if (response.statusCode == 201) {
-      return SimulationResponse.fromJson(json.decode(response.body));
+    print('📥 Réponse reçue - Status: ${response.statusCode}');
+    print('📥 Réponse reçue - Body: ${response.body}');
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final responseData = json.decode(response.body);
+      return SimulationResponse.fromJson(responseData);
     } else {
-      throw Exception('Erreur serveur');
+      final errorData = json.decode(response.body);
+      final errorMessage = errorData['message'] ?? 'Erreur de simulation (${response.statusCode})';
+      throw Exception(errorMessage);
     }
   } catch (e) {
+    print('❌ Erreur lors de la simulation: $e');
     throw Exception(_getUserFriendlyError(e));
   }
 }
-// Future<SimulationResponse> simulerDevisPourAutrePersonne({
+
+
+
+
+
+// Future<SimulationResponse> simulerDevisSimplifie({
 //   required String produitId,
 //   required Map<String, dynamic> criteres,
-//   required Map<String, dynamic> informationsAssure,
+//   required bool assureEstSouscripteur,
+//   Map<String, dynamic>? informationsAssure,
 // }) async {
 //   try {
 //     final token = await StorageHelper.getToken();
@@ -69,36 +88,82 @@ Future<SimulationResponse> simulerDevisSimplifie({
 //       if (token != null) 'Authorization': 'Bearer $token',
 //     };
 
-//     // ✅ Format exact comme Swagger
-//     final bodyData = {
+//     // Construction du payload CORRECT
+//     final payload = {
 //       'produit_id': produitId,
-//       'assure_est_souscripteur': false,
+//       'assure_est_souscripteur': assureEstSouscripteur,
 //       'criteres_utilisateur': _normaliserCriteres(criteres),
-//       'informations_assure': informationsAssure,
 //     };
 
-//     print('API Simulation Autre Personne - Données: ${json.encode(bodyData)}');
+//     // Ajouter les infos assuré seulement si nécessaire
+//     if (!assureEstSouscripteur && informationsAssure != null) {
+//       payload['informations_assure'] = informationsAssure;
+//     }
+
+//     print('📤 Payload envoyé: ${json.encode(payload)}');
 
 //     final response = await http.post(
 //       url,
 //       headers: headers,
-//       body: json.encode(bodyData),
+//       body: json.encode(payload),
 //     );
 
-//     print('Status: ${response.statusCode}');
-//     print('Réponse: ${response.body}');
-
-//     if (response.statusCode == 201) {  // ✅ 201 pour création
+//     if (response.statusCode == 200 || response.statusCode == 201) {
 //       return SimulationResponse.fromJson(json.decode(response.body));
 //     } else {
 //       final errorData = json.decode(response.body);
-//       throw Exception(errorData['message'] ?? 'Erreur simulation');
+//       throw Exception(errorData['message'] ?? 'Erreur de simulation');
 //     }
 //   } catch (e) {
-//     print('Erreur: $e');
 //     throw Exception(_getUserFriendlyError(e));
 //   }
 // }
+
+Future<SimulationResponse> simulerDevisCorrect({
+  required String produitId,
+  required Map<String, dynamic> criteres,
+  required bool assureEstSouscripteur,
+  Map<String, dynamic>? informationsAssure,
+}) async {
+  try {
+    final token = await StorageHelper.getToken();
+    final url = Uri.parse('${ApiConfig.baseUrl}/simulation-devis-simplifie');
+    
+    final headers = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      if (token != null) 'Authorization': 'Bearer $token',
+    };
+
+    // Payload CORRECT comme sur Swagger
+    final payload = {
+      'produit_id': produitId,
+      'assure_est_souscripteur': assureEstSouscripteur,
+      'criteres_utilisateur': _normaliserCriteres(criteres),
+    };
+
+    // Ajouter infos assuré seulement si nécessaire
+    if (!assureEstSouscripteur && informationsAssure != null) {
+      payload['informations_assure'] = informationsAssure;
+    }
+
+    final response = await http.post(
+      url,
+      headers: headers,
+      body: json.encode(payload),
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return SimulationResponse.fromJson(json.decode(response.body));
+    } else {
+      final errorData = json.decode(response.body);
+      throw Exception(errorData['message'] ?? 'Erreur de simulation');
+    }
+  } catch (e) {
+    throw Exception(_getUserFriendlyError(e));
+  }
+}
+
 
 // ✅ MÉTHODE AMÉLIORÉE pour normaliser les critères
 Map<String, dynamic> _normaliserCriteres(Map<String, dynamic> criteresOriginaux) {
@@ -108,13 +173,18 @@ Map<String, dynamic> _normaliserCriteres(Map<String, dynamic> criteresOriginaux)
     final String key = entry.key;
     final dynamic value = entry.value;
     
-    // Corriger les noms des critères
+    // ✅ NE PAS modifier les clés qui contiennent "age" ou "âge"
+    // Le backend les gère automatiquement
     String cleNormalisee = key;
     
+    // ❌ SUPPRIMEZ ce bloc si il existe :
+    // if (key.toLowerCase().contains('âge') || key.toLowerCase().contains('age')) {
+    //   cleNormalisee = 'Age Assuré'; // ← Le backend fait ça automatiquement
+    // }
+    
+    // Garder seulement la normalisation pour capital et durée
     if (key.toLowerCase().contains('capital')) {
       cleNormalisee = 'capital';
-    } else if (key.toLowerCase().contains('âge') || key.toLowerCase().contains('age')) {
-      cleNormalisee = 'Age assuré';
     } else if (key.toLowerCase().contains('durée') || key.toLowerCase().contains('duree')) {
       cleNormalisee = 'Durée de cotisation';
     }
@@ -123,21 +193,11 @@ Map<String, dynamic> _normaliserCriteres(Map<String, dynamic> criteresOriginaux)
     dynamic valeurNormalisee = value;
     
     if (value is num) {
-      // Pour l'âge: convertir en entier sans décimaux
-      if (key.toLowerCase().contains('age') || key.toLowerCase().contains('âge')) {
-        valeurNormalisee = value.toInt().toString(); // "40" au lieu de "40.0"
-      } else {
-        valeurNormalisee = value.toString();
-      }
+      valeurNormalisee = value.toString(); // Convertir en string
     } else if (value is String) {
       // Supprimer les espaces dans les montants
       if (key.toLowerCase().contains('capital')) {
         valeurNormalisee = value.replaceAll(' ', '');
-      }
-      // Pour l'âge: enlever les décimaux si présents
-      if ((key.toLowerCase().contains('age') || key.toLowerCase().contains('âge')) 
-          && valeurNormalisee.contains('.')) {
-        valeurNormalisee = valeurNormalisee.split('.')[0]; // "40" au lieu de "40.0"
       }
     }
     

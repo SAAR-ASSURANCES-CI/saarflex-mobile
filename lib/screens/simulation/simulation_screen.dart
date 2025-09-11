@@ -9,20 +9,18 @@ import 'simulation_result_screen.dart';
 
 class SimulationScreen extends StatefulWidget {
   final Product produit;
-  final String grilleTarifaireId;
   final bool assureEstSouscripteur;
   final String? userId;
   final Map<String, dynamic>? informationsAssure;
 
-  const SimulationScreen({
-    super.key,
-    required this.produit,
-    required this.grilleTarifaireId,
-    required this.assureEstSouscripteur,
-    this.userId,
-    this.informationsAssure,
-  });
-
+ const SimulationScreen({
+  super.key,
+  required this.produit,
+  required this.assureEstSouscripteur,
+  this.userId,
+  this.informationsAssure,
+  // SUPPRIMEZ grilleTarifaireId - le backend le trouve tout seul
+});
   @override
   State<SimulationScreen> createState() => _SimulationScreenState();
 }
@@ -425,16 +423,34 @@ void dispose() {
 
 
 
+// MODIFIEZ la méthode _simuler :
 Future<void> _simuler(SimulationProvider provider) async {
   try {
-    final Map<String, dynamic> donneesSupplementaires = {
-      'assure_est_souscripteur': widget.assureEstSouscripteur,
-      'user_id': widget.userId,
-      if (!widget.assureEstSouscripteur && widget.informationsAssure != null)
-        'informations_assure': widget.informationsAssure,
-    };
+    // ✅ TRANSFÉRER la date de naissance depuis informations_assure
+    Map<String, dynamic> infosAEnvoyer = {};
+    
+    if (widget.informationsAssure != null) {
+      // Copier toutes les infos assuré
+      infosAEnvoyer = Map.from(widget.informationsAssure!);
+      
+      // ✅ S'assurer que la date de naissance est au bon format
+      if (infosAEnvoyer.containsKey('date_naissance')) {
+        // Le backend attend le format "DD-MM-YYYY"
+        final dateNaissance = infosAEnvoyer['date_naissance'];
+        if (dateNaissance is DateTime) {
+          // Convertir DateTime en format "DD-MM-YYYY"
+          final day = dateNaissance.day.toString().padLeft(2, '0');
+          final month = dateNaissance.month.toString().padLeft(2, '0');
+          infosAEnvoyer['date_naissance'] = '$day-$month-${dateNaissance.year}';
+        }
+        // Si c'est déjà une string, laisser tel quel (déjà formaté)
+      }
+    }
 
-    await provider.simulerDevisSimplifie(donneesSupplementaires);
+    await provider.simulerDevisSimplifie(
+      assureEstSouscripteur: widget.assureEstSouscripteur,
+      informationsAssure: widget.informationsAssure != null ? infosAEnvoyer : null,
+    );
     
     if (!provider.hasError && provider.dernierResultat != null && mounted) {
       Navigator.push(
@@ -447,7 +463,6 @@ Future<void> _simuler(SimulationProvider provider) async {
         ),
       );
     } else if (provider.hasError) {
-      // Afficher l'erreur spécifique
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(provider.errorMessage ?? 'Erreur lors de la simulation'),
@@ -456,7 +471,6 @@ Future<void> _simuler(SimulationProvider provider) async {
       );
     }
   } catch (e) {
-    // Gestion d'erreur générale
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Une erreur inattendue s\'est produite: $e'),
