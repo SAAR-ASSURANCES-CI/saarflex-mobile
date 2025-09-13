@@ -47,8 +47,8 @@ class Saarflex extends StatelessWidget {
         GlobalCupertinoLocalizations.delegate,
       ],
       supportedLocales: [
-        const Locale('fr', 'FR'), // Français
-        const Locale('en', 'US'), // Anglais (optionnel)
+        const Locale('fr', 'FR'), 
+        const Locale('en', 'US'), 
       ],
       locale: const Locale('fr', 'FR'),
 

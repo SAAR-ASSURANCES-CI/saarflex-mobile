@@ -174,7 +174,6 @@ class SimulationProvider extends ChangeNotifier {
     notifyListeners();
   }
 
- // REMPLACEZ toute la méthode simulerDevis par ceci :
 Future<void> simulerDevisSimplifie({
   required bool assureEstSouscripteur,
   Map<String, dynamic>? informationsAssure,
@@ -206,43 +205,9 @@ Future<void> simulerDevisSimplifie({
   }
 }
 
-
-
-// Future<void> simulerDevisSimplifie({
-//   required bool assureEstSouscripteur,
-//   Map<String, dynamic>? informationsAssure,
-// }) async {
-  
-//   validateForm();
-  
-//   if (!isFormValid) {
-//     _setError('Veuillez corriger les erreurs dans le formulaire');
-//     return;
-//   }
-
-//   _setSimulating(true);
-//   _clearError();
-
-//   try {
-//     // ✅ Appeler la méthode CORRECTE du service
-//     _dernierResultat = await _simulationService.simulerDevisSimplifie(
-//       produitId: _produitId!,
-//       criteres: Map.from(_criteresReponses),
-//       assureEstSouscripteur: assureEstSouscripteur,
-//       informationsAssure: informationsAssure,
-//     );
-    
-//   } catch (e) {
-//     _setError(e.toString());
-//   } finally {
-//     _setSimulating(false);
-//   }
-// }
-
-
   Future<void> sauvegarderDevis({
     String? nomPersonnalise,
-    String? notes,
+    String? notes, required String devisId,
   }) async {
     if (_dernierResultat == null) {
       _setError('Aucun devis à sauvegarder');

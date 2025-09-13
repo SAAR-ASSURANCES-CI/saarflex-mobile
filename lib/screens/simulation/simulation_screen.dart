@@ -19,7 +19,6 @@ class SimulationScreen extends StatefulWidget {
   required this.assureEstSouscripteur,
   this.userId,
   this.informationsAssure,
-  // SUPPRIMEZ grilleTarifaireId - le backend le trouve tout seul
 });
   @override
   State<SimulationScreen> createState() => _SimulationScreenState();
@@ -423,27 +422,20 @@ void dispose() {
 
 
 
-// MODIFIEZ la méthode _simuler :
 Future<void> _simuler(SimulationProvider provider) async {
   try {
-    // ✅ TRANSFÉRER la date de naissance depuis informations_assure
     Map<String, dynamic> infosAEnvoyer = {};
     
     if (widget.informationsAssure != null) {
-      // Copier toutes les infos assuré
       infosAEnvoyer = Map.from(widget.informationsAssure!);
       
-      // ✅ S'assurer que la date de naissance est au bon format
       if (infosAEnvoyer.containsKey('date_naissance')) {
-        // Le backend attend le format "DD-MM-YYYY"
         final dateNaissance = infosAEnvoyer['date_naissance'];
         if (dateNaissance is DateTime) {
-          // Convertir DateTime en format "DD-MM-YYYY"
           final day = dateNaissance.day.toString().padLeft(2, '0');
           final month = dateNaissance.month.toString().padLeft(2, '0');
           infosAEnvoyer['date_naissance'] = '$day-$month-${dateNaissance.year}';
         }
-        // Si c'est déjà une string, laisser tel quel (déjà formaté)
       }
     }
 

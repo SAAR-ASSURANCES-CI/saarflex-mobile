@@ -13,7 +13,6 @@ class SimulationService {
 
 
 
-// // Ajoutez cette méthode dans la classe SimulationService
 
 Future<SimulationResponse> simulerDevisSimplifie({
   required String produitId,
@@ -31,14 +30,12 @@ Future<SimulationResponse> simulerDevisSimplifie({
       if (token != null) 'Authorization': 'Bearer $token',
     };
 
-    // Construction du payload
     final payload = {
       'produit_id': produitId,
       'assure_est_souscripteur': assureEstSouscripteur,
       'criteres_utilisateur': _normaliserCriteres(criteres),
     };
 
-    // Ajouter les infos assuré seulement si nécessaire
     if (!assureEstSouscripteur && informationsAssure != null) {
       payload['informations_assure'] = informationsAssure;
     }
@@ -67,58 +64,6 @@ Future<SimulationResponse> simulerDevisSimplifie({
     throw Exception(_getUserFriendlyError(e));
   }
 }
-
-
-
-
-
-// Future<SimulationResponse> simulerDevisSimplifie({
-//   required String produitId,
-//   required Map<String, dynamic> criteres,
-//   required bool assureEstSouscripteur,
-//   Map<String, dynamic>? informationsAssure,
-// }) async {
-//   try {
-//     final token = await StorageHelper.getToken();
-//     final url = Uri.parse('${ApiConfig.baseUrl}/simulation-devis-simplifie');
-    
-//     final headers = {
-//       'Content-Type': 'application/json',
-//       'Accept': 'application/json',
-//       if (token != null) 'Authorization': 'Bearer $token',
-//     };
-
-//     // Construction du payload CORRECT
-//     final payload = {
-//       'produit_id': produitId,
-//       'assure_est_souscripteur': assureEstSouscripteur,
-//       'criteres_utilisateur': _normaliserCriteres(criteres),
-//     };
-
-//     // Ajouter les infos assuré seulement si nécessaire
-//     if (!assureEstSouscripteur && informationsAssure != null) {
-//       payload['informations_assure'] = informationsAssure;
-//     }
-
-//     print('📤 Payload envoyé: ${json.encode(payload)}');
-
-//     final response = await http.post(
-//       url,
-//       headers: headers,
-//       body: json.encode(payload),
-//     );
-
-//     if (response.statusCode == 200 || response.statusCode == 201) {
-//       return SimulationResponse.fromJson(json.decode(response.body));
-//     } else {
-//       final errorData = json.decode(response.body);
-//       throw Exception(errorData['message'] ?? 'Erreur de simulation');
-//     }
-//   } catch (e) {
-//     throw Exception(_getUserFriendlyError(e));
-//   }
-// }
-
 Future<SimulationResponse> simulerDevisCorrect({
   required String produitId,
   required Map<String, dynamic> criteres,
@@ -135,14 +80,12 @@ Future<SimulationResponse> simulerDevisCorrect({
       if (token != null) 'Authorization': 'Bearer $token',
     };
 
-    // Payload CORRECT comme sur Swagger
     final payload = {
       'produit_id': produitId,
       'assure_est_souscripteur': assureEstSouscripteur,
       'criteres_utilisateur': _normaliserCriteres(criteres),
     };
 
-    // Ajouter infos assuré seulement si nécessaire
     if (!assureEstSouscripteur && informationsAssure != null) {
       payload['informations_assure'] = informationsAssure;
     }
@@ -165,7 +108,6 @@ Future<SimulationResponse> simulerDevisCorrect({
 }
 
 
-// ✅ MÉTHODE AMÉLIORÉE pour normaliser les critères
 Map<String, dynamic> _normaliserCriteres(Map<String, dynamic> criteresOriginaux) {
   final Map<String, dynamic> criteresNormalises = {};
   
@@ -173,29 +115,20 @@ Map<String, dynamic> _normaliserCriteres(Map<String, dynamic> criteresOriginaux)
     final String key = entry.key;
     final dynamic value = entry.value;
     
-    // ✅ NE PAS modifier les clés qui contiennent "age" ou "âge"
-    // Le backend les gère automatiquement
     String cleNormalisee = key;
+  
     
-    // ❌ SUPPRIMEZ ce bloc si il existe :
-    // if (key.toLowerCase().contains('âge') || key.toLowerCase().contains('age')) {
-    //   cleNormalisee = 'Age Assuré'; // ← Le backend fait ça automatiquement
-    // }
-    
-    // Garder seulement la normalisation pour capital et durée
     if (key.toLowerCase().contains('capital')) {
       cleNormalisee = 'capital';
     } else if (key.toLowerCase().contains('durée') || key.toLowerCase().contains('duree')) {
       cleNormalisee = 'Durée de cotisation';
     }
     
-    // Corriger les formats des valeurs
     dynamic valeurNormalisee = value;
     
     if (value is num) {
-      valeurNormalisee = value.toString(); // Convertir en string
+      valeurNormalisee = value.toString();
     } else if (value is String) {
-      // Supprimer les espaces dans les montants
       if (key.toLowerCase().contains('capital')) {
         valeurNormalisee = value.replaceAll(' ', '');
       }

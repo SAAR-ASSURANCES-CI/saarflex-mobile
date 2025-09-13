@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 class SimulationRequest {
   final String produitId;
   final String grilleTarifaireId;
@@ -18,7 +20,7 @@ class SimulationRequest {
         convertedCriteres[key] = value;
       }
     });
-    
+
     return {
       'produit_id': produitId,
       'grille_tarifaire_id': grilleTarifaireId,
@@ -40,9 +42,11 @@ class DetailsCalcul {
 
   factory DetailsCalcul.fromJson(Map<String, dynamic> json) {
     return DetailsCalcul(
-      formuleUtilisee: json['formule_utilisee'] ?? '',
-      variablesCalculees: json['variables_calculees'] ?? {},
-      explication: json['explication'] ?? '',
+      formuleUtilisee: json['formule_utilisee'] ?? 'Formule non spécifiée',
+      variablesCalculees: Map<String, dynamic>.from(
+        json['variables_calculees'] ?? {},
+      ),
+      explication: json['explication'] ?? 'Aucune explication disponible',
     );
   }
 
@@ -55,11 +59,7 @@ class DetailsCalcul {
   }
 }
 
-enum StatutDevis {
-  simulation,
-  sauvegarde,
-  expire,
-}
+enum StatutDevis { simulation, sauvegarde, expire }
 
 extension StatutDevisExtension on StatutDevis {
   String get label {
@@ -83,9 +83,33 @@ extension StatutDevisExtension on StatutDevis {
         return 'expire';
     }
   }
+
+  Color get color {
+    switch (this) {
+      case StatutDevis.simulation:
+        return Colors.orange;
+      case StatutDevis.sauvegarde:
+        return Colors.green;
+      case StatutDevis.expire:
+        return Colors.red;
+    }
+  }
 }
 
+extension DateTimeExtension on DateTime {
+  String formatDate() {
+    return '${day.toString().padLeft(2, '0')}/${month.toString().padLeft(2, '0')}/${year} à ${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
+  }
+}
 
+extension DoubleExtension on double {
+  String formatMontant() {
+    return toStringAsFixed(0).replaceAllMapped(
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+      (Match m) => '${m[1]} ',
+    );
+  }
+}
 
 class SimulationResponse {
   final String id;
@@ -96,13 +120,14 @@ class SimulationResponse {
   final double primeCalculee;
   final bool assureEstSouscripteur;
   final Map<String, dynamic>? informationsAssure;
-  final List<Map<String, dynamic>> beneficiaires; // Changé de Beneficiaire à Map
-  final double franchiseCalculee;
+  final List<Map<String, dynamic>> beneficiaires;
+  final DateTime createdAt;
+
+  final double? franchiseCalculee;
   final double? plafondCalcule;
-  final DetailsCalcul detailsCalcul;
+  final DetailsCalcul? detailsCalcul;
   final StatutDevis statut;
   final DateTime? expiresAt;
-  final DateTime createdAt;
 
   SimulationResponse({
     required this.id,
@@ -114,40 +139,53 @@ class SimulationResponse {
     required this.assureEstSouscripteur,
     this.informationsAssure,
     required this.beneficiaires,
-    required this.franchiseCalculee,
-    this.plafondCalcule,
-    required this.detailsCalcul,
-    required this.statut,
-    this.expiresAt,
     required this.createdAt,
+
+    this.franchiseCalculee = 0.0,
+    this.plafondCalcule, 
+    this.detailsCalcul,
+    this.statut = StatutDevis.simulation,
+    this.expiresAt,
   });
 
   factory SimulationResponse.fromJson(Map<String, dynamic> json) {
     try {
+      final periodicitePrime =
+          json['periodicite_prime']?.toString() ?? 'mensuel';
+
       return SimulationResponse(
         id: json['id']?.toString() ?? '',
         nomProduit: json['nom_produit']?.toString() ?? '',
         typeProduit: json['type_produit']?.toString() ?? '',
-        periodicitePrime: json['periodicite_prime']?.toString() ?? '',
-        criteresUtilisateur: Map<String, dynamic>.from(json['criteres_utilisateur'] ?? {}),
+        periodicitePrime: periodicitePrime,
+        criteresUtilisateur: Map<String, dynamic>.from(
+          json['criteres_utilisateur'] ?? {},
+        ),
         primeCalculee: _parseDouble(json['prime_calculee']),
         assureEstSouscripteur: json['assure_est_souscripteur'] ?? false,
-        informationsAssure: json['informations_assure'] != null 
+        informationsAssure: json['informations_assure'] != null
             ? Map<String, dynamic>.from(json['informations_assure'])
             : null,
         beneficiaires: (json['beneficiaires'] as List<dynamic>? ?? [])
-            .map((b) => Map<String, dynamic>.from(b)) // Conversion en Map
+            .map((b) => Map<String, dynamic>.from(b))
             .toList(),
-        franchiseCalculee: _parseDouble(json['franchise_calculee']),
-        plafondCalcule: json['plafond_calcule'] != null 
+        createdAt: DateTime.parse(
+          json['created_at'] ?? DateTime.now().toIso8601String(),
+        ),
+
+        franchiseCalculee: json['franchise_calculee'] != null
+            ? _parseDouble(json['franchise_calculee'])
+            : 0.0,
+        plafondCalcule: json['plafond_calcule'] != null
             ? _parseDouble(json['plafond_calcule'])
             : null,
-        detailsCalcul: DetailsCalcul.fromJson(json['details_calcul'] ?? {}),
+        detailsCalcul: json['details_calcul'] != null
+            ? DetailsCalcul.fromJson(json['details_calcul'])
+            : _createDefaultDetailsCalcul(json, periodicitePrime),
         statut: _parseStatutDevis(json['statut']),
-        expiresAt: json['expires_at'] != null 
-            ? DateTime.parse(json['expires_at']) 
+        expiresAt: json['expires_at'] != null
+            ? DateTime.tryParse(json['expires_at'])
             : null,
-        createdAt: DateTime.parse(json['created_at'] ?? DateTime.now().toIso8601String()),
       );
     } catch (e) {
       print('❌ Erreur parsing SimulationResponse: $e');
@@ -158,7 +196,7 @@ class SimulationResponse {
 
   static double _parseDouble(dynamic value) {
     if (value == null) return 0.0;
-    
+
     if (value is double) return value;
     if (value is int) return value.toDouble();
     if (value is String) {
@@ -166,17 +204,15 @@ class SimulationResponse {
           .replaceAll(' ', '')
           .replaceAll(',', '.')
           .replaceAll(RegExp(r'[^\d\.]'), '');
-      
+
       return double.tryParse(cleanedValue) ?? 0.0;
     }
-    
+
     return 0.0;
   }
 
   static StatutDevis _parseStatutDevis(String? statutString) {
     switch (statutString?.toLowerCase()) {
-      case 'simulation':
-        return StatutDevis.simulation;
       case 'sauvegarde':
         return StatutDevis.sauvegarde;
       case 'expire':
@@ -184,6 +220,52 @@ class SimulationResponse {
       default:
         return StatutDevis.simulation;
     }
+  }
+
+  static String _getPeriodiciteFormatee(String periodicite) {
+    switch (periodicite.toLowerCase()) {
+      case 'mensuel':
+        return 'mensuelle';
+      case 'annuel':
+        return 'annuelle';
+      case 'trimestriel':
+        return 'trimestrielle';
+      case 'semestriel':
+        return 'semestrielle';
+      default:
+        return periodicite;
+    }
+  }
+
+  static DetailsCalcul _createDefaultDetailsCalcul(
+    Map<String, dynamic> json,
+    String periodicitePrime,
+  ) {
+    final capital =
+        json['criteres_utilisateur']?['capital']?.toString() ?? 'N/A';
+    final duree =
+        json['criteres_utilisateur']?['Durée de cotisation']?.toString() ??
+        'N/A';
+    final age =
+        json['criteres_utilisateur']?['Age Assuré']?.toString() ?? 'N/A';
+    final prime = _parseDouble(json['prime_calculee']);
+    final periodiciteFormatee = _getPeriodiciteFormatee(periodicitePrime);
+
+    return DetailsCalcul(
+      formuleUtilisee: 'Calcul standard basé sur les tables actuarielles',
+      variablesCalculees: {
+        'capital': capital,
+        'duree_cotisation': duree,
+        'age_assure': age,
+        'prime_mensuelle': prime,
+      },
+      explication:
+          'Prime calculée sur la base des critères fournis:\n'
+          '• Capital: $capital FCFA\n'
+          '• Durée de cotisation: $duree ans\n'
+          '• Âge de l\'assuré: $age ans\n'
+          '• Prime $periodiciteFormatee: ${prime.toStringAsFixed(0)} FCFA',
+    );
   }
 
   Map<String, dynamic> toJson() {
@@ -199,8 +281,8 @@ class SimulationResponse {
       'beneficiaires': beneficiaires,
       'franchise_calculee': franchiseCalculee,
       'plafond_calcule': plafondCalcule,
-      'details_calcul': detailsCalcul.toJson(),
-      'statut': statut.toString().split('.').last, // Utilisation de toString au lieu de apiValue
+      'details_calcul': detailsCalcul?.toJson(),
+      'statut': statut.apiValue,
       'expires_at': expiresAt?.toIso8601String(),
       'created_at': createdAt.toIso8601String(),
     };
@@ -211,138 +293,26 @@ class SimulationResponse {
     return DateTime.now().isAfter(expiresAt!);
   }
 
+  String get periodicitePrimeFormatee {
+    return _getPeriodiciteFormatee(periodicitePrime);
+  }
+
   String get primeFormatee {
-    return '${primeCalculee.toStringAsFixed(0).replaceAllMapped(
-      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-      (Match m) => '${m[1]} ',
-    )} FCFA';
+    return '${primeCalculee.formatMontant()} FCFA';
   }
 
   String get franchiseFormatee {
-    return '${franchiseCalculee.toStringAsFixed(0).replaceAllMapped(
-      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-      (Match m) => '${m[1]} ',
-    )} FCFA';
+    if (franchiseCalculee == null || franchiseCalculee! <= 0) {
+      return 'Non applicable';
+    }
+    return '${franchiseCalculee!.formatMontant()} FCFA';
   }
 
   String? get plafondFormate {
     if (plafondCalcule == null) return null;
-    return '${plafondCalcule!.toStringAsFixed(0).replaceAllMapped(
-      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-      (Match m) => '${m[1]} ',
-    )} FCFA';
+    return '${plafondCalcule!.formatMontant()} FCFA';
   }
 }
-
-
-// class SimulationResponse {
-//   final String id;
-//   final double primeCalculee;
-//   final double franchiseCalculee;
-//   final double? plafondCalcule;
-//   final DetailsCalcul detailsCalcul;
-//   final StatutDevis statut;
-//   final DateTime? expiresAt;
-//   final DateTime createdAt;
-
-//   SimulationResponse({
-//     required this.id,
-//     required this.primeCalculee,
-//     required this.franchiseCalculee,
-//     this.plafondCalcule,
-//     required this.detailsCalcul,
-//     required this.statut,
-//     this.expiresAt,
-//     required this.createdAt,
-//   });
-
-//   factory SimulationResponse.fromJson(Map<String, dynamic> json) {
-//     return SimulationResponse(
-//       id: json['id'],
-//       primeCalculee: _parseDouble(json['prime_calculee']),
-//       franchiseCalculee: _parseDouble(json['franchise_calculee']),
-//       plafondCalcule: json['plafond_calcule'] != null 
-//           ? _parseDouble(json['plafond_calcule'])
-//           : null,
-//       detailsCalcul: DetailsCalcul.fromJson(json['details_calcul'] ?? {}),
-//       statut: _parseStatutDevis(json['statut']),
-//       expiresAt: json['expires_at'] != null 
-//           ? DateTime.parse(json['expires_at']) 
-//           : null,
-//       createdAt: DateTime.parse(json['created_at']),
-//     );
-//   }
-
-//   static double _parseDouble(dynamic value) {
-//     if (value == null) return 0.0;
-    
-//     if (value is double) return value;
-//     if (value is int) return value.toDouble();
-//     if (value is String) {
-//       final cleanedValue = value
-//           .replaceAll(' ', '')
-//           .replaceAll(',', '.')
-//           .replaceAll(RegExp(r'[^\d\.]'), '');
-      
-//       return double.tryParse(cleanedValue) ?? 0.0;
-//     }
-    
-//     return 0.0;
-//   }
-
-//   static StatutDevis _parseStatutDevis(String? statutString) {
-//     switch (statutString?.toLowerCase()) {
-//       case 'simulation':
-//         return StatutDevis.simulation;
-//       case 'sauvegarde':
-//         return StatutDevis.sauvegarde;
-//       case 'expire':
-//         return StatutDevis.expire;
-//       default:
-//         return StatutDevis.simulation;
-//     }
-//   }
-
-//   Map<String, dynamic> toJson() {
-//     return {
-//       'id': id,
-//       'prime_calculee': primeCalculee,
-//       'franchise_calculee': franchiseCalculee,
-//       'plafond_calcule': plafondCalcule,
-//       'details_calcul': detailsCalcul.toJson(),
-//       'statut': statut.apiValue,
-//       'expires_at': expiresAt?.toIso8601String(),
-//       'created_at': createdAt.toIso8601String(),
-//     };
-//   }
-
-//   bool get isExpired {
-//     if (expiresAt == null) return false;
-//     return DateTime.now().isAfter(expiresAt!);
-//   }
-
-//   String get primeFormatee {
-//     return '${primeCalculee.toStringAsFixed(0).replaceAllMapped(
-//       RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-//       (Match m) => '${m[1]} ',
-//     )} FCFA';
-//   }
-
-//   String get franchiseFormatee {
-//     return '${franchiseCalculee.toStringAsFixed(0).replaceAllMapped(
-//       RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-//       (Match m) => '${m[1]} ',
-//     )} FCFA';
-//   }
-
-//   String? get plafondFormate {
-//     if (plafondCalcule == null) return null;
-//     return '${plafondCalcule!.toStringAsFixed(0).replaceAllMapped(
-//       RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-//       (Match m) => '${m[1]} ',
-//     )} FCFA';
-//   }
-// }
 
 class SauvegardeDevisRequest {
   final String devisId;

@@ -59,7 +59,10 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
               ],
             ),
           ),
-          bottomNavigationBar: _buildBottomButtons(authProvider, simulationProvider),
+          bottomNavigationBar: _buildBottomButtons(
+            authProvider,
+            simulationProvider,
+          ),
         );
       },
     );
@@ -183,9 +186,7 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: widget.resultat.statut == StatutDevis.simulation
-                  ? Colors.orange.withOpacity(0.1)
-                  : Colors.green.withOpacity(0.1),
+              color: widget.resultat.statut.color.withOpacity(0.1),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
@@ -193,9 +194,7 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
               style: GoogleFonts.poppins(
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
-                color: widget.resultat.statut == StatutDevis.simulation
-                    ? Colors.orange[700]
-                    : Colors.green[700],
+                color: widget.resultat.statut.color,
               ),
             ),
           ),
@@ -211,10 +210,7 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            AppColors.primary,
-            AppColors.primary.withOpacity(0.8),
-          ],
+          colors: [AppColors.primary, AppColors.primary.withOpacity(0.8)],
         ),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
@@ -239,7 +235,7 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
           ),
           const SizedBox(height: 24),
           _buildResultItem(
-            'Prime annuelle',
+            'Prime ${widget.resultat.periodicitePrimeFormatee}',
             widget.resultat.primeFormatee,
             Icons.attach_money_rounded,
             isMainResult: true,
@@ -250,7 +246,7 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
             widget.resultat.franchiseFormatee,
             Icons.account_balance_wallet_rounded,
           ),
-          if (widget.resultat.plafondCalcule != null) ...[
+          if (widget.resultat.plafondFormate != null) ...[
             const SizedBox(height: 16),
             _buildResultItem(
               'Plafond de couverture',
@@ -263,7 +259,12 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
     );
   }
 
-  Widget _buildResultItem(String label, String value, IconData icon, {bool isMainResult = false}) {
+  Widget _buildResultItem(
+    String label,
+    String value,
+    IconData icon, {
+    bool isMainResult = false,
+  }) {
     return Row(
       children: [
         Container(
@@ -273,11 +274,7 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
             color: AppColors.white.withOpacity(0.2),
             borderRadius: BorderRadius.circular(20),
           ),
-          child: Icon(
-            icon,
-            color: AppColors.white,
-            size: 20,
-          ),
+          child: Icon(icon, color: AppColors.white, size: 20),
         ),
         const SizedBox(width: 16),
         Expanded(
@@ -346,7 +343,8 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            widget.resultat.detailsCalcul.explication,
+            widget.resultat.detailsCalcul?.explication ??
+                'Détails de calcul non disponibles',
             style: GoogleFonts.poppins(
               fontSize: 14,
               fontWeight: FontWeight.w400,
@@ -372,7 +370,7 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Ce devis expire le ${_formatDate(widget.resultat.expiresAt!)}',
+                      'Ce devis expire le ${widget.resultat.expiresAt!.formatDate()}',
                       style: GoogleFonts.poppins(
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
@@ -443,7 +441,10 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
     );
   }
 
-  Widget _buildBottomButtons(AuthProvider authProvider, SimulationProvider provider) {
+  Widget _buildBottomButtons(
+    AuthProvider authProvider,
+    SimulationProvider provider,
+  ) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -473,6 +474,16 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
                     );
                     return;
                   }
+
+                  provider.sauvegarderDevis(
+                    devisId: widget.resultat.id,
+                    nomPersonnalise: _nomController.text.isNotEmpty
+                        ? _nomController.text
+                        : null,
+                    notes: _notesController.text.isNotEmpty
+                        ? _notesController.text
+                        : null,
+                  );
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.secondary,
@@ -488,7 +499,9 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
                         width: 20,
                         height: 20,
                         child: CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(AppColors.white),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            AppColors.white,
+                          ),
                           strokeWidth: 2,
                         ),
                       )
@@ -534,10 +547,8 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
         backgroundColor: AppColors.primary,
       ),
     );
-    
-  }
 
-  String _formatDate(DateTime date) {
-    return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year} à ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+    // Navigation vers l'écran de souscription
+    // Navigator.push(context, MaterialPageRoute(builder: (context) => SouscriptionScreen(devis: widget.resultat)));
   }
 }

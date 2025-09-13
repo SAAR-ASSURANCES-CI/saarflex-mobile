@@ -30,7 +30,6 @@ class _InfoAssureScreenState extends State<InfoAssureScreen> {
   @override
   void initState() {
     super.initState();
-    // Écouter les changements pour valider le formulaire en temps réel
     _dateController.addListener(_validateForm);
   }
 
