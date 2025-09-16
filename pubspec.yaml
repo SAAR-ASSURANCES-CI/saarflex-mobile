@@ -48,6 +48,10 @@ dependencies:
   flutter_localization: ^0.3.3
   flutter_localizations:
     sdk: flutter
+  image_picker: ^1.2.0
+  file_picker: ^10.3.3
+  dio: ^5.9.0
+  http_parser: ^4.1.2
   
   
 

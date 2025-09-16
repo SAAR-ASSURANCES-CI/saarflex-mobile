@@ -96,7 +96,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             backgroundColor: Colors.transparent,
             elevation: 0,
             leading: IconButton(
-              icon: Icon(Icons.arrow_back_ios_rounded, color: AppColors.textPrimary),
+              icon: Icon(
+                Icons.arrow_back_ios_rounded,
+                color: AppColors.textPrimary,
+              ),
               onPressed: () => Navigator.pop(context),
             ),
             title: Text(
@@ -120,6 +123,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 _buildPersonalInfoSection(user),
                 const SizedBox(height: 20),
                 _buildIdentitySection(user),
+                const SizedBox(height: 20),
+                _buildIdentityImagesSection(user), 
                 const SizedBox(height: 32),
                 _buildActionButtons(),
                 const SizedBox(height: 20),
@@ -128,6 +133,90 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildIdentityImagesSection(User? user) {
+    return _buildSection(
+      title: "Pièce d'identité",
+      icon: Icons.photo_library_rounded,
+      children: [
+        if (user?.cheminRectoPiece != null &&
+            user!.cheminRectoPiece!.isNotEmpty)
+          _buildImageRow("Recto", user.cheminRectoPiece!)
+        else
+          _buildInfoRow("Recto", "Non téléchargé", isWarning: true),
+
+        const SizedBox(height: 12),
+
+        if (user?.cheminVersoPiece != null &&
+            user!.cheminVersoPiece!.isNotEmpty)
+          _buildImageRow("Verso", user.cheminVersoPiece!)
+        else
+          _buildInfoRow("Verso", "Non téléchargé", isWarning: true),
+      ],
+    );
+  }
+
+  Widget _buildImageRow(String label, String imageUrl) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: AppColors.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          GestureDetector(
+            onTap: () {
+              // Ouvrir l'image en plein écran
+              // Vous pouvez utiliser un package comme photo_view pour cela
+            },
+            child: Container(
+              height: 150,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.network(
+                  imageUrl,
+                  fit: BoxFit.cover,
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return Center(
+                      child: CircularProgressIndicator(
+                        value: loadingProgress.expectedTotalBytes != null
+                            ? loadingProgress.cumulativeBytesLoaded /
+                                  loadingProgress.expectedTotalBytes!
+                            : null,
+                      ),
+                    );
+                  },
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      color: AppColors.surfaceVariant,
+                      child: Icon(
+                        Icons.error_outline_rounded,
+                        color: AppColors.error,
+                        size: 40,
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -149,11 +238,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ],
           ),
-          child: Icon(
-            Icons.person_rounded, 
-            color: AppColors.white, 
-            size: 50
-          ),
+          child: Icon(Icons.person_rounded, color: AppColors.white, size: 50),
         ),
         const SizedBox(height: 16),
         Text(
@@ -190,10 +275,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         icon: const Icon(Icons.edit_rounded, size: 18),
         label: Text(
           "Modifier mon profil",
-          style: GoogleFonts.poppins(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
+          style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600),
         ),
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
@@ -217,8 +299,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _buildInfoRow("Email", user?.email ?? "Non renseigné"),
         _buildInfoRow("Téléphone", user?.telephone ?? "Non renseigné"),
         _buildInfoRow("Sexe", user?.sexe ?? "Non renseigné"),
-        _buildInfoRow("Date de naissance", _formatDate(user?.dateNaissance) ?? "Non renseignée"),
-        _buildInfoRow("Lieu de naissance", user?.lieuNaissance ?? "Non renseigné"),
+        _buildInfoRow(
+          "Date de naissance",
+          _formatDate(user?.dateNaissance) ?? "Non renseignée",
+        ),
+        _buildInfoRow(
+          "Lieu de naissance",
+          user?.lieuNaissance ?? "Non renseigné",
+        ),
         _buildInfoRow("Nationalité", user?.nationalite ?? "Non renseignée"),
         _buildInfoRow("Profession", user?.profession ?? "Non renseignée"),
         _buildInfoRow("Adresse", user?.adresse ?? "Non renseignée"),
@@ -281,11 +369,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     color: AppColors.primary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(
-                    icon,
-                    color: AppColors.primary,
-                    size: 20,
-                  ),
+                  child: Icon(icon, color: AppColors.primary, size: 20),
                 ),
                 const SizedBox(width: 12),
                 Text(
@@ -309,10 +393,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildInfoRow(String label, String value, {bool isExpirationDate = false}) {
+  Widget _buildInfoRow(
+    String label,
+    String value, {
+    bool isExpirationDate = false,
+    bool isWarning = false,
+  }) {
     Color? valueColor;
-    
-    if (isExpirationDate && value != "Non renseignée") {
+
+    if (isWarning) {
+      valueColor = AppColors.warning;
+    } else if (isExpirationDate && value != "Non renseignée") {
       try {
         final parts = value.split('/');
         if (parts.length == 3) {
@@ -322,7 +413,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           final expirationDate = DateTime(year, month, day);
           final now = DateTime.now();
           final daysUntilExpiration = expirationDate.difference(now).inDays;
-          
+
           if (daysUntilExpiration < 0) {
             valueColor = AppColors.error;
           } else if (daysUntilExpiration <= 30) {
@@ -367,6 +458,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                 ),
+                if (isWarning)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8),
+                    child: Tooltip(
+                      message: "À compléter",
+                      child: Icon(
+                        Icons.warning_rounded,
+                        color: AppColors.warning,
+                        size: 16,
+                      ),
+                    ),
+                  ),
                 if (isExpirationDate && valueColor == AppColors.warning)
                   Padding(
                     padding: const EdgeInsets.only(left: 8),

@@ -22,6 +22,8 @@ class User {
   final bool? profilComplet;
   final DateTime? dateNaissance;
   final DateTime? dateExpirationPiece;
+  final String ? cheminRectoPiece;
+  final String ? cheminVersoPiece;
 
   User({
     required this.id,
@@ -44,6 +46,8 @@ class User {
     this.profilComplet,
     this.dateNaissance,
     this.dateExpirationPiece,
+    this.cheminRectoPiece,
+    this.cheminVersoPiece,
   });
 
   static DateTime? _parseDate(dynamic dateValue, String fieldName) {
@@ -131,6 +135,8 @@ class User {
       profilComplet: json['profil_complet'],
       dateNaissance: _parseDate(json['date_naissance'], 'date_naissance'),
       dateExpirationPiece: _parseDate(json['date_expiration_piece_identite'], 'date_expiration_piece_identite'),
+      cheminRectoPiece: json['chemin_recto_piece'],
+      cheminVersoPiece: json['chemin_verso_piece']
     );
   }
 
@@ -156,6 +162,8 @@ class User {
       'profil_complet': profilComplet,
       'date_naissance': dateNaissance?.toIso8601String(),
       'date_expiration_piece_identite': dateExpirationPiece?.toIso8601String(),
+      'chemin_recto_piece': cheminRectoPiece,
+      'chemin_verso_piece': cheminVersoPiece,
     };
   }
 
@@ -180,6 +188,8 @@ class User {
     bool? profilComplet,
     DateTime? dateNaissance,
     DateTime? dateExpirationPiece,
+    String ? cheminRectoPiece,
+    String ? cheminVersoPiece,
   }) {
     return User(
       id: id ?? this.id,
@@ -202,6 +212,8 @@ class User {
       profilComplet: profilComplet ?? this.profilComplet,
       dateNaissance: dateNaissance ?? this.dateNaissance,
       dateExpirationPiece: dateExpirationPiece ?? this.dateExpirationPiece,
+      cheminRectoPiece: cheminRectoPiece ?? this.cheminRectoPiece,
+      cheminVersoPiece: cheminVersoPiece ?? this.cheminVersoPiece,
     );
   }
 
