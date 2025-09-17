@@ -36,6 +36,7 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
   Widget build(BuildContext context) {
     return Consumer2<SimulationProvider, AuthProvider>(
       builder: (context, simulationProvider, authProvider, child) {
+        _handleSaveMessages(simulationProvider);
         return Scaffold(
           backgroundColor: AppColors.background,
           appBar: _buildAppBar(),
@@ -66,6 +67,22 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
         );
       },
     );
+  }
+
+  // Ajoutez cette méthode pour gérer les messages
+  void _handleSaveMessages(SimulationProvider provider) {
+    if (provider.saveError != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(provider.saveError!),
+            backgroundColor: AppColors.error,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+        provider.clearSaveError();
+      });
+    }
   }
 
   PreferredSizeWidget _buildAppBar() {
@@ -388,6 +405,33 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
   }
 
   Widget _buildSaveSection(SimulationProvider provider) {
+    if (widget.resultat.statut == StatutDevis.sauvegarde) {
+      return Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: AppColors.success.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.success.withOpacity(0.3)),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.check_circle, color: AppColors.success, size: 24),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Ce devis a déjà été sauvegardé dans vos contrats',
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  color: AppColors.success,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -464,29 +508,14 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
           children: [
             if (authProvider.isLoggedIn) ...[
               ElevatedButton(
-                onPressed: () {
-                  if (widget.resultat.statut == StatutDevis.sauvegarde) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Ce devis a déjà été sauvegardé.'),
-                        backgroundColor: AppColors.error,
-                      ),
-                    );
-                    return;
-                  }
-
-                  provider.sauvegarderDevis(
-                    devisId: widget.resultat.id,
-                    nomPersonnalise: _nomController.text.isNotEmpty
-                        ? _nomController.text
-                        : null,
-                    notes: _notesController.text.isNotEmpty
-                        ? _notesController.text
-                        : null,
-                  );
-                },
+                onPressed: provider.isSaving
+                    ? null
+                    : () => _handleSaveQuote(provider),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.secondary,
+                  backgroundColor:
+                      widget.resultat.statut == StatutDevis.sauvegarde
+                      ? AppColors.textSecondary
+                      : AppColors.secondary,
                   foregroundColor: AppColors.white,
                   elevation: 0,
                   minimumSize: const Size(double.infinity, 50),
@@ -506,7 +535,9 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
                         ),
                       )
                     : Text(
-                        'Sauvegarder le devis',
+                        widget.resultat.statut == StatutDevis.sauvegarde
+                            ? 'Déjà sauvegardé'
+                            : 'Sauvegarder le devis',
                         style: GoogleFonts.poppins(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -538,6 +569,42 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
         ),
       ),
     );
+  }
+
+  void _handleSaveQuote(SimulationProvider provider) {
+    if (widget.resultat.statut == StatutDevis.sauvegarde) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Ce devis a déjà été sauvegardé.'),
+          backgroundColor: AppColors.info,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
+    provider
+        .sauvegarderDevis(
+          context: context,
+          devisId: widget.resultat.id,
+          nomPersonnalise: _nomController.text.isNotEmpty
+              ? _nomController.text.trim()
+              : null,
+          notes: _notesController.text.isNotEmpty
+              ? _notesController.text.trim()
+              : null,
+        )
+        .then((_) {
+          if (provider.saveError == null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Devis sauvegardé avec succès !'),
+                backgroundColor: AppColors.success,
+                duration: const Duration(seconds: 2),
+              ),
+            );
+          }
+        });
   }
 
   void _procederSouscription() {

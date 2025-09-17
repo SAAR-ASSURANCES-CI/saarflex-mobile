@@ -1,7 +1,12 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
 import '../models/simulation_model.dart';
 import '../models/critere_tarification_model.dart';
 import '../services/simulation_service.dart';
+import '../providers/auth_provider.dart'; 
+import '../constants/api_constants.dart';
 
 class SimulationProvider extends ChangeNotifier {
   final SimulationService _simulationService = SimulationService();
@@ -9,6 +14,8 @@ class SimulationProvider extends ChangeNotifier {
   bool _isLoadingCriteres = false;
   bool _isSimulating = false;
   bool _isSaving = false;
+  String? _saveError;
+  String? get saveError => _saveError;
 
   String? _produitId;
   String? _grilleTarifaireId;
@@ -174,63 +181,86 @@ class SimulationProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-Future<void> simulerDevisSimplifie({
-  required bool assureEstSouscripteur,
-  Map<String, dynamic>? informationsAssure,
-}) async {
-  
-  validateForm();
-  
-  if (!isFormValid) {
-    _setError('Veuillez corriger les erreurs dans le formulaire');
-    return;
-  }
-
-  _setSimulating(true);
-  _clearError();
-
-  try {
-    _dernierResultat = await _simulationService.simulerDevisSimplifie(
-      produitId: _produitId!,
-      criteres: Map.from(_criteresReponses),
-      assureEstSouscripteur: assureEstSouscripteur,
-      informationsAssure: informationsAssure,
-    );
-    
-  } catch (e) {
-    print('❌ Erreur dans le provider: $e');
-    _setError(e.toString());
-  } finally {
-    _setSimulating(false);
-  }
-}
-
-  Future<void> sauvegarderDevis({
-    String? nomPersonnalise,
-    String? notes, required String devisId,
+  Future<void> simulerDevisSimplifie({
+    required bool assureEstSouscripteur,
+    Map<String, dynamic>? informationsAssure,
   }) async {
-    if (_dernierResultat == null) {
-      _setError('Aucun devis à sauvegarder');
+    
+    validateForm();
+    
+    if (!isFormValid) {
+      _setError('Veuillez corriger les erreurs dans le formulaire');
       return;
     }
 
-    _setSaving(true);
+    _setSimulating(true);
     _clearError();
 
     try {
-      final request = SauvegardeDevisRequest(
-        devisId: _dernierResultat!.id,
-        nomPersonnalise: nomPersonnalise,
-        notes: notes,
+      _dernierResultat = await _simulationService.simulerDevisSimplifie(
+        produitId: _produitId!,
+        criteres: Map.from(_criteresReponses),
+        assureEstSouscripteur: assureEstSouscripteur,
+        informationsAssure: informationsAssure,
       );
-
-      await _simulationService.sauvegarderDevis(request);
       
     } catch (e) {
+      print('❌ Erreur dans le provider: $e');
       _setError(e.toString());
     } finally {
-      _setSaving(false);
+      _setSimulating(false);
     }
+  }
+
+  Future<void> sauvegarderDevis({
+    required String devisId,
+    String? nomPersonnalise,
+    String? notes,
+    required BuildContext context,
+  }) async {
+    _isSaving = true;
+    _saveError = null;
+    notifyListeners();
+
+    try {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final token = authProvider.authToken;
+      
+      if (token == null) {
+        _saveError = 'Utilisateur non connecté';
+        return;
+      }
+
+      final response = await http.post(
+        Uri.parse('${ApiConstants.baseUrl}/devis-sauvegardes'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: json.encode({
+          'devis_id': devisId,
+          if (nomPersonnalise != null) 'nom_personnalise': nomPersonnalise,
+          if (notes != null) 'notes': notes,
+        }),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        _saveError = null;
+      } else {
+        final errorData = json.decode(response.body);
+        _saveError = errorData['message'] ?? 'Erreur lors de la sauvegarde: ${response.statusCode}';
+      }
+    } catch (error) {
+      _saveError = 'Erreur de connexion: $error';
+    } finally {
+      _isSaving = false;
+      notifyListeners();
+    }
+  }
+
+  void clearSaveError() {
+    _saveError = null;
+    notifyListeners();
   }
 
   void resetSimulation() {
@@ -251,11 +281,6 @@ Future<void> simulerDevisSimplifie({
 
   void _setSimulating(bool simulating) {
     _isSimulating = simulating;
-    notifyListeners();
-  }
-
-  void _setSaving(bool saving) {
-    _isSaving = saving;
     notifyListeners();
   }
 
