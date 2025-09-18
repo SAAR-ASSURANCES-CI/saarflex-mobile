@@ -12,18 +12,18 @@ class User {
   final DateTime? dateCreation;
   final DateTime? updatedAt;
 
-  final String? lieuNaissance;
-  final String? sexe;
-  final String? nationalite;
+  final String? birthPlace;
+  final String? gender;
+  final String? nationality;
   final String? profession;
-  final String? adresse;
-  final String? numeroPieceIdentite;
-  final String? typePieceIdentite;
-  final bool? profilComplet;
-  final DateTime? dateNaissance;
-  final DateTime? dateExpirationPiece;
-  final String ? cheminRectoPiece;
-  final String ? cheminVersoPiece;
+  final String? address;
+  final String? identityNumber;
+  final String? identityType;
+  final bool? isProfileComplete;
+  final DateTime? birthDate;
+  final DateTime? identityExpirationDate;
+  final String? frontDocumentPath;
+  final String? backDocumentPath;
 
   User({
     required this.id,
@@ -36,56 +36,55 @@ class User {
     this.derniereConnexion,
     this.dateCreation,
     this.updatedAt,
-    this.lieuNaissance,
-    this.sexe,
-    this.nationalite,
+    this.birthPlace,
+    this.gender,
+    this.nationality,
     this.profession,
-    this.adresse,
-    this.numeroPieceIdentite,
-    this.typePieceIdentite,
-    this.profilComplet,
-    this.dateNaissance,
-    this.dateExpirationPiece,
-    this.cheminRectoPiece,
-    this.cheminVersoPiece,
+    this.address,
+    this.identityNumber,
+    this.identityType,
+    this.isProfileComplete,
+    this.birthDate,
+    this.identityExpirationDate,
+    this.frontDocumentPath,
+    this.backDocumentPath,
   });
 
   static DateTime? _parseDate(dynamic dateValue, String fieldName) {
     if (dateValue == null) {
       return null;
     }
-    
+
     try {
       String dateStr = dateValue.toString();
-      
+
       if (dateStr.contains('-') && dateStr.length == 10) {
         List<String> parts = dateStr.split('-');
         if (parts.length == 3) {
           int day = int.parse(parts[0]);
           int month = int.parse(parts[1]);
           int year = int.parse(parts[2]);
-          
+
           DateTime parsedDate = DateTime(year, month, day);
           return parsedDate;
         }
       }
-      
+
       if (dateStr.contains('/') && dateStr.length == 10) {
         List<String> parts = dateStr.split('/');
         if (parts.length == 3) {
           int day = int.parse(parts[0]);
           int month = int.parse(parts[1]);
           int year = int.parse(parts[2]);
-          
+
           DateTime parsedDate = DateTime(year, month, day);
           return parsedDate;
         }
       }
-      
+
       final parsedDate = DateTime.parse(dateStr);
       return parsedDate;
-      
-    } catch (e) {      
+    } catch (e) {
       try {
         String dateStr = dateValue.toString();
         if (dateStr.contains('-')) {
@@ -97,9 +96,9 @@ class User {
           DateTime parsedDate = formatter.parse(dateStr);
           return parsedDate;
         }
-      // ignore: empty_catches
-      } catch (e2) {      }
-      
+        // ignore: empty_catches
+      } catch (e2) {}
+
       return null;
     }
   }
@@ -125,18 +124,21 @@ class User {
       updatedAt: json['date_modification'] != null
           ? DateTime.parse(json['date_modification'])
           : null,
-      lieuNaissance: json['lieu_naissance'],
-      sexe: json['sexe'],
-      nationalite: json['nationalite'],
+      birthPlace: json['lieu_naissance'],
+      gender: json['sexe'],
+      nationality: json['nationalite'],
       profession: json['profession'],
-      adresse: json['adresse'],
-      numeroPieceIdentite: json['numero_piece_identite'],
-      typePieceIdentite: json['type_piece_identite'],
-      profilComplet: json['profil_complet'],
-      dateNaissance: _parseDate(json['date_naissance'], 'date_naissance'),
-      dateExpirationPiece: _parseDate(json['date_expiration_piece_identite'], 'date_expiration_piece_identite'),
-      cheminRectoPiece: json['chemin_recto_piece'],
-      cheminVersoPiece: json['chemin_verso_piece']
+      address: json['adresse'],
+      identityNumber: json['numero_piece_identite'],
+      identityType: json['type_piece_identite'],
+      isProfileComplete: json['profil_complet'],
+      birthDate: _parseDate(json['date_naissance'], 'date_naissance'),
+      identityExpirationDate: _parseDate(
+        json['date_expiration_piece_identite'],
+        'date_expiration_piece_identite',
+      ),
+      frontDocumentPath: json['chemin_recto_piece'],
+      backDocumentPath: json['chemin_verso_piece'],
     );
   }
 
@@ -152,18 +154,19 @@ class User {
       'dernière_connexion': derniereConnexion?.toIso8601String(),
       'date_creation': dateCreation?.toIso8601String(),
       'date_modification': updatedAt?.toIso8601String(),
-      'lieu_naissance': lieuNaissance,
-      'sexe': sexe,
-      'nationalite': nationalite,
+      'lieu_naissance': birthPlace,
+      'sexe': gender,
+      'nationalite': nationality,
       'profession': profession,
-      'adresse': adresse,
-      'numero_piece_identite': numeroPieceIdentite,
-      'type_piece_identite': typePieceIdentite,
-      'profil_complet': profilComplet,
-      'date_naissance': dateNaissance?.toIso8601String(),
-      'date_expiration_piece_identite': dateExpirationPiece?.toIso8601String(),
-      'chemin_recto_piece': cheminRectoPiece,
-      'chemin_verso_piece': cheminVersoPiece,
+      'adresse': address,
+      'numero_piece_identite': identityNumber,
+      'type_piece_identite': identityType,
+      'profil_complet': isProfileComplete,
+      'date_naissance': birthDate?.toIso8601String(),
+      'date_expiration_piece_identite': identityExpirationDate
+          ?.toIso8601String(),
+      'chemin_recto_piece': frontDocumentPath,
+      'chemin_verso_piece': backDocumentPath,
     };
   }
 
@@ -178,18 +181,18 @@ class User {
     DateTime? derniereConnexion,
     DateTime? dateCreation,
     DateTime? updatedAt,
-    String? lieuNaissance,
-    String? sexe,
-    String? nationalite,
+    String? birthPlace,
+    String? gender,
+    String? nationality,
     String? profession,
-    String? adresse,
-    String? numeroPieceIdentite,
-    String? typePieceIdentite,
-    bool? profilComplet,
-    DateTime? dateNaissance,
-    DateTime? dateExpirationPiece,
-    String ? cheminRectoPiece,
-    String ? cheminVersoPiece,
+    String? address,
+    String? identityNumber,
+    String? identityType,
+    bool? isProfileComplete,
+    DateTime? birthDate,
+    DateTime? identityExpirationDate,
+    String? frontDocumentPath,
+    String? backDocumentPath,
   }) {
     return User(
       id: id ?? this.id,
@@ -202,18 +205,19 @@ class User {
       derniereConnexion: derniereConnexion ?? this.derniereConnexion,
       dateCreation: dateCreation ?? this.dateCreation,
       updatedAt: updatedAt ?? this.updatedAt,
-      lieuNaissance: lieuNaissance ?? this.lieuNaissance,
-      sexe: sexe ?? this.sexe,
-      nationalite: nationalite ?? this.nationalite,
+      birthPlace: birthPlace ?? this.birthPlace,
+      gender: gender ?? this.gender,
+      nationality: nationality ?? this.nationality,
       profession: profession ?? this.profession,
-      adresse: adresse ?? this.adresse,
-      numeroPieceIdentite: numeroPieceIdentite ?? this.numeroPieceIdentite,
-      typePieceIdentite: typePieceIdentite ?? this.typePieceIdentite,
-      profilComplet: profilComplet ?? this.profilComplet,
-      dateNaissance: dateNaissance ?? this.dateNaissance,
-      dateExpirationPiece: dateExpirationPiece ?? this.dateExpirationPiece,
-      cheminRectoPiece: cheminRectoPiece ?? this.cheminRectoPiece,
-      cheminVersoPiece: cheminVersoPiece ?? this.cheminVersoPiece,
+      address: address ?? this.address,
+      identityNumber: identityNumber ?? this.identityNumber,
+      identityType: identityType ?? this.identityType,
+      isProfileComplete: isProfileComplete ?? this.isProfileComplete,
+      birthDate: birthDate ?? this.birthDate,
+      identityExpirationDate:
+          identityExpirationDate ?? this.identityExpirationDate,
+      frontDocumentPath: frontDocumentPath ?? this.frontDocumentPath,
+      backDocumentPath: backDocumentPath ?? this.backDocumentPath,
     );
   }
 
@@ -225,31 +229,32 @@ class User {
   bool get isDrh => typeUtilisateur == TypeUtilisateur.drh;
 
   bool get hasProfileData =>
-      lieuNaissance != null ||
-      sexe != null ||
-      nationalite != null ||
+      birthPlace != null ||
+      gender != null ||
+      nationality != null ||
       profession != null;
 
-  bool get isProfileComplete => profilComplet ?? _checkProfileComplete();
+  bool get isProfileCompleteValue =>
+      isProfileComplete ?? _checkProfileComplete();
 
   bool _checkProfileComplete() {
-    return lieuNaissance?.isNotEmpty == true &&
-        sexe?.isNotEmpty == true &&
-        nationalite?.isNotEmpty == true &&
+    return birthPlace?.isNotEmpty == true &&
+        gender?.isNotEmpty == true &&
+        nationality?.isNotEmpty == true &&
         profession?.isNotEmpty == true &&
-        adresse?.isNotEmpty == true &&
-        numeroPieceIdentite?.isNotEmpty == true &&
-        typePieceIdentite?.isNotEmpty == true;
+        address?.isNotEmpty == true &&
+        identityNumber?.isNotEmpty == true &&
+        identityType?.isNotEmpty == true;
   }
 
-  String get genderDisplay => sexe?.toLowerCase() == 'masculin'
+  String get genderDisplay => gender?.toLowerCase() == 'masculin'
       ? 'Masculin'
-      : sexe?.toLowerCase() == 'feminin'
+      : gender?.toLowerCase() == 'feminin'
       ? 'Féminin'
-      : sexe ?? 'Non renseigné';
+      : gender ?? 'Non renseigné';
 
   String get profileStatus =>
-      isProfileComplete ? 'Profil complet' : 'Profil incomplet';
+      isProfileCompleteValue ? 'Profil complet' : 'Profil incomplet';
 }
 
 enum TypeUtilisateur { client, agent, drh, admin }

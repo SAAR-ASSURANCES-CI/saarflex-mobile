@@ -491,7 +491,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           return;
         }
 
-        if (!currentUser.isProfileComplete) {
+        if (!(currentUser.isProfileComplete ?? false)) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Row(

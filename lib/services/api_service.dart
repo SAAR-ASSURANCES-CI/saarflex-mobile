@@ -49,52 +49,48 @@ class ApiService {
     try {
       final errorData = json.decode(responseBody);
       final apiMessage = errorData['message'];
-
-      switch (response.statusCode) {
-        case 400:
-          if (apiMessage is List) {
-            userMessage = apiMessage.join('\n');
-          } else {
-            userMessage = apiMessage ?? 'Données invalides';
-          }
-          break;
-        case 401:
-          userMessage = 'Email ou mot de passe incorrect';
-          break;
-        case 403:
-          userMessage = 'Accès interdit';
-          break;
-        case 404:
-          userMessage = 'Service non disponible';
-          break;
-        case 409:
-          userMessage = 'Un compte avec cet email existe déjà';
-          break;
-        case 422:
-          if (apiMessage is List) {
-            userMessage = apiMessage.join('\n');
-          } else {
-            userMessage = apiMessage ?? 'Erreur de validation';
-          }
-          break;
-        case 429:
-          userMessage =
-              'Trop de tentatives. Veuillez patienter quelques minutes';
-          break;
-        case 500:
-          userMessage = 'Erreur serveur. Veuillez réessayer plus tard';
-          break;
-        case 503:
-          userMessage = 'Service temporairement indisponible';
-          break;
-        default:
-          userMessage = 'Une erreur est survenue. Veuillez réessayer';
-      }
+      userMessage = _getErrorMessageForStatusCode(
+        response.statusCode,
+        apiMessage,
+      );
     } catch (e) {
       userMessage = _getDefaultErrorMessage(response.statusCode);
     }
 
     throw ApiException(userMessage, response.statusCode);
+  }
+
+  String _getErrorMessageForStatusCode(int statusCode, dynamic apiMessage) {
+    switch (statusCode) {
+      case 400:
+        return _formatValidationError(apiMessage, 'Données invalides');
+      case 401:
+        return 'Email ou mot de passe incorrect';
+      case 403:
+        return 'Accès interdit';
+      case 404:
+        return 'Service non disponible';
+      case 409:
+        return 'Un compte avec cet email existe déjà';
+      case 422:
+        return _formatValidationError(apiMessage, 'Erreur de validation');
+      case 429:
+        return 'Trop de tentatives. Veuillez patienter quelques minutes';
+      case 500:
+        return 'Erreur serveur. Veuillez réessayer plus tard';
+      case 503:
+        return 'Service temporairement indisponible';
+      default:
+        return 'Une erreur est survenue. Veuillez réessayer';
+    }
+  }
+
+  String _formatValidationError(dynamic apiMessage, String defaultMessage) {
+    if (apiMessage is List) {
+      return apiMessage.join('\n');
+    } else {
+      return apiMessage ?? defaultMessage;
+    }
   }
 
   String _getDefaultErrorMessage(int statusCode) {
@@ -181,7 +177,7 @@ class ApiService {
     required String password,
   }) async {
     try {
-      final url = '$baseUrl/users/login';
+      final url = '$baseUrl${ApiConstants.login}';
       final body = {'email': email, 'mot_de_passe': password};
 
       final response = await http.post(
@@ -252,7 +248,7 @@ class ApiService {
   }) async {
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/users/register'),
+        Uri.parse('$baseUrl${ApiConstants.register}'),
         headers: _defaultHeaders,
         body: json.encode({
           'nom': nom,
@@ -312,7 +308,7 @@ class ApiService {
   Future<void> logout() async {
     try {
       await http.post(
-        Uri.parse('$baseUrl/users/logout'),
+        Uri.parse('$baseUrl${ApiConstants.logout}'),
         headers: await _authHeaders,
       );
     } finally {
@@ -322,7 +318,7 @@ class ApiService {
 
   Future<User> getUserProfile() async {
     try {
-      final url = '$baseUrl/users/me';
+      final url = '$baseUrl${ApiConstants.updateProfile}';
 
       final response = await http.get(
         Uri.parse(url),
@@ -352,16 +348,16 @@ class ApiService {
           updatedAt: data['date_modification'] != null
               ? DateTime.parse(data['date_modification'])
               : null,
-          lieuNaissance: data['lieu_naissance'],
-          sexe: data['sexe'],
-          nationalite: data['nationalite'],
+          birthPlace: data['lieu_naissance'],
+          gender: data['sexe'],
+          nationality: data['nationalite'],
           profession: data['profession'],
-          adresse: data['adresse'],
-          numeroPieceIdentite: data['numero_piece_identite'],
-          typePieceIdentite: data['type_piece_identite'],
-          profilComplet: _checkIfProfilComplete(data),
-          dateNaissance: _parseDate(data['date_naissance'], 'date_naissance'),
-          dateExpirationPiece: _parseDate(
+          address: data['adresse'],
+          identityNumber: data['numero_piece_identite'],
+          identityType: data['type_piece_identite'],
+          isProfileComplete: _checkIfProfilComplete(data),
+          birthDate: _parseDate(data['date_naissance'], 'date_naissance'),
+          identityExpirationDate: _parseDate(
             data['date_expiration_piece_identite'],
             'date_expiration_piece_identite',
           ),
@@ -383,7 +379,7 @@ class ApiService {
 
   Future<User> updateProfile(Map<String, dynamic> userData) async {
     try {
-      final url = '$baseUrl/users/me';
+      final url = '$baseUrl${ApiConstants.updateProfile}';
 
       final response = await http.patch(
         Uri.parse(url),
@@ -412,16 +408,16 @@ class ApiService {
           updatedAt: data['date_modification'] != null
               ? DateTime.parse(data['date_modification'])
               : null,
-          lieuNaissance: data['lieu_naissance'],
-          sexe: data['sexe'],
-          nationalite: data['nationalite'],
+          birthPlace: data['lieu_naissance'],
+          gender: data['sexe'],
+          nationality: data['nationalite'],
           profession: data['profession'],
-          adresse: data['adresse'],
-          numeroPieceIdentite: data['numero_piece_identite'],
-          typePieceIdentite: data['type_piece_identite'],
-          profilComplet: _checkIfProfilComplete(data),
-          dateNaissance: _parseDate(data['date_naissance'], 'date_naissance'),
-          dateExpirationPiece: _parseDate(
+          address: data['adresse'],
+          identityNumber: data['numero_piece_identite'],
+          identityType: data['type_piece_identite'],
+          isProfileComplete: _checkIfProfilComplete(data),
+          birthDate: _parseDate(data['date_naissance'], 'date_naissance'),
+          identityExpirationDate: _parseDate(
             data['date_expiration_piece_identite'],
             'date_expiration_piece_identite',
           ),
@@ -470,7 +466,7 @@ class ApiService {
   Future<bool> checkProfileStatus() async {
     try {
       User user = await getUserProfile();
-      return user.profilComplet ?? false;
+      return user.isProfileComplete ?? false;
     } catch (e) {
       return false;
     }

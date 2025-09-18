@@ -252,54 +252,14 @@ class AuthProvider extends ChangeNotifier {
     _clearUploadError();
 
     try {
-      if (_authToken == null) {
-        throw Exception('Utilisateur non authentifié');
-      }
+      _validateAuthToken();
+      final request = await _createUploadRequest(imageFile, type);
+      final response = await _sendUploadRequest(request);
+      final imageUrl = await _extractImageUrl(response);
+      final success = await _updateProfileWithImageUrl(imageUrl, type);
 
-      var request = http.MultipartRequest(
-        'POST',
-        Uri.parse('${ApiConstants.baseUrl}/users/upload-piece-identite'),
-      );
-
-      request.headers['Authorization'] = 'Bearer $_authToken';
-
-      request.files.add(
-        await http.MultipartFile.fromPath(
-          'file',
-          imageFile.path,
-          filename: path.basename(imageFile.path),
-          contentType: MediaType('image', 'jpeg'),
-        ),
-      );
-
-      request.fields['type'] = type;
-
-      final response = await request.send();
-      final responseBody = await response.stream.bytesToString();
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final responseData = json.decode(responseBody);
-        final imageUrl = responseData['data']?['url'] ?? responseData['url'];
-
-        if (imageUrl == null) {
-          throw Exception('URL de l\'image non reçue du serveur');
-        }
-
-        final fieldName = type == 'recto'
-            ? 'chemin_recto_piece'
-            : 'chemin_verso_piece';
-        final success = await updateProfile({fieldName: imageUrl});
-
-        _setUploading(false);
-        return success;
-      } else {
-        AppLogger.error(
-          'Erreur upload document: ${response.statusCode} - $responseBody',
-        );
-        final errorData = json.decode(responseBody);
-        final errorMessage = errorData['message'] ?? 'Erreur lors de l\'upload';
-        throw Exception('$errorMessage (${response.statusCode})');
-      }
+      _setUploading(false);
+      return success;
     } on ApiException catch (e) {
       _setUploadError(_getErrorMessage(e));
       _setUploading(false);
@@ -309,6 +269,70 @@ class AuthProvider extends ChangeNotifier {
       _setUploading(false);
       return false;
     }
+  }
+
+  void _validateAuthToken() {
+    if (_authToken == null) {
+      throw Exception('Utilisateur non authentifié');
+    }
+  }
+
+  Future<http.MultipartRequest> _createUploadRequest(
+    File imageFile,
+    String type,
+  ) async {
+    final request = http.MultipartRequest(
+      'POST',
+      Uri.parse('${ApiConstants.baseUrl}${ApiConstants.uploadDocument}'),
+    );
+
+    request.headers['Authorization'] = 'Bearer $_authToken';
+    request.files.add(
+      await http.MultipartFile.fromPath(
+        'file',
+        imageFile.path,
+        filename: path.basename(imageFile.path),
+        contentType: MediaType('image', 'jpeg'),
+      ),
+    );
+    request.fields['type'] = type;
+
+    return request;
+  }
+
+  Future<http.StreamedResponse> _sendUploadRequest(
+    http.MultipartRequest request,
+  ) async {
+    return await request.send();
+  }
+
+  Future<String> _extractImageUrl(http.StreamedResponse response) async {
+    final responseBody = await response.stream.bytesToString();
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final responseData = json.decode(responseBody);
+      final imageUrl = responseData['data']?['url'] ?? responseData['url'];
+
+      if (imageUrl == null) {
+        throw Exception('URL de l\'image non reçue du serveur');
+      }
+
+      return imageUrl;
+    } else {
+      AppLogger.error(
+        'Erreur upload document: ${response.statusCode} - $responseBody',
+      );
+      final errorData = json.decode(responseBody);
+      final errorMessage = errorData['message'] ?? 'Erreur lors de l\'upload';
+      throw Exception('$errorMessage (${response.statusCode})');
+    }
+  }
+
+  Future<bool> _updateProfileWithImageUrl(String imageUrl, String type) async {
+    final fieldName = type == 'recto'
+        ? 'chemin_recto_piece'
+        : 'chemin_verso_piece';
+    return await updateProfile({fieldName: imageUrl});
   }
 
   Future<bool> deleteIdentityDocument(String type) async {
@@ -331,10 +355,10 @@ class AuthProvider extends ChangeNotifier {
   }
 
   bool hasCompleteIdentityDocuments() {
-    return _currentUser?.cheminRectoPiece != null &&
-        _currentUser?.cheminRectoPiece!.isNotEmpty == true &&
-        _currentUser?.cheminVersoPiece != null &&
-        _currentUser?.cheminVersoPiece!.isNotEmpty == true;
+    return _currentUser?.frontDocumentPath != null &&
+        _currentUser?.frontDocumentPath!.isNotEmpty == true &&
+        _currentUser?.backDocumentPath != null &&
+        _currentUser?.backDocumentPath!.isNotEmpty == true;
   }
 
   void clearError() {

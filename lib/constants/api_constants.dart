@@ -13,8 +13,9 @@ class ApiConstants {
   static const String logout = '/users/logout';
   static const String forgotPassword = '/users/forgot-password';
   static const String verifyOtp = '/users/verify-otp';
-  static const String resetPasswordFinal = '/users/reset-password';
+  static const String resetPassword = '/users/reset-password';
   static const String updateProfile = '/users/me';
+  static const String uploadDocument = '/users/upload-piece-identite';
 
   static const Duration connectTimeout = Duration(seconds: 30);
   static const Duration receiveTimeout = Duration(seconds: 30);

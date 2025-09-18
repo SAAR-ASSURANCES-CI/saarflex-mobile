@@ -124,7 +124,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const SizedBox(height: 20),
                 _buildIdentitySection(user),
                 const SizedBox(height: 20),
-                _buildIdentityImagesSection(user), 
+                _buildIdentityImagesSection(user),
                 const SizedBox(height: 32),
                 _buildActionButtons(),
                 const SizedBox(height: 20),
@@ -141,17 +141,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
       title: "Pièce d'identité",
       icon: Icons.photo_library_rounded,
       children: [
-        if (user?.cheminRectoPiece != null &&
-            user!.cheminRectoPiece!.isNotEmpty)
-          _buildImageRow("Recto", user.cheminRectoPiece!)
+        if (user?.frontDocumentPath != null &&
+            user!.frontDocumentPath!.isNotEmpty)
+          _buildImageRow("Recto", user.frontDocumentPath!)
         else
           _buildInfoRow("Recto", "Non téléchargé", isWarning: true),
 
         const SizedBox(height: 12),
 
-        if (user?.cheminVersoPiece != null &&
-            user!.cheminVersoPiece!.isNotEmpty)
-          _buildImageRow("Verso", user.cheminVersoPiece!)
+        if (user?.backDocumentPath != null &&
+            user!.backDocumentPath!.isNotEmpty)
+          _buildImageRow("Verso", user.backDocumentPath!)
         else
           _buildInfoRow("Verso", "Non téléchargé", isWarning: true),
       ],
@@ -298,18 +298,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _buildInfoRow("Nom", user?.nom ?? "Non renseigné"),
         _buildInfoRow("Email", user?.email ?? "Non renseigné"),
         _buildInfoRow("Téléphone", user?.telephone ?? "Non renseigné"),
-        _buildInfoRow("Sexe", user?.sexe ?? "Non renseigné"),
+        _buildInfoRow("Sexe", user?.gender ?? "Non renseigné"),
         _buildInfoRow(
           "Date de naissance",
-          _formatDate(user?.dateNaissance) ?? "Non renseignée",
+          _formatDate(user?.birthDate) ?? "Non renseignée",
         ),
-        _buildInfoRow(
-          "Lieu de naissance",
-          user?.lieuNaissance ?? "Non renseigné",
-        ),
-        _buildInfoRow("Nationalité", user?.nationalite ?? "Non renseignée"),
+        _buildInfoRow("Lieu de naissance", user?.birthPlace ?? "Non renseigné"),
+        _buildInfoRow("Nationalité", user?.nationality ?? "Non renseignée"),
         _buildInfoRow("Profession", user?.profession ?? "Non renseignée"),
-        _buildInfoRow("Adresse", user?.adresse ?? "Non renseignée"),
+        _buildInfoRow("Adresse", user?.address ?? "Non renseignée"),
       ],
     );
   }
@@ -321,15 +318,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
       children: [
         _buildInfoRow(
           "Type de pièce",
-          _getTypePieceIdentiteLabel(user?.typePieceIdentite),
+          _getTypePieceIdentiteLabel(user?.identityType),
         ),
         _buildInfoRow(
           "Numéro de pièce",
-          user?.numeroPieceIdentite ?? "Non renseigné",
+          user?.identityNumber ?? "Non renseigné",
         ),
         _buildInfoRow(
           "Date d'expiration",
-          _formatDate(user?.dateExpirationPiece) ?? "Non renseignée",
+          _formatDate(user?.identityExpirationDate) ?? "Non renseignée",
           isExpirationDate: true,
         ),
       ],

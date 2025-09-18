@@ -168,22 +168,21 @@ if (_versoImage != null) {
       _firstNameController.text = user.nom;
       _emailController.text = user.email;
       _phoneController.text = user.telephone ?? '';
-      _birthPlaceController.text = user.lieuNaissance ?? '';
-      _nationalityController.text = user.nationalite ?? '';
+      _birthPlaceController.text = user.birthPlace ?? '';
+      _nationalityController.text = user.nationality ?? '';
       _professionController.text = user.profession ?? '';
-      _addressController.text = user.adresse ?? '';
-      _idNumberController.text = user.numeroPieceIdentite ?? '';
+      _addressController.text = user.address ?? '';
+      _idNumberController.text = user.identityNumber ?? '';
 
-      _selectedBirthDate = user.dateNaissance;
-      _selectedExpirationDate = user.dateExpirationPiece;
+      _selectedBirthDate = user.birthDate;
+      _selectedExpirationDate = user.identityExpirationDate;
 
-      if (user.sexe != null && user.sexe!.isNotEmpty) {
-        _selectedGender = user.sexe == 'masculin' ? 'Masculin' : 'Féminin';
+      if (user.gender != null && user.gender!.isNotEmpty) {
+        _selectedGender = user.gender == 'masculin' ? 'Masculin' : 'Féminin';
       }
 
-      if (user.typePieceIdentite != null &&
-          user.typePieceIdentite!.isNotEmpty) {
-        _selectedIdType = _getTypePieceIdentiteLabel(user.typePieceIdentite!);
+      if (user.identityType != null && user.identityType!.isNotEmpty) {
+        _selectedIdType = _getTypePieceIdentiteLabel(user.identityType!);
       } else {
         _selectedIdType = null;
       }
@@ -192,16 +191,16 @@ if (_versoImage != null) {
         'nom': user.nom,
         'email': user.email,
         'telephone': user.telephone ?? '',
-        'lieu_naissance': user.lieuNaissance ?? '',
-        'nationalite': user.nationalite ?? '',
+        'lieu_naissance': user.birthPlace ?? '',
+        'nationalite': user.nationality ?? '',
         'profession': user.profession ?? '',
-        'adresse': user.adresse ?? '',
-        'numero_piece_identite': user.numeroPieceIdentite ?? '',
+        'adresse': user.address ?? '',
+        'numero_piece_identite': user.identityNumber ?? '',
         'sexe': _selectedGender,
         'type_piece_identite': _selectedIdType,
-        'date_naissance': user.dateNaissance, // Stocker comme DateTime
+        'date_naissance': user.birthDate, // Stocker comme DateTime
         'date_expiration_piece_identite':
-            user.dateExpirationPiece, // Stocker comme DateTime
+            user.identityExpirationDate, // Stocker comme DateTime
         // 'recto_image': null,
         // 'verso_image': null,
       };
@@ -766,7 +765,7 @@ if (_versoImage != null) {
       children: [
         _buildImageUploadField(
           label: 'Recto de la pièce',
-          imageUrl: user?.cheminRectoPiece,
+          imageUrl: user?.frontDocumentPath,
           isUploading: _isUploadingRecto,
           onTap: () => _pickImage(true),
           selectedImage: _rectoImage,
@@ -774,7 +773,7 @@ if (_versoImage != null) {
         const SizedBox(height: 20),
         _buildImageUploadField(
           label: 'Verso de la pièce',
-          imageUrl: user?.cheminVersoPiece,
+          imageUrl: user?.backDocumentPath,
           isUploading: _isUploadingVerso,
           onTap: () => _pickImage(false),
           selectedImage: _versoImage,
