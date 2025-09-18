@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:saarflex_app/providers/simulation_provider.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'providers/auth_provider.dart';
 import 'providers/user_provider.dart';
@@ -19,7 +20,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   runApp(const Saarflex());
-}
+} 
 
 class Saarflex extends StatelessWidget {
   const Saarflex({super.key});
@@ -37,8 +38,19 @@ class Saarflex extends StatelessWidget {
         ChangeNotifierProvider<SimulationProvider>(create: (_) => SimulationProvider()),
       ],
       child: MaterialApp(
-        title: 'SAAR Assurance',
+        title: 'SAAR Assurances',
         debugShowCheckedModeBanner: false,
+
+         localizationsDelegates: [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: [
+        const Locale('fr', 'FR'), 
+        const Locale('en', 'US'), 
+      ],
+      locale: const Locale('fr', 'FR'),
 
         theme: ThemeData(
           primarySwatch: Colors.blue,

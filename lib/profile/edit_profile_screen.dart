@@ -1,13 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:saarflex_app/models/product_model.dart';
 import 'package:saarflex_app/providers/auth_provider.dart';
 import 'package:intl/intl.dart';
+import 'package:saarflex_app/screens/simulation/simulation_screen.dart';
 import '../../constants/colors.dart';
 import '../../utils/error_handler.dart';
 
 class EditProfileScreen extends StatefulWidget {
-  const EditProfileScreen({super.key});
+  final VoidCallback? onProfileCompleted;
+  final Product? produit; 
+
+  const EditProfileScreen({super.key, this.onProfileCompleted, this.produit});
+  
 
   @override
   State<EditProfileScreen> createState() => _EditProfileScreenState();
@@ -24,9 +30,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final _addressController = TextEditingController();
   final _idNumberController = TextEditingController();
 
-  String _selectedGender = 'Masculin';
-  String _selectedIdType = 'Carte Nationale d\'Identité';
-  
+  String? _selectedGender;
+  String? _selectedIdType;
+
   DateTime? _selectedBirthDate;
   DateTime? _selectedExpirationDate;
 
@@ -49,6 +55,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     super.initState();
     _loadUserData();
     _addListeners();
+    
   }
 
   void _addListeners() {
@@ -62,53 +69,50 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _idNumberController.addListener(_checkForChanges);
   }
 
+  void _checkForChanges() {
+    String? currentBirthDate;
+    String? currentExpirationDate;
 
+    if (_selectedBirthDate != null) {
+      currentBirthDate = DateFormat('dd-MM-yyyy').format(_selectedBirthDate!);
+    }
 
+    if (_selectedExpirationDate != null) {
+      currentExpirationDate = DateFormat(
+        'dd-MM-yyyy',
+      ).format(_selectedExpirationDate!);
+    }
 
+    final currentData = {
+      'nom': _firstNameController.text.trim(),
+      'email': _emailController.text.trim(),
+      'telephone': _phoneController.text.trim(),
+      'lieu_naissance': _birthPlaceController.text.trim(),
+      'nationalite': _nationalityController.text.trim(),
+      'profession': _professionController.text.trim(),
+      'adresse': _addressController.text.trim(),
+      'numero_piece_identite': _idNumberController.text.trim(),
+      'sexe': _selectedGender,
+      'type_piece_identite': _selectedIdType,
+      'date_naissance': currentBirthDate,
+      'date_expiration_piece_identite': currentExpirationDate,
+    };
 
-void _checkForChanges() {
-  String? currentBirthDate;
-  String? currentExpirationDate;
-  
-  if (_selectedBirthDate != null) {
-    currentBirthDate = DateFormat('dd-MM-yyyy').format(_selectedBirthDate!);
-  }
-  
-  if (_selectedExpirationDate != null) {
-    currentExpirationDate = DateFormat('dd-MM-yyyy').format(_selectedExpirationDate!);
-  }
+    bool hasChanged = false;
+    for (String key in currentData.keys) {
+      if (currentData[key] != _originalData[key]) {
+        hasChanged = true;
+        break;
+      }
+    }
 
-  final currentData = {
-    'nom': _firstNameController.text.trim(),
-    'email': _emailController.text.trim(),
-    'telephone': _phoneController.text.trim(),
-    'lieu_naissance': _birthPlaceController.text.trim(),
-    'nationalite': _nationalityController.text.trim(),
-    'profession': _professionController.text.trim(),
-    'adresse': _addressController.text.trim(),
-    'numero_piece_identite': _idNumberController.text.trim(),
-    'sexe': _selectedGender,
-    'type_piece_identite': _selectedIdType,
-    'date_naissance': currentBirthDate,
-    'date_expiration_piece_identite': currentExpirationDate,
-  };
-
-  bool hasChanged = false;
-  for (String key in currentData.keys) {
-    if (currentData[key] != _originalData[key]) {
-      hasChanged = true;
-      break;
+    if (_hasChanges != hasChanged) {
+      setState(() {
+        _hasChanges = hasChanged;
+        _fieldErrors.clear();
+      });
     }
   }
-
-  if (_hasChanges != hasChanged) {
-    setState(() {
-      _hasChanges = hasChanged;
-      _fieldErrors.clear();
-    });
-  }
-}
-
 
   void _onDropdownChanged() {
     _checkForChanges();
@@ -118,61 +122,66 @@ void _checkForChanges() {
     _checkForChanges();
   }
 
+  void _loadUserData() {
+    final authProvider = context.read<AuthProvider>();
+    final user = authProvider.currentUser;
 
+    if (user != null) {
+      _firstNameController.text = user.nom;
+      _emailController.text = user.email;
+      _phoneController.text = user.telephone ?? '';
+      _birthPlaceController.text = user.lieuNaissance ?? '';
+      _nationalityController.text = user.nationalite ?? '';
+      _professionController.text = user.profession ?? '';
+      _addressController.text = user.adresse ?? '';
+      _idNumberController.text = user.numeroPieceIdentite ?? '';
 
+      _selectedBirthDate = user.dateNaissance;
+      _selectedExpirationDate = user.dateExpirationPiece;
 
-void _loadUserData() {
-  final authProvider = context.read<AuthProvider>();
-  final user = authProvider.currentUser;
+      if (user.sexe != null && user.sexe!.isNotEmpty) {
+        _selectedGender = user.sexe == 'masculin' ? 'Masculin' : 'Féminin';
+      } else { 
+      }
 
-  if (user != null) {
-    _firstNameController.text = user.nom;
-    _emailController.text = user.email;
-    _phoneController.text = user.telephone ?? '';
-    _birthPlaceController.text = user.lieuNaissance ?? '';
-    _nationalityController.text = user.nationalite ?? '';
-    _professionController.text = user.profession ?? '';
-    _addressController.text = user.adresse ?? '';
-    _idNumberController.text = user.numeroPieceIdentite ?? '';
+      if (user.typePieceIdentite != null &&
+          user.typePieceIdentite!.isNotEmpty) {
+        _selectedIdType = _getTypePieceIdentiteLabel(user.typePieceIdentite!);
+      } else {
+        _selectedIdType = null; 
+      }
 
-    _selectedBirthDate = user.dateNaissance;
-    _selectedExpirationDate = user.dateExpirationPiece;
+      String? originalBirthDate;
+      String? originalExpirationDate;
 
-    if (user.sexe != null) {
-      _selectedGender = user.sexe == 'masculin' ? 'Masculin' : 'Féminin';
+      if (user.dateNaissance != null) {
+        originalBirthDate = DateFormat(
+          'dd-MM-yyyy',
+        ).format(user.dateNaissance!);
+      }
+
+      if (user.dateExpirationPiece != null) {
+        originalExpirationDate = DateFormat(
+          'dd-MM-yyyy',
+        ).format(user.dateExpirationPiece!);
+      }
+
+      _originalData = {
+        'nom': user.nom,
+        'email': user.email,
+        'telephone': user.telephone ?? '',
+        'lieu_naissance': user.lieuNaissance ?? '',
+        'nationalite': user.nationalite ?? '',
+        'profession': user.profession ?? '',
+        'adresse': user.adresse ?? '',
+        'numero_piece_identite': user.numeroPieceIdentite ?? '',
+        'sexe': _selectedGender,
+        'type_piece_identite': _selectedIdType,
+        'date_naissance': originalBirthDate,
+        'date_expiration_piece_identite': originalExpirationDate,
+      };
     }
-
-    if (user.typePieceIdentite != null) {
-      _selectedIdType = _getTypePieceIdentiteLabel(user.typePieceIdentite!);
-    }
-
-    String? originalBirthDate;
-    String? originalExpirationDate;
-    
-    if (user.dateNaissance != null) {
-      originalBirthDate = DateFormat('dd-MM-yyyy').format(user.dateNaissance!);
-    }
-    
-    if (user.dateExpirationPiece != null) {
-      originalExpirationDate = DateFormat('dd-MM-yyyy').format(user.dateExpirationPiece!);
-    }
-
-    _originalData = {
-      'nom': user.nom,
-      'email': user.email,
-      'telephone': user.telephone ?? '',
-      'lieu_naissance': user.lieuNaissance ?? '',
-      'nationalite': user.nationalite ?? '',
-      'profession': user.profession ?? '',
-      'adresse': user.adresse ?? '',
-      'numero_piece_identite': user.numeroPieceIdentite ?? '',
-      'sexe': _selectedGender,
-      'type_piece_identite': _selectedIdType,
-      'date_naissance': originalBirthDate,
-      'date_expiration_piece_identite': originalExpirationDate,
-    };
   }
-}
 
   String _getTypePieceIdentiteLabel(String type) {
     switch (type.toLowerCase()) {
@@ -213,22 +222,53 @@ void _loadUserData() {
       }
     }
 
-    if (_selectedBirthDate != null) {
-      final now = DateTime.now();
-      final minAge = DateTime(now.year - 120, now.month, now.day);
-      final maxAge = DateTime(now.year - 16, now.month, now.day);
-
-      if (_selectedBirthDate!.isAfter(maxAge)) {
-        errors['date_naissance'] = 'Vous devez avoir au moins 16 ans';
-      } else if (_selectedBirthDate!.isBefore(minAge)) {
-        errors['date_naissance'] = 'Date de naissance invalide';
+    if (_selectedGender != _originalData['sexe']) {
+      if (_selectedGender == null) {
+        errors['sexe'] = 'Veuillez sélectionner votre sexe';
       }
     }
 
+    if (_selectedIdType != _originalData['type_piece_identite']) {
+      if (_selectedIdType == null) {
+        errors['type_piece_identite'] =
+            'Veuillez sélectionner le type de pièce';
+      }
+    }
+
+    String? currentBirthDate;
+    if (_selectedBirthDate != null) {
+      currentBirthDate = DateFormat('dd-MM-yyyy').format(_selectedBirthDate!);
+    }
+
+    if (currentBirthDate != _originalData['date_naissance']) {
+      if (_selectedBirthDate != null) {
+        final now = DateTime.now();
+        final minAge = DateTime(now.year - 120, now.month, now.day);
+        final maxAge = DateTime(now.year - 16, now.month, now.day);
+
+        if (_selectedBirthDate!.isAfter(maxAge)) {
+          errors['date_naissance'] = 'Vous devez avoir au moins 16 ans';
+        } else if (_selectedBirthDate!.isBefore(minAge)) {
+          errors['date_naissance'] = 'Date de naissance invalide';
+        }
+      }
+    }
+
+    String? currentExpirationDate;
     if (_selectedExpirationDate != null) {
-      final now = DateTime.now();
-      if (_selectedExpirationDate!.isBefore(now)) {
-        errors['date_expiration_piece_identite'] = 'La date d\'expiration ne peut pas être dans le passé';
+      currentExpirationDate = DateFormat(
+        'dd-MM-yyyy',
+      ).format(_selectedExpirationDate!);
+    }
+
+    if (currentExpirationDate !=
+        _originalData['date_expiration_piece_identite']) {
+      if (_selectedExpirationDate != null) {
+        final now = DateTime.now();
+        if (_selectedExpirationDate!.isBefore(now)) {
+          errors['date_expiration_piece_identite'] =
+              'La date d\'expiration ne peut pas être dans le passé';
+        }
       }
     }
 
@@ -237,6 +277,7 @@ void _loadUserData() {
 
   @override
   Widget build(BuildContext context) {
+    
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -392,6 +433,37 @@ void _loadUserData() {
     );
   }
 
+  List<DropdownMenuItem<String>> _buildDropdownItems(
+    List<String> items,
+    String hintText,
+  ) {
+    return [
+      DropdownMenuItem<String>(
+        value: null,
+        child: Text(
+          hintText,
+          style: GoogleFonts.poppins(
+            fontSize: 16,
+            color: AppColors.textSecondary.withOpacity(0.6),
+          ),
+        ),
+      ),
+      ...items.map((String item) {
+        return DropdownMenuItem<String>(
+          value: item,
+          child: Text(
+            item,
+            style: GoogleFonts.poppins(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: AppColors.textPrimary,
+            ),
+          ),
+        );
+      }).toList(),
+    ];
+  }
+
   Widget _buildPersonalSection() {
     return _buildFormSection(
       title: "Informations personnelles",
@@ -408,8 +480,9 @@ void _loadUserData() {
           value: _selectedGender,
           items: _genderOptions,
           label: 'Sexe',
+          hintText: 'Sélectionnez votre sexe',
           onChanged: (value) {
-            setState(() => _selectedGender = value!);
+            setState(() => _selectedGender = value);
             _onDropdownChanged();
           },
         ),
@@ -479,8 +552,9 @@ void _loadUserData() {
           value: _selectedIdType,
           items: _idTypeOptions,
           label: 'Type de pièce',
+          hintText: 'Sélectionnez le type de pièce',
           onChanged: (value) {
-            setState(() => _selectedIdType = value!);
+            setState(() => _selectedIdType = value);
             _onDropdownChanged();
           },
         ),
@@ -673,10 +747,14 @@ void _loadUserData() {
     bool hasError = false,
     bool isExpirationDate = false,
   }) {
-    String originalKey = isExpirationDate ? 'date_expiration_piece_identite' : 'date_naissance';
+    String originalKey = isExpirationDate
+        ? 'date_expiration_piece_identite'
+        : 'date_naissance';
     String? originalDateStr = _originalData[originalKey];
-    DateTime? originalDate = originalDateStr != null ? DateTime.tryParse(originalDateStr) : null;
-    
+    DateTime? originalDate = originalDateStr != null
+        ? DateTime.tryParse(originalDateStr)
+        : null;
+
     bool isModified = selectedDate != originalDate;
 
     return Column(
@@ -710,7 +788,12 @@ void _loadUserData() {
         ),
         const SizedBox(height: 8),
         InkWell(
-          onTap: () => _selectDate(context, selectedDate, onDateSelected, isExpirationDate),
+          onTap: () => _selectDate(
+            context,
+            selectedDate,
+            onDateSelected,
+            isExpirationDate,
+          ),
           child: Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -775,12 +858,21 @@ void _loadUserData() {
   }
 
   Widget _buildDropdownField({
-    required String value,
+    required String? value,
     required List<String> items,
     required String label,
     bool isRequired = false,
     required ValueChanged<String?> onChanged,
+    String hintText = 'Sélectionner',
   }) {
+    bool isModified = false;
+
+    if (label.toLowerCase().contains('sexe')) {
+      isModified = value != _originalData['sexe'];
+    } else if (label.toLowerCase().contains('type')) {
+      isModified = value != _originalData['type_piece_identite'];
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -798,25 +890,22 @@ void _loadUserData() {
                   text: ' *',
                   style: TextStyle(color: AppColors.error),
                 ),
+              if (isModified)
+                TextSpan(
+                  text: ' (modifié)',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
             ],
           ),
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
           value: value,
-          items: items.map((String item) {
-            return DropdownMenuItem<String>(
-              value: item,
-              child: Text(
-                item,
-                style: GoogleFonts.poppins(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-            );
-          }).toList(),
+          items: _buildDropdownItems(items, hintText),
           onChanged: onChanged,
           decoration: InputDecoration(
             filled: true,
@@ -827,7 +916,11 @@ void _loadUserData() {
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.border.withOpacity(0.3)),
+              borderSide: BorderSide(
+                color: isModified
+                    ? AppColors.primary.withOpacity(0.3)
+                    : AppColors.border.withOpacity(0.3),
+              ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -837,6 +930,11 @@ void _loadUserData() {
               horizontal: 16,
               vertical: 16,
             ),
+          ),
+          style: GoogleFonts.poppins(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            color: AppColors.textPrimary,
           ),
         ),
       ],
@@ -851,11 +949,11 @@ void _loadUserData() {
   ) async {
     final DateTime now = DateTime.now();
     final DateTime firstDate = isExpirationDate
-        ? now 
-        : DateTime(now.year - 120, now.month, now.day); 
+        ? now
+        : DateTime(now.year - 120, now.month, now.day);
     final DateTime lastDate = isExpirationDate
-        ? DateTime(now.year + 20, now.month, now.day) 
-        : DateTime(now.year - 16, now.month, now.day); 
+        ? DateTime(now.year + 20, now.month, now.day)
+        : DateTime(now.year - 16, now.month, now.day);
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: currentDate ?? (isExpirationDate ? now : lastDate),
@@ -979,7 +1077,8 @@ void _loadUserData() {
         profileData['telephone'] = _phoneController.text.trim();
       }
 
-      if (_birthPlaceController.text.trim() != _originalData['lieu_naissance']) {
+      if (_birthPlaceController.text.trim() !=
+          _originalData['lieu_naissance']) {
         profileData['lieu_naissance'] = _birthPlaceController.text.trim();
       }
 
@@ -995,38 +1094,68 @@ void _loadUserData() {
         profileData['adresse'] = _addressController.text.trim();
       }
 
-      if (_idNumberController.text.trim() != _originalData['numero_piece_identite']) {
+      if (_idNumberController.text.trim() !=
+          _originalData['numero_piece_identite']) {
         profileData['numero_piece_identite'] = _idNumberController.text.trim();
       }
 
       if (_selectedGender != _originalData['sexe']) {
-        profileData['sexe'] = _selectedGender.toLowerCase();
+        String backendGender = '';
+        if (_selectedGender == 'Masculin') {
+          backendGender = 'masculin';
+        } else if (_selectedGender == 'Féminin') {
+          backendGender = 'feminin';
+        }
+
+        if (backendGender.isNotEmpty) {
+          profileData['sexe'] = backendGender;
+        } else if (_selectedGender == null) {
+          profileData['sexe'] = null; 
+        }
       }
 
       if (_selectedIdType != _originalData['type_piece_identite']) {
-        profileData['type_piece_identite'] = _selectedIdType;
+        String backendIdType = '';
+        if (_selectedIdType == 'Carte Nationale d\'Identité') {
+          backendIdType = 'cni';
+        } else if (_selectedIdType == 'Passeport') {
+          backendIdType = 'passport';
+        } else if (_selectedIdType == 'Permis de Conduire') {
+          backendIdType = 'permis';
+        } else if (_selectedIdType == 'Carte de Séjour') {
+          backendIdType = 'carte_sejour';
+        }
+
+        if (backendIdType.isNotEmpty) {
+          profileData['type_piece_identite'] = backendIdType;
+        } else if (_selectedIdType == null) {
+        }
       }
 
       if (_selectedBirthDate != null) {
-  String newBirthDate = DateFormat('dd-MM-yyyy').format(_selectedBirthDate!);
-  
-  String originalFormatted = _originalData['date_naissance'] ?? '';
-  
-  if (newBirthDate != originalFormatted) {
-    profileData['date_naissance'] = newBirthDate;
-  }
-}
+        String newBirthDate = DateFormat(
+          'dd-MM-yyyy',
+        ).format(_selectedBirthDate!);
 
-if (_selectedExpirationDate != null) {
-  String newExpirationDate = DateFormat('dd-MM-yyyy').format(_selectedExpirationDate!);
-  
-  String originalFormatted = _originalData['date_expiration_piece_identite'] ?? '';
-  
-  if (newExpirationDate != originalFormatted) {
-    profileData['date_expiration_piece_identite'] = newExpirationDate;
-  }
-}
+        String originalFormatted = _originalData['date_naissance'] ?? '';
 
+        if (newBirthDate != originalFormatted) {
+          profileData['date_naissance'] = newBirthDate;
+        }
+      }
+
+      if (_selectedExpirationDate != null) {
+        String newExpirationDate = DateFormat(
+          'dd-MM-yyyy',
+        ).format(_selectedExpirationDate!);
+
+        String originalFormatted =
+            _originalData['date_expiration_piece_identite'] ?? '';
+
+        if (newExpirationDate != originalFormatted) {
+          profileData['date_expiration_piece_identite'] = newExpirationDate;
+        }
+      }
 
       if (profileData.isEmpty) {
         setState(() {
@@ -1042,20 +1171,37 @@ if (_selectedExpirationDate != null) {
       final success = await authProvider.updateProfile(profileData);
 
       if (success && mounted) {
-        ErrorHandler.showSuccessSnackBar(
-          context,
-          'Profil mis à jour avec succès !',
-        );
+  ErrorHandler.showSuccessSnackBar(
+    context,
+    'Profil mis à jour avec succès !',
+  );
 
-        _loadUserData();
-        setState(() {
-          _hasChanges = false;
-        });
+  _loadUserData();
+  setState(() {
+    _hasChanges = false;
+  });
 
-        Future.delayed(const Duration(seconds: 1), () {
-          if (mounted) Navigator.pop(context);
-        });
-      } else if (mounted) {
+  if (widget.onProfileCompleted != null) {
+    widget.onProfileCompleted!();
+  } else {
+  final product = widget.produit;
+  if (product != null) {
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(
+        builder: (context) => SimulationScreen(
+          produit: product, 
+          assureEstSouscripteur: true,
+        ),
+      ),
+      (route) => false,
+    );
+  } else {
+    if (mounted) Navigator.pop(context);
+  }
+}
+}
+
+else if (mounted) {
         String errorMessage = 'Erreur lors de la mise à jour du profil';
 
         if (authProvider.errorMessage != null) {
@@ -1063,17 +1209,22 @@ if (_selectedExpirationDate != null) {
 
           if (apiError.contains('date')) {
             errorMessage = 'Erreur avec les dates. Vérifiez le format.';
-          } else if (apiError.contains('email') && apiError.contains('already')) {
-            errorMessage = 'Cette adresse email est déjà utilisée par un autre compte';
-          } else if (apiError.contains('phone') && apiError.contains('already')) {
-            errorMessage = 'Ce numéro de téléphone est déjà utilisé par un autre compte';
+          } else if (apiError.contains('email') &&
+              apiError.contains('already')) {
+            errorMessage =
+                'Cette adresse email est déjà utilisée par un autre compte';
+          } else if (apiError.contains('phone') &&
+              apiError.contains('already')) {
+            errorMessage =
+                'Ce numéro de téléphone est déjà utilisé par un autre compte';
           } else if (apiError.contains('validation')) {
             errorMessage = 'Données invalides, vérifiez vos informations';
-          } else if (apiError.contains('connexion') || 
-                     apiError.contains('internet') || 
-                     apiError.contains('network')) {
+          } else if (apiError.contains('connexion') ||
+              apiError.contains('internet') ||
+              apiError.contains('network')) {
             errorMessage = 'Problème de connexion, vérifiez votre internet';
-          } else if (apiError.contains('server') || apiError.contains('serveur')) {
+          } else if (apiError.contains('server') ||
+              apiError.contains('serveur')) {
             errorMessage = 'Erreur du serveur, réessayez plus tard';
           } else {
             errorMessage = authProvider.errorMessage!;

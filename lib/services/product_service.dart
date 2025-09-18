@@ -6,6 +6,7 @@ import 'package:saarflex_app/constants/api_constants.dart';
 import 'package:saarflex_app/models/critere_tarification_model.dart';
 import 'package:saarflex_app/utils/api_config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
 
 import '../models/product_model.dart';
 
@@ -13,6 +14,7 @@ class ProductService {
   static final ProductService _instance = ProductService._internal();
   factory ProductService() => _instance;
   ProductService._internal();
+  static const Uuid _uuid = Uuid();
 
 
 static final String baseUrl = ApiConstants.baseUrl;
@@ -156,16 +158,39 @@ Future<List<CritereTarification>> getProductCriteres(String productId) async {
     throw Exception('Erreur lors du chargement des critères: $e');
   }
 }
+  Future<List<Map<String, dynamic>>> getGrillesTarifaires(String productId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('${ApiConfig.baseUrl}/produits/$productId/grilles-tarifaires'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      );
 
-Future<List<Map<String, dynamic>>> getGrillesTarifaires(String productId) async {
-  return [
-    {
-      'id': '${productId}_grille_default',
-      'nom': 'Grille Standard',
-      'statut': 'actif',
-      'created_at': DateTime.now().toIso8601String(),
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return List<Map<String, dynamic>>.from(data['grilles'] ?? []);
+      } else {
+        return _generateDefaultGrille(productId);
+      }
+    } catch (e) {
+      return _generateDefaultGrille(productId);
     }
-  ];
-}
+  }
+
+  List<Map<String, dynamic>> _generateDefaultGrille(String productId) {
+    return [
+      {
+        'id': _uuid.v4(),
+        'nom': 'Grille Standard',
+        'produit_id': productId,
+        'statut': 'actif',
+        'date_debut': DateTime.now().toIso8601String(),
+        'created_at': DateTime.now().toIso8601String(),
+        'nombre_tarifs': 0,
+      }
+    ];
+  }
 
 }

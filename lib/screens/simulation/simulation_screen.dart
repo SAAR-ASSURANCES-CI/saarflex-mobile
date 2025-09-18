@@ -3,21 +3,23 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../constants/colors.dart';
 import '../../providers/simulation_provider.dart';
-import '../../providers/auth_provider.dart';
 import '../../widgets/dynamic_form_field.dart';
 import '../../models/product_model.dart';
 import 'simulation_result_screen.dart';
 
 class SimulationScreen extends StatefulWidget {
   final Product produit;
-  final String grilleTarifaireId;
+  final bool assureEstSouscripteur;
+  final String? userId;
+  final Map<String, dynamic>? informationsAssure;
 
-  const SimulationScreen({
-    super.key,
-    required this.produit,
-    required this.grilleTarifaireId,
-  });
-
+ const SimulationScreen({
+  super.key,
+  required this.produit,
+  required this.assureEstSouscripteur,
+  this.userId,
+  this.informationsAssure,
+});
   @override
   State<SimulationScreen> createState() => _SimulationScreenState();
 }
@@ -25,16 +27,30 @@ class SimulationScreen extends StatefulWidget {
 class _SimulationScreenState extends State<SimulationScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  @override
+
+
+
+
+ @override
   void initState() {
     super.initState();
+     print('🚀 SimulationScreen INIT - mounted: $mounted');
+  print('📋 Params - assureEstSouscripteur: ${widget.assureEstSouscripteur}');
+  print('📋 Params - hasInfos: ${widget.informationsAssure != null}');
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<SimulationProvider>().initierSimulation(
         produitId: widget.produit.id,
-        grilleTarifaireId: widget.grilleTarifaireId,
       );
     });
   }
+
+@override
+void dispose() {
+  print('🗑️ SimulationScreen DISPOSE - mounted: $mounted');
+  super.dispose();
+}
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -114,7 +130,7 @@ class _SimulationScreenState extends State<SimulationScreen> {
           ),
           const SizedBox(height: 24),
           Text(
-            'Chargement des critères...',
+            'Chargement des critÃ¨res...',
             style: GoogleFonts.poppins(
               fontSize: 16,
               fontWeight: FontWeight.w500,
@@ -123,7 +139,7 @@ class _SimulationScreenState extends State<SimulationScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Préparation du formulaire personnalisé',
+            'PrÃ©paration du formulaire personnalisÃ©',
             style: GoogleFonts.poppins(
               fontSize: 14,
               fontWeight: FontWeight.w400,
@@ -187,7 +203,7 @@ class _SimulationScreenState extends State<SimulationScreen> {
                 ),
               ),
               child: Text(
-                'Réessayer',
+                'RÃ©essayer',
                 style: GoogleFonts.poppins(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -298,7 +314,7 @@ class _SimulationScreenState extends State<SimulationScreen> {
         ),
         const SizedBox(height: 8),
         Text(
-          'Complétez les champs ci-dessous pour obtenir votre devis personnalisé',
+          'ComplÃ©tez les champs ci-dessous pour obtenir votre devis personnalisÃ©',
           style: GoogleFonts.poppins(
             fontSize: 14,
             fontWeight: FontWeight.w400,
@@ -404,24 +420,55 @@ class _SimulationScreenState extends State<SimulationScreen> {
     );
   }
 
-  Future<void> _simuler(SimulationProvider provider) async {
-    final authProvider = context.read<AuthProvider>();
-    final utilisateurConnecte = authProvider.isLoggedIn;
+
+
+Future<void> _simuler(SimulationProvider provider) async {
+  try {
+    Map<String, dynamic> infosAEnvoyer = {};
     
-    await provider.simulerDevis(utilisateurConnecte: utilisateurConnecte);
-    
-    if (!provider.hasError && provider.dernierResultat != null) {
-      if (mounted) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => SimulationResultScreen(
-              produit: widget.produit,
-              resultat: provider.dernierResultat!,
-            ),
-          ),
-        );
+    if (widget.informationsAssure != null) {
+      infosAEnvoyer = Map.from(widget.informationsAssure!);
+      
+      if (infosAEnvoyer.containsKey('date_naissance')) {
+        final dateNaissance = infosAEnvoyer['date_naissance'];
+        if (dateNaissance is DateTime) {
+          final day = dateNaissance.day.toString().padLeft(2, '0');
+          final month = dateNaissance.month.toString().padLeft(2, '0');
+          infosAEnvoyer['date_naissance'] = '$day-$month-${dateNaissance.year}';
+        }
       }
     }
+
+    await provider.simulerDevisSimplifie(
+      assureEstSouscripteur: widget.assureEstSouscripteur,
+      informationsAssure: widget.informationsAssure != null ? infosAEnvoyer : null,
+    );
+    
+    if (!provider.hasError && provider.dernierResultat != null && mounted) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => SimulationResultScreen(
+            produit: widget.produit,
+            resultat: provider.dernierResultat!,
+          ),
+        ),
+      );
+    } else if (provider.hasError) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(provider.errorMessage ?? 'Erreur lors de la simulation'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Une erreur inattendue s\'est produite: $e'),
+        backgroundColor: Colors.red,
+      ),
+    );
   }
+}
 }

@@ -169,7 +169,6 @@ class ApiService {
           return parsedDate;
         }
       } catch (e2) {
-        // print('Échec total du parsing de $fieldName: $e2');
         return null;
       }
       
@@ -316,124 +315,118 @@ class ApiService {
   }
 
   Future<User> getUserProfile() async {
-    try {
-      final url = '$baseUrl/users/me';
+  try {
+    final url = '$baseUrl/users/me';
 
-      final response = await http.get(
-        Uri.parse(url),
-        headers: await _authHeaders,
+    final response = await http.get(
+      Uri.parse(url),
+      headers: await _authHeaders,
+    );
+
+    if (response.statusCode == 200) {
+      final responseData = json.decode(response.body);
+      final data = responseData['data'] ?? responseData;
+      print('API Response: $data');
+      return User(
+        id: data['id'],
+        nom: data['nom'],
+        email: data['email'],
+        telephone: data['telephone'],
+        typeUtilisateur: TypeUtilisateur.values.firstWhere(
+          (e) => e.toString().split('.').last == data['type_utilisateur'],
+          orElse: () => TypeUtilisateur.client,
+        ),
+        statut: data['statut'] ?? true,
+        dateCreation: data['date_creation'] != null
+            ? DateTime.parse(data['date_creation'])
+            : null,
+        derniereConnexion: data['dernière_connexion'] != null
+            ? DateTime.parse(data['dernière_connexion'])
+            : null,
+        updatedAt: data['date_modification'] != null
+            ? DateTime.parse(data['date_modification'])
+            : null,
+        lieuNaissance: data['lieu_naissance'],
+        sexe: data['sexe'],
+        nationalite: data['nationalite'],
+        profession: data['profession'],
+        adresse: data['adresse'],
+        numeroPieceIdentite: data['numero_piece_identite'],
+        typePieceIdentite: data['type_piece_identite'],
+        profilComplet: _checkIfProfilComplete(data),
+        dateNaissance: _parseDate(data['date_naissance'], 'date_naissance'),
+        dateExpirationPiece: _parseDate(data['date_expiration_piece_identite'], 'date_expiration_piece_identite'),
       );
-
-      if (response.statusCode == 200) {
-        final responseData = json.decode(response.body);
-        final data = responseData['data'] ?? responseData;
-        bool profilAJour = _checkIfProfilComplete(data);
-
-        return User(
-          id: data['id'],
-          nom: data['nom'],
-          email: data['email'],
-          telephone: data['telephone'],
-          typeUtilisateur: TypeUtilisateur.values.firstWhere(
-            (e) => e.toString().split('.').last == data['type_utilisateur'],
-            orElse: () => TypeUtilisateur.client,
-          ),
-          statut: data['statut'] ?? true,
-          dateCreation: data['date_creation'] != null
-              ? DateTime.parse(data['date_creation'])
-              : null,
-          derniereConnexion: data['dernière_connexion'] != null
-              ? DateTime.parse(data['dernière_connexion'])
-              : null,
-          updatedAt: data['date_modification'] != null
-              ? DateTime.parse(data['date_modification'])
-              : null,
-          lieuNaissance: profilAJour ? data['lieu_naissance'] : null,
-          sexe: profilAJour ? data['sexe'] : null,
-          nationalite: profilAJour ? data['nationalite'] : null,
-          profession: profilAJour ? data['profession'] : null,
-          adresse: profilAJour ? data['adresse'] : null,
-          numeroPieceIdentite: profilAJour
-              ? data['numero_piece_identite']
-              : null,
-          typePieceIdentite: profilAJour ? data['type_piece_identite'] : null,
-          dateNaissance: _parseDate(data['date_naissance'], 'date_naissance'),
-          dateExpirationPiece: _parseDate(data['date_expiration_piece_identite'], 'date_expiration_piece_identite'),
-          profilComplet: profilAJour,
-        );
-      } else {
-        _handleHttpError(response);
-        throw ApiException(
-          'Erreur lors du chargement du profil',
-          response.statusCode,
-        );
-      }
-    } on SocketException {
-      throw ApiException('Pas de connexion internet');
-    } catch (e) {
-      if (e is ApiException) rethrow;
-      throw ApiException('Erreur de chargement: ${e.toString()}');
-    }
-  }
-
-  Future<User> updateProfile(Map<String, dynamic> userData) async {
-    try {
-      final url = '$baseUrl/users/me';
-
-      final response = await http.patch(
-        Uri.parse(url),
-        headers: await _authHeaders,
-        body: json.encode(userData),
+    } else {
+      _handleHttpError(response);
+      throw ApiException(
+        'Erreur lors du chargement du profil',
+        response.statusCode,
       );
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final responseData = json.decode(response.body);
-        final data = responseData['data'] ?? responseData;
-        bool profilAJour = _checkIfProfilComplete(data);
-
-
-        return User(
-          id: data['id'],
-          nom: data['nom'],
-          email: data['email'],
-          telephone: data['telephone'],
-          typeUtilisateur: TypeUtilisateur.values.firstWhere(
-            (e) => e.toString().split('.').last == data['type_utilisateur'],
-            orElse: () => TypeUtilisateur.client,
-          ),
-          statut: data['statut'] ?? true,
-          dateCreation: data['date_creation'] != null
-              ? DateTime.parse(data['date_creation'])
-              : null,
-          derniereConnexion: null,
-          updatedAt: data['date_modification'] != null
-              ? DateTime.parse(data['date_modification'])
-              : null,
-          lieuNaissance: data['lieu_naissance'],
-          sexe: data['sexe'],
-          nationalite: data['nationalite'],
-          profession: data['profession'],
-          adresse: data['adresse'],
-          numeroPieceIdentite: data['numero_piece_identite'],
-          typePieceIdentite: data['type_piece_identite'],
-          profilComplet: profilAJour,
-          dateNaissance: _parseDate(data['date_naissance'], 'date_naissance'),
-          dateExpirationPiece: _parseDate(data['date_expiration_piece_identite'], 'date_expiration_piece_identite'),
-        );
-      } else {
-        _handleHttpError(response);
-        throw ApiException(
-          'Erreur lors de la mise à jour',
-          response.statusCode,
-        );
-      }
-    } on SocketException {
-      throw ApiException('Pas de connexion internet');
-    } catch (e) {
-      if (e is ApiException) rethrow;
-      throw ApiException('Erreur de mise à jour: ${e.toString()}');
     }
+  } on SocketException {
+    throw ApiException('Pas de connexion internet');
+  } catch (e) {
+    if (e is ApiException) rethrow;
+    throw ApiException('Erreur de chargement: ${e.toString()}');
   }
+}
+ Future<User> updateProfile(Map<String, dynamic> userData) async {
+  try {
+    final url = '$baseUrl/users/me';
+
+    final response = await http.patch(
+      Uri.parse(url),
+      headers: await _authHeaders,
+      body: json.encode(userData),
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final responseData = json.decode(response.body);
+      final data = responseData['data'] ?? responseData;
+
+      return User(
+        id: data['id'],
+        nom: data['nom'],
+        email: data['email'],
+        telephone: data['telephone'],
+        typeUtilisateur: TypeUtilisateur.values.firstWhere(
+          (e) => e.toString().split('.').last == data['type_utilisateur'],
+          orElse: () => TypeUtilisateur.client,
+        ),
+        statut: data['statut'] ?? true,
+        dateCreation: data['date_creation'] != null
+            ? DateTime.parse(data['date_creation'])
+            : null,
+        derniereConnexion: null,
+        updatedAt: data['date_modification'] != null
+            ? DateTime.parse(data['date_modification'])
+            : null,
+        lieuNaissance: data['lieu_naissance'],
+        sexe: data['sexe'],
+        nationalite: data['nationalite'],
+        profession: data['profession'],
+        adresse: data['adresse'],
+        numeroPieceIdentite: data['numero_piece_identite'],
+        typePieceIdentite: data['type_piece_identite'],
+        profilComplet: _checkIfProfilComplete(data),
+        dateNaissance: _parseDate(data['date_naissance'], 'date_naissance'),
+        dateExpirationPiece: _parseDate(data['date_expiration_piece_identite'], 'date_expiration_piece_identite'),
+      );
+    } else {
+      _handleHttpError(response);
+      throw ApiException(
+        'Erreur lors de la mise à jour',
+        response.statusCode,
+      );
+    }
+  } on SocketException {
+    throw ApiException('Pas de connexion internet');
+  } catch (e) {
+    if (e is ApiException) rethrow;
+    throw ApiException('Erreur de mise à jour: ${e.toString()}');
+  }
+}
 
   bool _checkIfProfilComplete(Map<String, dynamic> data) {
     List<String> champsRequis = [

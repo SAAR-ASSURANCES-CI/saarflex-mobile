@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:saarflex_app/profile/edit_profile_screen.dart';
+import 'package:saarflex_app/providers/auth_provider.dart';
 import 'package:saarflex_app/screens/simulation/simulation_screen.dart';
+import 'package:saarflex_app/widgets/assure_selector_popup.dart';
 import '../../constants/colors.dart';
 import '../../models/product_model.dart';
 import '../../providers/product_provider.dart';
+import '../simulation/info_assure_screen.dart';
+
 class ProductDetailScreen extends StatefulWidget {
   final String productId;
 
@@ -240,7 +245,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     ),
                     const SizedBox(height: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.white.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(20),
@@ -308,8 +316,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            product.description.isNotEmpty 
-                ? product.description 
+            product.description.isNotEmpty
+                ? product.description
                 : 'Protection complète et personnalisée selon vos besoins.',
             style: GoogleFonts.poppins(
               fontSize: 14,
@@ -325,7 +333,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   Widget _buildFeaturesSection(Product product) {
     List<Map<String, dynamic>> features = _getProductFeatures(product);
-    
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -352,38 +360,42 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          ...features.map((feature) => Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    color: product.type.color.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    feature['icon'],
-                    color: product.type.color,
-                    size: 14,
+          ...features
+              .map(
+                (feature) => Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: 24,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          color: product.type.color.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          feature['icon'],
+                          color: product.type.color,
+                          size: 14,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          feature['text'],
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w400,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    feature['text'],
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w400,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          )).toList(),
+              )
+              .toList(),
         ],
       ),
     );
@@ -409,11 +421,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         children: [
           Row(
             children: [
-              Icon(
-                Icons.calculate_rounded,
-                color: AppColors.primary,
-                size: 20,
-              ),
+              Icon(Icons.calculate_rounded, color: AppColors.primary, size: 20),
               const SizedBox(width: 8),
               Text(
                 'Simulation de devis',
@@ -441,9 +449,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             decoration: BoxDecoration(
               color: AppColors.primary.withOpacity(0.05),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: AppColors.primary.withOpacity(0.1),
-              ),
+              border: Border.all(color: AppColors.primary.withOpacity(0.1)),
             ),
             child: Row(
               children: [
@@ -513,10 +519,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.calculate_rounded,
-                size: 20,
-              ),
+              Icon(Icons.calculate_rounded, size: 20),
               const SizedBox(width: 8),
               Text(
                 'Simuler un devis',
@@ -533,66 +536,176 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   Future<void> _navigateToSimulation(Product product) async {
-    final productProvider = context.read<ProductProvider>();
-    
-    final grilleId = await productProvider.getDefaultGrilleTarifaireId(product.id);
-    
-    if (grilleId != null) {
-      if (mounted) {
+    final authProvider = context.read<AuthProvider>();
+
+    final bool? isSelfAssured = await showDialog<bool>(
+      context: context,
+      builder: (context) => AssureSelectorDialog(
+        onConfirm: (value) => Navigator.pop(context, value),
+      ),
+    );
+
+    if (!mounted || isSelfAssured == null) return;
+
+    try {
+      if (isSelfAssured) {
+        final currentUser = authProvider.currentUser;
+
+        if (currentUser == null) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Veuillez vous connecter pour continuer')),
+            );
+          }
+          return;
+        }
+
+        if (!currentUser.isProfileComplete) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.person_outline, color: Colors.white, size: 24),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Complétez votre profil pour simuler un devis',
+                      style: TextStyle(fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                ],
+              ),
+              backgroundColor: Colors.orange[800],
+              duration: Duration(seconds: 4),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              margin: EdgeInsets.all(20),
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            ),
+          );
+
+          await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => EditProfileScreen(produit: product),
+            ),
+          );
+
+          await authProvider.loadUserProfile();
+
+          if (authProvider.currentUser?.isProfileComplete == true && mounted) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => SimulationScreen(
+                  produit: product,
+                  assureEstSouscripteur: true,
+                ),
+              ),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Profil toujours incomplet'),
+                backgroundColor: Colors.orange,
+              ),
+            );
+          }
+          return;
+        }
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                SimulationScreen(produit: product, assureEstSouscripteur: true),
+          ),
+        );
+      } else {
+        final informationsAssure = await Navigator.push<Map<String, dynamic>>(
+          context,
+          MaterialPageRoute(
+            builder: (context) => InfoAssureScreen(produit: product),
+          ),
+        );
+
+        if (!mounted || informationsAssure == null) return;
+
         Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => SimulationScreen(
               produit: product,
-              grilleTarifaireId: grilleId,
+              assureEstSouscripteur: false,
+              informationsAssure: informationsAssure,
             ),
           ),
         );
       }
-    } else {
+    } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erreur : Aucune grille tarifaire disponible pour ce produit'),
-            backgroundColor: AppColors.error,
-          ),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
       }
     }
   }
+}
 
-  List<Map<String, dynamic>> _getProductFeatures(Product product) {
-    switch (product.type) {
-      case ProductType.vie:
+List<Map<String, dynamic>> _getProductFeatures(Product product) {
+  switch (product.type) {
+    case ProductType.vie:
+      return [
+        {
+          'icon': Icons.family_restroom_rounded,
+          'text': 'Protection de votre famille',
+        },
+        {
+          'icon': Icons.trending_up_rounded,
+          'text': 'Épargne avec rendement attractif',
+        },
+        {'icon': Icons.security_rounded, 'text': 'Capital garanti'},
+        {
+          'icon': Icons.account_balance_wallet_rounded,
+          'text': 'Rachat partiel possible',
+        },
+      ];
+    case ProductType.nonVie:
+      if (product.nom.toLowerCase().contains('auto')) {
         return [
-          {'icon': Icons.family_restroom_rounded, 'text': 'Protection de votre famille'},
-          {'icon': Icons.trending_up_rounded, 'text': 'Épargne avec rendement attractif'},
-          {'icon': Icons.security_rounded, 'text': 'Capital garanti'},
-          {'icon': Icons.account_balance_wallet_rounded, 'text': 'Rachat partiel possible'},
+          {
+            'icon': Icons.directions_car_rounded,
+            'text': 'Couverture tous risques',
+          },
+          {'icon': Icons.build_rounded, 'text': 'Assistance 24h/24'},
+          {
+            'icon': Icons.local_hospital_rounded,
+            'text': 'Garantie dommages corporels',
+          },
+          {
+            'icon': Icons.security_rounded,
+            'text': 'Protection vol et incendie',
+          },
         ];
-      case ProductType.nonVie:
-        if (product.nom.toLowerCase().contains('auto')) {
-          return [
-            {'icon': Icons.directions_car_rounded, 'text': 'Couverture tous risques'},
-            {'icon': Icons.build_rounded, 'text': 'Assistance 24h/24'},
-            {'icon': Icons.local_hospital_rounded, 'text': 'Garantie dommages corporels'},
-            {'icon': Icons.security_rounded, 'text': 'Protection vol et incendie'},
-          ];
-        } else if (product.nom.toLowerCase().contains('santé')) {
-          return [
-            {'icon': Icons.local_hospital_rounded, 'text': 'Frais médicaux remboursés'},
-            {'icon': Icons.healing_rounded, 'text': 'Soins dentaires inclus'},
-            {'icon': Icons.visibility_rounded, 'text': 'Optique prise en charge'},
-            {'icon': Icons.favorite_rounded, 'text': 'Prévention santé'},
-          ];
-        } else {
-          return [
-            {'icon': Icons.shield_rounded, 'text': 'Protection complète'},
-            {'icon': Icons.support_agent_rounded, 'text': 'Service client dédié'},
-            {'icon': Icons.speed_rounded, 'text': 'Indemnisation rapide'},
-            {'icon': Icons.verified_user_rounded, 'text': 'Garanties étendues'},
-          ];
-        }
-    }
+      } else if (product.nom.toLowerCase().contains('santé')) {
+        return [
+          {
+            'icon': Icons.local_hospital_rounded,
+            'text': 'Frais médicaux remboursés',
+          },
+          {'icon': Icons.healing_rounded, 'text': 'Soins dentaires inclus'},
+          {'icon': Icons.visibility_rounded, 'text': 'Optique prise en charge'},
+          {'icon': Icons.favorite_rounded, 'text': 'Prévention santé'},
+        ];
+      } else {
+        return [
+          {'icon': Icons.shield_rounded, 'text': 'Protection complète'},
+          {'icon': Icons.support_agent_rounded, 'text': 'Service client dédié'},
+          {'icon': Icons.speed_rounded, 'text': 'Indemnisation rapide'},
+          {'icon': Icons.verified_user_rounded, 'text': 'Garanties étendues'},
+        ];
+      }
   }
 }
