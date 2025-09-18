@@ -1,4 +1,3 @@
-
 class SavedQuote {
   final String id;
   final String nomProduit;
@@ -12,6 +11,9 @@ class SavedQuote {
   final String? notes;
   final int nombreBeneficiaires;
   final int nombreDocuments;
+  final Map<String, dynamic>? informationsAssure;
+  final Map<String, dynamic>? criteresUtilisateur;
+  final bool? assureEstSouscripteur;
 
   SavedQuote({
     required this.id,
@@ -26,6 +28,9 @@ class SavedQuote {
     this.notes,
     required this.nombreBeneficiaires,
     required this.nombreDocuments,
+    this.informationsAssure,
+    this.criteresUtilisateur,
+    this.assureEstSouscripteur,
   });
 
   factory SavedQuote.fromJson(Map<String, dynamic> json) {
@@ -35,8 +40,8 @@ class SavedQuote {
       typeProduit: json['type_produit'],
       primeCalculee: (json['prime_calculee'] as num).toDouble(),
       franchiseCalculee: (json['franchise_calculee'] as num).toDouble(),
-      plafondCalcule: json['plafond_calcule'] != null 
-          ? (json['plafond_calcule'] as num).toDouble() 
+      plafondCalcule: json['plafond_calcule'] != null
+          ? (json['plafond_calcule'] as num).toDouble()
           : null,
       statut: json['statut'],
       createdAt: DateTime.parse(json['created_at']),
@@ -44,6 +49,9 @@ class SavedQuote {
       notes: json['notes'],
       nombreBeneficiaires: json['nombre_beneficiaires'] ?? 0,
       nombreDocuments: json['nombre_documents'] ?? 0,
+      informationsAssure: json['informations_assure'],
+      criteresUtilisateur: json['criteres_utilisateur'],
+      assureEstSouscripteur: json['assure_est_souscripteur'],
     );
   }
 

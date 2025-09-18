@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:saarflex_app/profile/profile_screen.dart';
 import 'package:saarflex_app/screens/auth/components/dashboard_header.dart';
 import 'package:saarflex_app/screens/products/product_list_screen.dart';
+import 'package:saarflex_app/screens/contracts/contracts_screen.dart';
 import '../../constants/colors.dart';
 import '../../providers/auth_provider.dart';
 
@@ -212,7 +213,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               "Mes Contrats",
               Icons.description_rounded,
               AppColors.accent,
-              () => _showComingSoon(context),
+              () => _navigateToContracts(),
             ),
             _buildActionCard(
               "Sinistres",
@@ -313,6 +314,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  void _navigateToProducts() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const ProductListScreen()),
+    );
+  }
+
+  void _navigateToContracts() {
+    try {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const ContractsScreen(),
+          settings: const RouteSettings(name: '/contracts'),
+        ),
+      );
+    } catch (e) {
+      // Fallback en cas d'erreur de navigation
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erreur de navigation: $e'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
+  }
+
   void _showComingSoon(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -335,13 +363,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         duration: const Duration(seconds: 2),
         margin: const EdgeInsets.all(16),
       ),
-    );
-  }
-
-  void _navigateToProducts() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const ProductListScreen()),
     );
   }
 }

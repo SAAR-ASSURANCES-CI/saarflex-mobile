@@ -1,14 +1,11 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
 import '../constants/colors.dart';
 import '../models/product_model.dart';
 import '../providers/auth_provider.dart';
 import '../screens/simulation/simulation_screen.dart';
-import '../utils/error_handler.dart';
 import '../widgets/profile/personal_info_section.dart';
 import '../widgets/profile/identity_section.dart';
 import '../widgets/profile/document_upload_section.dart';

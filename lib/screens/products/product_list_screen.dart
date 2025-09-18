@@ -28,7 +28,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
   void initState() {
     super.initState();
     _pageController = PageController(viewportFraction: 0.85);
-    
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!_disposed) {
         context.read<ProductProvider>().loadProducts();
@@ -39,24 +39,21 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
   void _startAutoScrollOptimized() {
     _timer?.cancel();
-    
-    _timer = Timer.periodic(const Duration(seconds: 8), (timer) { 
+
+    _timer = Timer.periodic(const Duration(seconds: 8), (timer) {
       if (_disposed) {
         timer.cancel();
         return;
       }
-      
-      if (!_userInteracting && 
-          _pageController.hasClients && 
-          mounted) {
-        
+
+      if (!_userInteracting && _pageController.hasClients && mounted) {
         final products = _cachedLatestProducts;
         if (products != null && products.isNotEmpty) {
           _currentPage = (_currentPage + 1) % products.length;
-          
+
           _pageController.animateToPage(
             _currentPage,
-            duration: const Duration(milliseconds: 250), 
+            duration: const Duration(milliseconds: 250),
             curve: Curves.easeInOut,
           );
         }
@@ -69,8 +66,8 @@ class _ProductListScreenState extends State<ProductListScreen> {
       setState(() {
         _userInteracting = true;
       });
-      
-      Timer(const Duration(seconds: 6), () { 
+
+      Timer(const Duration(seconds: 6), () {
         if (mounted && !_disposed) {
           setState(() {
             _userInteracting = false;
@@ -85,7 +82,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
     return Consumer<ProductProvider>(
       builder: (context, productProvider, child) {
         _updateCache(productProvider);
-        
+
         return Scaffold(
           backgroundColor: Colors.white,
           appBar: _buildAppBar(),
@@ -95,28 +92,24 @@ class _ProductListScreenState extends State<ProductListScreen> {
     );
   }
 
+  void _updateCache(ProductProvider productProvider) {
+    final allProducts = productProvider.allProducts;
+    if (_cachedAllProducts != allProducts) {
+      _cachedAllProducts = allProducts;
 
-void _updateCache(ProductProvider productProvider) {
-  final allProducts = productProvider.allProducts;
-  if (_cachedAllProducts != allProducts) {
-    _cachedAllProducts = allProducts;
-    
-    final sortedProducts = List<Product>.from(allProducts);
-    sortedProducts.sort((a, b) {
-      if (a.createdAt != null && b.createdAt != null) {
-        return b.createdAt!.compareTo(a.createdAt!);
-      }
-      if (a.createdAt != null) return -1;
-      if (b.createdAt != null) return 1;
-      return 0;
-    });
-    
-    _cachedLatestProducts = sortedProducts.take(5).toList();
+      final sortedProducts = List<Product>.from(allProducts);
+      sortedProducts.sort((a, b) {
+        if (a.createdAt != null && b.createdAt != null) {
+          return b.createdAt!.compareTo(a.createdAt!);
+        }
+        if (a.createdAt != null) return -1;
+        if (b.createdAt != null) return 1;
+        return 0;
+      });
+
+      _cachedLatestProducts = sortedProducts.take(5).toList();
+    }
   }
-}
-
-
-
 
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
@@ -124,7 +117,18 @@ void _updateCache(ProductProvider productProvider) {
       elevation: 0,
       leading: IconButton(
         icon: Icon(Icons.arrow_back_ios_rounded, color: Colors.white),
-        onPressed: () => Navigator.pop(context),
+        onPressed: () {
+          if (Navigator.canPop(context)) {
+            Navigator.pop(context);
+          } else {
+            // Si on ne peut pas revenir en arrière, aller au dashboard
+            Navigator.pushNamedAndRemoveUntil(
+              context,
+              '/dashboard',
+              (route) => false,
+            );
+          }
+        },
       ),
       title: Text(
         "Produits d'assurance",
@@ -148,7 +152,7 @@ void _updateCache(ProductProvider productProvider) {
     }
 
     final products = _cachedAllProducts ?? [];
-    
+
     if (products.isEmpty) {
       return _buildEmptyState();
     }
@@ -157,17 +161,15 @@ void _updateCache(ProductProvider productProvider) {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildLatestProductsSection(),
-        
-        Expanded(
-          child: _buildAllProductsList(products, productProvider),
-        ),
+
+        Expanded(child: _buildAllProductsList(products, productProvider)),
       ],
     );
   }
 
   Widget _buildLatestProductsSection() {
     final latestProducts = _cachedLatestProducts ?? [];
-    
+
     if (latestProducts.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -178,10 +180,7 @@ void _updateCache(ProductProvider productProvider) {
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [
-            AppColors.primary.withOpacity(0.02),
-            Colors.white,
-          ],
+          colors: [AppColors.primary.withOpacity(0.02), Colors.white],
         ),
       ),
       child: Column(
@@ -225,7 +224,9 @@ void _updateCache(ProductProvider productProvider) {
                 },
                 itemBuilder: (context, index) {
                   final productIndex = index % latestProducts.length;
-                  return _buildHorizontalProductCard(latestProducts[productIndex]);
+                  return _buildHorizontalProductCard(
+                    latestProducts[productIndex],
+                  );
                 },
               ),
             ),
@@ -242,14 +243,15 @@ void _updateCache(ProductProvider productProvider) {
                   width: _currentPage == index ? 20 : 8,
                   height: 8,
                   decoration: BoxDecoration(
-                    gradient: _currentPage == index 
+                    gradient: _currentPage == index
                         ? LinearGradient(
-                            colors: [AppColors.primary, AppColors.primary.withOpacity(0.7)]
+                            colors: [
+                              AppColors.primary,
+                              AppColors.primary.withOpacity(0.7),
+                            ],
                           )
                         : null,
-                    color: _currentPage == index 
-                        ? null 
-                        : Colors.grey.shade300,
+                    color: _currentPage == index ? null : Colors.grey.shade300,
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),
@@ -345,7 +347,10 @@ void _updateCache(ProductProvider productProvider) {
     );
   }
 
-  Widget _buildAllProductsList(List<Product> products, ProductProvider productProvider) {
+  Widget _buildAllProductsList(
+    List<Product> products,
+    ProductProvider productProvider,
+  ) {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
       child: Column(
@@ -479,18 +484,17 @@ void _updateCache(ProductProvider productProvider) {
     );
   }
 
-  Widget _buildErrorState(String errorMessage, ProductProvider productProvider) {
+  Widget _buildErrorState(
+    String errorMessage,
+    ProductProvider productProvider,
+  ) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.error_outline,
-              color: AppColors.error,
-              size: 64,
-            ),
+            Icon(Icons.error_outline, color: AppColors.error, size: 64),
             const SizedBox(height: 24),
             Text(
               'Erreur de chargement',
@@ -517,7 +521,10 @@ void _updateCache(ProductProvider productProvider) {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -585,8 +592,8 @@ void _updateCache(ProductProvider productProvider) {
 
   @override
   void dispose() {
-    _disposed = true; 
-    _timer?.cancel(); 
+    _disposed = true;
+    _timer?.cancel();
     _pageController.dispose();
     super.dispose();
   }

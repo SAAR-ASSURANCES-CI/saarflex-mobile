@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import '../../constants/colors.dart';
 import '../../providers/simulation_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/contract_provider.dart';
 import '../../models/product_model.dart';
 import '../../models/simulation_model.dart';
-import '../products/product_list_screen.dart';
+import '../contracts/contracts_screen.dart';
 
 class SimulationResultScreen extends StatefulWidget {
   final Product produit;
@@ -31,6 +33,25 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
     _nomController.dispose();
     _notesController.dispose();
     super.dispose();
+  }
+
+  // Fonction utilitaire pour formater les nombres avec séparateurs de milliers
+  String _formatNumberWithSeparators(double number) {
+    return NumberFormat('#,##0', 'fr_FR').format(number);
+  }
+
+  // Formater le texte des détails de calcul en ajoutant des séparateurs de milliers
+  String _formatCalculationText(String text) {
+    // Expression régulière pour trouver les nombres de 4 chiffres ou plus
+    final RegExp numberRegex = RegExp(r'\b\d{4,}\b');
+
+    return text.replaceAllMapped(numberRegex, (match) {
+      final number = int.tryParse(match.group(0)!);
+      if (number != null) {
+        return _formatNumberWithSeparators(number.toDouble());
+      }
+      return match.group(0)!;
+    });
   }
 
   @override
@@ -96,11 +117,7 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
       leading: IconButton(
         icon: Icon(Icons.close_rounded, color: AppColors.primary),
         onPressed: () {
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (context) => ProductListScreen()),
-            (route) => false,
-          );
+          Navigator.pop(context);
         },
       ),
       title: Text(
@@ -489,8 +506,10 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            widget.resultat.detailsCalcul?.explication ??
-                'Détails de calcul non disponibles',
+            _formatCalculationText(
+              widget.resultat.detailsCalcul?.explication ??
+                  'Détails de calcul non disponibles',
+            ),
             style: GoogleFonts.poppins(
               fontSize: 14,
               fontWeight: FontWeight.w400,
@@ -591,7 +610,25 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
           TextFormField(
             controller: _nomController,
             decoration: InputDecoration(
-              labelText: 'Nom du devis (optionnel)',
+              label: RichText(
+                text: TextSpan(
+                  text: 'Nom du devis ',
+                  style: GoogleFonts.poppins(
+                    color: AppColors.textPrimary,
+                    fontSize: 16,
+                  ),
+                  children: [
+                    TextSpan(
+                      text: '*',
+                      style: GoogleFonts.poppins(
+                        color: Colors.red,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               hintText: 'Ex: Devis voiture familiale',
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -715,13 +752,23 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
       return;
     }
 
+    // Vérifier que le nom est obligatoire
+    if (_nomController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Le nom du devis est obligatoire pour la sauvegarde.'),
+          backgroundColor: AppColors.error,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+
     provider
         .sauvegarderDevis(
           context: context,
           devisId: widget.resultat.id,
-          nomPersonnalise: _nomController.text.isNotEmpty
-              ? _nomController.text.trim()
-              : null,
+          nomPersonnalise: _nomController.text.trim(),
           notes: _notesController.text.isNotEmpty
               ? _notesController.text.trim()
               : null,
@@ -733,8 +780,27 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
                 content: Text('Devis sauvegardé avec succès !'),
                 backgroundColor: AppColors.success,
                 duration: const Duration(seconds: 2),
+                action: SnackBarAction(
+                  label: 'Voir mes contrats',
+                  textColor: AppColors.white,
+                  onPressed: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            const ContractsScreen(initialTab: 0),
+                      ),
+                    );
+                  },
+                ),
               ),
             );
+
+            // Rafraîchir les contrats pour inclure le nouveau devis
+            Provider.of<ContractProvider>(
+              context,
+              listen: false,
+            ).loadSavedQuotes(forceRefresh: true);
           }
         });
   }

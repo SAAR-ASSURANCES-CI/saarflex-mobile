@@ -7,11 +7,13 @@ import 'providers/auth_provider.dart';
 import 'providers/user_provider.dart';
 import 'providers/product_provider.dart';
 import 'providers/simulation_provider.dart';
+import 'providers/contract_provider.dart';
 
 import 'screens/auth/welcome_screen.dart';
 import 'screens/dashboard/dashboard_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/signup_screen.dart';
+import 'screens/contracts/contracts_screen.dart';
 
 import 'constants/colors.dart';
 
@@ -37,6 +39,9 @@ class Saarflex extends StatelessWidget {
         ChangeNotifierProvider<UserProvider>(create: (_) => UserProvider()),
         ChangeNotifierProvider<SimulationProvider>(
           create: (_) => SimulationProvider(),
+        ),
+        ChangeNotifierProvider<ContractProvider>(
+          create: (_) => ContractProvider(),
         ),
       ],
       child: MaterialApp(
@@ -82,6 +87,7 @@ class Saarflex extends StatelessWidget {
           '/login': (context) => const LoginScreen(),
           '/signup': (context) => const SignupScreen(),
           '/dashboard': (context) => const DashboardScreen(),
+          '/contracts': (context) => const ContractsScreen(),
         },
       ),
     );

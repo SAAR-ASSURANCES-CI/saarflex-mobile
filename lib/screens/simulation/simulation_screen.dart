@@ -80,6 +80,7 @@ class _SimulationScreenState extends State<SimulationScreen> {
   @override
   void dispose() {
     AppLogger.debug('SimulationScreen DISPOSE - mounted: $mounted');
+    // Nettoyer les ressources si nécessaire
     super.dispose();
   }
 
