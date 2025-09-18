@@ -60,9 +60,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _validateEmailOptimized() {
     if (!mounted) return;
-    
-    final newEmailError = ValidationCache.validateEmailOptimized(_emailController.text);
-    
+
+    final newEmailError = ValidationCache.validateEmailOptimized(
+      _emailController.text,
+    );
+
     if (_emailError != newEmailError) {
       setState(() {
         _emailError = newEmailError;
@@ -73,10 +75,14 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _validatePasswordOptimized() {
     if (!mounted) return;
-    
-    final passwordErrors = ValidationCache.validatePasswordOptimized(_passwordController.text);
-    final newPasswordError = passwordErrors.isEmpty ? null : passwordErrors.first;
-    
+
+    final passwordErrors = ValidationCache.validatePasswordOptimized(
+      _passwordController.text,
+    );
+    final newPasswordError = passwordErrors.isEmpty
+        ? null
+        : passwordErrors.first;
+
     if (_passwordError != newPasswordError) {
       setState(() {
         _passwordError = newPasswordError;
@@ -86,10 +92,11 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _updateFormValidity() {
-    final newIsValid = _emailError == null && 
-                       _passwordError == null &&
-                       _emailController.text.isNotEmpty &&
-                       _passwordController.text.isNotEmpty;
+    final newIsValid =
+        _emailError == null &&
+        _passwordError == null &&
+        _emailController.text.isNotEmpty &&
+        _passwordController.text.isNotEmpty;
 
     if (_isFormValid != newIsValid) {
       _isFormValid = newIsValid;
@@ -332,8 +339,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-
-    Widget _buildOptionsRow() {
+  Widget _buildOptionsRow() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [

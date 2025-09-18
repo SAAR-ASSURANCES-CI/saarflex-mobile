@@ -7,6 +7,7 @@ import 'package:path/path.dart' as path;
 import '../services/api_service.dart';
 import '../models/user_model.dart';
 import '../constants/api_constants.dart';
+import '../utils/logger.dart';
 
 class AuthProvider extends ChangeNotifier {
   final ApiService _apiService = ApiService();
@@ -292,8 +293,8 @@ class AuthProvider extends ChangeNotifier {
         _setUploading(false);
         return success;
       } else {
-        print(
-          '❌ Erreur upload document: ${response.statusCode} - $responseBody',
+        AppLogger.error(
+          'Erreur upload document: ${response.statusCode} - $responseBody',
         );
         final errorData = json.decode(responseBody);
         final errorMessage = errorData['message'] ?? 'Erreur lors de l\'upload';

@@ -235,9 +235,6 @@ class _DynamicFormFieldState extends State<DynamicFormField> {
   }
 
   Widget _buildDropdownField() {
-    print('🔄 Building dropdown for: ${widget.critere.nom}');
-    print('📋 Dropdown values: ${widget.critere.valeursString}');
-
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -270,15 +267,9 @@ class _DynamicFormFieldState extends State<DynamicFormField> {
           ),
           dropdownColor: AppColors.white,
           items: widget.critere.valeursString.map((String valeurItem) {
-            // DEBUG: Voir chaque valeur
-            print(
-              '📝 Processing value: "$valeurItem", isNumeric: ${_isNumeric(valeurItem)}',
-            );
-
             String displayedValue = valeurItem;
             if (widget.formatMilliers && _isNumeric(valeurItem)) {
               final formatted = _formatNombreAvecSeparateurs(valeurItem);
-              print('✨ Formatting: "$valeurItem" -> "$formatted"');
               displayedValue = formatted;
             }
 
@@ -311,7 +302,6 @@ class _DynamicFormFieldState extends State<DynamicFormField> {
     // Enlever les espaces existants avant de tester
     final cleanedStr = str.replaceAll(' ', '');
     final isNum = double.tryParse(cleanedStr) != null;
-    print('🔢 isNumeric("$str") -> cleaned: "$cleanedStr" -> $isNum');
     return isNum;
   }
 

@@ -6,6 +6,7 @@ import '../../models/critere_tarification_model.dart';
 import '../../providers/simulation_provider.dart';
 import '../../widgets/dynamic_form_field.dart';
 import '../../models/product_model.dart';
+import '../../utils/logger.dart';
 import 'simulation_result_screen.dart';
 
 class SimulationScreen extends StatefulWidget {
@@ -43,28 +44,32 @@ class _SimulationScreenState extends State<SimulationScreen> {
 
     final nomCritereLower = critere.nom.toLowerCase();
 
-    // ⭐⭐ DEBUG DÉTAILLÉ ⭐⭐
-    print('🔍 Analyzing: "${critere.nom}" -> lowercase: "$nomCritereLower"');
+    // Logging pour le développement uniquement
+    AppLogger.debug(
+      'Analyzing: "${critere.nom}" -> lowercase: "$nomCritereLower"',
+    );
 
     for (final motCle in champsAvecSeparateurs) {
       final contains = nomCritereLower.contains(motCle);
-      print('   - Contains "$motCle": $contains');
+      AppLogger.debug('Contains "$motCle": $contains');
       if (contains) {
-        print('   ✅ FORMATAGE REQUIS for "${critere.nom}"');
+        AppLogger.debug('FORMATAGE REQUIS for "${critere.nom}"');
         return true;
       }
     }
 
-    print('   ❌ No formatage required for "${critere.nom}"');
+    AppLogger.debug('No formatage required for "${critere.nom}"');
     return false;
   }
 
   @override
   void initState() {
     super.initState();
-    print('🚀 SimulationScreen INIT - mounted: $mounted');
-    print('📋 Params - assureEstSouscripteur: ${widget.assureEstSouscripteur}');
-    print('📋 Params - hasInfos: ${widget.informationsAssure != null}');
+    AppLogger.debug('SimulationScreen INIT - mounted: $mounted');
+    AppLogger.debug(
+      'Params - assureEstSouscripteur: ${widget.assureEstSouscripteur}',
+    );
+    AppLogger.debug('Params - hasInfos: ${widget.informationsAssure != null}');
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<SimulationProvider>().initierSimulation(
         produitId: widget.produit.id,
@@ -74,7 +79,7 @@ class _SimulationScreenState extends State<SimulationScreen> {
 
   @override
   void dispose() {
-    print('🗑️ SimulationScreen DISPOSE - mounted: $mounted');
+    AppLogger.debug('SimulationScreen DISPOSE - mounted: $mounted');
     super.dispose();
   }
 
@@ -360,8 +365,10 @@ class _SimulationScreenState extends State<SimulationScreen> {
     return criteres.map((critere) {
       final besoinFormatage = _critereNecessiteFormatage(critere);
 
-      // ⭐⭐ DEBUG CRITICAL ⭐⭐
-      print('🎯 CRITICAL - ${critere.nom}: formatMilliers=$besoinFormatage');
+      // Logging pour le développement uniquement
+      AppLogger.debug(
+        'CRITICAL - ${critere.nom}: formatMilliers=$besoinFormatage',
+      );
 
       return DynamicFormField(
         critere: critere,

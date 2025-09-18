@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import '../models/user_model.dart';
 import '../constants/api_constants.dart';
+import '../utils/logger.dart';
 
 class ApiService {
   static final ApiService _instance = ApiService._internal();
@@ -331,7 +332,7 @@ class ApiService {
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
         final data = responseData['data'] ?? responseData;
-        print('API Response: $data');
+        AppLogger.api('API Response: $data');
         return User(
           id: data['id'],
           nom: data['nom'],
