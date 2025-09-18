@@ -65,7 +65,6 @@ class Saarflex extends StatelessWidget {
             primary: AppColors.primary,
             secondary: AppColors.secondary,
             surface: AppColors.white,
-            background: AppColors.white,
           ),
 
           appBarTheme: AppBarTheme(

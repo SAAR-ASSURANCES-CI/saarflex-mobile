@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../constants/colors.dart';
 import '../../providers/contract_provider.dart';
+import '../../utils/format_helper.dart';
 import '../widgets/empty_state_widget.dart';
 
 class ContractsTab extends StatefulWidget {
@@ -231,14 +232,14 @@ class _ContractsTabState extends State<ContractsTab> {
               Expanded(
                 child: _buildInfoItem(
                   'Prime',
-                  '${contract.primeCalculee.toStringAsFixed(0)} FCFA',
+                  FormatHelper.formatMontant(contract.primeCalculee),
                   Icons.payments,
                 ),
               ),
               Expanded(
                 child: _buildInfoItem(
                   'Franchise',
-                  '${contract.franchiseCalculee.toStringAsFixed(0)} FCFA',
+                  FormatHelper.formatMontant(contract.franchiseCalculee),
                   Icons.security,
                 ),
               ),
@@ -400,16 +401,16 @@ class _ContractsTabState extends State<ContractsTab> {
                   _buildDetailRow('Statut', contract.statusDisplayName),
                   _buildDetailRow(
                     'Prime',
-                    '${contract.primeCalculee.toStringAsFixed(0)} FCFA',
+                    FormatHelper.formatMontant(contract.primeCalculee),
                   ),
                   _buildDetailRow(
                     'Franchise',
-                    '${contract.franchiseCalculee.toStringAsFixed(0)} FCFA',
+                    FormatHelper.formatMontant(contract.franchiseCalculee),
                   ),
                   if (contract.plafondCalcule != null)
                     _buildDetailRow(
                       'Plafond',
-                      '${contract.plafondCalcule!.toStringAsFixed(0)} FCFA',
+                      FormatHelper.formatMontant(contract.plafondCalcule!),
                     ),
                   _buildDetailRow(
                     'Date de souscription',

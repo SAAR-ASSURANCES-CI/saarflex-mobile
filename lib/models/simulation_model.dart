@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/format_helper.dart';
 
 class SimulationRequest {
   final String produitId;
@@ -98,7 +99,7 @@ extension StatutDevisExtension on StatutDevis {
 
 extension DateTimeExtension on DateTime {
   String formatDate() {
-    return '${day.toString().padLeft(2, '0')}/${month.toString().padLeft(2, '0')}/${year} à ${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
+    return '${day.toString().padLeft(2, '0')}/${month.toString().padLeft(2, '0')}/$year à ${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
   }
 }
 
@@ -297,19 +298,15 @@ class SimulationResponse {
   }
 
   String get primeFormatee {
-    return '${primeCalculee.formatMontant()} FCFA';
+    return FormatHelper.formatMontant(primeCalculee);
   }
 
   String get franchiseFormatee {
-    if (franchiseCalculee == null || franchiseCalculee! <= 0) {
-      return 'Non applicable';
-    }
-    return '${franchiseCalculee!.formatMontant()} FCFA';
+    return FormatHelper.formatMontantAvecDefaut(franchiseCalculee);
   }
 
   String? get plafondFormate {
-    if (plafondCalcule == null) return null;
-    return '${plafondCalcule!.formatMontant()} FCFA';
+    return FormatHelper.formatMontantOptionnel(plafondCalcule);
   }
 }
 

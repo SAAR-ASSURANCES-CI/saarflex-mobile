@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../constants/colors.dart';
 import '../../providers/contract_provider.dart';
 import '../../models/saved_quote_model.dart';
+import '../../utils/format_helper.dart';
 import '../widgets/quote_card.dart';
 import '../widgets/empty_state_widget.dart';
 
@@ -254,16 +255,16 @@ class _SavedQuotesTabState extends State<SavedQuotesTab> {
                   const SizedBox(height: 24),
                   _buildDetailRow(
                     'Prime calculée',
-                    '${quote.primeCalculee.toStringAsFixed(0)} FCFA',
+                    FormatHelper.formatMontant(quote.primeCalculee),
                   ),
                   _buildDetailRow(
                     'Franchise',
-                    '${quote.franchiseCalculee.toStringAsFixed(0)} FCFA',
+                    FormatHelper.formatMontant(quote.franchiseCalculee),
                   ),
                   if (quote.plafondCalcule != null)
                     _buildDetailRow(
                       'Plafond',
-                      '${quote.plafondCalcule!.toStringAsFixed(0)} FCFA',
+                      FormatHelper.formatMontant(quote.plafondCalcule!),
                     ),
                   _buildDetailRow('Statut', quote.statut),
                   _buildDetailRow(

@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
 import '../../constants/colors.dart';
 import '../../providers/simulation_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/contract_provider.dart';
 import '../../models/product_model.dart';
 import '../../models/simulation_model.dart';
+import '../../utils/format_helper.dart';
 import '../contracts/contracts_screen.dart';
 
 class SimulationResultScreen extends StatefulWidget {
@@ -35,23 +35,9 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
     super.dispose();
   }
 
-  // Fonction utilitaire pour formater les nombres avec séparateurs de milliers
-  String _formatNumberWithSeparators(double number) {
-    return NumberFormat('#,##0', 'fr_FR').format(number);
-  }
-
   // Formater le texte des détails de calcul en ajoutant des séparateurs de milliers
   String _formatCalculationText(String text) {
-    // Expression régulière pour trouver les nombres de 4 chiffres ou plus
-    final RegExp numberRegex = RegExp(r'\b\d{4,}\b');
-
-    return text.replaceAllMapped(numberRegex, (match) {
-      final number = int.tryParse(match.group(0)!);
-      if (number != null) {
-        return _formatNumberWithSeparators(number.toDouble());
-      }
-      return match.group(0)!;
-    });
+    return FormatHelper.formatTexteCalcul(text);
   }
 
   @override

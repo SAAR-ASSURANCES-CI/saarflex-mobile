@@ -42,7 +42,7 @@ class CriteriaProcessingService {
     if (_critereNecessiteFormatage(critere)) {
       valeurString = valeurString.replaceAll(RegExp(r'[^\d]'), '');
       AppLogger.debug(
-        'Nettoyage de "${critere.nom}": "${valeur}" -> "$valeurString"',
+        'Nettoyage de "${critere.nom}": "$valeur" -> "$valeurString"',
       );
     }
 

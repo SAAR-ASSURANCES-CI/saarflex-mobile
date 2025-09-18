@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../constants/colors.dart';
 import '../../models/saved_quote_model.dart';
+import '../../utils/format_helper.dart';
 
 class QuoteCard extends StatelessWidget {
   final SavedQuote quote;
@@ -26,7 +27,7 @@ class QuoteCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             spreadRadius: 0,
             blurRadius: 10,
             offset: const Offset(0, 2),
@@ -62,7 +63,7 @@ class QuoteCard extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: AppColors.primary.withOpacity(0.1),
+            color: AppColors.primary.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(Icons.description, color: AppColors.primary, size: 24),
@@ -96,7 +97,7 @@ class QuoteCard extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
-            color: _getStatusColor().withOpacity(0.1),
+            color: _getStatusColor().withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(20),
           ),
           child: Text(
@@ -118,7 +119,7 @@ class QuoteCard extends StatelessWidget {
         Expanded(
           child: _buildInfoItem(
             'Prime',
-            '${quote.primeCalculee.toStringAsFixed(0)} FCFA',
+            FormatHelper.formatMontant(quote.primeCalculee),
             Icons.payments,
           ),
         ),
@@ -126,7 +127,7 @@ class QuoteCard extends StatelessWidget {
         Expanded(
           child: _buildInfoItem(
             'Franchise',
-            '${quote.franchiseCalculee.toStringAsFixed(0)} FCFA',
+            FormatHelper.formatMontant(quote.franchiseCalculee),
             Icons.security,
           ),
         ),
@@ -138,7 +139,7 @@ class QuoteCard extends StatelessWidget {
     final number = double.tryParse(numberStr);
     if (number == null) return numberStr;
 
-    return '${NumberFormat('#,##0', 'fr_FR').format(number)} FCFA';
+    return FormatHelper.formatMontant(number);
   }
 
   void _showQuoteDetails(BuildContext context) {

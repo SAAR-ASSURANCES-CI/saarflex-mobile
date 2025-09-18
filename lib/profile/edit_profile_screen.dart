@@ -495,10 +495,12 @@ if (_versoImage != null) {
         _checkForChanges();
       }
     } catch (e) {
-      ErrorHandler.showErrorSnackBar(
-        context,
-        'Erreur lors de la sélection de l\'image',
-      );
+      if (mounted) {
+        ErrorHandler.showErrorSnackBar(
+          context,
+          'Erreur lors de la sélection de l\'image',
+        );
+      }
     }
   }
 
@@ -826,22 +828,23 @@ if (_versoImage != null) {
     bool hasError = false,
   }) {
     String originalKey = '';
-    if (controller == _firstNameController)
+    if (controller == _firstNameController) {
       originalKey = 'nom';
-    else if (controller == _emailController)
+    } else if (controller == _emailController) {
       originalKey = 'email';
-    else if (controller == _phoneController)
+    } else if (controller == _phoneController) {
       originalKey = 'telephone';
-    else if (controller == _birthPlaceController)
+    } else if (controller == _birthPlaceController) {
       originalKey = 'lieu_naissance';
-    else if (controller == _nationalityController)
+    } else if (controller == _nationalityController) {
       originalKey = 'nationalite';
-    else if (controller == _professionController)
+    } else if (controller == _professionController) {
       originalKey = 'profession';
-    else if (controller == _addressController)
+    } else if (controller == _addressController) {
       originalKey = 'adresse';
-    else if (controller == _idNumberController)
+    } else if (controller == _idNumberController) {
       originalKey = 'numero_piece_identite';
+    }
 
     bool isModified =
         originalKey.isNotEmpty &&
@@ -1390,10 +1393,12 @@ if (_versoImage != null) {
       await authProvider.loadUserProfile();
       _loadUserData();
 
-      ErrorHandler.showSuccessSnackBar(
-        context,
-        'Profil mis à jour avec succès !',
-      );
+      if (mounted) {
+        ErrorHandler.showSuccessSnackBar(
+          context,
+          'Profil mis à jour avec succès !',
+        );
+      }
 
       setState(() {
         _hasChanges = false;
@@ -1405,7 +1410,7 @@ if (_versoImage != null) {
         widget.onProfileCompleted!();
       } else {
         final product = widget.produit;
-        if (product != null) {
+        if (product != null && mounted) {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
               builder: (context) => SimulationScreen(
@@ -1419,10 +1424,12 @@ if (_versoImage != null) {
         }
       }
     } catch (e) {
-      ErrorHandler.showErrorSnackBar(
-        context,
-        'Erreur lors de la sauvegarde: ${e.toString()}',
-      );
+      if (mounted) {
+        ErrorHandler.showErrorSnackBar(
+          context,
+          'Erreur lors de la sauvegarde: ${e.toString()}',
+        );
+      }
     } finally {
       if (mounted) {
         setState(() {

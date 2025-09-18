@@ -41,17 +41,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     if (confirmed != true) return;
 
-    FormHelpers.showLoadingDialog(
-      context,
-      title: "Envoi en cours...",
-      subtitle: "Nous envoyons le code de vérification\nà votre adresse email",
-    );
+    if (mounted) {
+      FormHelpers.showLoadingDialog(
+        context,
+        title: "Envoi en cours...",
+        subtitle:
+            "Nous envoyons le code de vérification\nà votre adresse email",
+      );
+    }
 
     try {
       final success = await authProvider.forgotPassword(user.email);
-      FormHelpers.hideLoadingDialog(context);
+      if (mounted) {
+        FormHelpers.hideLoadingDialog(context);
+      }
 
-      if (success) {
+      if (success && mounted) {
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -60,7 +65,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         );
       }
     } catch (e) {
-      FormHelpers.hideLoadingDialog(context);
+      if (mounted) {
+        FormHelpers.hideLoadingDialog(context);
+      }
     }
   }
 
@@ -568,19 +575,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _handleLogout() async {
-    FormHelpers.showLoadingDialog(
-      context,
-      title: "Déconnexion...",
-      subtitle: "Fermeture de votre session",
-    );
+    if (mounted) {
+      FormHelpers.showLoadingDialog(
+        context,
+        title: "Déconnexion...",
+        subtitle: "Fermeture de votre session",
+      );
+    }
 
     try {
       await context.read<AuthProvider>().logout();
-      FormHelpers.hideLoadingDialog(context);
-      Navigator.pushNamedAndRemoveUntil(context, '/welcome', (route) => false);
+      if (mounted) {
+        FormHelpers.hideLoadingDialog(context);
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          '/welcome',
+          (route) => false,
+        );
+      }
     } catch (e) {
-      FormHelpers.hideLoadingDialog(context);
-      FormHelpers.showErrorSnackBar(context, "Erreur lors de la déconnexion");
+      if (mounted) {
+        FormHelpers.hideLoadingDialog(context);
+        FormHelpers.showErrorSnackBar(context, "Erreur lors de la déconnexion");
+      }
     }
   }
 }
