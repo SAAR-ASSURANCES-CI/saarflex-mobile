@@ -6,6 +6,7 @@ import '../../providers/simulation_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../models/product_model.dart';
 import '../../models/simulation_model.dart';
+import '../products/product_list_screen.dart';
 
 class SimulationResultScreen extends StatefulWidget {
   final Product produit;
@@ -49,6 +50,8 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
                 const SizedBox(height: 32),
                 _buildProductInfo(),
                 const SizedBox(height: 24),
+                _buildAssureInfoCard(), // ← AJOUTEZ CETTE LIGNE
+                const SizedBox(height: 24),
                 _buildResultsCard(),
                 const SizedBox(height: 24),
                 _buildDetailsCard(),
@@ -69,7 +72,7 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
     );
   }
 
-  // Ajoutez cette méthode pour gérer les messages
+  // Gestion des messages de sauvegarde
   void _handleSaveMessages(SimulationProvider provider) {
     if (provider.saveError != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -85,13 +88,20 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
     }
   }
 
+  // Construction de l'AppBar
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
       backgroundColor: AppColors.white,
       elevation: 0,
       leading: IconButton(
         icon: Icon(Icons.close_rounded, color: AppColors.primary),
-        onPressed: () => Navigator.popUntil(context, (route) => route.isFirst),
+        onPressed: () {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => ProductListScreen()),
+            (route) => false,
+          );
+        },
       ),
       title: Text(
         'Résultat de simulation',
@@ -105,6 +115,7 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
     );
   }
 
+  // En-tête de succès
   Widget _buildSuccessHeader() {
     return Center(
       child: Column(
@@ -145,6 +156,7 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
     );
   }
 
+  // Informations sur le produit
   Widget _buildProductInfo() {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -220,6 +232,121 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
     );
   }
 
+  // Widget pour afficher les informations de l'assuré
+  Widget _buildAssureInfoCard() {
+    // Vérifier si l'assuré n'est pas le souscripteur ET si les informations existent
+    if (widget.resultat.assureEstSouscripteur ||
+        widget.resultat.informationsAssure == null) {
+      return const SizedBox.shrink(); // Ne rien afficher
+    }
+
+    final informations = widget.resultat.informationsAssure!;
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      margin: const EdgeInsets.only(bottom: 24),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            spreadRadius: 0,
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.person_outline_rounded,
+                color: AppColors.primary,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Informations de l\'assuré',
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _buildInfoRow(
+            'Nom complet',
+            informations['nom_complet']?.toString() ?? '',
+          ),
+          const SizedBox(height: 12),
+          _buildInfoRow(
+            'Date de naissance',
+            informations['date_naissance']?.toString() ?? '',
+          ),
+          const SizedBox(height: 12),
+          _buildInfoRow(
+            'Type de pièce',
+            informations['type_piece_identite']?.toString() ?? '',
+          ),
+          const SizedBox(height: 12),
+          _buildInfoRow(
+            'Numéro de pièce',
+            informations['numero_piece_identite']?.toString() ?? '',
+          ),
+          const SizedBox(height: 12),
+          _buildInfoRow(
+            'Téléphone',
+            informations['telephone']?.toString() ?? '',
+          ),
+          const SizedBox(height: 12),
+          _buildInfoRow('Adresse', informations['adresse']?.toString() ?? ''),
+          if (informations['email'] != null) ...[
+            const SizedBox(height: 12),
+            _buildInfoRow('Email', informations['email']!.toString()),
+          ],
+        ],
+      ),
+    );
+  }
+
+  // Helper pour afficher une ligne d'information
+  Widget _buildInfoRow(String label, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          flex: 2,
+          child: Text(
+            '$label :',
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: AppColors.textSecondary,
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          flex: 3,
+          child: Text(
+            value.isNotEmpty ? value : 'Non renseigné',
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w400,
+              color: AppColors.textPrimary,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Carte des résultats principaux
   Widget _buildResultsCard() {
     return Container(
       padding: const EdgeInsets.all(24),
@@ -276,6 +403,7 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
     );
   }
 
+  // Élément de résultat individuel
   Widget _buildResultItem(
     String label,
     String value,
@@ -322,6 +450,7 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
     );
   }
 
+  // Carte des détails
   Widget _buildDetailsCard() {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -404,6 +533,7 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
     );
   }
 
+  // Section de sauvegarde
   Widget _buildSaveSection(SimulationProvider provider) {
     if (widget.resultat.statut == StatutDevis.sauvegarde) {
       return Container(
@@ -485,6 +615,7 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
     );
   }
 
+  // Boutons en bas de page
   Widget _buildBottomButtons(
     AuthProvider authProvider,
     SimulationProvider provider,
@@ -571,6 +702,7 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
     );
   }
 
+  // Gestion de la sauvegarde du devis
   void _handleSaveQuote(SimulationProvider provider) {
     if (widget.resultat.statut == StatutDevis.sauvegarde) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -607,6 +739,7 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
         });
   }
 
+  // Procédure de souscription
   void _procederSouscription() {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

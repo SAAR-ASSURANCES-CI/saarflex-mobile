@@ -2,11 +2,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:provider/provider.dart';
+// import 'package:provider/provider.dart';
 import 'package:saarflex_app/constants/colors.dart';
 import 'package:saarflex_app/screens/simulation/simulation_screen.dart';
 import 'package:saarflex_app/models/product_model.dart';
-import 'package:saarflex_app/providers/auth_provider.dart';
+// import 'package:saarflex_app/providers/auth_provider.dart';
 import 'package:saarflex_app/utils/error_handler.dart';
 
 class InfoAssureScreen extends StatefulWidget {
@@ -28,8 +28,8 @@ class _InfoAssureScreenState extends State<InfoAssureScreen> {
 
   XFile? _rectoImage;
   XFile? _versoImage;
-  bool _isUploadingRecto = false;
-  bool _isUploadingVerso = false;
+  final bool _isUploadingRecto = false;
+  final bool _isUploadingVerso = false;
 
   final List<String> _typesPiece = ['Carte d\'identité', 'Passeport'];
 
@@ -41,11 +41,13 @@ class _InfoAssureScreenState extends State<InfoAssureScreen> {
 
   void _validateForm() {
     final isValid = _formKey.currentState?.validate() ?? false;
-    final hasRequiredImages = _rectoImage != null && _versoImage != null;
+    // Rendre les images optionnelles pour le moment
+    // final hasRequiredImages = _rectoImage != null && _versoImage != null;
 
     setState(() {
       _isFormValid =
-          isValid && _formData['date_naissance'] != null && hasRequiredImages;
+          isValid &&
+          _formData['date_naissance'] != null; // && hasRequiredImages;
     });
   }
 
@@ -308,69 +310,77 @@ class _InfoAssureScreenState extends State<InfoAssureScreen> {
       return;
     }
 
-    if (_rectoImage == null || _versoImage == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Veuillez uploader le recto et le verso de la pièce d\'identité',
-          ),
-          backgroundColor: AppColors.error,
+    // Commenter la vérification des images pour le moment
+    /*
+  if (_rectoImage == null || _versoImage == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Veuillez uploader le recto et le verso de la pièce d\'identité',
         ),
-      );
-      return;
+        backgroundColor: AppColors.error,
+      ),
+    );
+    return;
+  }
+  */
+
+    // Commenter le processus d'upload pour le moment
+    /*
+  setState(() {
+    _isUploadingRecto = true;
+    _isUploadingVerso = true;
+  });
+
+  try {
+    final authProvider = context.read<AuthProvider>();
+
+    final rectoSuccess = await authProvider.uploadIdentityDocument(
+      File(_rectoImage!.path),
+      'recto',
+    );
+    if (!rectoSuccess) {
+      throw Exception('Échec de l\'upload du recto');
     }
 
+    final versoSuccess = await authProvider.uploadIdentityDocument(
+      File(_versoImage!.path),
+      'verso',
+    );
+    if (!versoSuccess) {
+      throw Exception('Échec de l\'upload du verso');
+    }
+
+    await authProvider.loadUserProfile();
+    final user = authProvider.currentUser;
+
+    _formData['chemin_recto_piece'] = user?.cheminRectoPiece;
+    _formData['chemin_verso_piece'] = user?.cheminVersoPiece;
+  */
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SimulationScreen(
+          produit: widget.produit,
+          assureEstSouscripteur: false,
+          informationsAssure: _formData,
+        ),
+      ),
+    );
+    /*
+  } catch (e) {
+    ErrorHandler.showErrorSnackBar(
+      context,
+      'Erreur lors de l\'upload des images: ${e.toString()}',
+    );
+  } finally {
     setState(() {
-      _isUploadingRecto = true;
-      _isUploadingVerso = true;
+      _isUploadingRecto = false;
+      _isUploadingVerso = false;
     });
-
-    try {
-      final authProvider = context.read<AuthProvider>();
-
-      final rectoSuccess = await authProvider.uploadIdentityDocument(
-        File(_rectoImage!.path),
-        'recto',
-      );
-      if (!rectoSuccess) {
-        throw Exception('Échec de l\'upload du recto');
-      }
-
-      final versoSuccess = await authProvider.uploadIdentityDocument(
-        File(_versoImage!.path),
-        'verso',
-      );
-      if (!versoSuccess) {
-        throw Exception('Échec de l\'upload du verso');
-      }
-
-      await authProvider.loadUserProfile();
-      final user = authProvider.currentUser;
-
-      _formData['chemin_recto_piece'] = user?.cheminRectoPiece;
-      _formData['chemin_verso_piece'] = user?.cheminVersoPiece;
-
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => SimulationScreen(
-            produit: widget.produit,
-            assureEstSouscripteur: false,
-            informationsAssure: _formData,
-          ),
-        ),
-      );
-    } catch (e) {
-      ErrorHandler.showErrorSnackBar(
-        context,
-        'Erreur lors de l\'upload des images: ${e.toString()}',
-      );
-    } finally {
-      setState(() {
-        _isUploadingRecto = false;
-        _isUploadingVerso = false;
-      });
-    }
+  }
+  */
   }
 
   Widget _buildHeader() {

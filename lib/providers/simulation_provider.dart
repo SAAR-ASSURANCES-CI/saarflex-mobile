@@ -86,6 +86,11 @@ class SimulationProvider extends ChangeNotifier {
         page: 1,
         limit: 100,
       );
+      // Dans chargerCriteresProduit() après la ligne _criteresProduit = await...
+print('📋 Critères reçus:');
+for (var critere in _criteresProduit) {
+  print(' - ${critere.nom} (type: ${critere.type})');
+}
       
       for (final critere in _criteresProduit) {
         if (critere.type == TypeCritere.booleen) {
@@ -114,61 +119,105 @@ class SimulationProvider extends ChangeNotifier {
     notifyListeners(); 
   }
 
-  void _validateCritere(String nomCritere, dynamic valeur) {
-    final critere = _criteresProduit.firstWhere(
-      (c) => c.nom == nomCritere,
-      orElse: () => throw Exception('Critère $nomCritere non trouvé'),
-    );
+  // Dans simulation_provider.dart - méthode _validateCritere
+void _validateCritere(String nomCritere, dynamic valeur) {
+  final critere = _criteresProduit.firstWhere(
+    (c) => c.nom == nomCritere,
+    orElse: () => throw Exception('Critère $nomCritere non trouvé'),
+  );
 
-    if (critere.type == TypeCritere.numerique && valeur != null) {
-      if (valeur is String) {
-        final numericValue = num.tryParse(valeur);
-        if (numericValue == null) {
-          _validationErrors[nomCritere] = 'Veuillez entrer un nombre valide';
-          return;
-        }
-        _criteresReponses[nomCritere] = numericValue;
-      }
+  // Gestion des séparateurs pour les champs numériques
+  if (critere.type == TypeCritere.numerique && valeur != null) {
+    String valeurString = valeur.toString();
+    
+    // Enlever les séparateurs de milliers pour la validation si nécessaire
+    if (_critereNecessiteFormatage(critere)) {
+      valeurString = valeurString.replaceAll(RegExp(r'[^\d]'), '');
     }
-
-    if (critere.obligatoire && (valeur == null || valeur.toString().trim().isEmpty)) {
-      _validationErrors[nomCritere] = 'Ce champ est obligatoire';
+    
+    final numericValue = num.tryParse(valeurString);
+    if (numericValue == null) {
+      _validationErrors[nomCritere] = 'Veuillez entrer un nombre valide';
       return;
     }
+    // Stocker la valeur numérique (sans séparateurs)
+    _criteresReponses[nomCritere] = numericValue;
+  }
 
-    switch (critere.type) {
-      case TypeCritere.numerique:
-        if (valeur != null && valeur.toString().isNotEmpty) {
-          final doubleValue = double.tryParse(valeur.toString());
-          if (doubleValue == null) {
-            _validationErrors[nomCritere] = 'Veuillez saisir un nombre valide';
-          } else {
-            for (final valeurCritere in critere.valeurs) {
-              if (valeurCritere.valeurMin != null && doubleValue < valeurCritere.valeurMin!) {
-                _validationErrors[nomCritere] = 'Valeur minimum: ${valeurCritere.valeurMin}';
-                return;
-              }
-              if (valeurCritere.valeurMax != null && doubleValue > valeurCritere.valeurMax!) {
-                _validationErrors[nomCritere] = 'Valeur maximum: ${valeurCritere.valeurMax}';
-                return;
-              }
+  // Le reste de votre validation existante...
+  if (critere.obligatoire && (valeur == null || valeur.toString().trim().isEmpty)) {
+    _validationErrors[nomCritere] = 'Ce champ est obligatoire';
+    return;
+  }
+
+  switch (critere.type) {
+    case TypeCritere.numerique:
+      if (valeur != null && valeur.toString().isNotEmpty) {
+        // Utiliser la valeur déjà nettoyée des séparateurs
+        final doubleValue = _criteresReponses[nomCritere] is num 
+            ? _criteresReponses[nomCritere].toDouble()
+            : double.tryParse(valeur.toString().replaceAll(RegExp(r'[^\d]'), ''));
+            
+        if (doubleValue == null) {
+          _validationErrors[nomCritere] = 'Veuillez saisir un nombre valide';
+        } else {
+          for (final valeurCritere in critere.valeurs) {
+            if (valeurCritere.valeurMin != null && doubleValue < valeurCritere.valeurMin!) {
+              _validationErrors[nomCritere] = 'Valeur minimum: ${valeurCritere.valeurMin}';
+              return;
+            }
+            if (valeurCritere.valeurMax != null && doubleValue > valeurCritere.valeurMax!) {
+              _validationErrors[nomCritere] = 'Valeur maximum: ${valeurCritere.valeurMax}';
+              return;
             }
           }
         }
-        break;
-      
-      case TypeCritere.categoriel:
-        if (valeur != null && critere.hasValeurs) {
-          if (!critere.valeursString.contains(valeur.toString())) {
-            _validationErrors[nomCritere] = 'Valeur non autorisée';
-          }
+      }
+      break;
+    
+    case TypeCritere.categoriel:
+      if (valeur != null && critere.hasValeurs) {
+        if (!critere.valeursString.contains(valeur.toString())) {
+          _validationErrors[nomCritere] = 'Valeur non autorisée';
         }
-        break;
-      
-      case TypeCritere.booleen:
-        break;
+      }
+      break;
+    
+    case TypeCritere.booleen:
+      break;
+  }
+}
+
+// Ajouter cette méthode helper dans SimulationProvider
+bool _critereNecessiteFormatage(CritereTarification critere) {
+  const champsAvecSeparateurs = [
+    'capital', 
+    'capital_assure',
+    'montant',
+    'prime',
+    'franchise',
+    'plafond',
+    'souscription',
+    'assurance',
+  ];
+  
+  final nomCritereLower = critere.nom.toLowerCase();
+  
+  // ⭐⭐ DEBUG DÉTAILLÉ ⭐⭐
+  print('🔍 Analyzing: "${critere.nom}" -> lowercase: "$nomCritereLower"');
+  
+  for (final motCle in champsAvecSeparateurs) {
+    final contains = nomCritereLower.contains(motCle);
+    print('   - Contains "$motCle": $contains');
+    if (contains) {
+      print('   ✅ FORMATAGE REQUIS for "${critere.nom}"');
+      return true;
     }
   }
+  
+  print('   ❌ No formatage required for "${critere.nom}"');
+  return false;
+}
 
   void validateForm() {
     _validationErrors.clear();
@@ -181,36 +230,54 @@ class SimulationProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> simulerDevisSimplifie({
-    required bool assureEstSouscripteur,
-    Map<String, dynamic>? informationsAssure,
-  }) async {
-    
-    validateForm();
-    
-    if (!isFormValid) {
-      _setError('Veuillez corriger les erreurs dans le formulaire');
-      return;
-    }
-
-    _setSimulating(true);
-    _clearError();
-
-    try {
-      _dernierResultat = await _simulationService.simulerDevisSimplifie(
-        produitId: _produitId!,
-        criteres: Map.from(_criteresReponses),
-        assureEstSouscripteur: assureEstSouscripteur,
-        informationsAssure: informationsAssure,
-      );
-      
-    } catch (e) {
-      print('❌ Erreur dans le provider: $e');
-      _setError(e.toString());
-    } finally {
-      _setSimulating(false);
-    }
+  // Dans simulation_provider.dart - méthode simulerDevisSimplifie
+Future<void> simulerDevisSimplifie({
+  required bool assureEstSouscripteur,
+  Map<String, dynamic>? informationsAssure,
+}) async {
+  
+  validateForm();
+  
+  if (!isFormValid) {
+    _setError('Veuillez corriger les erreurs dans le formulaire');
+    return;
   }
+
+  _setSimulating(true);
+  _clearError();
+
+  try {
+    // Nettoyer les valeurs des séparateurs avant envoi
+    final criteresNettoyes = Map<String, dynamic>.from(_criteresReponses);
+    
+    for (final critere in _criteresProduit) {
+      if (critere.type == TypeCritere.numerique && 
+          _critereNecessiteFormatage(critere) &&
+          criteresNettoyes[critere.nom] is String) {
+        
+        // Nettoyer la valeur des séparateurs
+        final valeurNettoyee = criteresNettoyes[critere.nom]
+            .toString()
+            .replaceAll(RegExp(r'[^\d]'), '');
+        
+        criteresNettoyes[critere.nom] = num.tryParse(valeurNettoyee) ?? 0;
+      }
+    }
+    
+    _dernierResultat = await _simulationService.simulerDevisSimplifie(
+      produitId: _produitId!,
+      criteres: criteresNettoyes, // Utiliser les valeurs nettoyées
+      assureEstSouscripteur: assureEstSouscripteur,
+      informationsAssure: informationsAssure,
+    );
+    
+  } catch (e) {
+    print('❌ Erreur dans le provider: $e');
+    _setError(e.toString());
+  } finally {
+    _setSimulating(false);
+  }
+}
 
   Future<void> sauvegarderDevis({
     required String devisId,

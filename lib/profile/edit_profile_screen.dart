@@ -46,8 +46,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final List<String> _idTypeOptions = [
     'Carte Nationale d\'Identité',
     'Passeport',
-    'Permis de Conduire',
-    'Carte de Séjour',
   ];
 
   bool _isLoading = false;
@@ -211,15 +209,15 @@ if (_versoImage != null) {
   }
 
   String _getTypePieceIdentiteLabel(String type) {
-  switch (type.toLowerCase()) {
-    case 'cni':
-      return 'Carte Nationale d\'Identité';
-    case 'passport':
-      return 'Passeport';
-    default:
-      return 'Carte Nationale d\'Identité'; // Valeur par défaut
+    switch (type.toLowerCase()) {
+      case 'cni':
+        return 'Carte Nationale d\'Identité';
+      case 'passport':
+        return 'Passeport';
+      default:
+        return 'Carte Nationale d\'Identité'; // Valeur par défaut
+    }
   }
-}
 
   Map<String, String?> _validateChangedFields() {
     Map<String, String?> errors = {};
@@ -505,33 +503,8 @@ if (_versoImage != null) {
     }
   }
 
-  Widget _buildIdentityImagesSection() {
-    final user = context.read<AuthProvider>().currentUser;
-
-    return _buildFormSection(
-      title: "Photos de la pièce d'identité",
-      icon: Icons.photo_library_rounded,
-      children: [
-        _buildImageUploadField(
-          label: 'Recto de la pièce',
-          imageUrl: user?.cheminRectoPiece,
-          isUploading: _isUploadingRecto,
-          onTap: () => _pickImage(true),
-          selectedImage: _rectoImage,
-        ),
-        const SizedBox(height: 20),
-        _buildImageUploadField(
-          label: 'Verso de la pièce',
-          imageUrl: user?.cheminVersoPiece,
-          isUploading: _isUploadingVerso,
-          onTap: () => _pickImage(false),
-          selectedImage: _versoImage,
-        ),
-      ],
-    );
-  }
-
   Widget _buildImageUploadField({
+    bool isRequired = true,
     required String label,
     required String? imageUrl,
     required bool isUploading,
@@ -544,14 +517,28 @@ if (_versoImage != null) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: GoogleFonts.poppins(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: AppColors.textPrimary,
-          ),
+        Row(
+          children: [
+            Text(
+              label,
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            if (isRequired)
+              Text(
+                ' *',
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.red,
+                ),
+              ),
+          ],
         ),
+
         const SizedBox(height: 8),
         InkWell(
           onTap: isUploading ? null : onTap,
@@ -661,6 +648,7 @@ if (_versoImage != null) {
           value: _selectedGender,
           items: _genderOptions,
           label: 'Sexe',
+          isRequired: true,
           hintText: 'Sélectionnez votre sexe',
           onChanged: (value) {
             setState(() => _selectedGender = value);
@@ -682,14 +670,20 @@ if (_versoImage != null) {
         _buildTextField(
           controller: _birthPlaceController,
           label: 'Lieu de naissance',
+          isRequired: true,
         ),
         const SizedBox(height: 20),
         _buildTextField(
           controller: _nationalityController,
           label: 'Nationalité',
+          isRequired: true,
         ),
         const SizedBox(height: 20),
-        _buildTextField(controller: _professionController, label: 'Profession'),
+        _buildTextField(
+          controller: _professionController,
+          label: 'Profession',
+          isRequired: true,
+        ),
       ],
     );
   }
@@ -718,6 +712,7 @@ if (_versoImage != null) {
         _buildTextField(
           controller: _addressController,
           label: 'Adresse de résidence',
+          isRequired: true,
           maxLines: 3,
         ),
       ],
@@ -733,6 +728,7 @@ if (_versoImage != null) {
           value: _selectedIdType,
           items: _idTypeOptions,
           label: 'Type de pièce',
+          isRequired: true,
           hintText: 'Sélectionnez le type de pièce',
           onChanged: (value) {
             setState(() => _selectedIdType = value);
@@ -743,6 +739,7 @@ if (_versoImage != null) {
         _buildTextField(
           controller: _idNumberController,
           label: 'Numéro de pièce',
+          isRequired: true,
         ),
         const SizedBox(height: 20),
         _buildDateField(
@@ -753,8 +750,34 @@ if (_versoImage != null) {
             _onDateChanged();
           },
           hasError: _fieldErrors.containsKey('date_expiration_piece_identite'),
-          isRequired: false,
+          isRequired: true,
           isExpirationDate: true,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildIdentityImagesSection() {
+    final user = context.read<AuthProvider>().currentUser;
+
+    return _buildFormSection(
+      title: "Photos de la pièce d'identité",
+      icon: Icons.photo_library_rounded,
+      children: [
+        _buildImageUploadField(
+          label: 'Recto de la pièce',
+          imageUrl: user?.cheminRectoPiece,
+          isUploading: _isUploadingRecto,
+          onTap: () => _pickImage(true),
+          selectedImage: _rectoImage,
+        ),
+        const SizedBox(height: 20),
+        _buildImageUploadField(
+          label: 'Verso de la pièce',
+          imageUrl: user?.cheminVersoPiece,
+          isUploading: _isUploadingVerso,
+          onTap: () => _pickImage(false),
+          selectedImage: _versoImage,
         ),
       ],
     );

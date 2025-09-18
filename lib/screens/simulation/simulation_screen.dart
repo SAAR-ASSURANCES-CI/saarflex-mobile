@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../constants/colors.dart';
+import '../../models/critere_tarification_model.dart';
 import '../../providers/simulation_provider.dart';
 import '../../widgets/dynamic_form_field.dart';
 import '../../models/product_model.dart';
@@ -13,13 +14,13 @@ class SimulationScreen extends StatefulWidget {
   final String? userId;
   final Map<String, dynamic>? informationsAssure;
 
- const SimulationScreen({
-  super.key,
-  required this.produit,
-  required this.assureEstSouscripteur,
-  this.userId,
-  this.informationsAssure,
-});
+  const SimulationScreen({
+    super.key,
+    required this.produit,
+    required this.assureEstSouscripteur,
+    this.userId,
+    this.informationsAssure,
+  });
   @override
   State<SimulationScreen> createState() => _SimulationScreenState();
 }
@@ -27,16 +28,43 @@ class SimulationScreen extends StatefulWidget {
 class _SimulationScreenState extends State<SimulationScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
+  // Dans SimulationScreen - ajoutez cette méthode
+  bool _critereNecessiteFormatage(CritereTarification critere) {
+    const champsAvecSeparateurs = [
+      'capital',
+      'capital_assure',
+      'montant',
+      'prime',
+      'franchise',
+      'plafond',
+      'souscription',
+      'assurance',
+    ];
 
+    final nomCritereLower = critere.nom.toLowerCase();
 
+    // ⭐⭐ DEBUG DÉTAILLÉ ⭐⭐
+    print('🔍 Analyzing: "${critere.nom}" -> lowercase: "$nomCritereLower"');
 
+    for (final motCle in champsAvecSeparateurs) {
+      final contains = nomCritereLower.contains(motCle);
+      print('   - Contains "$motCle": $contains');
+      if (contains) {
+        print('   ✅ FORMATAGE REQUIS for "${critere.nom}"');
+        return true;
+      }
+    }
 
- @override
+    print('   ❌ No formatage required for "${critere.nom}"');
+    return false;
+  }
+
+  @override
   void initState() {
     super.initState();
-     print('🚀 SimulationScreen INIT - mounted: $mounted');
-  print('📋 Params - assureEstSouscripteur: ${widget.assureEstSouscripteur}');
-  print('📋 Params - hasInfos: ${widget.informationsAssure != null}');
+    print('🚀 SimulationScreen INIT - mounted: $mounted');
+    print('📋 Params - assureEstSouscripteur: ${widget.assureEstSouscripteur}');
+    print('📋 Params - hasInfos: ${widget.informationsAssure != null}');
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<SimulationProvider>().initierSimulation(
         produitId: widget.produit.id,
@@ -44,13 +72,11 @@ class _SimulationScreenState extends State<SimulationScreen> {
     });
   }
 
-@override
-void dispose() {
-  print('🗑️ SimulationScreen DISPOSE - mounted: $mounted');
-  super.dispose();
-}
-
-
+  @override
+  void dispose() {
+    print('🗑️ SimulationScreen DISPOSE - mounted: $mounted');
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -197,7 +223,10 @@ void dispose() {
                 backgroundColor: AppColors.primary,
                 foregroundColor: AppColors.white,
                 elevation: 0,
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 12,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -314,7 +343,7 @@ void dispose() {
         ),
         const SizedBox(height: 8),
         Text(
-          'ComplÃ©tez les champs ci-dessous pour obtenir votre devis personnalisÃ©',
+          'Complètez les champs ci-dessous pour obtenir votre devis personnalisé.',
           style: GoogleFonts.poppins(
             fontSize: 14,
             fontWeight: FontWeight.w400,
@@ -327,8 +356,13 @@ void dispose() {
 
   List<Widget> _buildFormFields(SimulationProvider provider) {
     final criteres = provider.criteresProduitTries;
-    
+
     return criteres.map((critere) {
+      final besoinFormatage = _critereNecessiteFormatage(critere);
+
+      // ⭐⭐ DEBUG CRITICAL ⭐⭐
+      print('🎯 CRITICAL - ${critere.nom}: formatMilliers=$besoinFormatage');
+
       return DynamicFormField(
         critere: critere,
         valeur: provider.criteresReponses[critere.nom],
@@ -336,6 +370,7 @@ void dispose() {
           provider.updateCritereReponse(critere.nom, valeur);
         },
         errorText: provider.getValidationError(critere.nom),
+        formatMilliers: besoinFormatage,
       );
     }).toList();
   }
@@ -350,11 +385,7 @@ void dispose() {
       ),
       child: Row(
         children: [
-          Icon(
-            Icons.error_outline_rounded,
-            color: AppColors.error,
-            size: 20,
-          ),
+          Icon(Icons.error_outline_rounded, color: AppColors.error, size: 20),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
@@ -389,8 +420,8 @@ void dispose() {
         child: ElevatedButton(
           onPressed: provider.canSimulate ? () => _simuler(provider) : null,
           style: ElevatedButton.styleFrom(
-            backgroundColor: provider.canSimulate 
-                ? AppColors.primary 
+            backgroundColor: provider.canSimulate
+                ? AppColors.primary
                 : AppColors.textSecondary,
             foregroundColor: AppColors.white,
             elevation: 0,
@@ -420,55 +451,59 @@ void dispose() {
     );
   }
 
+  // Dans simulation_screen.dart - méthode _simuler
+  Future<void> _simuler(SimulationProvider provider) async {
+    try {
+      Map<String, dynamic> infosAEnvoyer = {};
 
+      if (widget.informationsAssure != null) {
+        infosAEnvoyer = Map.from(widget.informationsAssure!);
 
-Future<void> _simuler(SimulationProvider provider) async {
-  try {
-    Map<String, dynamic> infosAEnvoyer = {};
-    
-    if (widget.informationsAssure != null) {
-      infosAEnvoyer = Map.from(widget.informationsAssure!);
-      
-      if (infosAEnvoyer.containsKey('date_naissance')) {
-        final dateNaissance = infosAEnvoyer['date_naissance'];
-        if (dateNaissance is DateTime) {
-          final day = dateNaissance.day.toString().padLeft(2, '0');
-          final month = dateNaissance.month.toString().padLeft(2, '0');
-          infosAEnvoyer['date_naissance'] = '$day-$month-${dateNaissance.year}';
+        if (infosAEnvoyer.containsKey('date_naissance')) {
+          final dateNaissance = infosAEnvoyer['date_naissance'];
+          if (dateNaissance is DateTime) {
+            final day = dateNaissance.day.toString().padLeft(2, '0');
+            final month = dateNaissance.month.toString().padLeft(2, '0');
+            infosAEnvoyer['date_naissance'] =
+                '$day-$month-${dateNaissance.year}';
+          }
         }
       }
-    }
 
-    await provider.simulerDevisSimplifie(
-      assureEstSouscripteur: widget.assureEstSouscripteur,
-      informationsAssure: widget.informationsAssure != null ? infosAEnvoyer : null,
-    );
-    
-    if (!provider.hasError && provider.dernierResultat != null && mounted) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => SimulationResultScreen(
-            produit: widget.produit,
-            resultat: provider.dernierResultat!,
-          ),
-        ),
+      await provider.simulerDevisSimplifie(
+        assureEstSouscripteur: widget.assureEstSouscripteur,
+        informationsAssure: widget.informationsAssure != null
+            ? infosAEnvoyer
+            : null,
       );
-    } else if (provider.hasError) {
+
+      if (!provider.hasError && provider.dernierResultat != null && mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => SimulationResultScreen(
+              produit: widget.produit,
+              resultat: provider.dernierResultat!,
+            ),
+          ),
+        );
+      } else if (provider.hasError) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              provider.errorMessage ?? 'Erreur lors de la simulation',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(provider.errorMessage ?? 'Erreur lors de la simulation'),
+          content: Text('Une erreur inattendue s\'est produite: $e'),
           backgroundColor: Colors.red,
         ),
       );
     }
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Une erreur inattendue s\'est produite: $e'),
-        backgroundColor: Colors.red,
-      ),
-    );
   }
-}
 }

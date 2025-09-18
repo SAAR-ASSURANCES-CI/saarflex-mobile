@@ -44,7 +44,7 @@ class ProductProvider extends ChangeNotifier {
 
 
 List<CritereTarification> _criteresProduit = [];
-Map<String, dynamic> _grillesTarifaires = {};
+final Map<String, dynamic> _grillesTarifaires = {};
 bool _isLoadingCriteres = false;
 
 List<CritereTarification> get criteresProduit => List.unmodifiable(_criteresProduit);
