@@ -452,8 +452,8 @@ class ApiService {
       'type_piece_identite',
       'date_naissance',
       'date_expiration_piece_identite',
-      'chemin_recto_piece',
-      'chemin_verso_piece',
+      'front_document_path',
+      'back_document_path',
     ];
 
     for (String champ in champsRequis) {

@@ -354,8 +354,8 @@ class _InfoAssureScreenState extends State<InfoAssureScreen> {
     await authProvider.loadUserProfile();
     final user = authProvider.currentUser;
 
-    _formData['chemin_recto_piece'] = user?.frontDocumentPath;
-    _formData['chemin_verso_piece'] = user?.backDocumentPath;
+    _formData['front_document_path'] = user?.frontDocumentPath;
+    _formData['back_document_path'] = user?.backDocumentPath;
   */
 
     Navigator.push(

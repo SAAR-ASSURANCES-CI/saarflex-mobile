@@ -161,10 +161,6 @@ class AuthProvider extends ChangeNotifier {
   Future<void> loadUserProfile() async {
     if (!_isLoggedIn) return;
 
-    // SOLUTION RADICALE : Ne pas recharger le profil pour éviter d'écraser les nouvelles images
-    print('🔍 DEBUG loadUserProfile BLOCKED to preserve new images');
-    return;
-
     _setLoading(true);
     _clearError();
 
@@ -334,8 +330,8 @@ class AuthProvider extends ChangeNotifier {
 
   Future<bool> _updateProfileWithImageUrl(String imageUrl, String type) async {
     final fieldName = type == 'recto'
-        ? 'chemin_recto_piece'
-        : 'chemin_verso_piece';
+        ? 'front_document_path'
+        : 'back_document_path';
     return await updateProfile({fieldName: imageUrl});
   }
 
@@ -345,8 +341,8 @@ class AuthProvider extends ChangeNotifier {
 
     try {
       final fieldName = type == 'recto'
-          ? 'chemin_recto_piece'
-          : 'chemin_verso_piece';
+          ? 'front_document_path'
+          : 'back_document_path';
       final success = await updateProfile({fieldName: null});
 
       _setLoading(false);
@@ -462,11 +458,6 @@ class AuthProvider extends ChangeNotifier {
   void updateUserField(String fieldName, dynamic value) {
     if (_currentUser == null) return;
 
-    print('🔍 DEBUG AuthProvider updateUserField:');
-    print('   - Field: $fieldName');
-    print('   - Value: $value');
-    print('   - Current user: ${_currentUser?.nom}');
-
     // Créer une nouvelle instance de User avec le champ mis à jour
     final updatedUser = User(
       id: _currentUser!.id,
@@ -507,9 +498,22 @@ class AuthProvider extends ChangeNotifier {
     );
 
     _currentUser = updatedUser;
-    print('   - User updated successfully');
-    print('   - New frontDocumentPath: ${_currentUser?.frontDocumentPath}');
-    print('   - New backDocumentPath: ${_currentUser?.backDocumentPath}');
+
+    // Vérifier et mettre à jour le statut du profil
+    _updateProfileCompletionStatus();
+
     notifyListeners();
+  }
+
+  void _updateProfileCompletionStatus() {
+    if (_currentUser == null) return;
+
+    // Vérifier si le profil est maintenant complet
+    final isComplete = _currentUser!.isProfileCompleteValue;
+
+    // Si le profil est complet mais que le statut n'est pas à jour, le mettre à jour
+    if (isComplete && _currentUser!.isProfileComplete != true) {
+      _currentUser = _currentUser!.copyWith(isProfileComplete: true);
+    }
   }
 }

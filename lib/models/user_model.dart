@@ -137,8 +137,10 @@ class User {
         json['date_expiration_piece_identite'],
         'date_expiration_piece_identite',
       ),
-      frontDocumentPath: json['chemin_recto_piece'],
-      backDocumentPath: json['chemin_verso_piece'],
+      frontDocumentPath:
+          json['front_document_path'] ?? json['chemin_recto_piece'],
+      backDocumentPath:
+          json['back_document_path'] ?? json['chemin_verso_piece'],
     );
   }
 
@@ -165,8 +167,8 @@ class User {
       'date_naissance': birthDate?.toIso8601String(),
       'date_expiration_piece_identite': identityExpirationDate
           ?.toIso8601String(),
-      'chemin_recto_piece': frontDocumentPath,
-      'chemin_verso_piece': backDocumentPath,
+      'front_document_path': frontDocumentPath,
+      'back_document_path': backDocumentPath,
     };
   }
 
@@ -244,7 +246,11 @@ class User {
         profession?.isNotEmpty == true &&
         address?.isNotEmpty == true &&
         identityNumber?.isNotEmpty == true &&
-        identityType?.isNotEmpty == true;
+        identityType?.isNotEmpty == true &&
+        birthDate != null &&
+        identityExpirationDate != null &&
+        frontDocumentPath?.isNotEmpty == true &&
+        backDocumentPath?.isNotEmpty == true;
   }
 
   String get genderDisplay => gender?.toLowerCase() == 'masculin'

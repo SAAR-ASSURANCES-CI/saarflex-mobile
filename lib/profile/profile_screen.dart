@@ -7,8 +7,8 @@ import 'package:saarflex_app/screens/auth/otp_verification_screen.dart';
 import 'package:saarflex_app/widgets/form_helpers.dart';
 import '../models/user_model.dart';
 import '../../constants/colors.dart';
+import '../../constants/api_constants.dart';
 import '../../utils/image_labels.dart';
-import '../../services/api_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -298,7 +298,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     onPressed: () => _showImageDialog(
                       imageUrl.startsWith('http')
                           ? imageUrl
-                          : 'http://192.168.4.179:3000/$imageUrl',
+                          : '${ApiConstants.baseUrl}/$imageUrl',
                       label,
                     ),
                     icon: Icon(
@@ -326,7 +326,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             onTap: () => _showImageDialog(
               imageUrl.startsWith('http')
                   ? imageUrl
-                  : 'http://192.168.4.179:3000/$imageUrl',
+                  : '${ApiConstants.baseUrl}/$imageUrl',
               label,
             ),
             child: Container(
@@ -342,7 +342,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ? Image.network(
                         imageUrl.startsWith('http')
                             ? imageUrl
-                            : 'http://192.168.4.179:3000/$imageUrl',
+                            : '${ApiConstants.baseUrl}/$imageUrl',
                         fit: BoxFit.cover,
                         loadingBuilder: (context, child, loadingProgress) {
                           if (loadingProgress == null) return child;
