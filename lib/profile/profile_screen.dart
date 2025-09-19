@@ -8,6 +8,7 @@ import 'package:saarflex_app/widgets/form_helpers.dart';
 import '../models/user_model.dart';
 import '../../constants/colors.dart';
 import '../../utils/image_labels.dart';
+import '../../services/api_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -263,6 +264,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildImageRow(String label, String imageUrl) {
+    print('🔍 DEBUG Profile Screen Image:');
+    print('   - Label: $label');
+    print('   - Image URL: $imageUrl');
+
+    // SOLUTION SIMPLE : Afficher les images si elles existent
+    final hasRealImage =
+        imageUrl.isNotEmpty && imageUrl != 'null' && imageUrl != 'undefined';
+
+    print('   - Has real image: $hasRealImage');
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Column(
@@ -271,18 +281,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                label,
-                style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.textSecondary,
+              Expanded(
+                child: Text(
+                  label,
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.textSecondary,
+                  ),
                 ),
               ),
               Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   IconButton(
-                    onPressed: () => _showImageDialog(imageUrl, label),
+                    onPressed: () => _showImageDialog(
+                      imageUrl.startsWith('http')
+                          ? imageUrl
+                          : 'http://192.168.4.179:3000/$imageUrl',
+                      label,
+                    ),
                     icon: Icon(
                       Icons.visibility,
                       size: 20,
@@ -305,7 +323,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           const SizedBox(height: 8),
           GestureDetector(
-            onTap: () => _showImageDialog(imageUrl, label),
+            onTap: () => _showImageDialog(
+              imageUrl.startsWith('http')
+                  ? imageUrl
+                  : 'http://192.168.4.179:3000/$imageUrl',
+              label,
+            ),
             child: Container(
               height: 150,
               width: double.infinity,
@@ -315,31 +338,73 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child: Image.network(
-                  imageUrl,
-                  fit: BoxFit.cover,
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return Center(
-                      child: CircularProgressIndicator(
-                        value: loadingProgress.expectedTotalBytes != null
-                            ? loadingProgress.cumulativeBytesLoaded /
-                                  loadingProgress.expectedTotalBytes!
-                            : null,
+                child: hasRealImage
+                    ? Image.network(
+                        imageUrl.startsWith('http')
+                            ? imageUrl
+                            : 'http://192.168.4.179:3000/$imageUrl',
+                        fit: BoxFit.cover,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return Center(
+                            child: CircularProgressIndicator(
+                              value: loadingProgress.expectedTotalBytes != null
+                                  ? loadingProgress.cumulativeBytesLoaded /
+                                        loadingProgress.expectedTotalBytes!
+                                  : null,
+                            ),
+                          );
+                        },
+                        errorBuilder: (context, error, stackTrace) {
+                          print('🔍 DEBUG Image Error: $error');
+                          return Container(
+                            color: Colors.grey[100],
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.photo_library_outlined,
+                                  color: Colors.grey[400],
+                                  size: 40,
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Image non disponible',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 12,
+                                    color: Colors.grey[600],
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      )
+                    : Container(
+                        color: Colors.grey[100],
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.photo_library_outlined,
+                                size: 48,
+                                color: Colors.grey[400],
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Image non disponible',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12,
+                                  color: Colors.grey[600],
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
-                    );
-                  },
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      color: AppColors.surfaceVariant,
-                      child: Icon(
-                        Icons.error_outline_rounded,
-                        color: AppColors.error,
-                        size: 40,
-                      ),
-                    );
-                  },
-                ),
               ),
             ),
           ),

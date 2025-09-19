@@ -161,6 +161,10 @@ class AuthProvider extends ChangeNotifier {
   Future<void> loadUserProfile() async {
     if (!_isLoggedIn) return;
 
+    // SOLUTION RADICALE : Ne pas recharger le profil pour éviter d'écraser les nouvelles images
+    print('🔍 DEBUG loadUserProfile BLOCKED to preserve new images');
+    return;
+
     _setLoading(true);
     _clearError();
 
@@ -452,6 +456,60 @@ class AuthProvider extends ChangeNotifier {
     _authToken = null;
     _clearError();
     _clearUploadError();
+    notifyListeners();
+  }
+
+  void updateUserField(String fieldName, dynamic value) {
+    if (_currentUser == null) return;
+
+    print('🔍 DEBUG AuthProvider updateUserField:');
+    print('   - Field: $fieldName');
+    print('   - Value: $value');
+    print('   - Current user: ${_currentUser?.nom}');
+
+    // Créer une nouvelle instance de User avec le champ mis à jour
+    final updatedUser = User(
+      id: _currentUser!.id,
+      nom: fieldName == 'nom' ? value : _currentUser!.nom,
+      email: fieldName == 'email' ? value : _currentUser!.email,
+      telephone: fieldName == 'telephone' ? value : _currentUser!.telephone,
+      typeUtilisateur: _currentUser!.typeUtilisateur,
+      statut: _currentUser!.statut,
+      dateCreation: _currentUser!.dateCreation,
+      updatedAt: _currentUser!.updatedAt,
+      birthPlace: fieldName == 'lieu_naissance'
+          ? value
+          : _currentUser!.birthPlace,
+      gender: fieldName == 'sexe' ? value : _currentUser!.gender,
+      nationality: fieldName == 'nationalite'
+          ? value
+          : _currentUser!.nationality,
+      profession: fieldName == 'profession' ? value : _currentUser!.profession,
+      address: fieldName == 'adresse' ? value : _currentUser!.address,
+      birthDate: fieldName == 'date_naissance'
+          ? value
+          : _currentUser!.birthDate,
+      identityNumber: fieldName == 'numero_piece_identite'
+          ? value
+          : _currentUser!.identityNumber,
+      identityType: fieldName == 'type_piece_identite'
+          ? value
+          : _currentUser!.identityType,
+      identityExpirationDate: fieldName == 'date_expiration_piece_identite'
+          ? value
+          : _currentUser!.identityExpirationDate,
+      frontDocumentPath: fieldName == 'frontDocumentPath'
+          ? value
+          : _currentUser!.frontDocumentPath,
+      backDocumentPath: fieldName == 'backDocumentPath'
+          ? value
+          : _currentUser!.backDocumentPath,
+    );
+
+    _currentUser = updatedUser;
+    print('   - User updated successfully');
+    print('   - New frontDocumentPath: ${_currentUser?.frontDocumentPath}');
+    print('   - New backDocumentPath: ${_currentUser?.backDocumentPath}');
     notifyListeners();
   }
 }

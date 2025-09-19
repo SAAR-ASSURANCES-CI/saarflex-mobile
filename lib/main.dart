@@ -20,6 +20,9 @@ import 'constants/colors.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // debugPrint('🚀 APP STARTED - Debug logs should appear now');
+  // developer.log('🚀 APP STARTED - Developer log test');
+
   runApp(const Saarflex());
 }
 

@@ -32,6 +32,14 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     final hasVersoPhoto =
         user.backDocumentPath != null && user.backDocumentPath!.isNotEmpty;
 
+    print('🔍 DEBUG Photo Validation:');
+    print('   - User: ${user.nom}');
+    print('   - Front path: ${user.frontDocumentPath}');
+    print('   - Back path: ${user.backDocumentPath}');
+    print('   - Has recto: $hasRectoPhoto');
+    print('   - Has verso: $hasVersoPhoto');
+    print('   - Result: ${hasRectoPhoto && hasVersoPhoto}');
+
     return hasRectoPhoto && hasVersoPhoto;
   }
 

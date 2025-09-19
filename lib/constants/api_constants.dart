@@ -21,11 +21,9 @@ class ApiConstants {
   static const Duration connectTimeout = Duration(seconds: 30);
   static const Duration receiveTimeout = Duration(seconds: 30);
 
-  // Image upload constraints
+  // Image upload constraints - Only size restriction
   static const int maxImageSizeBytes = 5 * 1024 * 1024; // 5MB
-  static const List<String> allowedImageTypes = ['jpg', 'jpeg', 'png'];
-  static const int maxImageWidth = 2048;
-  static const int maxImageHeight = 2048;
+  // No other restrictions - all formats and dimensions allowed
 
   static const Map<String, String> defaultHeaders = {
     'Content-Type': 'application/json',

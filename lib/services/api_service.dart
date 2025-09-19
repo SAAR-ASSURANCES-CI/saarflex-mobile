@@ -361,6 +361,8 @@ class ApiService {
             data['date_expiration_piece_identite'],
             'date_expiration_piece_identite',
           ),
+          frontDocumentPath: data['front_document_path'],
+          backDocumentPath: data['back_document_path'],
         );
       } else {
         _handleHttpError(response);
@@ -421,6 +423,8 @@ class ApiService {
             data['date_expiration_piece_identite'],
             'date_expiration_piece_identite',
           ),
+          frontDocumentPath: data['front_document_path'],
+          backDocumentPath: data['back_document_path'],
         );
       } else {
         _handleHttpError(response);
@@ -545,13 +549,19 @@ class ApiService {
     }
   }
 
-  Future<Map<String, String>> uploadImage({
-    required String imagePath,
-    required bool isRecto,
+  Future<Map<String, String>> uploadBothImages({
+    required String rectoPath,
+    required String versoPath,
   }) async {
     try {
       final url = '$baseUrl${ApiConstants.uploadImages}';
       final token = await _getToken();
+
+      print('🔍 DEBUG Upload API:');
+      print('   - URL: $url');
+      print('   - Token: ${token != null ? "Present" : "Missing"}');
+      print('   - Recto path: $rectoPath');
+      print('   - Verso path: $versoPath');
 
       if (token == null) {
         throw ApiException('Token d\'authentification manquant');
@@ -563,80 +573,89 @@ class ApiService {
         'Accept': 'application/json',
       });
 
-      // Ajouter le fichier image
-      final imageFile = File(imagePath);
-      if (!await imageFile.exists()) {
-        throw ApiException('Fichier image introuvable');
+      // Ajouter les deux fichiers images
+      final rectoFile = File(rectoPath);
+      final versoFile = File(versoPath);
+
+      if (!await rectoFile.exists()) {
+        throw ApiException('Fichier recto introuvable');
+      }
+      if (!await versoFile.exists()) {
+        throw ApiException('Fichier verso introuvable');
       }
 
-      final multipartFile = await http.MultipartFile.fromPath(
-        'image',
-        imagePath,
-        filename: '${isRecto ? 'recto' : 'verso'}.jpg',
+      // Vérifier la taille des fichiers
+      final rectoSize = await rectoFile.length();
+      final versoSize = await versoFile.length();
+      print('   - Recto size: ${rectoSize} bytes');
+      print('   - Verso size: ${versoSize} bytes');
+
+      // Ajouter le fichier recto
+      final rectoMultipartFile = await http.MultipartFile.fromPath(
+        'files',
+        rectoPath,
+        filename: 'recto.jpg',
       );
+      request.files.add(rectoMultipartFile);
 
-      request.files.add(multipartFile);
-      request.fields['type'] = isRecto ? 'recto' : 'verso';
+      // Ajouter le fichier verso
+      final versoMultipartFile = await http.MultipartFile.fromPath(
+        'files',
+        versoPath,
+        filename: 'verso.jpg',
+      );
+      request.files.add(versoMultipartFile);
 
+      print('   - Sending request...');
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
 
+      print('   - Response status: ${response.statusCode}');
+      print('   - Response body: ${response.body}');
+
       if (response.statusCode == 200 || response.statusCode == 201) {
         final responseData = json.decode(response.body);
-        final imagePath = responseData['image_path'] ?? responseData['path'];
+        final rectoPath = responseData['recto_path'];
+        final versoPath = responseData['verso_path'];
 
-        if (imagePath == null) {
-          throw ApiException('Chemin de l\'image manquant dans la réponse');
+        if (rectoPath == null || versoPath == null) {
+          throw ApiException('Chemins des images manquants dans la réponse');
         }
 
-        return {'type': isRecto ? 'recto' : 'verso', 'path': imagePath};
+        return {'recto_path': rectoPath, 'verso_path': versoPath};
       } else {
         _handleHttpError(response);
         throw ApiException(
-          'Erreur lors de l\'upload de l\'image',
+          'Erreur lors de l\'upload des images',
           response.statusCode,
         );
       }
     } on SocketException {
       throw ApiException('Pas de connexion internet');
     } catch (e) {
+      print('🔍 DEBUG Upload Error: $e');
       if (e is ApiException) rethrow;
       throw ApiException('Erreur d\'upload: ${e.toString()}');
-    }
-  }
-
-  Future<Map<String, String>> uploadBothImages({
-    required String rectoPath,
-    required String versoPath,
-  }) async {
-    try {
-      // Upload recto
-      final rectoResult = await uploadImage(
-        imagePath: rectoPath,
-        isRecto: true,
-      );
-
-      // Upload verso
-      final versoResult = await uploadImage(
-        imagePath: versoPath,
-        isRecto: false,
-      );
-
-      return {
-        'recto_path': rectoResult['path']!,
-        'verso_path': versoResult['path']!,
-      };
-    } catch (e) {
-      if (e is ApiException) rethrow;
-      throw ApiException(
-        'Erreur lors de l\'upload des images: ${e.toString()}',
-      );
     }
   }
 
   Future<bool> isLoggedIn() async {
     final token = await _getToken();
     return token != null;
+  }
+
+  String getImageUrl(String? imagePath) {
+    if (imagePath == null || imagePath.isEmpty) {
+      return '';
+    }
+
+    // Si l'URL est déjà complète, la retourner telle quelle
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+      return imagePath;
+    }
+
+    // Sinon, ajouter l'URL de base
+    return '$baseUrl/$imagePath';
   }
 }
 
