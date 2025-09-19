@@ -320,7 +320,24 @@ class _EditProfileScreenRefactoredState
     );
   }
 
+  String? _getBackendIdentityType(String? selectedIdType) {
+    if (selectedIdType == null) return null;
+
+    // Convertir le label affiché en type backend
+    switch (selectedIdType) {
+      case 'Carte Nationale d\'Identité':
+        return 'carte_identite';
+      case 'Passeport':
+        return 'passeport';
+      default:
+        return null;
+    }
+  }
+
   Widget _buildDocumentUploadSection(AuthProvider authProvider) {
+    // Convertir _selectedIdType en type backend pour la réactivité
+    final currentIdentityType = _getBackendIdentityType(_selectedIdType);
+
     return DocumentUploadSection(
       user: authProvider.currentUser,
       rectoImage: _rectoImage,
@@ -329,6 +346,7 @@ class _EditProfileScreenRefactoredState
       isUploadingVerso: _isUploadingVerso,
       onImagePicked: (isRecto) => _pickImage(isRecto),
       onImageDeleted: (isRecto) => _deleteImage(isRecto),
+      identityType: currentIdentityType, // Nouveau paramètre pour la réactivité
     );
   }
 

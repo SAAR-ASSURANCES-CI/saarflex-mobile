@@ -9,6 +9,7 @@ import '../../constants/colors.dart';
 import '../../models/product_model.dart';
 import '../../providers/product_provider.dart';
 import '../simulation/info_assure_screen.dart';
+import '../../utils/image_labels.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final String productId;
@@ -20,6 +21,134 @@ class ProductDetailScreen extends StatefulWidget {
 }
 
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
+  // Méthode pour vérifier si les photos sont présentes
+  bool _hasRequiredPhotos(AuthProvider authProvider) {
+    final user = authProvider.currentUser;
+    if (user == null) return false;
+
+    // Vérifier que les deux photos sont présentes
+    final hasRectoPhoto =
+        user.frontDocumentPath != null && user.frontDocumentPath!.isNotEmpty;
+    final hasVersoPhoto =
+        user.backDocumentPath != null && user.backDocumentPath!.isNotEmpty;
+
+    return hasRectoPhoto && hasVersoPhoto;
+  }
+
+  // Méthode pour afficher le dialogue de redirection
+  Future<void> _showPhotoRequiredDialog(
+    BuildContext context,
+    String photoTitle,
+    String photoDescription,
+    Product product,
+  ) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Icon(Icons.photo_camera, color: AppColors.primary, size: 28),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Photos requises',
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Pour simuler un devis, vous devez d\'abord uploader vos photos d\'identité.',
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceVariant,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      photoTitle,
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      photoDescription,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                'Annuler',
+                style: GoogleFonts.poppins(
+                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => EditProfileScreen(produit: product),
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Text(
+                'Ajouter mes photos',
+                style: GoogleFonts.poppins(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -544,6 +673,25 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               ),
             );
           }
+          return;
+        }
+
+        // Vérifier si les photos sont présentes
+        if (!_hasRequiredPhotos(authProvider)) {
+          final user = authProvider.currentUser;
+          final identityType = user?.identityType;
+          final photoTitle = ImageLabels.getUploadTitle(identityType);
+          final photoDescription = ImageLabels.getUploadDescription(
+            identityType,
+          );
+
+          // Afficher un dialogue pour expliquer pourquoi la redirection
+          await _showPhotoRequiredDialog(
+            context,
+            photoTitle,
+            photoDescription,
+            product,
+          );
           return;
         }
 

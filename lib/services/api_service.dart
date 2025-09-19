@@ -448,9 +448,8 @@ class ApiService {
       'type_piece_identite',
       'date_naissance',
       'date_expiration_piece_identite',
-
-      // 'chemin_recto_piece',
-      // 'chemin_verso_piece'
+      'chemin_recto_piece',
+      'chemin_verso_piece',
     ];
 
     for (String champ in champsRequis) {
@@ -543,6 +542,95 @@ class ApiService {
     } catch (e) {
       if (e is ApiException) rethrow;
       throw ApiException('Erreur de réinitialisation: ${e.toString()}');
+    }
+  }
+
+  Future<Map<String, String>> uploadImage({
+    required String imagePath,
+    required bool isRecto,
+  }) async {
+    try {
+      final url = '$baseUrl${ApiConstants.uploadImages}';
+      final token = await _getToken();
+
+      if (token == null) {
+        throw ApiException('Token d\'authentification manquant');
+      }
+
+      final request = http.MultipartRequest('POST', Uri.parse(url));
+      request.headers.addAll({
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+      });
+
+      // Ajouter le fichier image
+      final imageFile = File(imagePath);
+      if (!await imageFile.exists()) {
+        throw ApiException('Fichier image introuvable');
+      }
+
+      final multipartFile = await http.MultipartFile.fromPath(
+        'image',
+        imagePath,
+        filename: '${isRecto ? 'recto' : 'verso'}.jpg',
+      );
+
+      request.files.add(multipartFile);
+      request.fields['type'] = isRecto ? 'recto' : 'verso';
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final responseData = json.decode(response.body);
+        final imagePath = responseData['image_path'] ?? responseData['path'];
+
+        if (imagePath == null) {
+          throw ApiException('Chemin de l\'image manquant dans la réponse');
+        }
+
+        return {'type': isRecto ? 'recto' : 'verso', 'path': imagePath};
+      } else {
+        _handleHttpError(response);
+        throw ApiException(
+          'Erreur lors de l\'upload de l\'image',
+          response.statusCode,
+        );
+      }
+    } on SocketException {
+      throw ApiException('Pas de connexion internet');
+    } catch (e) {
+      if (e is ApiException) rethrow;
+      throw ApiException('Erreur d\'upload: ${e.toString()}');
+    }
+  }
+
+  Future<Map<String, String>> uploadBothImages({
+    required String rectoPath,
+    required String versoPath,
+  }) async {
+    try {
+      // Upload recto
+      final rectoResult = await uploadImage(
+        imagePath: rectoPath,
+        isRecto: true,
+      );
+
+      // Upload verso
+      final versoResult = await uploadImage(
+        imagePath: versoPath,
+        isRecto: false,
+      );
+
+      return {
+        'recto_path': rectoResult['path']!,
+        'verso_path': versoResult['path']!,
+      };
+    } catch (e) {
+      if (e is ApiException) rethrow;
+      throw ApiException(
+        'Erreur lors de l\'upload des images: ${e.toString()}',
+      );
     }
   }
 

@@ -7,6 +7,7 @@ import 'package:saarflex_app/screens/auth/otp_verification_screen.dart';
 import 'package:saarflex_app/widgets/form_helpers.dart';
 import '../models/user_model.dart';
 import '../../constants/colors.dart';
+import '../../utils/image_labels.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -144,24 +145,120 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildIdentityImagesSection(User? user) {
+    // Utiliser les labels contextuels selon le type de pièce
+    final rectoLabel = ImageLabels.getRectoLabel(user?.identityType);
+    final versoLabel = ImageLabels.getVersoLabel(user?.identityType);
+    final sectionTitle = ImageLabels.getUploadTitle(user?.identityType);
+
     return _buildSection(
-      title: "Pièce d'identité",
+      title: sectionTitle,
       icon: Icons.photo_library_rounded,
       children: [
         if (user?.frontDocumentPath != null &&
             user!.frontDocumentPath!.isNotEmpty)
-          _buildImageRow("Recto", user.frontDocumentPath!)
+          _buildImageRow(rectoLabel, user.frontDocumentPath!)
         else
-          _buildInfoRow("Recto", "Non téléchargé", isWarning: true),
+          _buildInfoRow(rectoLabel, "Non téléchargé", isWarning: true),
 
         const SizedBox(height: 12),
 
         if (user?.backDocumentPath != null &&
             user!.backDocumentPath!.isNotEmpty)
-          _buildImageRow("Verso", user.backDocumentPath!)
+          _buildImageRow(versoLabel, user.backDocumentPath!)
         else
-          _buildInfoRow("Verso", "Non téléchargé", isWarning: true),
+          _buildInfoRow(versoLabel, "Non téléchargé", isWarning: true),
       ],
+    );
+  }
+
+  // Méthode pour afficher l'image en plein écran
+  void _showImageDialog(String imageUrl, String label) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          child: Stack(
+            children: [
+              // Image en plein écran
+              Center(
+                child: InteractiveViewer(
+                  child: Image.network(
+                    imageUrl,
+                    fit: BoxFit.contain,
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Center(
+                        child: CircularProgressIndicator(
+                          value: loadingProgress.expectedTotalBytes != null
+                              ? loadingProgress.cumulativeBytesLoaded /
+                                    loadingProgress.expectedTotalBytes!
+                              : null,
+                        ),
+                      );
+                    },
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        color: AppColors.surfaceVariant,
+                        child: Icon(
+                          Icons.error_outline_rounded,
+                          color: AppColors.error,
+                          size: 60,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+              // Bouton de fermeture
+              Positioned(
+                top: 40,
+                right: 20,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.5),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: IconButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: Icon(Icons.close, color: Colors.white, size: 24),
+                  ),
+                ),
+              ),
+              // Label de l'image
+              Positioned(
+                bottom: 40,
+                left: 20,
+                right: 20,
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.7),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    label,
+                    style: GoogleFonts.poppins(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // Méthode pour naviguer vers l'édition du profil
+  void _navigateToEditProfile() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => EditProfileScreen()),
     );
   }
 
@@ -171,20 +268,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: AppColors.textSecondary,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                label,
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              Row(
+                children: [
+                  IconButton(
+                    onPressed: () => _showImageDialog(imageUrl, label),
+                    icon: Icon(
+                      Icons.visibility,
+                      size: 20,
+                      color: AppColors.primary,
+                    ),
+                    tooltip: 'Voir en grand',
+                  ),
+                  IconButton(
+                    onPressed: () => _navigateToEditProfile(),
+                    icon: Icon(
+                      Icons.edit,
+                      size: 20,
+                      color: AppColors.secondary,
+                    ),
+                    tooltip: 'Modifier',
+                  ),
+                ],
+              ),
+            ],
           ),
           const SizedBox(height: 8),
           GestureDetector(
-            onTap: () {
-              // Ouvrir l'image en plein écran
-              // Vous pouvez utiliser un package comme photo_view pour cela
-            },
+            onTap: () => _showImageDialog(imageUrl, label),
             child: Container(
               height: 150,
               width: double.infinity,

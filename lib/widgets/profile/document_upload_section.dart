@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../constants/colors.dart';
 import '../../models/user_model.dart';
+import '../../utils/image_labels.dart';
 
 class DocumentUploadSection extends StatelessWidget {
   final User? user;
@@ -13,6 +14,7 @@ class DocumentUploadSection extends StatelessWidget {
   final bool isUploadingVerso;
   final Function(bool isRecto) onImagePicked;
   final Function(bool isRecto) onImageDeleted;
+  final String? identityType; // Nouveau paramètre pour la réactivité
 
   const DocumentUploadSection({
     super.key,
@@ -23,16 +25,20 @@ class DocumentUploadSection extends StatelessWidget {
     required this.isUploadingVerso,
     required this.onImagePicked,
     required this.onImageDeleted,
+    this.identityType, // Nouveau paramètre
   });
 
   @override
   Widget build(BuildContext context) {
+    // Utiliser identityType en paramètre pour la réactivité, sinon fallback sur user?.identityType
+    final currentIdentityType = identityType ?? user?.identityType;
+
     return _buildSection(
-      title: "Photos de la pièce d'identité",
+      title: ImageLabels.getUploadTitle(currentIdentityType),
       icon: Icons.photo_library_rounded,
       children: [
         _buildImageUploadField(
-          label: 'Recto de la pièce',
+          label: ImageLabels.getRectoLabel(currentIdentityType),
           imageUrl: user?.frontDocumentPath,
           isUploading: isUploadingRecto,
           onTap: () => onImagePicked(true),
@@ -41,7 +47,7 @@ class DocumentUploadSection extends StatelessWidget {
         ),
         const SizedBox(height: 20),
         _buildImageUploadField(
-          label: 'Verso de la pièce',
+          label: ImageLabels.getVersoLabel(currentIdentityType),
           imageUrl: user?.backDocumentPath,
           isUploading: isUploadingVerso,
           onTap: () => onImagePicked(false),

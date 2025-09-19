@@ -9,6 +9,7 @@ import 'package:saarflex_app/models/product_model.dart';
 import 'package:saarflex_app/providers/auth_provider.dart';
 import 'package:saarflex_app/screens/simulation/simulation_screen.dart';
 import '../../utils/error_handler.dart';
+import '../../utils/image_labels.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final VoidCallback? onProfileCompleted;
@@ -758,15 +759,32 @@ if (_versoImage != null) {
     );
   }
 
+  String? _getBackendIdentityType(String? selectedIdType) {
+    if (selectedIdType == null) return null;
+
+    // Convertir le label affiché en type backend
+    switch (selectedIdType) {
+      case 'Carte Nationale d\'Identité':
+        return 'carte_identite';
+      case 'Passeport':
+        return 'passeport';
+      default:
+        return null;
+    }
+  }
+
   Widget _buildIdentityImagesSection() {
     final user = context.read<AuthProvider>().currentUser;
 
+    // Utiliser _selectedIdType au lieu de user?.identityType pour la réactivité
+    final currentIdentityType = _getBackendIdentityType(_selectedIdType);
+
     return _buildFormSection(
-      title: "Photos de la pièce d'identité",
+      title: ImageLabels.getUploadTitle(currentIdentityType),
       icon: Icons.photo_library_rounded,
       children: [
         _buildImageUploadField(
-          label: 'Recto de la pièce',
+          label: ImageLabels.getRectoLabel(currentIdentityType),
           imageUrl: user?.frontDocumentPath,
           isUploading: _isUploadingRecto,
           onTap: () => _pickImage(true),
@@ -774,7 +792,7 @@ if (_versoImage != null) {
         ),
         const SizedBox(height: 20),
         _buildImageUploadField(
-          label: 'Verso de la pièce',
+          label: ImageLabels.getVersoLabel(currentIdentityType),
           imageUrl: user?.backDocumentPath,
           isUploading: _isUploadingVerso,
           onTap: () => _pickImage(false),

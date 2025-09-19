@@ -16,9 +16,16 @@ class ApiConstants {
   static const String resetPassword = '/users/reset-password';
   static const String updateProfile = '/users/me';
   static const String uploadDocument = '/users/upload-piece-identite';
+  static const String uploadImages = '/profiles/upload/images';
 
   static const Duration connectTimeout = Duration(seconds: 30);
   static const Duration receiveTimeout = Duration(seconds: 30);
+
+  // Image upload constraints
+  static const int maxImageSizeBytes = 5 * 1024 * 1024; // 5MB
+  static const List<String> allowedImageTypes = ['jpg', 'jpeg', 'png'];
+  static const int maxImageWidth = 2048;
+  static const int maxImageHeight = 2048;
 
   static const Map<String, String> defaultHeaders = {
     'Content-Type': 'application/json',
