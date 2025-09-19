@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/format_helper.dart';
 
 class SimulationRequest {
   final String produitId;
@@ -98,7 +99,7 @@ extension StatutDevisExtension on StatutDevis {
 
 extension DateTimeExtension on DateTime {
   String formatDate() {
-    return '${day.toString().padLeft(2, '0')}/${month.toString().padLeft(2, '0')}/${year} à ${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
+    return '${day.toString().padLeft(2, '0')}/${month.toString().padLeft(2, '0')}/$year à ${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
   }
 }
 
@@ -142,7 +143,7 @@ class SimulationResponse {
     required this.createdAt,
 
     this.franchiseCalculee = 0.0,
-    this.plafondCalcule, 
+    this.plafondCalcule,
     this.detailsCalcul,
     this.statut = StatutDevis.simulation,
     this.expiresAt,
@@ -188,8 +189,7 @@ class SimulationResponse {
             : null,
       );
     } catch (e) {
-      print('❌ Erreur parsing SimulationResponse: $e');
-      print('❌ JSON reçu: $json');
+      // Logging sera ajouté via le système de logging
       rethrow;
     }
   }
@@ -298,19 +298,15 @@ class SimulationResponse {
   }
 
   String get primeFormatee {
-    return '${primeCalculee.formatMontant()} FCFA';
+    return FormatHelper.formatMontant(primeCalculee);
   }
 
   String get franchiseFormatee {
-    if (franchiseCalculee == null || franchiseCalculee! <= 0) {
-      return 'Non applicable';
-    }
-    return '${franchiseCalculee!.formatMontant()} FCFA';
+    return FormatHelper.formatMontantAvecDefaut(franchiseCalculee);
   }
 
   String? get plafondFormate {
-    if (plafondCalcule == null) return null;
-    return '${plafondCalcule!.formatMontant()} FCFA';
+    return FormatHelper.formatMontantOptionnel(plafondCalcule);
   }
 }
 

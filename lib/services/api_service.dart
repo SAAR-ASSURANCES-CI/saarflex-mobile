@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import '../models/user_model.dart';
 import '../constants/api_constants.dart';
+import '../utils/logger.dart';
 
 class ApiService {
   static final ApiService _instance = ApiService._internal();
@@ -48,51 +49,48 @@ class ApiService {
     try {
       final errorData = json.decode(responseBody);
       final apiMessage = errorData['message'];
-
-      switch (response.statusCode) {
-        case 400:
-          if (apiMessage is List) {
-            userMessage = apiMessage.join('\n');
-          } else {
-            userMessage = apiMessage ?? 'Données invalides';
-          }
-          break;
-        case 401:
-          userMessage = 'Email ou mot de passe incorrect';
-          break;
-        case 403:
-          userMessage = 'Accès interdit';
-          break;
-        case 404:
-          userMessage = 'Service non disponible';
-          break;
-        case 409:
-          userMessage = 'Un compte avec cet email existe déjà';
-          break;
-        case 422:
-          if (apiMessage is List) {
-            userMessage = apiMessage.join('\n');
-          } else {
-            userMessage = apiMessage ?? 'Erreur de validation';
-          }
-          break;
-        case 429:
-          userMessage = 'Trop de tentatives. Veuillez patienter quelques minutes';
-          break;
-        case 500:
-          userMessage = 'Erreur serveur. Veuillez réessayer plus tard';
-          break;
-        case 503:
-          userMessage = 'Service temporairement indisponible';
-          break;
-        default:
-          userMessage = 'Une erreur est survenue. Veuillez réessayer';
-      }
+      userMessage = _getErrorMessageForStatusCode(
+        response.statusCode,
+        apiMessage,
+      );
     } catch (e) {
       userMessage = _getDefaultErrorMessage(response.statusCode);
     }
 
     throw ApiException(userMessage, response.statusCode);
+  }
+
+  String _getErrorMessageForStatusCode(int statusCode, dynamic apiMessage) {
+    switch (statusCode) {
+      case 400:
+        return _formatValidationError(apiMessage, 'Données invalides');
+      case 401:
+        return 'Email ou mot de passe incorrect';
+      case 403:
+        return 'Accès interdit';
+      case 404:
+        return 'Service non disponible';
+      case 409:
+        return 'Un compte avec cet email existe déjà';
+      case 422:
+        return _formatValidationError(apiMessage, 'Erreur de validation');
+      case 429:
+        return 'Trop de tentatives. Veuillez patienter quelques minutes';
+      case 500:
+        return 'Erreur serveur. Veuillez réessayer plus tard';
+      case 503:
+        return 'Service temporairement indisponible';
+      default:
+        return 'Une erreur est survenue. Veuillez réessayer';
+    }
+  }
+
+  String _formatValidationError(dynamic apiMessage, String defaultMessage) {
+    if (apiMessage is List) {
+      return apiMessage.join('\n');
+    } else {
+      return apiMessage ?? defaultMessage;
+    }
   }
 
   String _getDefaultErrorMessage(int statusCode) {
@@ -124,39 +122,37 @@ class ApiService {
     if (dateValue == null) {
       return null;
     }
-    
+
     try {
       String dateStr = dateValue.toString();
-      
+
       if (dateStr.contains('-') && dateStr.length == 10) {
         List<String> parts = dateStr.split('-');
         if (parts.length == 3) {
           int day = int.parse(parts[0]);
           int month = int.parse(parts[1]);
           int year = int.parse(parts[2]);
-          
+
           DateTime parsedDate = DateTime(year, month, day);
           return parsedDate;
         }
       }
-      
+
       if (dateStr.contains('/') && dateStr.length == 10) {
         List<String> parts = dateStr.split('/');
         if (parts.length == 3) {
           int day = int.parse(parts[0]);
           int month = int.parse(parts[1]);
           int year = int.parse(parts[2]);
-          
+
           DateTime parsedDate = DateTime(year, month, day);
           return parsedDate;
         }
       }
-      
+
       final parsedDate = DateTime.parse(dateStr);
       return parsedDate;
-      
     } catch (e) {
-      
       try {
         String dateStr = dateValue.toString();
         if (dateStr.contains('-')) {
@@ -171,72 +167,78 @@ class ApiService {
       } catch (e2) {
         return null;
       }
-      
+
       return null;
     }
   }
 
   Future<AuthResponse> login({
-  required String email,
-  required String password,
-}) async {
-  try {
-    final url = '$baseUrl/users/login';
-    final body = {'email': email, 'mot_de_passe': password};
+    required String email,
+    required String password,
+  }) async {
+    try {
+      final url = '$baseUrl${ApiConstants.login}';
+      final body = {'email': email, 'mot_de_passe': password};
 
-    final response = await http.post(
-      Uri.parse(url),
-      headers: _defaultHeaders,
-      body: json.encode(body),
-    );
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      final responseData = json.decode(response.body);
-      final data = responseData['data'] ?? responseData;
-      final token = data['token'];
-
-      final user = User(
-        id: data['id'],
-        nom: data['nom'],
-        email: data['email'],
-        telephone: data['telephone'],
-        typeUtilisateur: TypeUtilisateur.values.firstWhere(
-          (e) => e.toString().split('.').last == data['type_utilisateur'],
-          orElse: () => TypeUtilisateur.client,
-        ),
-        statut: data['statut'] ?? true,
-        dateCreation: data['date_creation'] != null
-            ? DateTime.parse(data['date_creation'])
-            : null,
-        derniereConnexion: null,
-        updatedAt: null,
+      final response = await http.post(
+        Uri.parse(url),
+        headers: _defaultHeaders,
+        body: json.encode(body),
       );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final responseData = json.decode(response.body);
+        final data = responseData['data'] ?? responseData;
+        final token = data['token'];
 
-      await _saveToken(token);
-      return AuthResponse(user: user, token: token);
-    } else {
-      final responseBody = json.decode(response.body);
-      final errorMessage = responseBody['message']?.toString().toLowerCase() ?? '';
+        final user = User(
+          id: data['id'],
+          nom: data['nom'],
+          email: data['email'],
+          telephone: data['telephone'],
+          typeUtilisateur: TypeUtilisateur.values.firstWhere(
+            (e) => e.toString().split('.').last == data['type_utilisateur'],
+            orElse: () => TypeUtilisateur.client,
+          ),
+          statut: data['statut'] ?? true,
+          dateCreation: data['date_creation'] != null
+              ? DateTime.parse(data['date_creation'])
+              : null,
+          derniereConnexion: null,
+          updatedAt: null,
+        );
 
-      if (response.statusCode == 401) {
-        if (errorMessage.contains('email') || errorMessage.contains('utilisateur')) {
-          throw ApiException('Aucun compte associé à cet email', response.statusCode);
-        } else if (errorMessage.contains('mot de passe') || errorMessage.contains('password')) {
-          throw ApiException('Mot de passe incorrect', response.statusCode);
+        await _saveToken(token);
+        return AuthResponse(user: user, token: token);
+      } else {
+        final responseBody = json.decode(response.body);
+        final errorMessage =
+            responseBody['message']?.toString().toLowerCase() ?? '';
+
+        if (response.statusCode == 401) {
+          if (errorMessage.contains('email') ||
+              errorMessage.contains('utilisateur')) {
+            throw ApiException(
+              'Aucun compte associé à cet email',
+              response.statusCode,
+            );
+          } else if (errorMessage.contains('mot de passe') ||
+              errorMessage.contains('password')) {
+            throw ApiException('Mot de passe incorrect', response.statusCode);
+          }
         }
+
+        _handleHttpError(response);
+        throw ApiException('Erreur de connexion', response.statusCode);
       }
-      
-      _handleHttpError(response);
-      throw ApiException('Erreur de connexion', response.statusCode);
+    } on SocketException {
+      throw ApiException('Pas de connexion internet');
+    } on FormatException {
+      throw ApiException('Erreur de format de réponse');
+    } catch (e) {
+      if (e is ApiException) rethrow;
+      throw ApiException('Erreur de connexion: ${e.toString()}');
     }
-  } on SocketException {
-    throw ApiException('Pas de connexion internet');
-  } on FormatException {
-    throw ApiException('Erreur de format de réponse');
-  } catch (e) {
-    if (e is ApiException) rethrow;
-    throw ApiException('Erreur de connexion: ${e.toString()}');
   }
-}
 
   Future<AuthResponse> signup({
     required String nom,
@@ -246,7 +248,7 @@ class ApiService {
   }) async {
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/users/register'),
+        Uri.parse('$baseUrl${ApiConstants.register}'),
         headers: _defaultHeaders,
         body: json.encode({
           'nom': nom,
@@ -306,7 +308,7 @@ class ApiService {
   Future<void> logout() async {
     try {
       await http.post(
-        Uri.parse('$baseUrl/users/logout'),
+        Uri.parse('$baseUrl${ApiConstants.logout}'),
         headers: await _authHeaders,
       );
     } finally {
@@ -315,118 +317,125 @@ class ApiService {
   }
 
   Future<User> getUserProfile() async {
-  try {
-    final url = '$baseUrl/users/me';
+    try {
+      final url = '$baseUrl${ApiConstants.updateProfile}';
 
-    final response = await http.get(
-      Uri.parse(url),
-      headers: await _authHeaders,
-    );
+      final response = await http.get(
+        Uri.parse(url),
+        headers: await _authHeaders,
+      );
 
-    if (response.statusCode == 200) {
-      final responseData = json.decode(response.body);
-      final data = responseData['data'] ?? responseData;
-      print('API Response: $data');
-      return User(
-        id: data['id'],
-        nom: data['nom'],
-        email: data['email'],
-        telephone: data['telephone'],
-        typeUtilisateur: TypeUtilisateur.values.firstWhere(
-          (e) => e.toString().split('.').last == data['type_utilisateur'],
-          orElse: () => TypeUtilisateur.client,
-        ),
-        statut: data['statut'] ?? true,
-        dateCreation: data['date_creation'] != null
-            ? DateTime.parse(data['date_creation'])
-            : null,
-        derniereConnexion: data['dernière_connexion'] != null
-            ? DateTime.parse(data['dernière_connexion'])
-            : null,
-        updatedAt: data['date_modification'] != null
-            ? DateTime.parse(data['date_modification'])
-            : null,
-        lieuNaissance: data['lieu_naissance'],
-        sexe: data['sexe'],
-        nationalite: data['nationalite'],
-        profession: data['profession'],
-        adresse: data['adresse'],
-        numeroPieceIdentite: data['numero_piece_identite'],
-        typePieceIdentite: data['type_piece_identite'],
-        profilComplet: _checkIfProfilComplete(data),
-        dateNaissance: _parseDate(data['date_naissance'], 'date_naissance'),
-        dateExpirationPiece: _parseDate(data['date_expiration_piece_identite'], 'date_expiration_piece_identite'),
-      );
-    } else {
-      _handleHttpError(response);
-      throw ApiException(
-        'Erreur lors du chargement du profil',
-        response.statusCode,
-      );
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+        final data = responseData['data'] ?? responseData;
+        AppLogger.api('API Response: $data');
+        return User(
+          id: data['id'],
+          nom: data['nom'],
+          email: data['email'],
+          telephone: data['telephone'],
+          typeUtilisateur: TypeUtilisateur.values.firstWhere(
+            (e) => e.toString().split('.').last == data['type_utilisateur'],
+            orElse: () => TypeUtilisateur.client,
+          ),
+          statut: data['statut'] ?? true,
+          dateCreation: data['date_creation'] != null
+              ? DateTime.parse(data['date_creation'])
+              : null,
+          derniereConnexion: data['dernière_connexion'] != null
+              ? DateTime.parse(data['dernière_connexion'])
+              : null,
+          updatedAt: data['date_modification'] != null
+              ? DateTime.parse(data['date_modification'])
+              : null,
+          birthPlace: data['lieu_naissance'],
+          gender: data['sexe'],
+          nationality: data['nationalite'],
+          profession: data['profession'],
+          address: data['adresse'],
+          identityNumber: data['numero_piece_identite'],
+          identityType: data['type_piece_identite'],
+          isProfileComplete: _checkIfProfilComplete(data),
+          birthDate: _parseDate(data['date_naissance'], 'date_naissance'),
+          identityExpirationDate: _parseDate(
+            data['date_expiration_piece_identite'],
+            'date_expiration_piece_identite',
+          ),
+        );
+      } else {
+        _handleHttpError(response);
+        throw ApiException(
+          'Erreur lors du chargement du profil',
+          response.statusCode,
+        );
+      }
+    } on SocketException {
+      throw ApiException('Pas de connexion internet');
+    } catch (e) {
+      if (e is ApiException) rethrow;
+      throw ApiException('Erreur de chargement: ${e.toString()}');
     }
-  } on SocketException {
-    throw ApiException('Pas de connexion internet');
-  } catch (e) {
-    if (e is ApiException) rethrow;
-    throw ApiException('Erreur de chargement: ${e.toString()}');
   }
-}
- Future<User> updateProfile(Map<String, dynamic> userData) async {
-  try {
-    final url = '$baseUrl/users/me';
 
-    final response = await http.patch(
-      Uri.parse(url),
-      headers: await _authHeaders,
-      body: json.encode(userData),
-    );
+  Future<User> updateProfile(Map<String, dynamic> userData) async {
+    try {
+      final url = '$baseUrl${ApiConstants.updateProfile}';
 
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      final responseData = json.decode(response.body);
-      final data = responseData['data'] ?? responseData;
-
-      return User(
-        id: data['id'],
-        nom: data['nom'],
-        email: data['email'],
-        telephone: data['telephone'],
-        typeUtilisateur: TypeUtilisateur.values.firstWhere(
-          (e) => e.toString().split('.').last == data['type_utilisateur'],
-          orElse: () => TypeUtilisateur.client,
-        ),
-        statut: data['statut'] ?? true,
-        dateCreation: data['date_creation'] != null
-            ? DateTime.parse(data['date_creation'])
-            : null,
-        derniereConnexion: null,
-        updatedAt: data['date_modification'] != null
-            ? DateTime.parse(data['date_modification'])
-            : null,
-        lieuNaissance: data['lieu_naissance'],
-        sexe: data['sexe'],
-        nationalite: data['nationalite'],
-        profession: data['profession'],
-        adresse: data['adresse'],
-        numeroPieceIdentite: data['numero_piece_identite'],
-        typePieceIdentite: data['type_piece_identite'],
-        profilComplet: _checkIfProfilComplete(data),
-        dateNaissance: _parseDate(data['date_naissance'], 'date_naissance'),
-        dateExpirationPiece: _parseDate(data['date_expiration_piece_identite'], 'date_expiration_piece_identite'),
+      final response = await http.patch(
+        Uri.parse(url),
+        headers: await _authHeaders,
+        body: json.encode(userData),
       );
-    } else {
-      _handleHttpError(response);
-      throw ApiException(
-        'Erreur lors de la mise à jour',
-        response.statusCode,
-      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final responseData = json.decode(response.body);
+        final data = responseData['data'] ?? responseData;
+
+        return User(
+          id: data['id'],
+          nom: data['nom'],
+          email: data['email'],
+          telephone: data['telephone'],
+          typeUtilisateur: TypeUtilisateur.values.firstWhere(
+            (e) => e.toString().split('.').last == data['type_utilisateur'],
+            orElse: () => TypeUtilisateur.client,
+          ),
+          statut: data['statut'] ?? true,
+          dateCreation: data['date_creation'] != null
+              ? DateTime.parse(data['date_creation'])
+              : null,
+          derniereConnexion: null,
+          updatedAt: data['date_modification'] != null
+              ? DateTime.parse(data['date_modification'])
+              : null,
+          birthPlace: data['lieu_naissance'],
+          gender: data['sexe'],
+          nationality: data['nationalite'],
+          profession: data['profession'],
+          address: data['adresse'],
+          identityNumber: data['numero_piece_identite'],
+          identityType: data['type_piece_identite'],
+          isProfileComplete: _checkIfProfilComplete(data),
+          birthDate: _parseDate(data['date_naissance'], 'date_naissance'),
+          identityExpirationDate: _parseDate(
+            data['date_expiration_piece_identite'],
+            'date_expiration_piece_identite',
+          ),
+        );
+      } else {
+        _handleHttpError(response);
+        throw ApiException(
+          'Erreur lors de la mise à jour',
+          response.statusCode,
+        );
+      }
+    } on SocketException {
+      throw ApiException('Pas de connexion internet');
+    } catch (e) {
+      if (e is ApiException) rethrow;
+      throw ApiException('Erreur de mise à jour: ${e.toString()}');
     }
-  } on SocketException {
-    throw ApiException('Pas de connexion internet');
-  } catch (e) {
-    if (e is ApiException) rethrow;
-    throw ApiException('Erreur de mise à jour: ${e.toString()}');
   }
-}
 
   bool _checkIfProfilComplete(Map<String, dynamic> data) {
     List<String> champsRequis = [
@@ -437,6 +446,11 @@ class ApiService {
       'adresse',
       'numero_piece_identite',
       'type_piece_identite',
+      'date_naissance',
+      'date_expiration_piece_identite',
+
+      // 'chemin_recto_piece',
+      // 'chemin_verso_piece'
     ];
 
     for (String champ in champsRequis) {
@@ -452,7 +466,7 @@ class ApiService {
   Future<bool> checkProfileStatus() async {
     try {
       User user = await getUserProfile();
-      return user.profilComplet ?? false;
+      return user.isProfileComplete ?? false;
     } catch (e) {
       return false;
     }

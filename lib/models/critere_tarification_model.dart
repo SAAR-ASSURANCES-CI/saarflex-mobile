@@ -1,8 +1,4 @@
-enum TypeCritere {
-  numerique,
-  categoriel,
-  booleen,
-}
+enum TypeCritere { numerique, categoriel, booleen }
 
 extension TypeCritereExtension on TypeCritere {
   String get label {
@@ -44,25 +40,22 @@ class ValeurCritere {
   });
 
   factory ValeurCritere.fromJson(Map<String, dynamic> json) {
-  return ValeurCritere(
-    id: json['id']?.toString() ?? '', 
-    valeur: json['valeur']?.toString() ?? '', 
-    valeurMin: _parseDouble(json['valeur_min']),
-    valeurMax: _parseDouble(json['valeur_max']),
+    return ValeurCritere(
+      id: json['id']?.toString() ?? '',
+      valeur: json['valeur']?.toString() ?? '',
+      valeurMin: _parseDouble(json['valeur_min']),
+      valeurMax: _parseDouble(json['valeur_max']),
 
+      ordre: (json['ordre'] as num?)?.toInt() ?? 0,
+    );
+  }
 
-    ordre: (json['ordre'] as num?)?.toInt() ?? 0,
-  );
-
-}
-
-static double? _parseDouble(dynamic value) {
-  if (value == null) return null;
-  if (value is num) return value.toDouble();
-  if (value is String) return double.tryParse(value);
-  return null;
-}
-
+  static double? _parseDouble(dynamic value) {
+    if (value == null) return null;
+    if (value is num) return value.toDouble();
+    if (value is String) return double.tryParse(value);
+    return null;
+  }
 
   Map<String, dynamic> toJson() {
     return {
@@ -96,35 +89,34 @@ class CritereTarification {
     required this.valeurs,
   });
 
-
   factory CritereTarification.fromJson(Map<String, dynamic> json) {
-  return CritereTarification(
-    id: json['id']?.toString() ?? '', 
-    produitId: json['produit_id']?.toString() ?? '',
-    nom: json['nom']?.toString() ?? '', 
-    type: _parseTypeCritere(json['type']?.toString()), 
-    unite: json['unite']?.toString(), 
-    ordre: (json['ordre'] as num?)?.toInt() ?? 0, 
-    obligatoire: (json['obligatoire'] as bool?) ?? true, 
-    valeurs: (json['valeurs'] as List<dynamic>? ?? [])
-        .map((v) => ValeurCritere.fromJson(v))
-        .toList(),
-  );
-}
-  static TypeCritere _parseTypeCritere(String? typeString) {
-  if (typeString == null) return TypeCritere.numerique; 
-  
-  switch (typeString.toLowerCase()) {
-    case 'numerique':
-      return TypeCritere.numerique;
-    case 'categoriel':
-      return TypeCritere.categoriel;
-    case 'booleen':
-      return TypeCritere.booleen;
-    default:
-      return TypeCritere.numerique;
+    return CritereTarification(
+      id: json['id']?.toString() ?? '',
+      produitId: json['produit_id']?.toString() ?? '',
+      nom: json['nom']?.toString() ?? '',
+      type: _parseTypeCritere(json['type']?.toString()),
+      unite: json['unite']?.toString(),
+      ordre: (json['ordre'] as num?)?.toInt() ?? 0,
+      obligatoire: (json['obligatoire'] as bool?) ?? true,
+      valeurs: (json['valeurs'] as List<dynamic>? ?? [])
+          .map((v) => ValeurCritere.fromJson(v))
+          .toList(),
+    );
   }
-}
+  static TypeCritere _parseTypeCritere(String? typeString) {
+    if (typeString == null) return TypeCritere.numerique;
+
+    switch (typeString.toLowerCase()) {
+      case 'numerique':
+        return TypeCritere.numerique;
+      case 'categoriel':
+        return TypeCritere.categoriel;
+      case 'booleen':
+        return TypeCritere.booleen;
+      default:
+        return TypeCritere.numerique;
+    }
+  }
 
   Map<String, dynamic> toJson() {
     return {
@@ -140,8 +132,8 @@ class CritereTarification {
   }
 
   bool get hasValeurs => valeurs.isNotEmpty;
-  
+
   List<String> get valeursString => valeurs.map((v) => v.valeur).toList();
-  
+
   ValeurCritere? get premierValeur => valeurs.isNotEmpty ? valeurs.first : null;
 }

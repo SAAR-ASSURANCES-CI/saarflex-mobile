@@ -164,7 +164,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 40),
-              Container(
+              SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () => Navigator.pop(context),
@@ -220,17 +220,20 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        color: AppColors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Icon(
-                        product.type.icon,
-                        color: AppColors.white,
-                        size: 40,
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(0, 50, 0, 0),
+                      child: Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          color: AppColors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Icon(
+                          product.type.icon,
+                          color: AppColors.white,
+                          size: 40,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -275,8 +278,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildDescriptionSection(product),
-                const SizedBox(height: 32),
-                _buildFeaturesSection(product),
                 const SizedBox(height: 32),
                 _buildSimulationSection(product),
                 const SizedBox(height: 100),
@@ -326,76 +327,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               height: 1.5,
             ),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFeaturesSection(Product product) {
-    List<Map<String, dynamic>> features = _getProductFeatures(product);
-
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            spreadRadius: 0,
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Avantages',
-            style: GoogleFonts.poppins(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 16),
-          ...features
-              .map(
-                (feature) => Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        width: 24,
-                        height: 24,
-                        decoration: BoxDecoration(
-                          color: product.type.color.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Icon(
-                          feature['icon'],
-                          color: product.type.color,
-                          size: 14,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          feature['text'],
-                          style: GoogleFonts.poppins(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w400,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              )
-              .toList(),
         ],
       ),
     );
@@ -560,7 +491,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           return;
         }
 
-        if (!currentUser.isProfileComplete) {
+        if (!(currentUser.isProfileComplete ?? false)) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Row(
@@ -651,61 +582,5 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
       }
     }
-  }
-}
-
-List<Map<String, dynamic>> _getProductFeatures(Product product) {
-  switch (product.type) {
-    case ProductType.vie:
-      return [
-        {
-          'icon': Icons.family_restroom_rounded,
-          'text': 'Protection de votre famille',
-        },
-        {
-          'icon': Icons.trending_up_rounded,
-          'text': 'Épargne avec rendement attractif',
-        },
-        {'icon': Icons.security_rounded, 'text': 'Capital garanti'},
-        {
-          'icon': Icons.account_balance_wallet_rounded,
-          'text': 'Rachat partiel possible',
-        },
-      ];
-    case ProductType.nonVie:
-      if (product.nom.toLowerCase().contains('auto')) {
-        return [
-          {
-            'icon': Icons.directions_car_rounded,
-            'text': 'Couverture tous risques',
-          },
-          {'icon': Icons.build_rounded, 'text': 'Assistance 24h/24'},
-          {
-            'icon': Icons.local_hospital_rounded,
-            'text': 'Garantie dommages corporels',
-          },
-          {
-            'icon': Icons.security_rounded,
-            'text': 'Protection vol et incendie',
-          },
-        ];
-      } else if (product.nom.toLowerCase().contains('santé')) {
-        return [
-          {
-            'icon': Icons.local_hospital_rounded,
-            'text': 'Frais médicaux remboursés',
-          },
-          {'icon': Icons.healing_rounded, 'text': 'Soins dentaires inclus'},
-          {'icon': Icons.visibility_rounded, 'text': 'Optique prise en charge'},
-          {'icon': Icons.favorite_rounded, 'text': 'Prévention santé'},
-        ];
-      } else {
-        return [
-          {'icon': Icons.shield_rounded, 'text': 'Protection complète'},
-          {'icon': Icons.support_agent_rounded, 'text': 'Service client dédié'},
-          {'icon': Icons.speed_rounded, 'text': 'Indemnisation rapide'},
-          {'icon': Icons.verified_user_rounded, 'text': 'Garanties étendues'},
-        ];
-      }
   }
 }

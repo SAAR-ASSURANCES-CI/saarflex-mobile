@@ -14,16 +14,20 @@ class ValidationCache {
     }
 
     final cleanEmail = email.trim().toLowerCase();
-    
+
     if (_emailValidationCache.containsKey(cleanEmail)) {
-      return _emailValidationCache[cleanEmail]! ? null : 'Format d\'email invalide';
+      return _emailValidationCache[cleanEmail]!
+          ? null
+          : 'Format d\'email invalide';
     }
 
     bool isValid = _isValidEmailFormat(cleanEmail);
-    
+
     _emailValidationCache[cleanEmail] = isValid;
-    
-    return isValid ? null : 'Format d\'email invalide (exemple: nom@domaine.com)';
+
+    return isValid
+        ? null
+        : 'Format d\'email invalide (exemple: nom@domaine.com)';
   }
 
   static List<String> validatePasswordOptimized(String? password) {
@@ -44,11 +48,16 @@ class ValidationCache {
 
     for (int i = 0; i < password.length; i++) {
       final char = password.codeUnitAt(i);
-      
-      if (char >= 97 && char <= 122) hasLower = true;     
-      else if (char >= 65 && char <= 90) hasUpper = true;   
-      else if (char >= 48 && char <= 57) hasDigit = true;   
-      else if (_isSpecialChar(char)) hasSpecial = true;
+
+      if (char >= 97 && char <= 122) {
+        hasLower = true;
+      } else if (char >= 65 && char <= 90) {
+        hasUpper = true;
+      } else if (char >= 48 && char <= 57) {
+        hasDigit = true;
+      } else if (_isSpecialChar(char)) {
+        hasSpecial = true;
+      }
     }
 
     if (password.length < 8) {
@@ -68,7 +77,7 @@ class ValidationCache {
     }
 
     _passwordValidationCache[password] = errors;
-    
+
     return errors;
   }
 
@@ -78,20 +87,25 @@ class ValidationCache {
     }
 
     final cleanName = name.trim();
-    
+
     if (_nameValidationCache.containsKey(cleanName)) {
       return _nameValidationCache[cleanName]! ? null : 'Nom invalide';
     }
 
-    bool isValid = cleanName.length >= 2 && 
-                   cleanName.length <= 50 &&
-                   _hasLetter(cleanName);
+    bool isValid =
+        cleanName.length >= 2 &&
+        cleanName.length <= 50 &&
+        _hasLetter(cleanName);
 
     _nameValidationCache[cleanName] = isValid;
 
     if (!isValid) {
-      if (cleanName.length < 2) return 'Le nom doit contenir au moins 2 caractères';
-      if (cleanName.length > 50) return 'Le nom ne peut pas dépasser 50 caractères';
+      if (cleanName.length < 2) {
+        return 'Le nom doit contenir au moins 2 caractères';
+      }
+      if (cleanName.length > 50) {
+        return 'Le nom ne peut pas dépasser 50 caractères';
+      }
       return 'Le nom doit contenir au moins une lettre';
     }
 
@@ -104,29 +118,38 @@ class ValidationCache {
     }
 
     final cleanPhone = phone.replaceAll(RegExp(r'[\s\-\(\)\+]'), '');
-    
+
     if (_phoneValidationCache.containsKey(cleanPhone)) {
       return _phoneValidationCache[cleanPhone]! ? null : 'Numéro invalide';
     }
 
-    bool isValid = cleanPhone.length >= 10 && 
-                   cleanPhone.length <= 15 &&
-                   _isNumeric(cleanPhone);
+    bool isValid =
+        cleanPhone.length >= 10 &&
+        cleanPhone.length <= 15 &&
+        _isNumeric(cleanPhone);
 
     _phoneValidationCache[cleanPhone] = isValid;
 
     if (!isValid) {
-      if (cleanPhone.length < 10) return 'Le numéro doit contenir au moins 10 chiffres';
-      if (cleanPhone.length > 15) return 'Le numéro ne doit pas dépasser 15 chiffres';
+      if (cleanPhone.length < 10) {
+        return 'Le numéro doit contenir au moins 10 chiffres';
+      }
+      if (cleanPhone.length > 15) {
+        return 'Le numéro ne doit pas dépasser 15 chiffres';
+      }
       return 'Le numéro ne doit contenir que des chiffres';
     }
 
     return null;
   }
 
-  static void debounceValidation(String key, Function callback, {Duration delay = const Duration(milliseconds: 300)}) {
+  static void debounceValidation(
+    String key,
+    Function callback, {
+    Duration delay = const Duration(milliseconds: 300),
+  }) {
     _debounceTimers[key]?.cancel();
-    
+
     _debounceTimers[key] = Timer(delay, () {
       callback();
       _debounceTimers.remove(key);
@@ -143,24 +166,29 @@ class ValidationCache {
   static bool _isValidEmailFormat(String email) {
     final atIndex = email.indexOf('@');
     if (atIndex <= 0 || atIndex >= email.length - 1) return false;
-    
+
     final dotIndex = email.lastIndexOf('.');
     if (dotIndex <= atIndex + 1 || dotIndex >= email.length - 1) return false;
-    
+
     return true;
   }
 
   static bool _isSpecialChar(int charCode) {
-    return charCode == 64 || charCode == 36 || charCode == 33 || 
-           charCode == 37 || charCode == 42 || charCode == 63 || 
-           charCode == 38;
+    return charCode == 64 ||
+        charCode == 36 ||
+        charCode == 33 ||
+        charCode == 37 ||
+        charCode == 42 ||
+        charCode == 63 ||
+        charCode == 38;
   }
 
   static bool _hasLetter(String text) {
     for (int i = 0; i < text.length; i++) {
       final char = text.codeUnitAt(i);
-      if ((char >= 65 && char <= 90) || (char >= 97 && char <= 122) ||
-          (char >= 192 && char <= 255)) { 
+      if ((char >= 65 && char <= 90) ||
+          (char >= 97 && char <= 122) ||
+          (char >= 192 && char <= 255)) {
         return true;
       }
     }
