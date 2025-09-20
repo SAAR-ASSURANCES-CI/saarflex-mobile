@@ -550,6 +550,97 @@ class ApiService {
     }
   }
 
+  Future<Map<String, String>> uploadAssureImages({
+    required String devisId,
+    required String rectoPath,
+    required String versoPath,
+  }) async {
+    try {
+      final url = '$baseUrl/profiles/devis/$devisId/upload/assure-images';
+      final token = await _getToken();
+
+      print('🔍 DEBUG Upload Assure API:');
+      print('   - URL: $url');
+      print('   - Token: ${token != null ? "Present" : "Missing"}');
+      print('   - DevisId: $devisId');
+      print('   - Recto path: $rectoPath');
+      print('   - Verso path: $versoPath');
+
+      if (token == null) {
+        throw ApiException('Token d\'authentification manquant');
+      }
+
+      final request = http.MultipartRequest('POST', Uri.parse(url));
+      request.headers.addAll({
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+      });
+
+      // Ajouter les deux fichiers images
+      final rectoFile = File(rectoPath);
+      final versoFile = File(versoPath);
+
+      if (!await rectoFile.exists()) {
+        throw ApiException('Fichier recto introuvable');
+      }
+      if (!await versoFile.exists()) {
+        throw ApiException('Fichier verso introuvable');
+      }
+
+      // Vérifier la taille des fichiers
+      final rectoSize = await rectoFile.length();
+      final versoSize = await versoFile.length();
+      print('   - Recto size: ${rectoSize} bytes');
+      print('   - Verso size: ${versoSize} bytes');
+
+      // Ajouter les deux fichiers dans le champ 'files'
+      final rectoMultipartFile = await http.MultipartFile.fromPath(
+        'files',
+        rectoPath,
+        filename: 'recto.jpg',
+        contentType: MediaType('image', 'jpeg'),
+      );
+      request.files.add(rectoMultipartFile);
+
+      final versoMultipartFile = await http.MultipartFile.fromPath(
+        'files',
+        versoPath,
+        filename: 'verso.jpg',
+        contentType: MediaType('image', 'jpeg'),
+      );
+      request.files.add(versoMultipartFile);
+
+      print('   - Sending request...');
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      print('   - Response status: ${response.statusCode}');
+      print('   - Response body: ${response.body}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final responseData = json.decode(response.body);
+        final rectoPath = responseData['recto_path'];
+        final versoPath = responseData['verso_path'];
+
+        if (rectoPath == null || versoPath == null) {
+          throw ApiException('Chemins des images manquants dans la réponse');
+        }
+
+        return {'recto_path': rectoPath, 'verso_path': versoPath};
+      } else {
+        final errorData = json.decode(response.body);
+        final errorMessage = errorData['message'] ?? 'Erreur lors de l\'upload';
+        throw ApiException('$errorMessage (${response.statusCode})');
+      }
+    } on SocketException {
+      throw ApiException('Pas de connexion internet');
+    } catch (e) {
+      print('🔍 DEBUG Upload Assure Error: $e');
+      if (e is ApiException) rethrow;
+      throw ApiException('Erreur d\'upload: ${e.toString()}');
+    }
+  }
+
   Future<Map<String, String>> uploadBothImages({
     required String rectoPath,
     required String versoPath,

@@ -1630,14 +1630,38 @@ if (_versoImage != null) {
       } else {
         final product = widget.produit;
         if (product != null && mounted) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => SimulationScreen(
-                produit: product,
-                assureEstSouscripteur: true,
+          // Vérifier à nouveau si le profil est complet avant de rediriger
+          await authProvider.loadUserProfile();
+
+          if (authProvider.currentUser?.isProfileComplete == true) {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(
+                builder: (context) => SimulationScreen(
+                  produit: product,
+                  assureEstSouscripteur: true,
+                ),
               ),
-            ),
-          );
+            );
+          } else {
+            // Afficher un message d'erreur si le profil n'est toujours pas complet
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'Veuillez compléter tous les champs obligatoires pour simuler un devis',
+                  style: TextStyle(fontWeight: FontWeight.w500),
+                ),
+                backgroundColor: Colors.orange[800],
+                duration: Duration(seconds: 4),
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                margin: EdgeInsets.all(20),
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              ),
+            );
+            // Ne pas rediriger vers la simulation
+          }
         } else {
           if (mounted) Navigator.pop(context);
         }

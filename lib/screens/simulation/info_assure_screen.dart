@@ -325,62 +325,30 @@ class _InfoAssureScreenState extends State<InfoAssureScreen> {
   }
   */
 
-    // Commenter le processus d'upload pour le moment
-    /*
-  setState(() {
-    _isUploadingRecto = true;
-    _isUploadingVerso = true;
-  });
+    // Essayer d'abord de naviguer vers la simulation sans upload
+    try {
+      print('🔍 DEBUG InfoAssure:');
+      print('   - Produit ID: ${widget.produit.id}');
+      print('   - Form Data: $_formData');
+      print('   - Date naissance: ${_formData['date_naissance']}');
 
-  try {
-    final authProvider = context.read<AuthProvider>();
-
-    final rectoSuccess = await authProvider.uploadIdentityDocument(
-      File(_rectoImage!.path),
-      'recto',
-    );
-    if (!rectoSuccess) {
-      throw Exception('Échec de l\'upload du recto');
-    }
-
-    final versoSuccess = await authProvider.uploadIdentityDocument(
-      File(_versoImage!.path),
-      'verso',
-    );
-    if (!versoSuccess) {
-      throw Exception('Échec de l\'upload du verso');
-    }
-
-    await authProvider.loadUserProfile();
-    final user = authProvider.currentUser;
-
-    _formData['front_document_path'] = user?.frontDocumentPath;
-    _formData['back_document_path'] = user?.backDocumentPath;
-  */
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => SimulationScreen(
-          produit: widget.produit,
-          assureEstSouscripteur: false,
-          informationsAssure: _formData,
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => SimulationScreen(
+            produit: widget.produit,
+            assureEstSouscripteur: false,
+            informationsAssure: _formData,
+          ),
         ),
-      ),
-    );
-    /*
-  } catch (e) {
-    ErrorHandler.showErrorSnackBar(
-      context,
-      'Erreur lors de l\'upload des images: ${e.toString()}',
-    );
-  } finally {
-    setState(() {
-      _isUploadingRecto = false;
-      _isUploadingVerso = false;
-    });
-  }
-  */
+      );
+    } catch (e) {
+      print('🔍 DEBUG Navigation Error: $e');
+      ErrorHandler.showErrorSnackBar(
+        context,
+        'Erreur lors de la navigation: ${e.toString()}',
+      );
+    }
   }
 
   Widget _buildHeader() {
