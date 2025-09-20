@@ -70,6 +70,7 @@ class _SimulationScreenState extends State<SimulationScreen> {
       'Params - assureEstSouscripteur: ${widget.assureEstSouscripteur}',
     );
     AppLogger.debug('Params - hasInfos: ${widget.informationsAssure != null}');
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<SimulationProvider>().initierSimulation(
         produitId: widget.produit.id,
@@ -448,7 +449,7 @@ class _SimulationScreenState extends State<SimulationScreen> {
                   ),
                 )
               : Text(
-                  'Calculer mon devis',
+                  'Obtenir mon devis',
                   style: GoogleFonts.poppins(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -486,7 +487,8 @@ class _SimulationScreenState extends State<SimulationScreen> {
       );
 
       if (!provider.hasError && provider.dernierResultat != null && mounted) {
-        Navigator.push(
+        // 🛠️ OPTIMISATION: Utiliser pushReplacement pour éviter l'accumulation d'écrans
+        Navigator.pushReplacement(
           context,
           MaterialPageRoute(
             builder: (context) => SimulationResultScreen(

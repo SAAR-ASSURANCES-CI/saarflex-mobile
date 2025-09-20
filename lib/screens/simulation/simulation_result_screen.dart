@@ -9,6 +9,7 @@ import '../../models/product_model.dart';
 import '../../models/simulation_model.dart';
 import '../../utils/format_helper.dart';
 import '../contracts/contracts_screen.dart';
+import '../products/product_list_screen.dart';
 
 class SimulationResultScreen extends StatefulWidget {
   final Product produit;
@@ -103,7 +104,12 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
       leading: IconButton(
         icon: Icon(Icons.close_rounded, color: AppColors.primary),
         onPressed: () {
-          Navigator.pop(context);
+          // Rediriger vers le dashboard au lieu de revenir en arrière
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            '/dashboard',
+            (route) => false,
+          );
         },
       ),
       title: Text(
@@ -691,7 +697,7 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
                     : Text(
                         widget.resultat.statut == StatutDevis.sauvegarde
                             ? 'Déjà sauvegardé'
-                            : 'Sauvegarder le devis',
+                            : 'Sauvegarder',
                         style: GoogleFonts.poppins(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -712,7 +718,7 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
                 ),
               ),
               child: Text(
-                'Procéder à la souscription',
+                'Souscrire',
                 style: GoogleFonts.poppins(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -750,6 +756,152 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
       return;
     }
 
+    // Afficher le popup de confirmation avant la sauvegarde
+    _showSaveConfirmationDialog(provider);
+  }
+
+  // Popup de confirmation avant sauvegarde
+  void _showSaveConfirmationDialog(SimulationProvider provider) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(32),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              color: AppColors.white,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Bouton fermer en haut à droite
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: Icon(
+                        Icons.close_rounded,
+                        color: AppColors.textSecondary,
+                        size: 24,
+                      ),
+                    ),
+                  ],
+                ),
+                // Icône de sauvegarde
+                Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.save_rounded,
+                    color: AppColors.primary,
+                    size: 40,
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Titre
+                Text(
+                  'Sauvegarder le devis',
+                  style: GoogleFonts.poppins(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+
+                // Message
+                Text(
+                  'Votre devis "${_nomController.text.trim()}" sera sauvegardé. Que souhaitez-vous faire ensuite ?',
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w400,
+                    color: AppColors.textSecondary,
+                    height: 1.5,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 32),
+
+                // Boutons d'action
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () {
+                          Navigator.pop(context); // Fermer le popup
+                          _performSaveAndNavigate(provider, toProducts: true);
+                        },
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.primary,
+                          side: BorderSide(color: AppColors.primary),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Text(
+                          'Nouvelle simulation',
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(context); // Fermer le popup
+                          _performSaveAndNavigate(provider, toProducts: false);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: AppColors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: Text(
+                          'Voir mes devis',
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // Effectuer la sauvegarde et naviguer
+  void _performSaveAndNavigate(
+    SimulationProvider provider, {
+    required bool toProducts,
+  }) {
     provider
         .sauvegarderDevis(
           context: context,
@@ -761,24 +913,12 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
         )
         .then((_) {
           if (provider.saveError == null) {
+            // Afficher un message de succès
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text('Devis sauvegardé avec succès !'),
                 backgroundColor: AppColors.success,
                 duration: const Duration(seconds: 2),
-                action: SnackBarAction(
-                  label: 'Voir mes contrats',
-                  textColor: AppColors.white,
-                  onPressed: () {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            const ContractsScreen(initialTab: 0),
-                      ),
-                    );
-                  },
-                ),
               ),
             );
 
@@ -787,6 +927,23 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
               context,
               listen: false,
             ).loadSavedQuotes(forceRefresh: true);
+
+            // Naviguer selon le choix
+            if (toProducts) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ProductListScreen(),
+                ),
+              );
+            } else {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ContractsScreen(initialTab: 0),
+                ),
+              );
+            }
           }
         });
   }
