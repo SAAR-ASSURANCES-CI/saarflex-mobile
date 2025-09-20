@@ -8,6 +8,7 @@ import 'providers/user_provider.dart';
 import 'providers/product_provider.dart';
 import 'providers/simulation_provider.dart';
 import 'providers/contract_provider.dart';
+import 'providers/beneficiaire_provider.dart';
 
 import 'screens/auth/welcome_screen.dart';
 import 'screens/dashboard/dashboard_screen.dart';
@@ -45,6 +46,9 @@ class Saarflex extends StatelessWidget {
         ),
         ChangeNotifierProvider<ContractProvider>(
           create: (_) => ContractProvider(),
+        ),
+        ChangeNotifierProvider<BeneficiaireProvider>(
+          create: (_) => BeneficiaireProvider(),
         ),
       ],
       child: MaterialApp(

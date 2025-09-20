@@ -5,9 +5,12 @@ import '../../constants/colors.dart';
 import '../../providers/simulation_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/contract_provider.dart';
+import '../../providers/beneficiaire_provider.dart';
 import '../../models/product_model.dart';
 import '../../models/simulation_model.dart';
 import '../../utils/format_helper.dart';
+import '../../widgets/beneficiaires_section.dart';
+import '../../utils/beneficiaires_detector.dart';
 import '../contracts/contracts_screen.dart';
 import '../products/product_list_screen.dart';
 
@@ -30,6 +33,22 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
   final TextEditingController _notesController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    // Initialiser le provider des bénéficiaires si le produit en nécessite
+    if (BeneficiairesDetector.shouldShowBeneficiairesSection(
+      product: widget.produit,
+      simulation: widget.resultat,
+    )) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        context.read<BeneficiaireProvider>().initializeForSimulation(
+          widget.resultat.id,
+        );
+      });
+    }
+  }
+
+  @override
   void dispose() {
     _nomController.dispose();
     _notesController.dispose();
@@ -43,40 +62,63 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer2<SimulationProvider, AuthProvider>(
-      builder: (context, simulationProvider, authProvider, child) {
-        _handleSaveMessages(simulationProvider);
-        return Scaffold(
-          backgroundColor: AppColors.background,
-          appBar: _buildAppBar(),
-          body: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildSuccessHeader(),
-                const SizedBox(height: 32),
-                _buildProductInfo(),
-                const SizedBox(height: 24),
-                _buildAssureInfoCard(), // ← AJOUTEZ CETTE LIGNE
-                const SizedBox(height: 24),
-                _buildResultsCard(),
-                const SizedBox(height: 24),
-                _buildDetailsCard(),
-                if (authProvider.isLoggedIn) ...[
-                  const SizedBox(height: 24),
-                  _buildSaveSection(simulationProvider),
-                ],
-                const SizedBox(height: 100),
-              ],
-            ),
-          ),
-          bottomNavigationBar: _buildBottomButtons(
-            authProvider,
+    return Consumer3<SimulationProvider, AuthProvider, BeneficiaireProvider>(
+      builder:
+          (
+            context,
             simulationProvider,
-          ),
-        );
-      },
+            authProvider,
+            beneficiaireProvider,
+            child,
+          ) {
+            _handleSaveMessages(simulationProvider);
+            return Scaffold(
+              backgroundColor: AppColors.background,
+              appBar: _buildAppBar(),
+              body: SingleChildScrollView(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildSuccessHeader(),
+                    const SizedBox(height: 32),
+                    _buildProductInfo(),
+                    const SizedBox(height: 24),
+                    _buildAssureInfoCard(),
+                    const SizedBox(height: 24),
+                    _buildResultsCard(),
+                    const SizedBox(height: 24),
+                    _buildDetailsCard(),
+
+                    // Section bénéficiaires - affichée seulement si nécessaire
+                    if (BeneficiairesDetector.shouldShowBeneficiairesSection(
+                      product: widget.produit,
+                      simulation: widget.resultat,
+                    )) ...[
+                      const SizedBox(height: 24),
+                      BeneficiairesSection(
+                        simulationId: widget.resultat.id,
+                        productName: widget.produit.nom,
+                        maxBeneficiaires: widget.produit.maxBeneficiaires,
+                        isRequired: true,
+                      ),
+                    ],
+
+                    if (authProvider.isLoggedIn) ...[
+                      const SizedBox(height: 24),
+                      _buildSaveSection(simulationProvider),
+                    ],
+                    const SizedBox(height: 100),
+                  ],
+                ),
+              ),
+              bottomNavigationBar: _buildBottomButtons(
+                authProvider,
+                simulationProvider,
+                beneficiaireProvider,
+              ),
+            );
+          },
     );
   }
 
@@ -94,6 +136,69 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
         provider.clearSaveError();
       });
     }
+  }
+
+  // Vérifier si on peut procéder à la souscription
+  bool _canProceedToSubscription(BeneficiaireProvider beneficiaireProvider) {
+    if (!BeneficiairesDetector.shouldShowBeneficiairesSection(
+      product: widget.produit,
+      simulation: widget.resultat,
+    )) {
+      return true; // Pas de bénéficiaires requis
+    }
+    return beneficiaireProvider
+        .beneficiaires
+        .isNotEmpty; // Au moins un bénéficiaire
+  }
+
+  // Gérer la procédure de souscription avec validation des bénéficiaires
+  void _procederSouscriptionWithBeneficiaires(
+    BeneficiaireProvider beneficiaireProvider,
+  ) async {
+    if (!_canProceedToSubscription(beneficiaireProvider)) {
+      // Afficher un message d'erreur si des bénéficiaires sont requis
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            widget.produit.requiresBeneficiaires
+                ? 'Veuillez ajouter au moins un bénéficiaire avant de continuer'
+                : 'Impossible de procéder à la souscription',
+          ),
+          backgroundColor: Colors.orange,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+
+    // Sauvegarder les bénéficiaires si nécessaire
+    if (BeneficiairesDetector.shouldShowBeneficiairesSection(
+      product: widget.produit,
+      simulation: widget.resultat,
+    )) {
+      final success = await beneficiaireProvider.saveBeneficiaires();
+      if (!success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Erreur lors de la sauvegarde des bénéficiaires'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+    }
+
+    // Continuer avec la souscription normale
+    _procederSouscriptionNormal();
+  }
+
+  // Méthode de souscription normale (existante)
+  void _procederSouscriptionNormal() {
+    // Ici tu appelles ta méthode de souscription existante
+    // Par exemple : Navigator.push vers l'écran de souscription
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (context) => const ContractsScreen()));
   }
 
   // Construction de l'AppBar
@@ -648,6 +753,7 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
   Widget _buildBottomButtons(
     AuthProvider authProvider,
     SimulationProvider provider,
+    BeneficiaireProvider beneficiaireProvider,
   ) {
     return Container(
       padding: const EdgeInsets.all(24),
@@ -670,7 +776,7 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
               ElevatedButton(
                 onPressed: provider.isSaving
                     ? null
-                    : () => _handleSaveQuote(provider),
+                    : () => _handleSaveQuote(provider, beneficiaireProvider),
                 style: ElevatedButton.styleFrom(
                   backgroundColor:
                       widget.resultat.statut == StatutDevis.sauvegarde
@@ -707,9 +813,12 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
               const SizedBox(height: 12),
             ],
             ElevatedButton(
-              onPressed: () => _procederSouscription(),
+              onPressed: () =>
+                  _procederSouscriptionWithBeneficiaires(beneficiaireProvider),
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
+                backgroundColor: _canProceedToSubscription(beneficiaireProvider)
+                    ? AppColors.primary
+                    : Colors.grey,
                 foregroundColor: AppColors.white,
                 elevation: 0,
                 minimumSize: const Size(double.infinity, 50),
@@ -718,7 +827,9 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
                 ),
               ),
               child: Text(
-                'Souscrire',
+                _canProceedToSubscription(beneficiaireProvider)
+                    ? 'Souscrire'
+                    : 'Ajoutez des bénéficiaires',
                 style: GoogleFonts.poppins(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -732,7 +843,10 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
   }
 
   // Gestion de la sauvegarde du devis
-  void _handleSaveQuote(SimulationProvider provider) {
+  void _handleSaveQuote(
+    SimulationProvider provider,
+    BeneficiaireProvider beneficiaireProvider,
+  ) async {
     if (widget.resultat.statut == StatutDevis.sauvegarde) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -754,6 +868,41 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
         ),
       );
       return;
+    }
+
+    // Vérifier les bénéficiaires si requis
+    if (BeneficiairesDetector.shouldShowBeneficiairesSection(
+          product: widget.produit,
+          simulation: widget.resultat,
+        ) &&
+        beneficiaireProvider.beneficiaires.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Veuillez ajouter au moins un bénéficiaire avant de sauvegarder.',
+          ),
+          backgroundColor: Colors.orange,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+
+    // Sauvegarder les bénéficiaires si nécessaire
+    if (BeneficiairesDetector.shouldShowBeneficiairesSection(
+      product: widget.produit,
+      simulation: widget.resultat,
+    )) {
+      final success = await beneficiaireProvider.saveBeneficiaires();
+      if (!success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Erreur lors de la sauvegarde des bénéficiaires'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
     }
 
     // Afficher le popup de confirmation avant la sauvegarde
@@ -950,14 +1099,8 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
 
   // Procédure de souscription
   void _procederSouscription() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Redirection vers la souscription...'),
-        backgroundColor: AppColors.primary,
-      ),
-    );
-
-    // Navigation vers l'écran de souscription
-    // Navigator.push(context, MaterialPageRoute(builder: (context) => SouscriptionScreen(devis: widget.resultat)));
+    // Utiliser la nouvelle méthode avec validation des bénéficiaires
+    final beneficiaireProvider = context.read<BeneficiaireProvider>();
+    _procederSouscriptionWithBeneficiaires(beneficiaireProvider);
   }
 }
