@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import '../models/user_model.dart';
@@ -590,19 +591,20 @@ class ApiService {
       print('   - Recto size: ${rectoSize} bytes');
       print('   - Verso size: ${versoSize} bytes');
 
-      // Ajouter le fichier recto
+      // Ajouter les deux fichiers dans le champ 'files'
       final rectoMultipartFile = await http.MultipartFile.fromPath(
         'files',
         rectoPath,
         filename: 'recto.jpg',
+        contentType: MediaType('image', 'jpeg'),
       );
       request.files.add(rectoMultipartFile);
 
-      // Ajouter le fichier verso
       final versoMultipartFile = await http.MultipartFile.fromPath(
         'files',
         versoPath,
         filename: 'verso.jpg',
+        contentType: MediaType('image', 'jpeg'),
       );
       request.files.add(versoMultipartFile);
 
@@ -624,11 +626,9 @@ class ApiService {
 
         return {'recto_path': rectoPath, 'verso_path': versoPath};
       } else {
-        _handleHttpError(response);
-        throw ApiException(
-          'Erreur lors de l\'upload des images',
-          response.statusCode,
-        );
+        final errorData = json.decode(response.body);
+        final errorMessage = errorData['message'] ?? 'Erreur lors de l\'upload';
+        throw ApiException('$errorMessage (${response.statusCode})');
       }
     } on SocketException {
       throw ApiException('Pas de connexion internet');

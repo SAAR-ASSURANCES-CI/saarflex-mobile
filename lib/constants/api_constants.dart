@@ -1,5 +1,5 @@
 class ApiConstants {
-  static const String _devBaseUrl = 'http://localhost:3000';
+  static const String _devBaseUrl = 'http://10.235.91.176:3000';
 
   static const Environment environment = Environment.dev;
 

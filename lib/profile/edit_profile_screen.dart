@@ -691,56 +691,10 @@ if (_versoImage != null) {
       }
     } catch (e) {
       if (mounted) {
-        // Ignorer les erreurs de format - continuer quand même
-        if (e.toString().contains('Format de fichier non supporté') ||
-            e.toString().contains('unsupported_format')) {
-          // Afficher un message informatif mais continuer
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Format d\'image détecté - Upload en cours...'),
-              backgroundColor: Colors.orange,
-            ),
-          );
-
-          // Essayer de continuer sans validation stricte
-          try {
-            final authProvider = context.read<AuthProvider>();
-            // Utiliser les vrais chemins du serveur (ceux qui existent déjà)
-            final rectoPath = 'uploads/profiles/karim_kompissi/recto.png';
-            final versoPath = 'uploads/profiles/karim_kompissi/verso.png';
-
-            print('🔍 DEBUG Upload Error Handling:');
-            print('   - Original recto path: ${_rectoImage?.path}');
-            print('   - Original verso path: ${_versoImage?.path}');
-            print('   - New recto path: $rectoPath');
-            print('   - New verso path: $versoPath');
-
-            authProvider.updateUserField('frontDocumentPath', rectoPath);
-            authProvider.updateUserField('backDocumentPath', versoPath);
-
-            print('   - Profile updated successfully');
-
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Images mises à jour avec succès'),
-                backgroundColor: Colors.green,
-              ),
-            );
-
-            // Empêcher le rechargement du profil qui écrase nos nouvelles images
-            print('🔍 DEBUG Preventing profile reload to keep new images');
-          } catch (updateError) {
-            ErrorHandler.showErrorSnackBar(
-              context,
-              'Erreur lors de la mise à jour: ${updateError.toString()}',
-            );
-          }
-        } else {
-          ErrorHandler.showErrorSnackBar(
-            context,
-            'Erreur lors de l\'upload: ${e.toString()}',
-          );
-        }
+        ErrorHandler.showErrorSnackBar(
+          context,
+          'Erreur lors de l\'upload: ${e.toString()}',
+        );
       }
     } finally {
       if (mounted) {
