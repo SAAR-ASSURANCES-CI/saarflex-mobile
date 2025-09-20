@@ -4,10 +4,11 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 // import 'package:provider/provider.dart';
 import 'package:saarflex_app/constants/colors.dart';
-import 'package:saarflex_app/screens/simulation/simulation_screen.dart';
 import 'package:saarflex_app/models/product_model.dart';
 // import 'package:saarflex_app/providers/auth_provider.dart';
 import 'package:saarflex_app/utils/error_handler.dart';
+import 'package:saarflex_app/screens/simulation/simulation_screen.dart';
+import 'package:saarflex_app/utils/image_labels.dart';
 
 class InfoAssureScreen extends StatefulWidget {
   final Product produit;
@@ -41,13 +42,12 @@ class _InfoAssureScreenState extends State<InfoAssureScreen> {
 
   void _validateForm() {
     final isValid = _formKey.currentState?.validate() ?? false;
-    // Rendre les images optionnelles pour le moment
-    // final hasRequiredImages = _rectoImage != null && _versoImage != null;
+    // Les images sont maintenant obligatoires
+    final hasRequiredImages = _rectoImage != null && _versoImage != null;
 
     setState(() {
       _isFormValid =
-          isValid &&
-          _formData['date_naissance'] != null; // && hasRequiredImages;
+          isValid && _formData['date_naissance'] != null && hasRequiredImages;
     });
   }
 
@@ -135,35 +135,38 @@ class _InfoAssureScreenState extends State<InfoAssureScreen> {
   }
 
   Widget _buildIdentityImagesSection() {
+    final identityType = _formData['type_piece_identite'];
+    final title = ImageLabels.getUploadTitle(identityType);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          "Pièce d'identité",
-          style: GoogleFonts.poppins(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        const SizedBox(height: 16),
-        Text(
-          "Veuillez uploader le recto et le verso de la pièce d'identité",
-          style: GoogleFonts.poppins(
-            fontSize: 14,
-            color: AppColors.textSecondary,
+        RichText(
+          text: TextSpan(
+            style: GoogleFonts.poppins(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+            children: [
+              TextSpan(text: title),
+              TextSpan(
+                text: ' *',
+                style: TextStyle(color: AppColors.error),
+              ),
+            ],
           ),
         ),
         const SizedBox(height: 20),
         _buildImageUploadField(
-          label: 'Recto de la pièce',
+          label: ImageLabels.getRectoLabel(identityType),
           isUploading: _isUploadingRecto,
           onTap: () => _pickImage(true),
           selectedImage: _rectoImage,
         ),
         const SizedBox(height: 20),
         _buildImageUploadField(
-          label: 'Verso de la pièce',
+          label: ImageLabels.getVersoLabel(identityType),
           isUploading: _isUploadingVerso,
           onTap: () => _pickImage(false),
           selectedImage: _versoImage,
@@ -183,12 +186,20 @@ class _InfoAssureScreenState extends State<InfoAssureScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: GoogleFonts.poppins(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: AppColors.textPrimary,
+        RichText(
+          text: TextSpan(
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: AppColors.textPrimary,
+            ),
+            children: [
+              TextSpan(text: label),
+              TextSpan(
+                text: ' *',
+                style: TextStyle(color: AppColors.error),
+              ),
+            ],
           ),
         ),
         const SizedBox(height: 8),
@@ -310,38 +321,46 @@ class _InfoAssureScreenState extends State<InfoAssureScreen> {
       return;
     }
 
-    // Commenter la vérification des images pour le moment
-    /*
-  if (_rectoImage == null || _versoImage == null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Veuillez uploader le recto et le verso de la pièce d\'identité',
+    // Vérification des images obligatoires
+    if (_rectoImage == null || _versoImage == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Veuillez uploader le recto et le verso de la pièce d\'identité',
+          ),
+          backgroundColor: AppColors.error,
         ),
-        backgroundColor: AppColors.error,
-      ),
-    );
-    return;
-  }
-  */
+      );
+      return;
+    }
 
-    // Essayer d'abord de naviguer vers la simulation sans upload
+    // Ajouter les images aux données du formulaire
+    final formDataWithImages = Map<String, dynamic>.from(_formData);
+    formDataWithImages['recto_image'] = _rectoImage;
+    formDataWithImages['verso_image'] = _versoImage;
+
     try {
       print('🔍 DEBUG InfoAssure:');
       print('   - Produit ID: ${widget.produit.id}');
-      print('   - Form Data: $_formData');
-      print('   - Date naissance: ${_formData['date_naissance']}');
+      print('   - Form Data: $formDataWithImages');
+      print('   - Date naissance: ${formDataWithImages['date_naissance']}');
+      print('   - Recto Image: ${_rectoImage?.path}');
+      print('   - Verso Image: ${_versoImage?.path}');
 
-      Navigator.push(
+      print('🔍 DEBUG: About to navigate directly to SimulationScreen');
+
+      // Naviguer directement vers SimulationScreen au lieu de retourner les données
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (context) => SimulationScreen(
             produit: widget.produit,
             assureEstSouscripteur: false,
-            informationsAssure: _formData,
+            informationsAssure: formDataWithImages,
           ),
         ),
       );
+      print('🔍 DEBUG: Successfully navigated to SimulationScreen');
     } catch (e) {
       print('🔍 DEBUG Navigation Error: $e');
       ErrorHandler.showErrorSnackBar(
@@ -396,12 +415,21 @@ class _InfoAssureScreenState extends State<InfoAssureScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: GoogleFonts.poppins(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
+        RichText(
+          text: TextSpan(
+            style: GoogleFonts.poppins(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+            children: [
+              TextSpan(text: label),
+              if (required)
+                TextSpan(
+                  text: ' *',
+                  style: TextStyle(color: AppColors.error),
+                ),
+            ],
           ),
         ),
         const SizedBox(height: 8),
@@ -446,12 +474,20 @@ class _InfoAssureScreenState extends State<InfoAssureScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: GoogleFonts.poppins(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
+        RichText(
+          text: TextSpan(
+            style: GoogleFonts.poppins(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+            children: [
+              TextSpan(text: label),
+              TextSpan(
+                text: ' *',
+                style: TextStyle(color: AppColors.error),
+              ),
+            ],
           ),
         ),
         const SizedBox(height: 8),
@@ -488,6 +524,8 @@ class _InfoAssureScreenState extends State<InfoAssureScreen> {
           onChanged: (value) {
             _formData[field] = value;
             _validateForm();
+            // Forcer la mise à jour de l'interface pour les labels dynamiques
+            setState(() {});
           },
         ),
       ],
@@ -498,12 +536,20 @@ class _InfoAssureScreenState extends State<InfoAssureScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: GoogleFonts.poppins(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
+        RichText(
+          text: TextSpan(
+            style: GoogleFonts.poppins(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+            children: [
+              TextSpan(text: label),
+              TextSpan(
+                text: ' *',
+                style: TextStyle(color: AppColors.error),
+              ),
+            ],
           ),
         ),
         const SizedBox(height: 8),

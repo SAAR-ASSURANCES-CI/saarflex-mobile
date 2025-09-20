@@ -711,24 +711,16 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           ),
         );
       } else {
-        final informationsAssure = await Navigator.push<Map<String, dynamic>>(
+        print('🔍 DEBUG ProductDetail: About to navigate to InfoAssureScreen');
+        // InfoAssureScreen naviguera directement vers SimulationScreen
+        Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => InfoAssureScreen(produit: product),
           ),
         );
-
-        if (!mounted || informationsAssure == null) return;
-
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => SimulationScreen(
-              produit: product,
-              assureEstSouscripteur: false,
-              informationsAssure: informationsAssure,
-            ),
-          ),
+        print(
+          '🔍 DEBUG ProductDetail: Navigation to InfoAssureScreen completed',
         );
       }
     } catch (e) {
