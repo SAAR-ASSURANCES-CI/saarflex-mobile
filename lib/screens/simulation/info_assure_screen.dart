@@ -1,7 +1,9 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:image/image.dart' as img;
 // import 'package:provider/provider.dart';
 import 'package:saarflex_app/constants/colors.dart';
 import 'package:saarflex_app/models/product_model.dart';
@@ -9,6 +11,7 @@ import 'package:saarflex_app/models/product_model.dart';
 import 'package:saarflex_app/utils/error_handler.dart';
 import 'package:saarflex_app/screens/simulation/simulation_screen.dart';
 import 'package:saarflex_app/utils/image_labels.dart';
+import 'package:saarflex_app/utils/image_validator.dart';
 
 class InfoAssureScreen extends StatefulWidget {
   final Product produit;
@@ -29,8 +32,10 @@ class _InfoAssureScreenState extends State<InfoAssureScreen> {
 
   XFile? _rectoImage;
   XFile? _versoImage;
-  final bool _isUploadingRecto = false;
-  final bool _isUploadingVerso = false;
+  String? _rectoImagePath; // Chemin final converti
+  String? _versoImagePath; // Chemin final converti
+  bool _isUploadingRecto = false;
+  bool _isUploadingVerso = false;
 
   final List<String> _typesPiece = ['Carte d\'identité', 'Passeport'];
 
@@ -280,25 +285,105 @@ class _InfoAssureScreenState extends State<InfoAssureScreen> {
       final ImagePicker picker = ImagePicker();
       final XFile? image = await picker.pickImage(
         source: ImageSource.gallery,
-        imageQuality: 80,
-        maxWidth: 1200,
+        imageQuality: 95, // High quality
+        // No size restrictions - let user choose any image
       );
 
       if (image != null) {
+        // Conversion HEIC → JPEG si nécessaire
+        String finalImagePath = image.path;
+        print('🔍 DEBUG Image path: ${image.path}');
+        print(
+          '🔍 DEBUG Is HEIC: ${image.path.toLowerCase().endsWith('.heic')}',
+        );
+        if (image.path.toLowerCase().endsWith('.heic')) {
+          print('🔍 DEBUG Converting HEIC to JPEG...');
+          try {
+            // Lire l'image HEIC
+            final File heicFile = File(image.path);
+            final Uint8List heicBytes = await heicFile.readAsBytes();
+
+            // Décoder l'image HEIC
+            print('🔍 DEBUG Reading HEIC file...');
+            final img.Image? decodedImage = img.decodeImage(heicBytes);
+            print('🔍 DEBUG Decoded image: ${decodedImage != null}');
+            if (decodedImage != null) {
+              print('🔍 DEBUG Encoding to JPEG...');
+              // Encoder en JPEG
+              final Uint8List jpegBytes = img.encodeJpg(
+                decodedImage,
+                quality: 95,
+              );
+
+              // Créer un nouveau fichier JPEG
+              final String jpegPath = image.path.replaceAll('.heic', '.jpg');
+              print('🔍 DEBUG JPEG path: $jpegPath');
+              final File jpegFile = File(jpegPath);
+              await jpegFile.writeAsBytes(jpegBytes);
+
+              finalImagePath = jpegPath;
+              print('🔍 DEBUG HEIC converted to JPEG: $jpegPath');
+            } else {
+              print('🔍 DEBUG Failed to decode HEIC image');
+            }
+          } catch (e) {
+            print('🔍 DEBUG HEIC conversion failed: $e');
+            // Continuer avec le fichier original
+          }
+        }
+
+        // Validation de l'image
+        final validationError = await ImageValidator.getValidationError(
+          finalImagePath,
+        );
+        if (validationError != null) {
+          print('🔍 DEBUG Validation error: $validationError');
+          if (mounted) {
+            ErrorHandler.showErrorSnackBar(context, validationError);
+          }
+          return;
+        }
+
+        print('🔍 DEBUG Image validation passed');
+        print('🔍 DEBUG Final image path: $finalImagePath');
+
+        // Mettre à jour l'état local
         setState(() {
           if (isRecto) {
             _rectoImage = image;
+            _rectoImagePath = finalImagePath; // Stocker le chemin converti
+            _isUploadingRecto = true;
           } else {
             _versoImage = image;
+            _versoImagePath = finalImagePath; // Stocker le chemin converti
+            _isUploadingVerso = true;
           }
         });
+
+        print(
+          '🔍 DEBUG State updated - recto: ${_rectoImage != null}, verso: ${_versoImage != null}',
+        );
+
+        // Simuler un petit délai pour l'upload
+        await Future.delayed(Duration(milliseconds: 500));
+
+        setState(() {
+          if (isRecto) {
+            _isUploadingRecto = false;
+          } else {
+            _isUploadingVerso = false;
+          }
+        });
+
         _validateForm();
       }
     } catch (e) {
-      ErrorHandler.showErrorSnackBar(
-        context,
-        'Erreur lors de la sélection de l\'image',
-      );
+      if (mounted) {
+        ErrorHandler.showErrorSnackBar(
+          context,
+          'Erreur lors de la sélection de l\'image',
+        );
+      }
     }
   }
 
@@ -334,18 +419,17 @@ class _InfoAssureScreenState extends State<InfoAssureScreen> {
       return;
     }
 
-    // Ajouter les images aux données du formulaire
+    // Les images seront uploadées séparément, pas dans les données de l'assuré
     final formDataWithImages = Map<String, dynamic>.from(_formData);
-    formDataWithImages['recto_image'] = _rectoImage;
-    formDataWithImages['verso_image'] = _versoImage;
+    // Note: Les chemins d'images sont stockés localement mais pas envoyés dans informations_assure
 
     try {
       print('🔍 DEBUG InfoAssure:');
       print('   - Produit ID: ${widget.produit.id}');
       print('   - Form Data: $formDataWithImages');
       print('   - Date naissance: ${formDataWithImages['date_naissance']}');
-      print('   - Recto Image: ${_rectoImage?.path}');
-      print('   - Verso Image: ${_versoImage?.path}');
+      print('   - Recto Image Path: ${_rectoImagePath} (stored locally)');
+      print('   - Verso Image Path: ${_versoImagePath} (stored locally)');
 
       print('🔍 DEBUG: About to navigate directly to SimulationScreen');
 
