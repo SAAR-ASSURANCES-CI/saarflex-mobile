@@ -7,6 +7,7 @@ import '../../providers/simulation_provider.dart';
 import '../../widgets/dynamic_form_field.dart';
 import '../../models/product_model.dart';
 import '../../utils/logger.dart';
+import '../../widgets/beneficiaires_collection_widget.dart';
 import 'simulation_result_screen.dart';
 
 class SimulationScreen extends StatefulWidget {
@@ -74,6 +75,8 @@ class _SimulationScreenState extends State<SimulationScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<SimulationProvider>().initierSimulation(
         produitId: widget.produit.id,
+        assureEstSouscripteur: widget.assureEstSouscripteur,
+        informationsAssure: widget.informationsAssure,
       );
     });
   }
@@ -265,6 +268,15 @@ class _SimulationScreenState extends State<SimulationScreen> {
             _buildFormTitle(),
             const SizedBox(height: 24),
             ..._buildFormFields(provider),
+
+            // Section bénéficiaires - affichée seulement si nécessaire
+            if (widget.produit.necessiteBeneficiaires) ...[
+              const SizedBox(height: 24),
+              BeneficiairesCollectionWidget(
+                maxBeneficiaires: widget.produit.maxBeneficiaires,
+                productName: widget.produit.nom,
+              ),
+            ],
             if (provider.hasError) ...[
               const SizedBox(height: 16),
               _buildFormError(provider.errorMessage!),
@@ -412,6 +424,15 @@ class _SimulationScreenState extends State<SimulationScreen> {
   }
 
   Widget _buildBottomButton(SimulationProvider provider) {
+    // Vérifier si les bénéficiaires sont requis et complets
+    bool canSimulate = provider.canSimulate;
+    if (widget.produit.necessiteBeneficiaires) {
+      final beneficiaires = provider.beneficiaires;
+      canSimulate =
+          canSimulate &&
+          beneficiaires.length == widget.produit.maxBeneficiaires;
+    }
+
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -427,9 +448,9 @@ class _SimulationScreenState extends State<SimulationScreen> {
       ),
       child: SafeArea(
         child: ElevatedButton(
-          onPressed: provider.canSimulate ? () => _simuler(provider) : null,
+          onPressed: canSimulate ? () => _simuler(provider) : null,
           style: ElevatedButton.styleFrom(
-            backgroundColor: provider.canSimulate
+            backgroundColor: canSimulate
                 ? AppColors.primary
                 : AppColors.textSecondary,
             foregroundColor: AppColors.white,
@@ -463,6 +484,23 @@ class _SimulationScreenState extends State<SimulationScreen> {
   // Dans simulation_screen.dart - méthode _simuler
   Future<void> _simuler(SimulationProvider provider) async {
     try {
+      // Vérifier si les bénéficiaires sont requis et complets
+      if (widget.produit.necessiteBeneficiaires) {
+        final beneficiaires = provider.beneficiaires;
+        if (beneficiaires.length != widget.produit.maxBeneficiaires) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Vous devez ajouter ${widget.produit.maxBeneficiaires} bénéficiaire(s) pour ce produit avant de pouvoir simuler votre devis.',
+              ),
+              backgroundColor: AppColors.warning,
+              duration: const Duration(seconds: 4),
+            ),
+          );
+          return;
+        }
+      }
+
       Map<String, dynamic> infosAEnvoyer = {};
 
       if (widget.informationsAssure != null) {
@@ -479,12 +517,7 @@ class _SimulationScreenState extends State<SimulationScreen> {
         }
       }
 
-      await provider.simulerDevisSimplifie(
-        assureEstSouscripteur: widget.assureEstSouscripteur,
-        informationsAssure: widget.informationsAssure != null
-            ? infosAEnvoyer
-            : null,
-      );
+      await provider.simulerDevisSimplifie();
 
       if (!provider.hasError && provider.dernierResultat != null && mounted) {
         // 🛠️ OPTIMISATION: Utiliser pushReplacement pour éviter l'accumulation d'écrans

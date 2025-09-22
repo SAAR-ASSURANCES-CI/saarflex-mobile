@@ -8,8 +8,8 @@ class BeneficiairesDetector {
     Product product,
     SimulationResponse simulation,
   ) {
-    // 1. Vérifier d'abord le champ hasBeneficiaires du produit
-    if (product.hasBeneficiaires) return true;
+    // 1. Vérifier d'abord le champ necessiteBeneficiaires du produit
+    if (product.necessiteBeneficiaires) return true;
 
     // 2. Pour les produits vie, considérer qu'ils nécessitent des bénéficiaires par défaut
     if (product.type == ProductType.vie) return true;
@@ -54,7 +54,7 @@ class BeneficiairesDetector {
     if (product.maxBeneficiaires > 0) return true;
 
     // Fallback : Ancienne logique pour compatibilité
-    if (product.hasBeneficiaires) return true;
+    // if (product.hasBeneficiaires) return true; // Supprimé car hasBeneficiaires n'existe plus
     if (product.necessiteBeneficiaires) return true;
     if (product.type == ProductType.vie) return true;
     if (simulation.typeProduit.toLowerCase() == 'vie') return true;

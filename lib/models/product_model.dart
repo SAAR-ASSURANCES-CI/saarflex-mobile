@@ -52,7 +52,6 @@ class Product {
   final String? statut;
   final DateTime? createdAt;
   final Map<String, dynamic>? branche;
-  final bool hasBeneficiaires;
   final bool necessiteBeneficiaires;
   final int maxBeneficiaires;
 
@@ -67,9 +66,8 @@ class Product {
     this.statut,
     this.createdAt,
     this.branche,
-    this.hasBeneficiaires = false,
     this.necessiteBeneficiaires = false,
-    this.maxBeneficiaires = 3,
+    this.maxBeneficiaires = 0,
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
@@ -85,9 +83,8 @@ class Product {
           ? DateTime.parse(json['created_at'])
           : null,
       branche: json['branche'],
-      hasBeneficiaires: json['has_beneficiaires'] ?? false,
       necessiteBeneficiaires: json['necessite_beneficiaires'] ?? false,
-      maxBeneficiaires: json['max_beneficiaires'] ?? 3,
+      maxBeneficiaires: json['max_beneficiaires'] ?? 0,
     );
   }
 
@@ -114,7 +111,8 @@ class Product {
       'statut': statut,
       'created_at': createdAt?.toIso8601String(),
       'branche': branche,
-      'has_beneficiaires': hasBeneficiaires,
+      'necessite_beneficiaires': necessiteBeneficiaires,
+      'max_beneficiaires': maxBeneficiaires,
     };
   }
 
@@ -129,7 +127,8 @@ class Product {
     String? statut,
     DateTime? createdAt,
     Map<String, dynamic>? branche,
-    bool? hasBeneficiaires,
+    bool? necessiteBeneficiaires,
+    int? maxBeneficiaires,
   }) {
     return Product(
       id: id ?? this.id,
@@ -142,7 +141,9 @@ class Product {
       statut: statut ?? this.statut,
       createdAt: createdAt ?? this.createdAt,
       branche: branche ?? this.branche,
-      hasBeneficiaires: hasBeneficiaires ?? this.hasBeneficiaires,
+      necessiteBeneficiaires:
+          necessiteBeneficiaires ?? this.necessiteBeneficiaires,
+      maxBeneficiaires: maxBeneficiaires ?? this.maxBeneficiaires,
     );
   }
 
@@ -156,21 +157,9 @@ class Product {
   bool get isActive => statut?.toLowerCase() == 'actif';
   String get brancheName => branche?['nom'] ?? 'Non définie';
 
-  // Vérifie si le produit nécessite des bénéficiaires
+  // Vérifie si le produit nécessite des bénéficiaires (nouvelle logique backend)
   bool get requiresBeneficiaires {
-    // Règle principale : Si max_beneficiaires > 0, le produit supporte les bénéficiaires
-    if (maxBeneficiaires > 0) return true;
-
-    // Fallback : Ancienne logique pour compatibilité
-    if (necessiteBeneficiaires) return true;
-    if (hasBeneficiaires) return true;
-    return type == ProductType.vie;
-  }
-
-  // Vérifie si les bénéficiaires sont obligatoires (ne peut pas souscrire sans)
-  bool get beneficiairesObligatoires {
-    // Toujours optionnel : l'utilisateur peut souscrire avec 0 bénéficiaire
-    return false;
+    return necessiteBeneficiaires;
   }
 
   // Vérifie si le produit supporte les bénéficiaires

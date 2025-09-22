@@ -5,11 +5,17 @@ class SimulationRequest {
   final String produitId;
   final String grilleTarifaireId;
   final Map<String, dynamic> criteresUtilisateur;
+  final bool assureEstSouscripteur;
+  final Map<String, dynamic>? informationsAssure;
+  final List<Map<String, dynamic>> beneficiaires;
 
   SimulationRequest({
     required this.produitId,
     required this.grilleTarifaireId,
     required this.criteresUtilisateur,
+    required this.assureEstSouscripteur,
+    this.informationsAssure,
+    this.beneficiaires = const [],
   });
 
   Map<String, dynamic> toJson() {
@@ -26,6 +32,9 @@ class SimulationRequest {
       'produit_id': produitId,
       'grille_tarifaire_id': grilleTarifaireId,
       'criteres_utilisateur': convertedCriteres,
+      'assure_est_souscripteur': assureEstSouscripteur,
+      if (informationsAssure != null) 'informations_assure': informationsAssure,
+      'beneficiaires': beneficiaires,
     };
   }
 }

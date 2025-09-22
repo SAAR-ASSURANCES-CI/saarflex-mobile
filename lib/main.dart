@@ -6,7 +6,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'providers/auth_provider.dart';
 import 'providers/user_provider.dart';
 import 'providers/product_provider.dart';
-import 'providers/simulation_provider.dart';
+import 'providers/simulation_provider.dart' ;
 import 'providers/contract_provider.dart';
 import 'providers/beneficiaire_provider.dart';
 

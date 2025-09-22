@@ -210,6 +210,19 @@ class _SavedQuotesTabState extends State<SavedQuotesTab> {
   }
 
   Widget _buildQuoteDetailsModal(SavedQuote quote) {
+    print(
+      '🔍 DEBUG: Building quote details modal for: ${quote.nomPersonnalise ?? quote.nomProduit}',
+    );
+    print('🔍 DEBUG: Quote notes: ${quote.notes}');
+    print(
+      '🔍 DEBUG: Quote has notes: ${quote.notes != null && quote.notes!.isNotEmpty}',
+    );
+    print('🔍 DEBUG: Quote beneficiaires: ${quote.beneficiaires}');
+    print(
+      '🔍 DEBUG: Quote beneficiaires length: ${quote.beneficiaires?.length ?? 0}',
+    );
+    print('🔍 DEBUG: Quote nombreBeneficiaires: ${quote.nombreBeneficiaires}');
+
     return Container(
       height: MediaQuery.of(context).size.height * 0.8,
       decoration: const BoxDecoration(
@@ -271,23 +284,15 @@ class _SavedQuotesTabState extends State<SavedQuotesTab> {
                     'Date de création',
                     _formatDate(quote.createdAt),
                   ),
-                  if (quote.notes != null && quote.notes!.isNotEmpty) ...[
+
+                  // Section Informations de l'assuré
+                  if (quote.informationsAssure != null) ...[
+                    const SizedBox(height: 24),
+                    _buildSectionTitle('Informations de l\'assuré'),
                     const SizedBox(height: 16),
-                    Text(
-                      'Notes',
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      quote.notes!,
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        color: AppColors.textSecondary,
-                      ),
+                    _buildAssureInfo(
+                      quote.informationsAssure!,
+                      quote.beneficiaires,
                     ),
                   ],
                 ],
@@ -472,5 +477,179 @@ class _SavedQuotesTabState extends State<SavedQuotesTab> {
         );
       }
     }
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Row(
+      children: [
+        Icon(Icons.person_outline_rounded, color: AppColors.primary, size: 20),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: GoogleFonts.poppins(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAssureInfo(
+    Map<String, dynamic> informations,
+    List<Map<String, dynamic>>? beneficiaires,
+  ) {
+    print(
+      '🔍 DEBUG: Building assure info with ${beneficiaires?.length ?? 0} beneficiaires',
+    );
+    if (beneficiaires != null && beneficiaires.isNotEmpty) {
+      print('🔍 DEBUG: Beneficiaires details: $beneficiaires');
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildDetailRow(
+          'Nom complet',
+          informations['nom_complet']?.toString() ?? 'Non renseigné',
+        ),
+        if (informations['email'] != null)
+          _buildDetailRow('Email', informations['email']!.toString()),
+        if (informations['telephone'] != null)
+          _buildDetailRow('Téléphone', informations['telephone']!.toString()),
+        if (informations['adresse'] != null)
+          _buildDetailRow('Adresse', informations['adresse']!.toString()),
+        if (informations['date_naissance'] != null)
+          _buildDetailRow(
+            'Date de naissance',
+            informations['date_naissance']!.toString(),
+          ),
+        if (informations['type_piece_identite'] != null &&
+            informations['numero_piece_identite'] != null)
+          _buildDetailRow(
+            'Pièce d\'identité',
+            '${informations['type_piece_identite']} - ${informations['numero_piece_identite']}',
+          ),
+
+        // Section Bénéficiaires
+        if ((beneficiaires != null && beneficiaires.isNotEmpty) ||
+            (informations['nombre_beneficiaires'] != null &&
+                informations['nombre_beneficiaires'] > 0)) ...[
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              Icon(
+                Icons.people_outline_rounded,
+                color: AppColors.primary,
+                size: 16,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Bénéficiaires',
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if (beneficiaires != null && beneficiaires.isNotEmpty) ...[
+            ...beneficiaires.asMap().entries.map((entry) {
+              final index = entry.key;
+              final beneficiaire = entry.value;
+
+              return Container(
+                margin: EdgeInsets.only(
+                  bottom: index < beneficiaires.length - 1 ? 8 : 0,
+                ),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.background,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppColors.border, width: 1),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Center(
+                        child: Text(
+                          '${index + 1}',
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            beneficiaire['nom_complet']?.toString() ??
+                                'Nom non renseigné',
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            beneficiaire['lien_souscripteur']?.toString() ??
+                                'Lien non renseigné',
+                            style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w400,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+          ] else ...[
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.background,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.border, width: 1),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, color: AppColors.primary, size: 20),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      '${informations['nombre_beneficiaires'] ?? 0} bénéficiaire(s) configuré(s)',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ],
+    );
   }
 }

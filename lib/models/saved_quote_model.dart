@@ -14,6 +14,7 @@ class SavedQuote {
   final Map<String, dynamic>? informationsAssure;
   final Map<String, dynamic>? criteresUtilisateur;
   final bool? assureEstSouscripteur;
+  final List<Map<String, dynamic>>? beneficiaires;
 
   SavedQuote({
     required this.id,
@@ -31,6 +32,7 @@ class SavedQuote {
     this.informationsAssure,
     this.criteresUtilisateur,
     this.assureEstSouscripteur,
+    this.beneficiaires,
   });
 
   factory SavedQuote.fromJson(Map<String, dynamic> json) {
@@ -52,6 +54,9 @@ class SavedQuote {
       informationsAssure: json['informations_assure'],
       criteresUtilisateur: json['criteres_utilisateur'],
       assureEstSouscripteur: json['assure_est_souscripteur'],
+      beneficiaires: json['beneficiaires'] != null
+          ? List<Map<String, dynamic>>.from(json['beneficiaires'])
+          : null,
     );
   }
 
