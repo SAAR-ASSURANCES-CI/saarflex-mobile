@@ -259,7 +259,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _navigateToEditProfile() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => EditProfileScreen()),
+      MaterialPageRoute(builder: (context) => EditProfileScreenRefactored()),
     );
   }
 
@@ -456,7 +456,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => const EditProfileScreen()),
+            MaterialPageRoute(
+              builder: (_) => const EditProfileScreenRefactored(),
+            ),
           );
         },
         icon: const Icon(Icons.edit_rounded, size: 18),

@@ -125,7 +125,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 await Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => EditProfileScreen(produit: product),
+                    builder: (context) =>
+                        EditProfileScreenRefactored(produit: product),
                   ),
                 );
               },
@@ -649,7 +650,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           await Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => EditProfileScreen(produit: product),
+              builder: (context) =>
+                  EditProfileScreenRefactored(produit: product),
             ),
           );
 
