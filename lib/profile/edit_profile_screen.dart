@@ -23,10 +23,12 @@ class EditProfileScreenRefactored extends StatefulWidget {
   });
 
   @override
-  State<EditProfileScreenRefactored> createState() => _EditProfileScreenRefactoredState();
+  State<EditProfileScreenRefactored> createState() =>
+      _EditProfileScreenRefactoredState();
 }
 
-class _EditProfileScreenRefactoredState extends State<EditProfileScreenRefactored> {
+class _EditProfileScreenRefactoredState
+    extends State<EditProfileScreenRefactored> {
   late ProfileFormController _formController;
 
   @override
@@ -114,26 +116,37 @@ class _EditProfileScreenRefactoredState extends State<EditProfileScreenRefactore
                   IdentitySection(
                     idNumberController: formController.idNumberController,
                     selectedIdType: formController.selectedIdType,
-                    selectedExpirationDate: formController.selectedExpirationDate,
+                    selectedExpirationDate:
+                        formController.selectedExpirationDate,
                     idTypeOptions: formController.idTypeOptions,
                     fieldErrors: formController.fieldErrors,
                     originalData: formController.originalData,
                     onIdTypeChanged: formController.updateIdType,
-                    onExpirationDateChanged: formController.updateExpirationDate,
+                    onExpirationDateChanged:
+                        formController.updateExpirationDate,
                     onDropdownChanged: () => formController.checkForChanges(),
                     onDateChanged: () => formController.checkForChanges(),
                   ),
                   const SizedBox(height: 32),
 
                   IdentityImagesSection(
-                    currentIdentityType: formController.getBackendIdentityType(formController.selectedIdType),
-                    frontDocumentPath: context.read<AuthProvider>().currentUser?.frontDocumentPath,
-                    backDocumentPath: context.read<AuthProvider>().currentUser?.backDocumentPath,
+                    currentIdentityType: formController.getBackendIdentityType(
+                      formController.selectedIdType,
+                    ),
+                    frontDocumentPath: context
+                        .read<AuthProvider>()
+                        .currentUser
+                        ?.frontDocumentPath,
+                    backDocumentPath: context
+                        .read<AuthProvider>()
+                        .currentUser
+                        ?.backDocumentPath,
                     isUploadingRecto: formController.isUploadingRecto,
                     isUploadingVerso: formController.isUploadingVerso,
                     rectoImage: formController.rectoImage,
                     versoImage: formController.versoImage,
-                    onPickImage: (isRecto) => formController.pickImage(isRecto, context),
+                    onPickImage: (isRecto) =>
+                        formController.pickImage(isRecto, context),
                   ),
                   const SizedBox(height: 40),
 
@@ -250,7 +263,8 @@ class _EditProfileScreenRefactoredState extends State<EditProfileScreenRefactore
   }
 
   Widget _buildSaveButton(ProfileFormController formController) {
-    final bool isEnabled = formController.hasChanges && !formController.isLoading;
+    final bool isEnabled =
+        formController.hasChanges && !formController.isLoading;
 
     return SizedBox(
       width: double.infinity,
