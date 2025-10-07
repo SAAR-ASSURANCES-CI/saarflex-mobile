@@ -559,13 +559,6 @@ class ApiService {
       final url = '$baseUrl/profiles/devis/$devisId/upload/assure-images';
       final token = await _getToken();
 
-      print('🔍 DEBUG Upload Assure API:');
-      print('   - URL: $url');
-      print('   - Token: ${token != null ? "Present" : "Missing"}');
-      print('   - DevisId: $devisId');
-      print('   - Recto path: $rectoPath');
-      print('   - Verso path: $versoPath');
-
       if (token == null) {
         throw ApiException('Token d\'authentification manquant');
       }
@@ -588,10 +581,6 @@ class ApiService {
       }
 
       // Vérifier la taille des fichiers
-      final rectoSize = await rectoFile.length();
-      final versoSize = await versoFile.length();
-      print('   - Recto size: ${rectoSize} bytes');
-      print('   - Verso size: ${versoSize} bytes');
 
       // Ajouter les deux fichiers dans le champ 'files'
       final rectoMultipartFile = await http.MultipartFile.fromPath(
@@ -610,12 +599,8 @@ class ApiService {
       );
       request.files.add(versoMultipartFile);
 
-      print('   - Sending request...');
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
-
-      print('   - Response status: ${response.statusCode}');
-      print('   - Response body: ${response.body}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final responseData = json.decode(response.body);
@@ -635,7 +620,6 @@ class ApiService {
     } on SocketException {
       throw ApiException('Pas de connexion internet');
     } catch (e) {
-      print('🔍 DEBUG Upload Assure Error: $e');
       if (e is ApiException) rethrow;
       throw ApiException('Erreur d\'upload: ${e.toString()}');
     }
@@ -649,12 +633,6 @@ class ApiService {
       final url = '$baseUrl${ApiConstants.uploadImages}';
       final token = await _getToken();
 
-      print('🔍 DEBUG Upload API:');
-      print('   - URL: $url');
-      print('   - Token: ${token != null ? "Present" : "Missing"}');
-      print('   - Recto path: $rectoPath');
-      print('   - Verso path: $versoPath');
-
       if (token == null) {
         throw ApiException('Token d\'authentification manquant');
       }
@@ -677,10 +655,6 @@ class ApiService {
       }
 
       // Vérifier la taille des fichiers
-      final rectoSize = await rectoFile.length();
-      final versoSize = await versoFile.length();
-      print('   - Recto size: ${rectoSize} bytes');
-      print('   - Verso size: ${versoSize} bytes');
 
       // Ajouter les deux fichiers dans le champ 'files'
       final rectoMultipartFile = await http.MultipartFile.fromPath(
@@ -699,12 +673,8 @@ class ApiService {
       );
       request.files.add(versoMultipartFile);
 
-      print('   - Sending request...');
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
-
-      print('   - Response status: ${response.statusCode}');
-      print('   - Response body: ${response.body}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final responseData = json.decode(response.body);
@@ -724,7 +694,6 @@ class ApiService {
     } on SocketException {
       throw ApiException('Pas de connexion internet');
     } catch (e) {
-      print('🔍 DEBUG Upload Error: $e');
       if (e is ApiException) rethrow;
       throw ApiException('Erreur d\'upload: ${e.toString()}');
     }

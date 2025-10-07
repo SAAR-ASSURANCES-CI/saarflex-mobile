@@ -264,15 +264,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildImageRow(String label, String imageUrl) {
-    print('🔍 DEBUG Profile Screen Image:');
-    print('   - Label: $label');
-    print('   - Image URL: $imageUrl');
-
     // SOLUTION SIMPLE : Afficher les images si elles existent
     final hasRealImage =
         imageUrl.isNotEmpty && imageUrl != 'null' && imageUrl != 'undefined';
 
-    print('   - Has real image: $hasRealImage');
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Column(
@@ -356,7 +351,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           );
                         },
                         errorBuilder: (context, error, stackTrace) {
-                          print('🔍 DEBUG Image Error: $error');
                           return Container(
                             color: Colors.grey[100],
                             child: Column(

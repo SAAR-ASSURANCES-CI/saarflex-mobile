@@ -101,11 +101,6 @@ class SimulationProvider extends ChangeNotifier {
         page: 1,
         limit: 100,
       );
-      // Logging pour le développement uniquement
-      AppLogger.debug('Critères reçus:');
-      for (var critere in _criteresProduit) {
-        AppLogger.debug(' - ${critere.nom} (type: ${critere.type})');
-      }
 
       for (final critere in _criteresProduit) {
         if (critere.type == TypeCritere.booleen) {
@@ -225,21 +220,13 @@ class SimulationProvider extends ChangeNotifier {
 
     final nomCritereLower = critere.nom.toLowerCase();
 
-    // Logging pour le développement uniquement
-    AppLogger.debug(
-      'Analyzing: "${critere.nom}" -> lowercase: "$nomCritereLower"',
-    );
-
     for (final motCle in champsAvecSeparateurs) {
       final contains = nomCritereLower.contains(motCle);
-      AppLogger.debug('Contains "$motCle": $contains');
       if (contains) {
-        AppLogger.debug('FORMATAGE REQUIS for "${critere.nom}"');
         return true;
       }
     }
 
-    AppLogger.debug('No formatage required for "${critere.nom}"');
     return false;
   }
 

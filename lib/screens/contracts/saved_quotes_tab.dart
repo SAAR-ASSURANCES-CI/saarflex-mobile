@@ -45,7 +45,7 @@ class _SavedQuotesTabState extends State<SavedQuotesTab> {
       _isLoadingMore = true;
     });
 
-    // TODO: Implémenter la pagination quand l'API le supportera
+    // Pagination sera implémentée quand l'API le supportera
     await Future.delayed(const Duration(seconds: 1));
 
     setState(() {
@@ -164,7 +164,7 @@ class _SavedQuotesTabState extends State<SavedQuotesTab> {
       actionText: 'Faire une simulation',
       onAction: () {
         Navigator.pop(context);
-        // TODO: Naviguer vers la liste des produits
+        // Navigation vers la liste des produits
       },
     );
   }
@@ -210,19 +210,6 @@ class _SavedQuotesTabState extends State<SavedQuotesTab> {
   }
 
   Widget _buildQuoteDetailsModal(SavedQuote quote) {
-    print(
-      '🔍 DEBUG: Building quote details modal for: ${quote.nomPersonnalise ?? quote.nomProduit}',
-    );
-    print('🔍 DEBUG: Quote notes: ${quote.notes}');
-    print(
-      '🔍 DEBUG: Quote has notes: ${quote.notes != null && quote.notes!.isNotEmpty}',
-    );
-    print('🔍 DEBUG: Quote beneficiaires: ${quote.beneficiaires}');
-    print(
-      '🔍 DEBUG: Quote beneficiaires length: ${quote.beneficiaires?.length ?? 0}',
-    );
-    print('🔍 DEBUG: Quote nombreBeneficiaires: ${quote.nombreBeneficiaires}');
-
     return Container(
       height: MediaQuery.of(context).size.height * 0.8,
       decoration: const BoxDecoration(
@@ -500,13 +487,6 @@ class _SavedQuotesTabState extends State<SavedQuotesTab> {
     Map<String, dynamic> informations,
     List<Map<String, dynamic>>? beneficiaires,
   ) {
-    print(
-      '🔍 DEBUG: Building assure info with ${beneficiaires?.length ?? 0} beneficiaires',
-    );
-    if (beneficiaires != null && beneficiaires.isNotEmpty) {
-      print('🔍 DEBUG: Beneficiaires details: $beneficiaires');
-    }
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../constants/colors.dart';
 import '../../providers/beneficiaire_provider.dart';
-import '../../models/beneficiaire_model.dart';
 
 class BeneficiaireFormScreen extends StatefulWidget {
   final String? contratId;

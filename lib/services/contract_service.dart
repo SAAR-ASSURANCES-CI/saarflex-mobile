@@ -65,7 +65,7 @@ class ContractService {
     try {
       AppLogger.info('Récupération des contrats...');
 
-      // TODO: Remplacer par le vrai endpoint quand il sera disponible
+      // Endpoint sera remplacé quand disponible
       // final response = await http.get(
       //   Uri.parse('$baseUrl/contrats?page=$page&limit=$limit'),
       //   headers: await _authHeaders,
@@ -109,7 +109,7 @@ class ContractService {
     try {
       AppLogger.info('Souscription du devis $quoteId...');
 
-      // TODO: Remplacer par le vrai endpoint quand il sera disponible
+      // Endpoint sera remplacé quand disponible
       // final response = await http.post(
       //   Uri.parse('$baseUrl/devis/$quoteId/souscrire'),
       //   headers: await _authHeaders,

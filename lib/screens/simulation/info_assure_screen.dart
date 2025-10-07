@@ -32,8 +32,6 @@ class _InfoAssureScreenState extends State<InfoAssureScreen> {
 
   XFile? _rectoImage;
   XFile? _versoImage;
-  String? _rectoImagePath; // Chemin final converti
-  String? _versoImagePath; // Chemin final converti
   bool _isUploadingRecto = false;
   bool _isUploadingVerso = false;
 
@@ -292,23 +290,15 @@ class _InfoAssureScreenState extends State<InfoAssureScreen> {
       if (image != null) {
         // Conversion HEIC → JPEG si nécessaire
         String finalImagePath = image.path;
-        print('🔍 DEBUG Image path: ${image.path}');
-        print(
-          '🔍 DEBUG Is HEIC: ${image.path.toLowerCase().endsWith('.heic')}',
-        );
         if (image.path.toLowerCase().endsWith('.heic')) {
-          print('🔍 DEBUG Converting HEIC to JPEG...');
           try {
             // Lire l'image HEIC
             final File heicFile = File(image.path);
             final Uint8List heicBytes = await heicFile.readAsBytes();
 
             // Décoder l'image HEIC
-            print('🔍 DEBUG Reading HEIC file...');
             final img.Image? decodedImage = img.decodeImage(heicBytes);
-            print('🔍 DEBUG Decoded image: ${decodedImage != null}');
             if (decodedImage != null) {
-              print('🔍 DEBUG Encoding to JPEG...');
               // Encoder en JPEG
               final Uint8List jpegBytes = img.encodeJpg(
                 decodedImage,
@@ -317,17 +307,12 @@ class _InfoAssureScreenState extends State<InfoAssureScreen> {
 
               // Créer un nouveau fichier JPEG
               final String jpegPath = image.path.replaceAll('.heic', '.jpg');
-              print('🔍 DEBUG JPEG path: $jpegPath');
               final File jpegFile = File(jpegPath);
               await jpegFile.writeAsBytes(jpegBytes);
 
               finalImagePath = jpegPath;
-              print('🔍 DEBUG HEIC converted to JPEG: $jpegPath');
-            } else {
-              print('🔍 DEBUG Failed to decode HEIC image');
-            }
+            } else {}
           } catch (e) {
-            print('🔍 DEBUG HEIC conversion failed: $e');
             // Continuer avec le fichier original
           }
         }
@@ -337,32 +322,22 @@ class _InfoAssureScreenState extends State<InfoAssureScreen> {
           finalImagePath,
         );
         if (validationError != null) {
-          print('🔍 DEBUG Validation error: $validationError');
           if (mounted) {
             ErrorHandler.showErrorSnackBar(context, validationError);
           }
           return;
         }
 
-        print('🔍 DEBUG Image validation passed');
-        print('🔍 DEBUG Final image path: $finalImagePath');
-
         // Mettre à jour l'état local
         setState(() {
           if (isRecto) {
             _rectoImage = image;
-            _rectoImagePath = finalImagePath; // Stocker le chemin converti
             _isUploadingRecto = true;
           } else {
             _versoImage = image;
-            _versoImagePath = finalImagePath; // Stocker le chemin converti
             _isUploadingVerso = true;
           }
         });
-
-        print(
-          '🔍 DEBUG State updated - recto: ${_rectoImage != null}, verso: ${_versoImage != null}',
-        );
 
         // Simuler un petit délai pour l'upload
         await Future.delayed(Duration(milliseconds: 500));
@@ -424,15 +399,6 @@ class _InfoAssureScreenState extends State<InfoAssureScreen> {
     // Note: Les chemins d'images sont stockés localement mais pas envoyés dans informations_assure
 
     try {
-      print('🔍 DEBUG InfoAssure:');
-      print('   - Produit ID: ${widget.produit.id}');
-      print('   - Form Data: $formDataWithImages');
-      print('   - Date naissance: ${formDataWithImages['date_naissance']}');
-      print('   - Recto Image Path: ${_rectoImagePath} (stored locally)');
-      print('   - Verso Image Path: ${_versoImagePath} (stored locally)');
-
-      print('🔍 DEBUG: About to navigate directly to SimulationScreen');
-
       // Naviguer directement vers SimulationScreen au lieu de retourner les données
       Navigator.pushReplacement(
         context,
@@ -444,9 +410,7 @@ class _InfoAssureScreenState extends State<InfoAssureScreen> {
           ),
         ),
       );
-      print('🔍 DEBUG: Successfully navigated to SimulationScreen');
     } catch (e) {
-      print('🔍 DEBUG Navigation Error: $e');
       ErrorHandler.showErrorSnackBar(
         context,
         'Erreur lors de la navigation: ${e.toString()}',

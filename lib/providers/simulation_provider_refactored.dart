@@ -147,8 +147,13 @@ class SimulationProviderRefactored extends ChangeNotifier {
     _clearSaveError();
 
     try {
-      // TODO: Implémenter la sauvegarde du devis
-      // await _simulationService.sauvegarderDevis(devisId);
+      // Sauvegarde du devis implémentée
+      final request = SauvegardeDevisRequest(
+        devisId: devisId,
+        nomPersonnalise: nomPersonnalise,
+        notes: notes,
+      );
+      await _simulationService.sauvegarderDevis(request);
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -201,10 +206,7 @@ class SimulationProviderRefactored extends ChangeNotifier {
 
   /// Log les critères reçus
   void _logCriteresReceived() {
-    AppLogger.debug('Critères reçus:');
-    for (var critere in _criteresProduit) {
-      AppLogger.debug(' - ${critere.nom} (type: ${critere.type})');
-    }
+    // Méthode de logging supprimée pour la production
   }
 
   // Méthodes de gestion d'état
