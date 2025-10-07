@@ -9,6 +9,7 @@ import '../../models/product_model.dart';
 import '../../models/simulation_model.dart';
 import '../../utils/format_helper.dart';
 import '../contracts/contracts_screen.dart';
+import '../products/product_list_screen.dart';
 
 class SimulationResultScreen extends StatefulWidget {
   final Product produit;
@@ -27,6 +28,12 @@ class SimulationResultScreen extends StatefulWidget {
 class _SimulationResultScreenState extends State<SimulationResultScreen> {
   final TextEditingController _nomController = TextEditingController();
   final TextEditingController _notesController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    // Plus besoin d'initialiser les bénéficiaires car ils sont déjà inclus dans la simulation
+  }
 
   @override
   void dispose() {
@@ -57,11 +64,14 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
                 const SizedBox(height: 32),
                 _buildProductInfo(),
                 const SizedBox(height: 24),
-                _buildAssureInfoCard(), // ← AJOUTEZ CETTE LIGNE
+                _buildAssureInfoCard(),
                 const SizedBox(height: 24),
                 _buildResultsCard(),
                 const SizedBox(height: 24),
                 _buildDetailsCard(),
+                const SizedBox(height: 24),
+                _buildBeneficiairesCard(),
+
                 if (authProvider.isLoggedIn) ...[
                   const SizedBox(height: 24),
                   _buildSaveSection(simulationProvider),
@@ -95,6 +105,13 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
     }
   }
 
+  // Méthode de souscription simplifiée
+  void _procederSouscription() {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (context) => const ContractsScreen()));
+  }
+
   // Construction de l'AppBar
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
@@ -103,7 +120,12 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
       leading: IconButton(
         icon: Icon(Icons.close_rounded, color: AppColors.primary),
         onPressed: () {
-          Navigator.pop(context);
+          // Rediriger vers le dashboard au lieu de revenir en arrière
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            '/dashboard',
+            (route) => false,
+          );
         },
       ),
       title: Text(
@@ -691,7 +713,7 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
                     : Text(
                         widget.resultat.statut == StatutDevis.sauvegarde
                             ? 'Déjà sauvegardé'
-                            : 'Sauvegarder le devis',
+                            : 'Sauvegarder',
                         style: GoogleFonts.poppins(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -712,7 +734,7 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
                 ),
               ),
               child: Text(
-                'Procéder à la souscription',
+                'Souscrire',
                 style: GoogleFonts.poppins(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -726,7 +748,7 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
   }
 
   // Gestion de la sauvegarde du devis
-  void _handleSaveQuote(SimulationProvider provider) {
+  void _handleSaveQuote(SimulationProvider provider) async {
     if (widget.resultat.statut == StatutDevis.sauvegarde) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -750,6 +772,156 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
       return;
     }
 
+    // Plus besoin de vérifier les bénéficiaires car ils sont déjà inclus dans la simulation
+
+    // Plus besoin de sauvegarder les bénéficiaires séparément
+
+    // Afficher le popup de confirmation avant la sauvegarde
+    _showSaveConfirmationDialog(provider);
+  }
+
+  // Popup de confirmation avant sauvegarde
+  void _showSaveConfirmationDialog(SimulationProvider provider) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(32),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              color: AppColors.white,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Bouton fermer en haut à droite
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: Icon(
+                        Icons.close_rounded,
+                        color: AppColors.textSecondary,
+                        size: 24,
+                      ),
+                    ),
+                  ],
+                ),
+                // Icône de sauvegarde
+                Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.save_rounded,
+                    color: AppColors.primary,
+                    size: 40,
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Titre
+                Text(
+                  'Sauvegarder le devis',
+                  style: GoogleFonts.poppins(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+
+                // Message
+                Text(
+                  'Votre devis "${_nomController.text.trim()}" sera sauvegardé. Que souhaitez-vous faire ensuite ?',
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w400,
+                    color: AppColors.textSecondary,
+                    height: 1.5,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 32),
+
+                // Boutons d'action
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () {
+                          Navigator.pop(context); // Fermer le popup
+                          _performSaveAndNavigate(provider, toProducts: true);
+                        },
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.primary,
+                          side: BorderSide(color: AppColors.primary),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Text(
+                          'Nouvelle simulation',
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(context); // Fermer le popup
+                          _performSaveAndNavigate(provider, toProducts: false);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: AppColors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: Text(
+                          'Voir mes devis',
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // Effectuer la sauvegarde et naviguer
+  void _performSaveAndNavigate(
+    SimulationProvider provider, {
+    required bool toProducts,
+  }) {
     provider
         .sauvegarderDevis(
           context: context,
@@ -761,24 +933,12 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
         )
         .then((_) {
           if (provider.saveError == null) {
+            // Afficher un message de succès
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text('Devis sauvegardé avec succès !'),
                 backgroundColor: AppColors.success,
                 duration: const Duration(seconds: 2),
-                action: SnackBarAction(
-                  label: 'Voir mes contrats',
-                  textColor: AppColors.white,
-                  onPressed: () {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            const ContractsScreen(initialTab: 0),
-                      ),
-                    );
-                  },
-                ),
               ),
             );
 
@@ -787,20 +947,138 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
               context,
               listen: false,
             ).loadSavedQuotes(forceRefresh: true);
+
+            // Naviguer selon le choix
+            if (toProducts) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ProductListScreen(),
+                ),
+              );
+            } else {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ContractsScreen(initialTab: 0),
+                ),
+              );
+            }
           }
         });
   }
 
-  // Procédure de souscription
-  void _procederSouscription() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Redirection vers la souscription...'),
-        backgroundColor: AppColors.primary,
+  // Widget pour afficher les bénéficiaires
+  Widget _buildBeneficiairesCard() {
+    // Vérifier s'il y a des bénéficiaires à afficher
+    if (widget.resultat.beneficiaires.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            spreadRadius: 0,
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.people_outline_rounded,
+                color: AppColors.primary,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Bénéficiaires',
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          ...widget.resultat.beneficiaires.asMap().entries.map((entry) {
+            final index = entry.key;
+            final beneficiaire = entry.value;
+
+            return Container(
+              margin: EdgeInsets.only(
+                bottom: index < widget.resultat.beneficiaires.length - 1
+                    ? 12
+                    : 0,
+              ),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.background,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.border, width: 1),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Center(
+                      child: Text(
+                        '${index + 1}',
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          beneficiaire['nom_complet'] ?? 'Nom non renseigné',
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          beneficiaire['lien_souscripteur'] ??
+                              'Lien non renseigné',
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w400,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }).toList(),
+        ],
       ),
     );
-
-    // Navigation vers l'écran de souscription
-    // Navigator.push(context, MaterialPageRoute(builder: (context) => SouscriptionScreen(devis: widget.resultat)));
   }
 }

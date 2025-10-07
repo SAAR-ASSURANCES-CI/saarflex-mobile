@@ -222,13 +222,6 @@ class QuoteCard extends StatelessWidget {
                   ],
                 ),
               ],
-
-              if (quote.notes != null && quote.notes!.isNotEmpty) ...[
-                const SizedBox(height: 16),
-                _buildDetailSection('Notes personnelles', Icons.note_outlined, [
-                  _buildDetailRow('', quote.notes!),
-                ]),
-              ],
             ],
           ),
         ),

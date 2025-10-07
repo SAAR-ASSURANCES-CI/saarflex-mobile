@@ -1,13 +1,17 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:image/image.dart' as img;
 // import 'package:provider/provider.dart';
 import 'package:saarflex_app/constants/colors.dart';
-import 'package:saarflex_app/screens/simulation/simulation_screen.dart';
 import 'package:saarflex_app/models/product_model.dart';
 // import 'package:saarflex_app/providers/auth_provider.dart';
 import 'package:saarflex_app/utils/error_handler.dart';
+import 'package:saarflex_app/screens/simulation/simulation_screen.dart';
+import 'package:saarflex_app/utils/image_labels.dart';
+import 'package:saarflex_app/utils/image_validator.dart';
 
 class InfoAssureScreen extends StatefulWidget {
   final Product produit;
@@ -28,8 +32,10 @@ class _InfoAssureScreenState extends State<InfoAssureScreen> {
 
   XFile? _rectoImage;
   XFile? _versoImage;
-  final bool _isUploadingRecto = false;
-  final bool _isUploadingVerso = false;
+  String? _rectoImagePath; // Chemin final converti
+  String? _versoImagePath; // Chemin final converti
+  bool _isUploadingRecto = false;
+  bool _isUploadingVerso = false;
 
   final List<String> _typesPiece = ['Carte d\'identité', 'Passeport'];
 
@@ -41,13 +47,12 @@ class _InfoAssureScreenState extends State<InfoAssureScreen> {
 
   void _validateForm() {
     final isValid = _formKey.currentState?.validate() ?? false;
-    // Rendre les images optionnelles pour le moment
-    // final hasRequiredImages = _rectoImage != null && _versoImage != null;
+    // Les images sont maintenant obligatoires
+    final hasRequiredImages = _rectoImage != null && _versoImage != null;
 
     setState(() {
       _isFormValid =
-          isValid &&
-          _formData['date_naissance'] != null; // && hasRequiredImages;
+          isValid && _formData['date_naissance'] != null && hasRequiredImages;
     });
   }
 
@@ -135,35 +140,38 @@ class _InfoAssureScreenState extends State<InfoAssureScreen> {
   }
 
   Widget _buildIdentityImagesSection() {
+    final identityType = _formData['type_piece_identite'];
+    final title = ImageLabels.getUploadTitle(identityType);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          "Pièce d'identité",
-          style: GoogleFonts.poppins(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        const SizedBox(height: 16),
-        Text(
-          "Veuillez uploader le recto et le verso de la pièce d'identité",
-          style: GoogleFonts.poppins(
-            fontSize: 14,
-            color: AppColors.textSecondary,
+        RichText(
+          text: TextSpan(
+            style: GoogleFonts.poppins(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+            children: [
+              TextSpan(text: title),
+              TextSpan(
+                text: ' *',
+                style: TextStyle(color: AppColors.error),
+              ),
+            ],
           ),
         ),
         const SizedBox(height: 20),
         _buildImageUploadField(
-          label: 'Recto de la pièce',
+          label: ImageLabels.getRectoLabel(identityType),
           isUploading: _isUploadingRecto,
           onTap: () => _pickImage(true),
           selectedImage: _rectoImage,
         ),
         const SizedBox(height: 20),
         _buildImageUploadField(
-          label: 'Verso de la pièce',
+          label: ImageLabels.getVersoLabel(identityType),
           isUploading: _isUploadingVerso,
           onTap: () => _pickImage(false),
           selectedImage: _versoImage,
@@ -183,12 +191,20 @@ class _InfoAssureScreenState extends State<InfoAssureScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: GoogleFonts.poppins(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: AppColors.textPrimary,
+        RichText(
+          text: TextSpan(
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: AppColors.textPrimary,
+            ),
+            children: [
+              TextSpan(text: label),
+              TextSpan(
+                text: ' *',
+                style: TextStyle(color: AppColors.error),
+              ),
+            ],
           ),
         ),
         const SizedBox(height: 8),
@@ -269,25 +285,105 @@ class _InfoAssureScreenState extends State<InfoAssureScreen> {
       final ImagePicker picker = ImagePicker();
       final XFile? image = await picker.pickImage(
         source: ImageSource.gallery,
-        imageQuality: 80,
-        maxWidth: 1200,
+        imageQuality: 95, // High quality
+        // No size restrictions - let user choose any image
       );
 
       if (image != null) {
+        // Conversion HEIC → JPEG si nécessaire
+        String finalImagePath = image.path;
+        print('🔍 DEBUG Image path: ${image.path}');
+        print(
+          '🔍 DEBUG Is HEIC: ${image.path.toLowerCase().endsWith('.heic')}',
+        );
+        if (image.path.toLowerCase().endsWith('.heic')) {
+          print('🔍 DEBUG Converting HEIC to JPEG...');
+          try {
+            // Lire l'image HEIC
+            final File heicFile = File(image.path);
+            final Uint8List heicBytes = await heicFile.readAsBytes();
+
+            // Décoder l'image HEIC
+            print('🔍 DEBUG Reading HEIC file...');
+            final img.Image? decodedImage = img.decodeImage(heicBytes);
+            print('🔍 DEBUG Decoded image: ${decodedImage != null}');
+            if (decodedImage != null) {
+              print('🔍 DEBUG Encoding to JPEG...');
+              // Encoder en JPEG
+              final Uint8List jpegBytes = img.encodeJpg(
+                decodedImage,
+                quality: 95,
+              );
+
+              // Créer un nouveau fichier JPEG
+              final String jpegPath = image.path.replaceAll('.heic', '.jpg');
+              print('🔍 DEBUG JPEG path: $jpegPath');
+              final File jpegFile = File(jpegPath);
+              await jpegFile.writeAsBytes(jpegBytes);
+
+              finalImagePath = jpegPath;
+              print('🔍 DEBUG HEIC converted to JPEG: $jpegPath');
+            } else {
+              print('🔍 DEBUG Failed to decode HEIC image');
+            }
+          } catch (e) {
+            print('🔍 DEBUG HEIC conversion failed: $e');
+            // Continuer avec le fichier original
+          }
+        }
+
+        // Validation de l'image
+        final validationError = await ImageValidator.getValidationError(
+          finalImagePath,
+        );
+        if (validationError != null) {
+          print('🔍 DEBUG Validation error: $validationError');
+          if (mounted) {
+            ErrorHandler.showErrorSnackBar(context, validationError);
+          }
+          return;
+        }
+
+        print('🔍 DEBUG Image validation passed');
+        print('🔍 DEBUG Final image path: $finalImagePath');
+
+        // Mettre à jour l'état local
         setState(() {
           if (isRecto) {
             _rectoImage = image;
+            _rectoImagePath = finalImagePath; // Stocker le chemin converti
+            _isUploadingRecto = true;
           } else {
             _versoImage = image;
+            _versoImagePath = finalImagePath; // Stocker le chemin converti
+            _isUploadingVerso = true;
           }
         });
+
+        print(
+          '🔍 DEBUG State updated - recto: ${_rectoImage != null}, verso: ${_versoImage != null}',
+        );
+
+        // Simuler un petit délai pour l'upload
+        await Future.delayed(Duration(milliseconds: 500));
+
+        setState(() {
+          if (isRecto) {
+            _isUploadingRecto = false;
+          } else {
+            _isUploadingVerso = false;
+          }
+        });
+
         _validateForm();
       }
     } catch (e) {
-      ErrorHandler.showErrorSnackBar(
-        context,
-        'Erreur lors de la sélection de l\'image',
-      );
+      if (mounted) {
+        ErrorHandler.showErrorSnackBar(
+          context,
+          'Erreur lors de la sélection de l\'image',
+        );
+      }
     }
   }
 
@@ -310,77 +406,52 @@ class _InfoAssureScreenState extends State<InfoAssureScreen> {
       return;
     }
 
-    // Commenter la vérification des images pour le moment
-    /*
-  if (_rectoImage == null || _versoImage == null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Veuillez uploader le recto et le verso de la pièce d\'identité',
+    // Vérification des images obligatoires
+    if (_rectoImage == null || _versoImage == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Veuillez uploader le recto et le verso de la pièce d\'identité',
+          ),
+          backgroundColor: AppColors.error,
         ),
-        backgroundColor: AppColors.error,
-      ),
-    );
-    return;
-  }
-  */
-
-    // Commenter le processus d'upload pour le moment
-    /*
-  setState(() {
-    _isUploadingRecto = true;
-    _isUploadingVerso = true;
-  });
-
-  try {
-    final authProvider = context.read<AuthProvider>();
-
-    final rectoSuccess = await authProvider.uploadIdentityDocument(
-      File(_rectoImage!.path),
-      'recto',
-    );
-    if (!rectoSuccess) {
-      throw Exception('Échec de l\'upload du recto');
+      );
+      return;
     }
 
-    final versoSuccess = await authProvider.uploadIdentityDocument(
-      File(_versoImage!.path),
-      'verso',
-    );
-    if (!versoSuccess) {
-      throw Exception('Échec de l\'upload du verso');
-    }
+    // Les images seront uploadées séparément, pas dans les données de l'assuré
+    final formDataWithImages = Map<String, dynamic>.from(_formData);
+    // Note: Les chemins d'images sont stockés localement mais pas envoyés dans informations_assure
 
-    await authProvider.loadUserProfile();
-    final user = authProvider.currentUser;
+    try {
+      print('🔍 DEBUG InfoAssure:');
+      print('   - Produit ID: ${widget.produit.id}');
+      print('   - Form Data: $formDataWithImages');
+      print('   - Date naissance: ${formDataWithImages['date_naissance']}');
+      print('   - Recto Image Path: ${_rectoImagePath} (stored locally)');
+      print('   - Verso Image Path: ${_versoImagePath} (stored locally)');
 
-    _formData['chemin_recto_piece'] = user?.frontDocumentPath;
-    _formData['chemin_verso_piece'] = user?.backDocumentPath;
-  */
+      print('🔍 DEBUG: About to navigate directly to SimulationScreen');
 
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => SimulationScreen(
-          produit: widget.produit,
-          assureEstSouscripteur: false,
-          informationsAssure: _formData,
+      // Naviguer directement vers SimulationScreen au lieu de retourner les données
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => SimulationScreen(
+            produit: widget.produit,
+            assureEstSouscripteur: false,
+            informationsAssure: formDataWithImages,
+          ),
         ),
-      ),
-    );
-    /*
-  } catch (e) {
-    ErrorHandler.showErrorSnackBar(
-      context,
-      'Erreur lors de l\'upload des images: ${e.toString()}',
-    );
-  } finally {
-    setState(() {
-      _isUploadingRecto = false;
-      _isUploadingVerso = false;
-    });
-  }
-  */
+      );
+      print('🔍 DEBUG: Successfully navigated to SimulationScreen');
+    } catch (e) {
+      print('🔍 DEBUG Navigation Error: $e');
+      ErrorHandler.showErrorSnackBar(
+        context,
+        'Erreur lors de la navigation: ${e.toString()}',
+      );
+    }
   }
 
   Widget _buildHeader() {
@@ -428,12 +499,21 @@ class _InfoAssureScreenState extends State<InfoAssureScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: GoogleFonts.poppins(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
+        RichText(
+          text: TextSpan(
+            style: GoogleFonts.poppins(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+            children: [
+              TextSpan(text: label),
+              if (required)
+                TextSpan(
+                  text: ' *',
+                  style: TextStyle(color: AppColors.error),
+                ),
+            ],
           ),
         ),
         const SizedBox(height: 8),
@@ -478,12 +558,20 @@ class _InfoAssureScreenState extends State<InfoAssureScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: GoogleFonts.poppins(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
+        RichText(
+          text: TextSpan(
+            style: GoogleFonts.poppins(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+            children: [
+              TextSpan(text: label),
+              TextSpan(
+                text: ' *',
+                style: TextStyle(color: AppColors.error),
+              ),
+            ],
           ),
         ),
         const SizedBox(height: 8),
@@ -520,6 +608,8 @@ class _InfoAssureScreenState extends State<InfoAssureScreen> {
           onChanged: (value) {
             _formData[field] = value;
             _validateForm();
+            // Forcer la mise à jour de l'interface pour les labels dynamiques
+            setState(() {});
           },
         ),
       ],
@@ -530,12 +620,20 @@ class _InfoAssureScreenState extends State<InfoAssureScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: GoogleFonts.poppins(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
+        RichText(
+          text: TextSpan(
+            style: GoogleFonts.poppins(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+            children: [
+              TextSpan(text: label),
+              TextSpan(
+                text: ' *',
+                style: TextStyle(color: AppColors.error),
+              ),
+            ],
           ),
         ),
         const SizedBox(height: 8),

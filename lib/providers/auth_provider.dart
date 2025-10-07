@@ -330,8 +330,8 @@ class AuthProvider extends ChangeNotifier {
 
   Future<bool> _updateProfileWithImageUrl(String imageUrl, String type) async {
     final fieldName = type == 'recto'
-        ? 'chemin_recto_piece'
-        : 'chemin_verso_piece';
+        ? 'front_document_path'
+        : 'back_document_path';
     return await updateProfile({fieldName: imageUrl});
   }
 
@@ -341,8 +341,8 @@ class AuthProvider extends ChangeNotifier {
 
     try {
       final fieldName = type == 'recto'
-          ? 'chemin_recto_piece'
-          : 'chemin_verso_piece';
+          ? 'front_document_path'
+          : 'back_document_path';
       final success = await updateProfile({fieldName: null});
 
       _setLoading(false);
@@ -453,5 +453,67 @@ class AuthProvider extends ChangeNotifier {
     _clearError();
     _clearUploadError();
     notifyListeners();
+  }
+
+  void updateUserField(String fieldName, dynamic value) {
+    if (_currentUser == null) return;
+
+    // Créer une nouvelle instance de User avec le champ mis à jour
+    final updatedUser = User(
+      id: _currentUser!.id,
+      nom: fieldName == 'nom' ? value : _currentUser!.nom,
+      email: fieldName == 'email' ? value : _currentUser!.email,
+      telephone: fieldName == 'telephone' ? value : _currentUser!.telephone,
+      typeUtilisateur: _currentUser!.typeUtilisateur,
+      statut: _currentUser!.statut,
+      dateCreation: _currentUser!.dateCreation,
+      updatedAt: _currentUser!.updatedAt,
+      birthPlace: fieldName == 'lieu_naissance'
+          ? value
+          : _currentUser!.birthPlace,
+      gender: fieldName == 'sexe' ? value : _currentUser!.gender,
+      nationality: fieldName == 'nationalite'
+          ? value
+          : _currentUser!.nationality,
+      profession: fieldName == 'profession' ? value : _currentUser!.profession,
+      address: fieldName == 'adresse' ? value : _currentUser!.address,
+      birthDate: fieldName == 'date_naissance'
+          ? value
+          : _currentUser!.birthDate,
+      identityNumber: fieldName == 'numero_piece_identite'
+          ? value
+          : _currentUser!.identityNumber,
+      identityType: fieldName == 'type_piece_identite'
+          ? value
+          : _currentUser!.identityType,
+      identityExpirationDate: fieldName == 'date_expiration_piece_identite'
+          ? value
+          : _currentUser!.identityExpirationDate,
+      frontDocumentPath: fieldName == 'frontDocumentPath'
+          ? value
+          : _currentUser!.frontDocumentPath,
+      backDocumentPath: fieldName == 'backDocumentPath'
+          ? value
+          : _currentUser!.backDocumentPath,
+    );
+
+    _currentUser = updatedUser;
+
+    // Vérifier et mettre à jour le statut du profil
+    _updateProfileCompletionStatus();
+
+    notifyListeners();
+  }
+
+  void _updateProfileCompletionStatus() {
+    if (_currentUser == null) return;
+
+    // Vérifier si le profil est maintenant complet
+    final isComplete = _currentUser!.isProfileCompleteValue;
+
+    // Si le profil est complet mais que le statut n'est pas à jour, le mettre à jour
+    if (isComplete && _currentUser!.isProfileComplete != true) {
+      _currentUser = _currentUser!.copyWith(isProfileComplete: true);
+    }
   }
 }

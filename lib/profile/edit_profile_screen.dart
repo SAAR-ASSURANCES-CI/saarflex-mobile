@@ -1,7 +1,9 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:image/image.dart' as img;
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:saarflex_app/constants/colors.dart';
@@ -9,6 +11,9 @@ import 'package:saarflex_app/models/product_model.dart';
 import 'package:saarflex_app/providers/auth_provider.dart';
 import 'package:saarflex_app/screens/simulation/simulation_screen.dart';
 import '../../utils/error_handler.dart';
+import '../../utils/image_labels.dart';
+import '../../utils/image_validator.dart';
+import '../../services/api_service.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final VoidCallback? onProfileCompleted;
@@ -21,6 +26,10 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
+  _EditProfileScreenState() {
+    print('🔍 DEBUG EditProfileScreenState created');
+  }
+
   final _formKey = GlobalKey<FormState>();
   final _firstNameController = TextEditingController();
   final _birthPlaceController = TextEditingController();
@@ -39,8 +48,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   XFile? _rectoImage;
   XFile? _versoImage;
-  final bool _isUploadingRecto = false;
-  final bool _isUploadingVerso = false;
+  String? _rectoImagePath; // Chemin final converti
+  String? _versoImagePath; // Chemin final converti
+  bool _isUploadingRecto = false;
+  bool _isUploadingVerso = false;
 
   final List<String> _genderOptions = ['Masculin', 'Féminin'];
   final List<String> _idTypeOptions = [
@@ -57,6 +68,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   void initState() {
     super.initState();
+    print('🔍 DEBUG EditProfileScreen initState called');
     _loadUserData();
     _addListeners();
   }
@@ -476,23 +488,95 @@ if (_versoImage != null) {
   }
 
   Future<void> _pickImage(bool isRecto) async {
+    print('🔍 DEBUG _pickImage called - isRecto: $isRecto');
+
     try {
       final ImagePicker picker = ImagePicker();
       final XFile? image = await picker.pickImage(
         source: ImageSource.gallery,
-        imageQuality: 80,
-        maxWidth: 1200,
+        imageQuality: 95, // High quality
+        // No size restrictions - let user choose any image
       );
 
+      print('🔍 DEBUG Image selected: ${image?.path}');
+
       if (image != null) {
+        // Conversion HEIC → JPEG si nécessaire
+        String finalImagePath = image.path;
+        print('🔍 DEBUG Image path: ${image.path}');
+        print(
+          '🔍 DEBUG Is HEIC: ${image.path.toLowerCase().endsWith('.heic')}',
+        );
+        if (image.path.toLowerCase().endsWith('.heic')) {
+          print('🔍 DEBUG Converting HEIC to JPEG...');
+          try {
+            // Lire l'image HEIC
+            final File heicFile = File(image.path);
+            final Uint8List heicBytes = await heicFile.readAsBytes();
+
+            // Décoder l'image HEIC
+            print('🔍 DEBUG Reading HEIC file...');
+            final img.Image? decodedImage = img.decodeImage(heicBytes);
+            print('🔍 DEBUG Decoded image: ${decodedImage != null}');
+            if (decodedImage != null) {
+              print('🔍 DEBUG Encoding to JPEG...');
+              // Encoder en JPEG
+              final Uint8List jpegBytes = img.encodeJpg(
+                decodedImage,
+                quality: 95,
+              );
+
+              // Créer un nouveau fichier JPEG
+              final String jpegPath = image.path.replaceAll('.heic', '.jpg');
+              print('🔍 DEBUG JPEG path: $jpegPath');
+              final File jpegFile = File(jpegPath);
+              await jpegFile.writeAsBytes(jpegBytes);
+
+              finalImagePath = jpegPath;
+              print('🔍 DEBUG HEIC converted to JPEG: $jpegPath');
+            } else {
+              print('🔍 DEBUG Failed to decode HEIC image');
+            }
+          } catch (e) {
+            print('🔍 DEBUG HEIC conversion failed: $e');
+            // Continuer avec le fichier original
+          }
+        }
+
+        // Validation de l'image
+        final validationError = await ImageValidator.getValidationError(
+          finalImagePath,
+        );
+        if (validationError != null) {
+          print('🔍 DEBUG Validation error: $validationError');
+          if (mounted) {
+            ErrorHandler.showErrorSnackBar(context, validationError);
+          }
+          return;
+        }
+
+        print('🔍 DEBUG Image validation passed');
+        print('🔍 DEBUG Final image path: $finalImagePath');
+
+        // Mettre à jour l'état local
         setState(() {
           if (isRecto) {
             _rectoImage = image;
+            _rectoImagePath = finalImagePath; // Stocker le chemin converti
+            _isUploadingRecto = true;
           } else {
             _versoImage = image;
+            _versoImagePath = finalImagePath; // Stocker le chemin converti
+            _isUploadingVerso = true;
           }
         });
-        _checkForChanges();
+
+        print(
+          '🔍 DEBUG State updated - recto: ${_rectoImage != null}, verso: ${_versoImage != null}',
+        );
+
+        // Upload de l'image avec le chemin final (converti si nécessaire)
+        await _uploadImage(finalImagePath, isRecto);
       }
     } catch (e) {
       if (mounted) {
@@ -500,6 +584,124 @@ if (_versoImage != null) {
           context,
           'Erreur lors de la sélection de l\'image',
         );
+      }
+    }
+  }
+
+  Future<void> _uploadImage(String imagePath, bool isRecto) async {
+    print('🔍 DEBUG _uploadImage called - path: $imagePath, isRecto: $isRecto');
+
+    try {
+      // Vérifier si nous avons maintenant les deux images
+      if (_rectoImage != null && _versoImage != null) {
+        print('🔍 DEBUG Both images available - calling _uploadBothImages');
+        // Déclencher l'upload automatique des deux images
+        await _uploadBothImages();
+      } else {
+        print('🔍 DEBUG Only one image - showing message');
+        // Message informatif
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Image ${isRecto ? 'recto' : 'verso'} sélectionnée. Sélectionnez l\'autre image pour uploader automatiquement.',
+              ),
+              backgroundColor: Colors.blue,
+            ),
+          );
+        }
+      }
+
+      _checkForChanges();
+    } catch (e) {
+      if (mounted) {
+        ErrorHandler.showErrorSnackBar(
+          context,
+          'Erreur lors de la sélection: ${e.toString()}',
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          if (isRecto) {
+            _isUploadingRecto = false;
+          } else {
+            _isUploadingVerso = false;
+          }
+        });
+      }
+    }
+  }
+
+  Future<void> _uploadBothImages() async {
+    print('🔍 DEBUG _uploadBothImages called');
+
+    if (_rectoImage == null || _versoImage == null) {
+      print(
+        '🔍 DEBUG Missing images - recto: ${_rectoImage != null}, verso: ${_versoImage != null}',
+      );
+      ErrorHandler.showErrorSnackBar(
+        context,
+        'Veuillez sélectionner les deux images avant l\'upload',
+      );
+      return;
+    }
+
+    print(
+      '🔍 DEBUG Starting upload - recto: ${_rectoImagePath}, verso: ${_versoImagePath}',
+    );
+    print('🔍 DEBUG About to call API service...');
+
+    try {
+      setState(() {
+        _isUploadingRecto = true;
+        _isUploadingVerso = true;
+      });
+
+      final apiService = ApiService();
+      final authProvider = context.read<AuthProvider>();
+
+      print('🔍 DEBUG Calling uploadBothImages API');
+      print('🔍 DEBUG API Service created, calling uploadBothImages...');
+      // Upload des deux images
+      final result = await apiService.uploadBothImages(
+        rectoPath: _rectoImagePath!,
+        versoPath: _versoImagePath!,
+      );
+      print('🔍 DEBUG API call completed, result: $result');
+
+      print('🔍 DEBUG API Response: $result');
+
+      if (result.containsKey('recto_path') &&
+          result.containsKey('verso_path')) {
+        // Mettre à jour le profil utilisateur
+        authProvider.updateUserField('frontDocumentPath', result['recto_path']);
+        authProvider.updateUserField('backDocumentPath', result['verso_path']);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Images uploadées avec succès'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+
+        _checkForChanges();
+      }
+    } catch (e) {
+      if (mounted) {
+        ErrorHandler.showErrorSnackBar(
+          context,
+          'Erreur lors de l\'upload: ${e.toString()}',
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isUploadingRecto = false;
+          _isUploadingVerso = false;
+        });
       }
     }
   }
@@ -758,15 +960,32 @@ if (_versoImage != null) {
     );
   }
 
+  String? _getBackendIdentityType(String? selectedIdType) {
+    if (selectedIdType == null) return null;
+
+    // Convertir le label affiché en type backend
+    switch (selectedIdType) {
+      case 'Carte Nationale d\'Identité':
+        return 'carte_identite';
+      case 'Passeport':
+        return 'passeport';
+      default:
+        return null;
+    }
+  }
+
   Widget _buildIdentityImagesSection() {
     final user = context.read<AuthProvider>().currentUser;
 
+    // Utiliser _selectedIdType au lieu de user?.identityType pour la réactivité
+    final currentIdentityType = _getBackendIdentityType(_selectedIdType);
+
     return _buildFormSection(
-      title: "Photos de la pièce d'identité",
+      title: ImageLabels.getUploadTitle(currentIdentityType),
       icon: Icons.photo_library_rounded,
       children: [
         _buildImageUploadField(
-          label: 'Recto de la pièce',
+          label: ImageLabels.getRectoLabel(currentIdentityType),
           imageUrl: user?.frontDocumentPath,
           isUploading: _isUploadingRecto,
           onTap: () => _pickImage(true),
@@ -774,7 +993,7 @@ if (_versoImage != null) {
         ),
         const SizedBox(height: 20),
         _buildImageUploadField(
-          label: 'Verso de la pièce',
+          label: ImageLabels.getVersoLabel(currentIdentityType),
           imageUrl: user?.backDocumentPath,
           isUploading: _isUploadingVerso,
           onTap: () => _pickImage(false),
@@ -1390,7 +1609,7 @@ if (_versoImage != null) {
         }
       }
 
-      await authProvider.loadUserProfile();
+      // await authProvider.loadUserProfile(); // Commenté pour éviter d'écraser les nouvelles images
       _loadUserData();
 
       if (mounted) {
@@ -1411,14 +1630,38 @@ if (_versoImage != null) {
       } else {
         final product = widget.produit;
         if (product != null && mounted) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => SimulationScreen(
-                produit: product,
-                assureEstSouscripteur: true,
+          // Vérifier à nouveau si le profil est complet avant de rediriger
+          await authProvider.loadUserProfile();
+
+          if (authProvider.currentUser?.isProfileComplete == true) {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(
+                builder: (context) => SimulationScreen(
+                  produit: product,
+                  assureEstSouscripteur: true,
+                ),
               ),
-            ),
-          );
+            );
+          } else {
+            // Afficher un message d'erreur si le profil n'est toujours pas complet
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'Veuillez compléter tous les champs obligatoires pour simuler un devis',
+                  style: TextStyle(fontWeight: FontWeight.w500),
+                ),
+                backgroundColor: Colors.orange[800],
+                duration: Duration(seconds: 4),
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                margin: EdgeInsets.all(20),
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              ),
+            );
+            // Ne pas rediriger vers la simulation
+          }
         } else {
           if (mounted) Navigator.pop(context);
         }

@@ -1,12 +1,7 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:provider/provider.dart';
 import '../models/simulation_model.dart';
 import '../models/critere_tarification_model.dart';
 import '../services/simulation_service.dart';
-import '../providers/auth_provider.dart';
-import '../constants/api_constants.dart';
 import '../utils/logger.dart';
 
 class SimulationProvider extends ChangeNotifier {
@@ -23,6 +18,11 @@ class SimulationProvider extends ChangeNotifier {
   List<CritereTarification> _criteresProduit = [];
   final Map<String, dynamic> _criteresReponses = {};
   SimulationResponse? _dernierResultat;
+
+  // Nouveaux champs pour les bénéficiaires
+  final List<Map<String, dynamic>> _beneficiaires = [];
+  bool _assureEstSouscripteur = true;
+  Map<String, dynamic>? _informationsAssure;
 
   String? _errorMessage;
   final Map<String, String> _validationErrors = {};
@@ -43,6 +43,12 @@ class SimulationProvider extends ChangeNotifier {
 
   String? get produitId => _produitId;
   String? get grilleTarifaireId => _grilleTarifaireId;
+
+  // Getters pour les bénéficiaires
+  List<Map<String, dynamic>> get beneficiaires =>
+      List.unmodifiable(_beneficiaires);
+  bool get assureEstSouscripteur => _assureEstSouscripteur;
+  Map<String, dynamic>? get informationsAssure => _informationsAssure;
 
   bool get isFormValid {
     for (final critere in _criteresProduit) {
@@ -65,12 +71,19 @@ class SimulationProvider extends ChangeNotifier {
 
   bool get canSimulate => isFormValid && !isSimulating && !isLoadingCriteres;
 
-  Future<void> initierSimulation({required String produitId}) async {
+  Future<void> initierSimulation({
+    required String produitId,
+    required bool assureEstSouscripteur,
+    Map<String, dynamic>? informationsAssure,
+  }) async {
     _produitId = produitId;
     _grilleTarifaireId = null;
     _criteresReponses.clear();
     _validationErrors.clear();
     _dernierResultat = null;
+    _beneficiaires.clear();
+    _assureEstSouscripteur = assureEstSouscripteur;
+    _informationsAssure = informationsAssure;
     _clearError();
 
     await chargerCriteresProduit();
@@ -241,11 +254,55 @@ class SimulationProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Méthodes pour gérer les bénéficiaires
+  void addBeneficiaire({
+    required String nomComplet,
+    required String lienSouscripteur,
+  }) {
+    final beneficiaire = {
+      'nom_complet': nomComplet,
+      'lien_souscripteur': lienSouscripteur,
+      'ordre': _beneficiaires.length + 1, // Génère automatiquement l'ordre
+    };
+
+    _beneficiaires.add(beneficiaire);
+    _clearError();
+    notifyListeners();
+  }
+
+  void removeBeneficiaire(int index) {
+    if (index >= 0 && index < _beneficiaires.length) {
+      _beneficiaires.removeAt(index);
+      // Réorganiser les ordres après suppression
+      for (int i = 0; i < _beneficiaires.length; i++) {
+        _beneficiaires[i]['ordre'] = i + 1;
+      }
+      notifyListeners();
+    }
+  }
+
+  void updateBeneficiaire(
+    int index, {
+    required String nomComplet,
+    required String lienSouscripteur,
+  }) {
+    if (index >= 0 && index < _beneficiaires.length) {
+      _beneficiaires[index] = {
+        'nom_complet': nomComplet,
+        'lien_souscripteur': lienSouscripteur,
+        'ordre': index + 1, // Maintient l'ordre correct
+      };
+      notifyListeners();
+    }
+  }
+
+  void clearBeneficiaires() {
+    _beneficiaires.clear();
+    notifyListeners();
+  }
+
   // Dans simulation_provider.dart - méthode simulerDevisSimplifie
-  Future<void> simulerDevisSimplifie({
-    required bool assureEstSouscripteur,
-    Map<String, dynamic>? informationsAssure,
-  }) async {
+  Future<void> simulerDevisSimplifie() async {
     validateForm();
 
     if (!isFormValid) {
@@ -276,8 +333,9 @@ class SimulationProvider extends ChangeNotifier {
       _dernierResultat = await _simulationService.simulerDevisSimplifie(
         produitId: _produitId!,
         criteres: criteresNettoyes, // Utiliser les valeurs nettoyées
-        assureEstSouscripteur: assureEstSouscripteur,
-        informationsAssure: informationsAssure,
+        assureEstSouscripteur: _assureEstSouscripteur,
+        informationsAssure: _informationsAssure,
+        beneficiaires: _beneficiaires,
       );
     } catch (e) {
       AppLogger.error('Erreur dans le provider: $e');
@@ -293,45 +351,41 @@ class SimulationProvider extends ChangeNotifier {
     String? notes,
     required BuildContext context,
   }) async {
+    AppLogger.info('🔄 DEBUT sauvegarderDevis');
+    AppLogger.info(
+      '📋 Paramètres: devisId=$devisId, nom=$nomPersonnalise, notes=$notes',
+    );
+
     _isSaving = true;
     _saveError = null;
     notifyListeners();
 
     try {
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final token = authProvider.authToken;
-
-      if (token == null) {
-        _saveError = 'Utilisateur non connecté';
-        return;
-      }
-
-      final response = await http.post(
-        Uri.parse('${ApiConstants.baseUrl}/devis-sauvegardes'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: json.encode({
-          'devis_id': devisId,
-          if (nomPersonnalise != null) 'nom_personnalise': nomPersonnalise,
-          if (notes != null) 'notes': notes,
-        }),
+      AppLogger.info('📦 Création de SauvegardeDevisRequest...');
+      final request = SauvegardeDevisRequest(
+        devisId: devisId,
+        nomPersonnalise: nomPersonnalise,
+        notes: notes,
       );
+      AppLogger.info('📦 Request créée: ${request.toJson()}');
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        _saveError = null;
-      } else {
-        final errorData = json.decode(response.body);
-        _saveError =
-            errorData['message'] ??
-            'Erreur lors de la sauvegarde: ${response.statusCode}';
-      }
+      AppLogger.info('🌐 Appel du service de sauvegarde...');
+      await _simulationService.sauvegarderDevis(request);
+      AppLogger.info('✅ Sauvegarde réussie');
+      _saveError = null;
     } catch (error) {
-      _saveError = 'Erreur de connexion: $error';
+      AppLogger.error('❌ Erreur lors de la sauvegarde: $error');
+      AppLogger.error('❌ Type d\'erreur: ${error.runtimeType}');
+      if (error.toString().contains('Exception:')) {
+        AppLogger.error('❌ Exception détaillée: ${error.toString()}');
+      }
+      _saveError = 'Erreur lors de la sauvegarde: $error';
     } finally {
       _isSaving = false;
       notifyListeners();
+      AppLogger.info(
+        '🏁 FIN sauvegarderDevis - isSaving: $_isSaving, error: $_saveError',
+      );
     }
   }
 
@@ -347,6 +401,9 @@ class SimulationProvider extends ChangeNotifier {
     _criteresReponses.clear();
     _validationErrors.clear();
     _dernierResultat = null;
+    _beneficiaires.clear();
+    _assureEstSouscripteur = true;
+    _informationsAssure = null;
     _clearError();
     notifyListeners();
   }

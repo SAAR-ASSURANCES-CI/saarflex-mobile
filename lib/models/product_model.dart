@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 
-enum ProductType {
-  vie,
-  nonVie,
-}
+enum ProductType { vie, nonVie }
 
 extension ProductTypeExtension on ProductType {
   String get label {
@@ -27,18 +24,18 @@ extension ProductTypeExtension on ProductType {
   IconData get icon {
     switch (this) {
       case ProductType.vie:
-        return Icons.favorite_rounded; 
+        return Icons.favorite_rounded;
       case ProductType.nonVie:
-        return Icons.directions_car_rounded; 
+        return Icons.directions_car_rounded;
     }
   }
 
   Color get color {
     switch (this) {
       case ProductType.vie:
-        return const Color(0xFF10B981); 
+        return const Color(0xFF10B981);
       case ProductType.nonVie:
-        return const Color(0xFF3B82F6); 
+        return const Color(0xFF3B82F6);
     }
   }
 }
@@ -50,11 +47,14 @@ class Product {
   final String description;
   final String? conditionsPdf;
   final IconData? customIcon;
-  
-  final String? iconPath;    
-  final String? statut;       
-  final DateTime? createdAt;   
+
+  final String? iconPath;
+  final String? statut;
+  final DateTime? createdAt;
   final Map<String, dynamic>? branche;
+  final bool necessiteBeneficiaires;
+  final int maxBeneficiaires;
+
   Product({
     required this.id,
     required this.nom,
@@ -66,6 +66,8 @@ class Product {
     this.statut,
     this.createdAt,
     this.branche,
+    this.necessiteBeneficiaires = false,
+    this.maxBeneficiaires = 0,
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
@@ -77,10 +79,12 @@ class Product {
       conditionsPdf: json['conditions_pdf'],
       iconPath: json['icon'],
       statut: json['statut'],
-      createdAt: json['created_at'] != null 
-          ? DateTime.parse(json['created_at']) 
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'])
           : null,
       branche: json['branche'],
+      necessiteBeneficiaires: json['necessite_beneficiaires'] ?? false,
+      maxBeneficiaires: json['max_beneficiaires'] ?? 0,
     );
   }
 
@@ -92,7 +96,7 @@ class Product {
       case 'nonvie':
         return ProductType.nonVie;
       default:
-        return ProductType.nonVie; 
+        return ProductType.nonVie;
     }
   }
 
@@ -107,6 +111,8 @@ class Product {
       'statut': statut,
       'created_at': createdAt?.toIso8601String(),
       'branche': branche,
+      'necessite_beneficiaires': necessiteBeneficiaires,
+      'max_beneficiaires': maxBeneficiaires,
     };
   }
 
@@ -121,6 +127,8 @@ class Product {
     String? statut,
     DateTime? createdAt,
     Map<String, dynamic>? branche,
+    bool? necessiteBeneficiaires,
+    int? maxBeneficiaires,
   }) {
     return Product(
       id: id ?? this.id,
@@ -133,6 +141,9 @@ class Product {
       statut: statut ?? this.statut,
       createdAt: createdAt ?? this.createdAt,
       branche: branche ?? this.branche,
+      necessiteBeneficiaires:
+          necessiteBeneficiaires ?? this.necessiteBeneficiaires,
+      maxBeneficiaires: maxBeneficiaires ?? this.maxBeneficiaires,
     );
   }
 
@@ -142,9 +153,19 @@ class Product {
   String get typeShortLabel => type.shortLabel;
 
   bool get hasConditions => conditionsPdf != null && conditionsPdf!.isNotEmpty;
-  
+
   bool get isActive => statut?.toLowerCase() == 'actif';
   String get brancheName => branche?['nom'] ?? 'Non définie';
+
+  // Vérifie si le produit nécessite des bénéficiaires (nouvelle logique backend)
+  bool get requiresBeneficiaires {
+    return necessiteBeneficiaires;
+  }
+
+  // Vérifie si le produit supporte les bénéficiaires
+  bool get supportsBeneficiaires {
+    return maxBeneficiaires > 0;
+  }
 
   @override
   bool operator ==(Object other) =>

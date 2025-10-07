@@ -6,8 +6,9 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'providers/auth_provider.dart';
 import 'providers/user_provider.dart';
 import 'providers/product_provider.dart';
-import 'providers/simulation_provider.dart';
+import 'providers/simulation_provider.dart' ;
 import 'providers/contract_provider.dart';
+import 'providers/beneficiaire_provider.dart';
 
 import 'screens/auth/welcome_screen.dart';
 import 'screens/dashboard/dashboard_screen.dart';
@@ -19,6 +20,9 @@ import 'constants/colors.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // debugPrint('🚀 APP STARTED - Debug logs should appear now');
+  // developer.log('🚀 APP STARTED - Developer log test');
 
   runApp(const Saarflex());
 }
@@ -42,6 +46,9 @@ class Saarflex extends StatelessWidget {
         ),
         ChangeNotifierProvider<ContractProvider>(
           create: (_) => ContractProvider(),
+        ),
+        ChangeNotifierProvider<BeneficiaireProvider>(
+          create: (_) => BeneficiaireProvider(),
         ),
       ],
       child: MaterialApp(
