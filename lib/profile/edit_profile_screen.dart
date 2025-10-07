@@ -1,18 +1,33 @@
+import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:image/image.dart' as img;
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
+import 'package:saarflex_app/constants/colors.dart';
+import 'package:saarflex_app/models/product_model.dart';
 import 'package:saarflex_app/providers/auth_provider.dart';
-import '../../constants/colors.dart';
+import 'package:saarflex_app/screens/simulation/simulation_screen.dart';
 import '../../utils/error_handler.dart';
+import '../../utils/image_labels.dart';
+import '../../utils/image_validator.dart';
+import '../../services/api_service.dart';
 
 class EditProfileScreen extends StatefulWidget {
-  const EditProfileScreen({super.key});
+  final VoidCallback? onProfileCompleted;
+  final Product? produit;
+
+  const EditProfileScreen({super.key, this.onProfileCompleted, this.produit});
 
   @override
   State<EditProfileScreen> createState() => _EditProfileScreenState();
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
+  _EditProfileScreenState() {}
+
   final _formKey = GlobalKey<FormState>();
   final _firstNameController = TextEditingController();
   final _birthPlaceController = TextEditingController();
@@ -23,15 +38,23 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final _addressController = TextEditingController();
   final _idNumberController = TextEditingController();
 
-  String _selectedGender = 'Masculin';
-  String _selectedIdType = 'Carte Nationale d\'Identité';
+  String? _selectedGender;
+  String? _selectedIdType;
+
+  DateTime? _selectedBirthDate;
+  DateTime? _selectedExpirationDate;
+
+  XFile? _rectoImage;
+  XFile? _versoImage;
+  String? _rectoImagePath; // Chemin final converti
+  String? _versoImagePath; // Chemin final converti
+  bool _isUploadingRecto = false;
+  bool _isUploadingVerso = false;
 
   final List<String> _genderOptions = ['Masculin', 'Féminin'];
   final List<String> _idTypeOptions = [
     'Carte Nationale d\'Identité',
     'Passeport',
-    'Permis de Conduire',
-    'Carte de Séjour',
   ];
 
   bool _isLoading = false;
@@ -70,14 +93,33 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       'numero_piece_identite': _idNumberController.text.trim(),
       'sexe': _selectedGender,
       'type_piece_identite': _selectedIdType,
+      'date_naissance': _selectedBirthDate, // ← DateTime directement
+      'date_expiration_piece_identite':
+          _selectedExpirationDate, // ← DateTime directement`
     };
 
     bool hasChanged = false;
+
     for (String key in currentData.keys) {
-      if (currentData[key] != _originalData[key]) {
+      if (key == 'date_naissance' || key == 'date_expiration_piece_identite') {
+        if (!_areDatesEqual(
+          currentData[key] as DateTime?,
+          _originalData[key] as DateTime?,
+        )) {
+          hasChanged = true;
+          break;
+        }
+      } else if (currentData[key] != _originalData[key]) {
         hasChanged = true;
         break;
       }
+    }
+
+    final hasNewRecto = _rectoImage != null;
+    final hasNewVerso = _versoImage != null;
+
+    if (!hasChanged && (hasNewRecto || hasNewVerso)) {
+      hasChanged = true;
     }
 
     if (_hasChanges != hasChanged) {
@@ -92,6 +134,41 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _checkForChanges();
   }
 
+  // SECTION UPLOAD PIÈCE D'IDENTITÉ - À ACTIVER PLUS TARD
+  /*
+if (_rectoImage != null) {
+  final success = await authProvider.uploadIdentityDocument(
+    File(_rectoImage!.path),
+    'recto',
+  );
+  if (!success) {
+    throw Exception('Échec de l\'upload de la photo recto');
+  }
+}
+
+if (_versoImage != null) {
+  final success = await authProvider.uploadIdentityDocument(
+    File(_versoImage!.path),
+    'verso',
+  );
+  if (!success) {
+    throw Exception('Échec de l\'upload de la photo verso');
+  }
+}
+*/
+
+  void _onDateChanged() {
+    _checkForChanges();
+  }
+
+  bool _areDatesEqual(DateTime? date1, DateTime? date2) {
+    if (date1 == null && date2 == null) return true;
+    if (date1 == null || date2 == null) return false;
+    return date1.year == date2.year &&
+        date1.month == date2.month &&
+        date1.day == date2.day;
+  }
+
   void _loadUserData() {
     final authProvider = context.read<AuthProvider>();
     final user = authProvider.currentUser;
@@ -100,31 +177,41 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       _firstNameController.text = user.nom;
       _emailController.text = user.email;
       _phoneController.text = user.telephone ?? '';
-      _birthPlaceController.text = user.lieuNaissance ?? '';
-      _nationalityController.text = user.nationalite ?? '';
+      _birthPlaceController.text = user.birthPlace ?? '';
+      _nationalityController.text = user.nationality ?? '';
       _professionController.text = user.profession ?? '';
-      _addressController.text = user.adresse ?? '';
-      _idNumberController.text = user.numeroPieceIdentite ?? '';
+      _addressController.text = user.address ?? '';
+      _idNumberController.text = user.identityNumber ?? '';
 
-      if (user.sexe != null) {
-        _selectedGender = user.sexe == 'masculin' ? 'Masculin' : 'Féminin';
+      _selectedBirthDate = user.birthDate;
+      _selectedExpirationDate = user.identityExpirationDate;
+
+      if (user.gender != null && user.gender!.isNotEmpty) {
+        _selectedGender = user.gender == 'masculin' ? 'Masculin' : 'Féminin';
       }
 
-      if (user.typePieceIdentite != null) {
-        _selectedIdType = _getTypePieceIdentiteLabel(user.typePieceIdentite!);
+      if (user.identityType != null && user.identityType!.isNotEmpty) {
+        _selectedIdType = _getTypePieceIdentiteLabel(user.identityType!);
+      } else {
+        _selectedIdType = null;
       }
 
       _originalData = {
         'nom': user.nom,
         'email': user.email,
         'telephone': user.telephone ?? '',
-        'lieu_naissance': user.lieuNaissance ?? '',
-        'nationalite': user.nationalite ?? '',
+        'lieu_naissance': user.birthPlace ?? '',
+        'nationalite': user.nationality ?? '',
         'profession': user.profession ?? '',
-        'adresse': user.adresse ?? '',
-        'numero_piece_identite': user.numeroPieceIdentite ?? '',
+        'adresse': user.address ?? '',
+        'numero_piece_identite': user.identityNumber ?? '',
         'sexe': _selectedGender,
         'type_piece_identite': _selectedIdType,
+        'date_naissance': user.birthDate, // Stocker comme DateTime
+        'date_expiration_piece_identite':
+            user.identityExpirationDate, // Stocker comme DateTime
+        // 'recto_image': null,
+        // 'verso_image': null,
       };
     }
   }
@@ -135,12 +222,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         return 'Carte Nationale d\'Identité';
       case 'passport':
         return 'Passeport';
-      case 'permis':
-        return 'Permis de Conduire';
-      case 'carte_sejour':
-        return 'Carte de Séjour';
       default:
-        return 'Carte Nationale d\'Identité';
+        return 'Carte Nationale d\'Identité'; // Valeur par défaut
     }
   }
 
@@ -168,6 +251,46 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       }
     }
 
+    if (_selectedGender != _originalData['sexe']) {
+      if (_selectedGender == null) {
+        errors['sexe'] = 'Veuillez sélectionner votre sexe';
+      }
+    }
+
+    if (_selectedIdType != _originalData['type_piece_identite']) {
+      if (_selectedIdType == null) {
+        errors['type_piece_identite'] =
+            'Veuillez sélectionner le type de pièce';
+      }
+    }
+
+    if (!_areDatesEqual(_selectedBirthDate, _originalData['date_naissance'])) {
+      if (_selectedBirthDate != null) {
+        final now = DateTime.now();
+        final minAge = DateTime(now.year - 120, now.month, now.day);
+        final maxAge = DateTime(now.year - 16, now.month, now.day);
+
+        if (_selectedBirthDate!.isAfter(maxAge)) {
+          errors['date_naissance'] = 'Vous devez avoir au moins 16 ans';
+        } else if (_selectedBirthDate!.isBefore(minAge)) {
+          errors['date_naissance'] = 'Date de naissance invalide';
+        }
+      }
+    }
+
+    if (!_areDatesEqual(
+      _selectedExpirationDate,
+      _originalData['date_expiration_piece_identite'],
+    )) {
+      if (_selectedExpirationDate != null) {
+        final now = DateTime.now();
+        if (_selectedExpirationDate!.isBefore(now)) {
+          errors['date_expiration_piece_identite'] =
+              'La date d\'expiration ne peut pas être dans le passé';
+        }
+      }
+    }
+
     return errors;
   }
 
@@ -175,68 +298,56 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: CustomScrollView(
-        slivers: [
-          _buildSliverAppBar(),
-          SliverPadding(
-            padding: const EdgeInsets.all(24),
-            sliver: SliverToBoxAdapter(
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildProfileHeader(),
-                    const SizedBox(height: 40),
-
-                    if (_fieldErrors.isNotEmpty) ...[
-                      ErrorHandler.buildErrorList(
-                        _fieldErrors.values
-                            .where((error) => error != null)
-                            .cast<String>()
-                            .toList(),
-                      ),
-                      const SizedBox(height: 20),
-                    ],
-
-                    _buildPersonalSection(),
-                    const SizedBox(height: 32),
-                    _buildContactSection(),
-                    const SizedBox(height: 32),
-                    _buildIdentitySection(),
-                    const SizedBox(height: 40),
-                    _buildSaveButton(),
-                    const SizedBox(height: 20),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSliverAppBar() {
-    return SliverAppBar(
-      expandedHeight: 120,
-      floating: false,
-      pinned: true,
-      backgroundColor: AppColors.primary,
-      leading: IconButton(
-        icon: Icon(Icons.arrow_back_ios_rounded, color: AppColors.white),
-        onPressed: () => Navigator.pop(context),
-      ),
-      flexibleSpace: FlexibleSpaceBar(
-        title: Text(
+      appBar: AppBar(
+        backgroundColor: AppColors.primary,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text(
           "Édition du profil",
-          style: GoogleFonts.poppins(
+          style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w600,
-            color: AppColors.white,
+            color: Colors.white,
           ),
         ),
         centerTitle: true,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildProfileHeader(),
+              const SizedBox(height: 40),
+
+              if (_fieldErrors.isNotEmpty) ...[
+                ErrorHandler.buildErrorList(
+                  _fieldErrors.values
+                      .where((error) => error != null)
+                      .cast<String>()
+                      .toList(),
+                ),
+                const SizedBox(height: 20),
+              ],
+
+              _buildPersonalSection(),
+              const SizedBox(height: 32),
+              _buildContactSection(),
+              const SizedBox(height: 32),
+              _buildIdentitySection(),
+              const SizedBox(height: 32),
+              _buildIdentityImagesSection(),
+              const SizedBox(height: 40),
+              _buildSaveButton(),
+              const SizedBox(height: 20),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -342,6 +453,341 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
+  List<DropdownMenuItem<String>> _buildDropdownItems(
+    List<String> items,
+    String hintText,
+  ) {
+    return [
+      DropdownMenuItem<String>(
+        value: null,
+        child: Text(
+          hintText,
+          style: GoogleFonts.poppins(
+            fontSize: 16,
+            color: AppColors.textSecondary.withOpacity(0.6),
+          ),
+        ),
+      ),
+      ...items.map((String item) {
+        return DropdownMenuItem<String>(
+          value: item,
+          child: Text(
+            item,
+            style: GoogleFonts.poppins(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: AppColors.textPrimary,
+            ),
+          ),
+        );
+      }).toList(),
+    ];
+  }
+
+  Future<void> _pickImage(bool isRecto) async {
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 95, // High quality
+        // No size restrictions - let user choose any image
+      );
+
+      if (image != null) {
+        // Conversion HEIC → JPEG si nécessaire
+        String finalImagePath = image.path;
+        if (image.path.toLowerCase().endsWith('.heic')) {
+          try {
+            // Lire l'image HEIC
+            final File heicFile = File(image.path);
+            final Uint8List heicBytes = await heicFile.readAsBytes();
+
+            // Décoder l'image HEIC
+            final img.Image? decodedImage = img.decodeImage(heicBytes);
+            if (decodedImage != null) {
+              // Encoder en JPEG
+              final Uint8List jpegBytes = img.encodeJpg(
+                decodedImage,
+                quality: 95,
+              );
+
+              // Créer un nouveau fichier JPEG
+              final String jpegPath = image.path.replaceAll('.heic', '.jpg');
+              final File jpegFile = File(jpegPath);
+              await jpegFile.writeAsBytes(jpegBytes);
+
+              finalImagePath = jpegPath;
+            } else {}
+          } catch (e) {
+            // Continuer avec le fichier original
+          }
+        }
+
+        // Validation de l'image
+        final validationError = await ImageValidator.getValidationError(
+          finalImagePath,
+        );
+        if (validationError != null) {
+          if (mounted) {
+            ErrorHandler.showErrorSnackBar(context, validationError);
+          }
+          return;
+        }
+
+        // Mettre à jour l'état local
+        setState(() {
+          if (isRecto) {
+            _rectoImage = image;
+            _rectoImagePath = finalImagePath; // Stocker le chemin converti
+            _isUploadingRecto = true;
+          } else {
+            _versoImage = image;
+            _versoImagePath = finalImagePath; // Stocker le chemin converti
+            _isUploadingVerso = true;
+          }
+        });
+
+        // Upload de l'image avec le chemin final (converti si nécessaire)
+        await _uploadImage(finalImagePath, isRecto);
+      }
+    } catch (e) {
+      if (mounted) {
+        ErrorHandler.showErrorSnackBar(
+          context,
+          'Erreur lors de la sélection de l\'image',
+        );
+      }
+    }
+  }
+
+  Future<void> _uploadImage(String imagePath, bool isRecto) async {
+    try {
+      // Vérifier si nous avons maintenant les deux images
+      if (_rectoImage != null && _versoImage != null) {
+        // Déclencher l'upload automatique des deux images
+        await _uploadBothImages();
+      } else {
+        // Message informatif
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Image ${isRecto ? 'recto' : 'verso'} sélectionnée. Sélectionnez l\'autre image pour uploader automatiquement.',
+              ),
+              backgroundColor: Colors.blue,
+            ),
+          );
+        }
+      }
+
+      _checkForChanges();
+    } catch (e) {
+      if (mounted) {
+        ErrorHandler.showErrorSnackBar(
+          context,
+          'Erreur lors de la sélection: ${e.toString()}',
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          if (isRecto) {
+            _isUploadingRecto = false;
+          } else {
+            _isUploadingVerso = false;
+          }
+        });
+      }
+    }
+  }
+
+  Future<void> _uploadBothImages() async {
+    if (_rectoImage == null || _versoImage == null) {
+      ErrorHandler.showErrorSnackBar(
+        context,
+        'Veuillez sélectionner les deux images avant l\'upload',
+      );
+      return;
+    }
+
+    try {
+      setState(() {
+        _isUploadingRecto = true;
+        _isUploadingVerso = true;
+      });
+
+      final apiService = ApiService();
+      final authProvider = context.read<AuthProvider>();
+
+      // Upload des deux images
+      final result = await apiService.uploadBothImages(
+        rectoPath: _rectoImagePath!,
+        versoPath: _versoImagePath!,
+      );
+
+      if (result.containsKey('recto_path') &&
+          result.containsKey('verso_path')) {
+        // Mettre à jour le profil utilisateur
+        authProvider.updateUserField('frontDocumentPath', result['recto_path']);
+        authProvider.updateUserField('backDocumentPath', result['verso_path']);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Images uploadées avec succès'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+
+        _checkForChanges();
+      }
+    } catch (e) {
+      if (mounted) {
+        ErrorHandler.showErrorSnackBar(
+          context,
+          'Erreur lors de l\'upload: ${e.toString()}',
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isUploadingRecto = false;
+          _isUploadingVerso = false;
+        });
+      }
+    }
+  }
+
+  Widget _buildImageUploadField({
+    bool isRequired = true,
+    required String label,
+    required String? imageUrl,
+    required bool isUploading,
+    required VoidCallback onTap,
+    required XFile? selectedImage,
+  }) {
+    final hasExistingImage = imageUrl != null && imageUrl.isNotEmpty;
+    final hasNewImage = selectedImage != null;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              label,
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            if (isRequired)
+              Text(
+                ' *',
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.red,
+                ),
+              ),
+          ],
+        ),
+
+        const SizedBox(height: 8),
+        InkWell(
+          onTap: isUploading ? null : onTap,
+          child: Container(
+            height: 150,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: AppColors.surfaceVariant,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: hasNewImage
+                    ? AppColors.primary.withOpacity(0.3)
+                    : AppColors.border.withOpacity(0.3),
+                width: hasNewImage ? 2 : 1,
+              ),
+            ),
+            child: isUploading
+                ? Center(
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        AppColors.primary,
+                      ),
+                    ),
+                  )
+                : hasExistingImage || hasNewImage
+                ? ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: hasNewImage
+                        ? Image.file(
+                            File(selectedImage.path),
+                            fit: BoxFit.cover,
+                          )
+                        : Image.network(
+                            imageUrl!,
+                            fit: BoxFit.cover,
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return Center(
+                                child: CircularProgressIndicator(
+                                  value:
+                                      loadingProgress.expectedTotalBytes != null
+                                      ? loadingProgress.cumulativeBytesLoaded /
+                                            loadingProgress.expectedTotalBytes!
+                                      : null,
+                                ),
+                              );
+                            },
+                            errorBuilder: (context, error, stackTrace) {
+                              return _buildPlaceholderContent(label);
+                            },
+                          ),
+                  )
+                : _buildPlaceholderContent(label),
+          ),
+        ),
+        if (hasNewImage) ...[
+          const SizedBox(height: 8),
+          Text(
+            'Nouvelle image sélectionnée',
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              color: AppColors.primary,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildPlaceholderContent(String label) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.add_photo_alternate_rounded,
+            color: AppColors.textSecondary.withOpacity(0.5),
+            size: 40,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Ajouter $label',
+            style: GoogleFonts.poppins(
+              color: AppColors.textSecondary.withOpacity(0.7),
+              fontSize: 14,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildPersonalSection() {
     return _buildFormSection(
       title: "Informations personnelles",
@@ -358,23 +804,42 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           value: _selectedGender,
           items: _genderOptions,
           label: 'Sexe',
+          isRequired: true,
+          hintText: 'Sélectionnez votre sexe',
           onChanged: (value) {
-            setState(() => _selectedGender = value!);
+            setState(() => _selectedGender = value);
             _onDropdownChanged();
           },
+        ),
+        const SizedBox(height: 20),
+        _buildDateField(
+          selectedDate: _selectedBirthDate,
+          label: 'Date de naissance',
+          onDateSelected: (date) {
+            setState(() => _selectedBirthDate = date);
+            _onDateChanged();
+          },
+          hasError: _fieldErrors.containsKey('date_naissance'),
+          isRequired: false,
         ),
         const SizedBox(height: 20),
         _buildTextField(
           controller: _birthPlaceController,
           label: 'Lieu de naissance',
+          isRequired: true,
         ),
         const SizedBox(height: 20),
         _buildTextField(
           controller: _nationalityController,
           label: 'Nationalité',
+          isRequired: true,
         ),
         const SizedBox(height: 20),
-        _buildTextField(controller: _professionController, label: 'Profession'),
+        _buildTextField(
+          controller: _professionController,
+          label: 'Profession',
+          isRequired: true,
+        ),
       ],
     );
   }
@@ -403,6 +868,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         _buildTextField(
           controller: _addressController,
           label: 'Adresse de résidence',
+          isRequired: true,
           maxLines: 3,
         ),
       ],
@@ -418,8 +884,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           value: _selectedIdType,
           items: _idTypeOptions,
           label: 'Type de pièce',
+          isRequired: true,
+          hintText: 'Sélectionnez le type de pièce',
           onChanged: (value) {
-            setState(() => _selectedIdType = value!);
+            setState(() => _selectedIdType = value);
             _onDropdownChanged();
           },
         ),
@@ -427,6 +895,62 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         _buildTextField(
           controller: _idNumberController,
           label: 'Numéro de pièce',
+          isRequired: true,
+        ),
+        const SizedBox(height: 20),
+        _buildDateField(
+          selectedDate: _selectedExpirationDate,
+          label: 'Date d\'expiration de la pièce',
+          onDateSelected: (date) {
+            setState(() => _selectedExpirationDate = date);
+            _onDateChanged();
+          },
+          hasError: _fieldErrors.containsKey('date_expiration_piece_identite'),
+          isRequired: true,
+          isExpirationDate: true,
+        ),
+      ],
+    );
+  }
+
+  String? _getBackendIdentityType(String? selectedIdType) {
+    if (selectedIdType == null) return null;
+
+    // Convertir le label affiché en type backend
+    switch (selectedIdType) {
+      case 'Carte Nationale d\'Identité':
+        return 'carte_identite';
+      case 'Passeport':
+        return 'passeport';
+      default:
+        return null;
+    }
+  }
+
+  Widget _buildIdentityImagesSection() {
+    final user = context.read<AuthProvider>().currentUser;
+
+    // Utiliser _selectedIdType au lieu de user?.identityType pour la réactivité
+    final currentIdentityType = _getBackendIdentityType(_selectedIdType);
+
+    return _buildFormSection(
+      title: ImageLabels.getUploadTitle(currentIdentityType),
+      icon: Icons.photo_library_rounded,
+      children: [
+        _buildImageUploadField(
+          label: ImageLabels.getRectoLabel(currentIdentityType),
+          imageUrl: user?.frontDocumentPath,
+          isUploading: _isUploadingRecto,
+          onTap: () => _pickImage(true),
+          selectedImage: _rectoImage,
+        ),
+        const SizedBox(height: 20),
+        _buildImageUploadField(
+          label: ImageLabels.getVersoLabel(currentIdentityType),
+          imageUrl: user?.backDocumentPath,
+          isUploading: _isUploadingVerso,
+          onTap: () => _pickImage(false),
+          selectedImage: _versoImage,
         ),
       ],
     );
@@ -476,22 +1000,23 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     bool hasError = false,
   }) {
     String originalKey = '';
-    if (controller == _firstNameController)
+    if (controller == _firstNameController) {
       originalKey = 'nom';
-    else if (controller == _emailController)
+    } else if (controller == _emailController) {
       originalKey = 'email';
-    else if (controller == _phoneController)
+    } else if (controller == _phoneController) {
       originalKey = 'telephone';
-    else if (controller == _birthPlaceController)
+    } else if (controller == _birthPlaceController) {
       originalKey = 'lieu_naissance';
-    else if (controller == _nationalityController)
+    } else if (controller == _nationalityController) {
       originalKey = 'nationalite';
-    else if (controller == _professionController)
+    } else if (controller == _professionController) {
       originalKey = 'profession';
-    else if (controller == _addressController)
+    } else if (controller == _addressController) {
       originalKey = 'adresse';
-    else if (controller == _idNumberController)
+    } else if (controller == _idNumberController) {
       originalKey = 'numero_piece_identite';
+    }
 
     bool isModified =
         originalKey.isNotEmpty &&
@@ -533,7 +1058,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           maxLines: maxLines,
           onChanged: (value) {
             _checkForChanges();
-
             if (_fieldErrors.containsKey(originalKey)) {
               setState(() {
                 _fieldErrors.remove(originalKey);
@@ -592,13 +1116,21 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  Widget _buildDropdownField({
-    required String value,
-    required List<String> items,
+  Widget _buildDateField({
+    required DateTime? selectedDate,
     required String label,
+    required Function(DateTime?) onDateSelected,
     bool isRequired = false,
-    required ValueChanged<String?> onChanged,
+    bool hasError = false,
+    bool isExpirationDate = false,
   }) {
+    String originalKey = isExpirationDate
+        ? 'date_expiration_piece_identite'
+        : 'date_naissance';
+    DateTime? originalDate = _originalData[originalKey];
+
+    bool isModified = !_areDatesEqual(selectedDate, originalDate);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -616,25 +1148,138 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   text: ' *',
                   style: TextStyle(color: AppColors.error),
                 ),
+              if (isModified)
+                TextSpan(
+                  text: ' (modifié)',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        InkWell(
+          onTap: () => _selectDate(
+            context,
+            selectedDate,
+            onDateSelected,
+            isExpirationDate,
+          ),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceVariant,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: hasError
+                    ? AppColors.error.withOpacity(0.5)
+                    : isModified
+                    ? AppColors.primary.withOpacity(0.3)
+                    : AppColors.border.withOpacity(0.3),
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.calendar_today_rounded,
+                  color: hasError ? AppColors.error : AppColors.primary,
+                  size: 20,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    selectedDate != null
+                        ? _formatDate(selectedDate)
+                        : 'Sélectionner $label',
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: selectedDate != null
+                          ? AppColors.textPrimary
+                          : AppColors.textSecondary.withOpacity(0.6),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        if (hasError && _fieldErrors[originalKey] != null) ...[
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Icon(Icons.error_outline, color: AppColors.error, size: 16),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  _fieldErrors[originalKey]!,
+                  style: GoogleFonts.poppins(
+                    color: AppColors.error,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildDropdownField({
+    required String? value,
+    required List<String> items,
+    required String label,
+    bool isRequired = false,
+    required ValueChanged<String?> onChanged,
+    String hintText = 'Sélectionner',
+  }) {
+    bool isModified = false;
+
+    if (label.toLowerCase().contains('sexe')) {
+      isModified = value != _originalData['sexe'];
+    } else if (label.toLowerCase().contains('type')) {
+      isModified = value != _originalData['type_piece_identite'];
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        RichText(
+          text: TextSpan(
+            text: label,
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: AppColors.textPrimary,
+            ),
+            children: [
+              if (isRequired)
+                TextSpan(
+                  text: ' *',
+                  style: TextStyle(color: AppColors.error),
+                ),
+              if (isModified)
+                TextSpan(
+                  text: ' (modifié)',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
             ],
           ),
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
           value: value,
-          items: items.map((String item) {
-            return DropdownMenuItem<String>(
-              value: item,
-              child: Text(
-                item,
-                style: GoogleFonts.poppins(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-            );
-          }).toList(),
+          items: _buildDropdownItems(items, hintText),
           onChanged: onChanged,
           decoration: InputDecoration(
             filled: true,
@@ -645,7 +1290,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.border.withOpacity(0.3)),
+              borderSide: BorderSide(
+                color: isModified
+                    ? AppColors.primary.withOpacity(0.3)
+                    : AppColors.border.withOpacity(0.3),
+              ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -656,9 +1305,58 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               vertical: 16,
             ),
           ),
+          style: GoogleFonts.poppins(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            color: AppColors.textPrimary,
+          ),
         ),
       ],
     );
+  }
+
+  Future<void> _selectDate(
+    BuildContext context,
+    DateTime? currentDate,
+    Function(DateTime?) onDateSelected,
+    bool isExpirationDate,
+  ) async {
+    final DateTime now = DateTime.now();
+    final DateTime firstDate = isExpirationDate
+        ? now
+        : DateTime(now.year - 120, now.month, now.day);
+    final DateTime lastDate = isExpirationDate
+        ? DateTime(now.year + 20, now.month, now.day)
+        : DateTime(now.year - 16, now.month, now.day);
+
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: currentDate ?? (isExpirationDate ? now : lastDate),
+      firstDate: firstDate,
+      lastDate: lastDate,
+      locale: const Locale('fr', 'FR'),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: AppColors.primary,
+              onPrimary: AppColors.white,
+              surface: AppColors.surface,
+              onSurface: AppColors.textPrimary,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null) {
+      onDateSelected(picked);
+    }
+  }
+
+  String _formatDate(DateTime date) {
+    return "${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}";
   }
 
   Widget _buildSaveButton() {
@@ -740,7 +1438,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       }
 
       final authProvider = context.read<AuthProvider>();
-
       final Map<String, dynamic> profileData = {};
 
       if (_firstNameController.text.trim() != _originalData['nom']) {
@@ -778,74 +1475,155 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       }
 
       if (_selectedGender != _originalData['sexe']) {
-        profileData['sexe'] = _selectedGender.toLowerCase();
+        String backendGender = '';
+        if (_selectedGender == 'Masculin') {
+          backendGender = 'masculin';
+        } else if (_selectedGender == 'Féminin') {
+          backendGender = 'feminin';
+        }
+
+        if (backendGender.isNotEmpty) {
+          profileData['sexe'] = backendGender;
+        } else if (_selectedGender == null) {
+          profileData['sexe'] = null;
+        }
       }
 
       if (_selectedIdType != _originalData['type_piece_identite']) {
-        profileData['type_piece_identite'] = _selectedIdType;
+        String backendIdType = '';
+        if (_selectedIdType == 'Carte Nationale d\'Identité') {
+          backendIdType = 'cni';
+        } else if (_selectedIdType == 'Passeport') {
+          backendIdType = 'passport';
+        } else if (_selectedIdType == 'Permis de Conduire') {
+          backendIdType = 'permis';
+        } else if (_selectedIdType == 'Carte de Séjour') {
+          backendIdType = 'carte_sejour';
+        }
+
+        if (backendIdType.isNotEmpty) {
+          profileData['type_piece_identite'] = backendIdType;
+        }
       }
 
-      if (profileData.isEmpty) {
-        setState(() {
-          _isLoading = false;
-        });
-        ErrorHandler.showWarningSnackBar(
-          context,
-          'Aucune modification détectée',
-        );
-        return;
+      if (!_areDatesEqual(
+        _selectedBirthDate,
+        _originalData['date_naissance'],
+      )) {
+        if (_selectedBirthDate != null) {
+          profileData['date_naissance'] = DateFormat(
+            'dd-MM-yyyy',
+          ).format(_selectedBirthDate!);
+        } else {
+          profileData['date_naissance'] = null;
+        }
       }
 
-      final success = await authProvider.updateProfile(profileData);
+      if (!_areDatesEqual(
+        _selectedExpirationDate,
+        _originalData['date_expiration_piece_identite'],
+      )) {
+        if (_selectedExpirationDate != null) {
+          profileData['date_expiration_piece_identite'] = DateFormat(
+            'dd-MM-yyyy',
+          ).format(_selectedExpirationDate!);
+        } else {
+          profileData['date_expiration_piece_identite'] = null;
+        }
+      }
 
-      if (success && mounted) {
+      // UPLOAD DES PIÈCES D'IDENTITÉ - À DÉCOMMENTER PLUS TARD
+      /*
+    if (_rectoImage != null) {
+      final success = await authProvider.uploadIdentityDocument(
+        File(_rectoImage!.path),
+        'recto',
+      );
+      if (!success) {
+        throw Exception('Échec de l\'upload de la photo recto');
+      }
+    }
+
+    if (_versoImage != null) {
+      final success = await authProvider.uploadIdentityDocument(
+        File(_versoImage!.path),
+        'verso',
+      );
+      if (!success) {
+        throw Exception('Échec de l\'upload de la photo verso');
+      }
+    }
+    */
+
+      if (profileData.isNotEmpty) {
+        final success = await authProvider.updateProfile(profileData);
+        if (!success) {
+          throw Exception('Échec de la mise à jour du profil');
+        }
+      }
+
+      // await authProvider.loadUserProfile(); // Commenté pour éviter d'écraser les nouvelles images
+      _loadUserData();
+
+      if (mounted) {
         ErrorHandler.showSuccessSnackBar(
           context,
           'Profil mis à jour avec succès !',
         );
+      }
 
-        _loadUserData();
-        setState(() {
-          _hasChanges = false;
-        });
+      setState(() {
+        _hasChanges = false;
+        _rectoImage = null;
+        _versoImage = null;
+      });
 
-        Future.delayed(const Duration(seconds: 1), () {
-          if (mounted) Navigator.pop(context);
-        });
-      } else if (mounted) {
-        String errorMessage = 'Erreur lors de la mise à jour du profil';
+      if (widget.onProfileCompleted != null) {
+        widget.onProfileCompleted!();
+      } else {
+        final product = widget.produit;
+        if (product != null && mounted) {
+          // Vérifier à nouveau si le profil est complet avant de rediriger
+          await authProvider.loadUserProfile();
 
-        if (authProvider.errorMessage != null) {
-          final apiError = authProvider.errorMessage!.toLowerCase();
-
-          if (apiError.contains('email') && apiError.contains('already')) {
-            errorMessage =
-                'Cette adresse email est déjà utilisée par un autre compte';
-          } else if (apiError.contains('phone') &&
-              apiError.contains('already')) {
-            errorMessage =
-                'Ce numéro de téléphone est déjà utilisé par un autre compte';
-          } else if (apiError.contains('validation')) {
-            errorMessage = 'Données invalides, vérifiez vos informations';
-          } else if (apiError.contains('connexion') ||
-              apiError.contains('internet') ||
-              apiError.contains('network')) {
-            errorMessage = 'Problème de connexion, vérifiez votre internet';
-          } else if (apiError.contains('server') ||
-              apiError.contains('serveur')) {
-            errorMessage = 'Erreur du serveur, réessayez plus tard';
+          if (authProvider.currentUser?.isProfileComplete == true) {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(
+                builder: (context) => SimulationScreen(
+                  produit: product,
+                  assureEstSouscripteur: true,
+                ),
+              ),
+            );
           } else {
-            errorMessage = authProvider.errorMessage!;
+            // Afficher un message d'erreur si le profil n'est toujours pas complet
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'Veuillez compléter tous les champs obligatoires pour simuler un devis',
+                  style: TextStyle(fontWeight: FontWeight.w500),
+                ),
+                backgroundColor: Colors.orange[800],
+                duration: Duration(seconds: 4),
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                margin: EdgeInsets.all(20),
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              ),
+            );
+            // Ne pas rediriger vers la simulation
           }
+        } else {
+          if (mounted) Navigator.pop(context);
         }
-
-        ErrorHandler.showErrorSnackBar(context, errorMessage);
       }
     } catch (e) {
       if (mounted) {
         ErrorHandler.showErrorSnackBar(
           context,
-          'Une erreur inattendue s\'est produite. Veuillez réessayer.',
+          'Erreur lors de la sauvegarde: ${e.toString()}',
         );
       }
     } finally {

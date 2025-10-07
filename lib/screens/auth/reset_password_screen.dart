@@ -19,7 +19,6 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   final _emailFocus = FocusNode();
 
   bool _isFormValid = false;
-  bool _isEmailSent = false;
   AutovalidateMode _autovalidateMode = AutovalidateMode.disabled;
 
   String? _emailError;
@@ -61,7 +60,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                   _buildHeader(),
                   const SizedBox(height: 40),
 
-                  if (_generalError != null && !_isEmailSent) ...[
+                  if (_generalError != null) ...[
                     ErrorHandler.buildAutoDisappearingErrorContainer(
                       _generalError!,
                       () => setState(() => _generalError = null),
@@ -69,12 +68,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                     const SizedBox(height: 20),
                   ],
 
-                  if (!_isEmailSent) ...[
-                    _buildEmailField(),
-                    const SizedBox(height: 40),
-                    _buildResetButton(authProvider),
-                  ] else
-                    _buildSuccessMessage(),
+                  _buildEmailField(),
+                  const SizedBox(height: 40),
+                  _buildResetButton(authProvider),
                 ],
               ),
             ),
@@ -129,7 +125,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
         ),
         const SizedBox(height: 8),
         Text(
-          "Entrez votre email pour réinitialiser votre mot de passe",
+          "Entrez votre email pour vérifier votre compte",
           style: GoogleFonts.poppins(
             fontSize: 16,
             color: AppColors.textSecondary,
@@ -246,76 +242,12 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                 ),
               )
             : Text(
-                "Réinitialiser",
+                "Continuer",
                 style: GoogleFonts.poppins(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),
               ),
-      ),
-    );
-  }
-
-  Widget _buildSuccessMessage() {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: AppColors.success.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.success.withOpacity(0.3)),
-      ),
-      child: Column(
-        children: [
-          Icon(Icons.check_circle, color: AppColors.success, size: 48),
-          const SizedBox(height: 16),
-          Text(
-            "Email envoyé !",
-            style: GoogleFonts.poppins(
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-              color: AppColors.success,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            "Consultez votre boîte mail pour réinitialiser votre mot de passe",
-            textAlign: TextAlign.center,
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              color: AppColors.textSecondary,
-            ),
-          ),
-          const SizedBox(height: 20),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => OtpVerificationScreen(
-                      email: _emailController.text.trim(),
-                    ),
-                  ),
-                );
-              },
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.success,
-                side: BorderSide(color: AppColors.success),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: Text(
-                "Continuer avec le code",
-                style: GoogleFonts.poppins(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -335,42 +267,69 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       return;
     }
 
+    final email = _emailController.text.trim();
+
     try {
-      final success = await authProvider.forgotPassword(
-        _emailController.text.trim(),
-      );
+      await authProvider.login(email: email, password: 'test123invalid');
+      
+      await _proceedWithPasswordReset(authProvider, email);
+      
+    } catch (e) {
+      if (authProvider.errorMessage != null) {
+        final errorMessage = authProvider.errorMessage!.toLowerCase();
+        
+        if (errorMessage.contains('user not found') || 
+            errorMessage.contains('utilisateur introuvable') ||
+            errorMessage.contains('user does not exist') ||
+            errorMessage.contains('email not found')) {
+          
+          setState(() {
+            _generalError = 'Aucun compte associé à cette adresse email';
+          });
+          return;
+        }
+        
+        else if (errorMessage.contains('mot de passe') ||
+                 errorMessage.contains('password') ||
+                 errorMessage.contains('caractères') ||
+                 errorMessage.contains('obligatoire') ||
+                 errorMessage.contains('incorrect') ||
+                 errorMessage.contains('invalid')) {
+          
+          await _proceedWithPasswordReset(authProvider, email);
+        }
+        
+        else {
+          setState(() {
+            _generalError = 'Erreur de connexion. Veuillez réessayer.';
+          });
+          return;
+        }
+      } else {
+        setState(() {
+          _generalError = 'Erreur de connexion. Veuillez réessayer.';
+        });
+        return;
+      }
+    }
+  }
+
+  Future<void> _proceedWithPasswordReset(AuthProvider authProvider, String email) async {
+    authProvider.clearError();
+    
+    try {
+      final success = await authProvider.forgotPassword(email);
 
       if (success && mounted) {
-        setState(() {
-          _isEmailSent = true;
-        });
-        ErrorHandler.showSuccessSnackBar(
+        Navigator.pushReplacement(
           context,
-          'Code de réinitialisation envoyé !',
+          MaterialPageRoute(
+            builder: (context) => OtpVerificationScreen(email: email),
+          ),
         );
       } else if (mounted) {
-        String errorMessage = 'Erreur lors de l\'envoi';
-
-        if (authProvider.errorMessage != null) {
-          final message = authProvider.errorMessage!.toLowerCase();
-
-          if (message.contains('email') && message.contains('not found')) {
-            errorMessage = 'Aucun compte trouvé avec cet email';
-          } else if (message.contains('too many')) {
-            errorMessage = 'Trop de tentatives. Patientez quelques minutes';
-          } else if (message.contains('network') ||
-              message.contains('connexion')) {
-            errorMessage = 'Problème de connexion internet';
-          } else if (message.contains('server') ||
-              message.contains('serveur')) {
-            errorMessage = 'Erreur du serveur. Réessayez plus tard';
-          } else {
-            errorMessage = authProvider.errorMessage!;
-          }
-        }
-
         setState(() {
-          _generalError = errorMessage;
+          _generalError = authProvider.errorMessage ?? 'Erreur lors de l\'envoi';
         });
       }
     } catch (e) {

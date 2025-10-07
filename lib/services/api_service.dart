@@ -1,9 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:intl/intl.dart';
 import '../models/user_model.dart';
 import '../constants/api_constants.dart';
+import '../utils/logger.dart';
 
 class ApiService {
   static final ApiService _instance = ApiService._internal();
@@ -47,52 +50,48 @@ class ApiService {
     try {
       final errorData = json.decode(responseBody);
       final apiMessage = errorData['message'];
-
-      switch (response.statusCode) {
-        case 400:
-          if (apiMessage is List) {
-            userMessage = apiMessage.join('\n');
-          } else {
-            userMessage = apiMessage ?? 'Données invalides';
-          }
-          break;
-        case 401:
-          userMessage = 'Email ou mot de passe incorrect';
-          break;
-        case 403:
-          userMessage = 'Accès interdit';
-          break;
-        case 404:
-          userMessage = 'Service non disponible';
-          break;
-        case 409:
-          userMessage = 'Un compte avec cet email existe déjà';
-          break;
-        case 422:
-          if (apiMessage is List) {
-            userMessage = apiMessage.join('\n');
-          } else {
-            userMessage = apiMessage ?? 'Erreur de validation';
-          }
-          break;
-        case 429:
-          userMessage =
-              'Trop de tentatives. Veuillez patienter quelques minutes';
-          break;
-        case 500:
-          userMessage = 'Erreur serveur. Veuillez réessayer plus tard';
-          break;
-        case 503:
-          userMessage = 'Service temporairement indisponible';
-          break;
-        default:
-          userMessage = 'Une erreur est survenue. Veuillez réessayer';
-      }
+      userMessage = _getErrorMessageForStatusCode(
+        response.statusCode,
+        apiMessage,
+      );
     } catch (e) {
       userMessage = _getDefaultErrorMessage(response.statusCode);
     }
 
     throw ApiException(userMessage, response.statusCode);
+  }
+
+  String _getErrorMessageForStatusCode(int statusCode, dynamic apiMessage) {
+    switch (statusCode) {
+      case 400:
+        return _formatValidationError(apiMessage, 'Données invalides');
+      case 401:
+        return 'Email ou mot de passe incorrect';
+      case 403:
+        return 'Accès interdit';
+      case 404:
+        return 'Service non disponible';
+      case 409:
+        return 'Un compte avec cet email existe déjà';
+      case 422:
+        return _formatValidationError(apiMessage, 'Erreur de validation');
+      case 429:
+        return 'Trop de tentatives. Veuillez patienter quelques minutes';
+      case 500:
+        return 'Erreur serveur. Veuillez réessayer plus tard';
+      case 503:
+        return 'Service temporairement indisponible';
+      default:
+        return 'Une erreur est survenue. Veuillez réessayer';
+    }
+  }
+
+  String _formatValidationError(dynamic apiMessage, String defaultMessage) {
+    if (apiMessage is List) {
+      return apiMessage.join('\n');
+    } else {
+      return apiMessage ?? defaultMessage;
+    }
   }
 
   String _getDefaultErrorMessage(int statusCode) {
@@ -120,12 +119,66 @@ class ApiService {
     }
   }
 
+  DateTime? _parseDate(dynamic dateValue, String fieldName) {
+    if (dateValue == null) {
+      return null;
+    }
+
+    try {
+      String dateStr = dateValue.toString();
+
+      if (dateStr.contains('-') && dateStr.length == 10) {
+        List<String> parts = dateStr.split('-');
+        if (parts.length == 3) {
+          int day = int.parse(parts[0]);
+          int month = int.parse(parts[1]);
+          int year = int.parse(parts[2]);
+
+          DateTime parsedDate = DateTime(year, month, day);
+          return parsedDate;
+        }
+      }
+
+      if (dateStr.contains('/') && dateStr.length == 10) {
+        List<String> parts = dateStr.split('/');
+        if (parts.length == 3) {
+          int day = int.parse(parts[0]);
+          int month = int.parse(parts[1]);
+          int year = int.parse(parts[2]);
+
+          DateTime parsedDate = DateTime(year, month, day);
+          return parsedDate;
+        }
+      }
+
+      final parsedDate = DateTime.parse(dateStr);
+      return parsedDate;
+    } catch (e) {
+      try {
+        String dateStr = dateValue.toString();
+        if (dateStr.contains('-')) {
+          final DateFormat formatter = DateFormat('dd-MM-yyyy');
+          DateTime parsedDate = formatter.parse(dateStr);
+          return parsedDate;
+        } else if (dateStr.contains('/')) {
+          final DateFormat formatter = DateFormat('dd/MM/yyyy');
+          DateTime parsedDate = formatter.parse(dateStr);
+          return parsedDate;
+        }
+      } catch (e2) {
+        return null;
+      }
+
+      return null;
+    }
+  }
+
   Future<AuthResponse> login({
     required String email,
     required String password,
   }) async {
     try {
-      final url = '$baseUrl/users/login';
+      final url = '$baseUrl${ApiConstants.login}';
       final body = {'email': email, 'mot_de_passe': password};
 
       final response = await http.post(
@@ -133,7 +186,6 @@ class ApiService {
         headers: _defaultHeaders,
         body: json.encode(body),
       );
-
       if (response.statusCode == 200 || response.statusCode == 201) {
         final responseData = json.decode(response.body);
         final data = responseData['data'] ?? responseData;
@@ -159,6 +211,23 @@ class ApiService {
         await _saveToken(token);
         return AuthResponse(user: user, token: token);
       } else {
+        final responseBody = json.decode(response.body);
+        final errorMessage =
+            responseBody['message']?.toString().toLowerCase() ?? '';
+
+        if (response.statusCode == 401) {
+          if (errorMessage.contains('email') ||
+              errorMessage.contains('utilisateur')) {
+            throw ApiException(
+              'Aucun compte associé à cet email',
+              response.statusCode,
+            );
+          } else if (errorMessage.contains('mot de passe') ||
+              errorMessage.contains('password')) {
+            throw ApiException('Mot de passe incorrect', response.statusCode);
+          }
+        }
+
         _handleHttpError(response);
         throw ApiException('Erreur de connexion', response.statusCode);
       }
@@ -180,7 +249,7 @@ class ApiService {
   }) async {
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/users/register'),
+        Uri.parse('$baseUrl${ApiConstants.register}'),
         headers: _defaultHeaders,
         body: json.encode({
           'nom': nom,
@@ -240,7 +309,7 @@ class ApiService {
   Future<void> logout() async {
     try {
       await http.post(
-        Uri.parse('$baseUrl/users/logout'),
+        Uri.parse('$baseUrl${ApiConstants.logout}'),
         headers: await _authHeaders,
       );
     } finally {
@@ -250,7 +319,7 @@ class ApiService {
 
   Future<User> getUserProfile() async {
     try {
-      final url = '$baseUrl/users/me';
+      final url = '$baseUrl${ApiConstants.updateProfile}';
 
       final response = await http.get(
         Uri.parse(url),
@@ -260,8 +329,7 @@ class ApiService {
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
         final data = responseData['data'] ?? responseData;
-        bool profilAJour = _checkIfProfilComplete(data);
-
+        AppLogger.api('API Response: $data');
         return User(
           id: data['id'],
           nom: data['nom'],
@@ -281,16 +349,21 @@ class ApiService {
           updatedAt: data['date_modification'] != null
               ? DateTime.parse(data['date_modification'])
               : null,
-          lieuNaissance: profilAJour ? data['lieu_naissance'] : null,
-          sexe: profilAJour ? data['sexe'] : null,
-          nationalite: profilAJour ? data['nationalite'] : null,
-          profession: profilAJour ? data['profession'] : null,
-          adresse: profilAJour ? data['adresse'] : null,
-          numeroPieceIdentite: profilAJour
-              ? data['numero_piece_identite']
-              : null,
-          typePieceIdentite: profilAJour ? data['type_piece_identite'] : null,
-          profilComplet: profilAJour,
+          birthPlace: data['lieu_naissance'],
+          gender: data['sexe'],
+          nationality: data['nationalite'],
+          profession: data['profession'],
+          address: data['adresse'],
+          identityNumber: data['numero_piece_identite'],
+          identityType: data['type_piece_identite'],
+          isProfileComplete: _checkIfProfilComplete(data),
+          birthDate: _parseDate(data['date_naissance'], 'date_naissance'),
+          identityExpirationDate: _parseDate(
+            data['date_expiration_piece_identite'],
+            'date_expiration_piece_identite',
+          ),
+          frontDocumentPath: data['front_document_path'],
+          backDocumentPath: data['back_document_path'],
         );
       } else {
         _handleHttpError(response);
@@ -307,30 +380,9 @@ class ApiService {
     }
   }
 
-  bool _checkIfProfilComplete(Map<String, dynamic> data) {
-    List<String> champsRequis = [
-      'lieu_naissance',
-      'sexe',
-      'nationalite',
-      'profession',
-      'adresse',
-      'numero_piece_identite',
-      'type_piece_identite',
-    ];
-
-    for (String champ in champsRequis) {
-      if (data[champ] == null ||
-          (data[champ] is String && (data[champ] as String).trim().isEmpty)) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
   Future<User> updateProfile(Map<String, dynamic> userData) async {
     try {
-      final url = '$baseUrl/users/me';
+      final url = '$baseUrl${ApiConstants.updateProfile}';
 
       final response = await http.patch(
         Uri.parse(url),
@@ -341,7 +393,6 @@ class ApiService {
       if (response.statusCode == 200 || response.statusCode == 201) {
         final responseData = json.decode(response.body);
         final data = responseData['data'] ?? responseData;
-        bool profilAJour = _checkIfProfilComplete(data);
 
         return User(
           id: data['id'],
@@ -360,14 +411,21 @@ class ApiService {
           updatedAt: data['date_modification'] != null
               ? DateTime.parse(data['date_modification'])
               : null,
-          lieuNaissance: data['lieu_naissance'],
-          sexe: data['sexe'],
-          nationalite: data['nationalite'],
+          birthPlace: data['lieu_naissance'],
+          gender: data['sexe'],
+          nationality: data['nationalite'],
           profession: data['profession'],
-          adresse: data['adresse'],
-          numeroPieceIdentite: data['numero_piece_identite'],
-          typePieceIdentite: data['type_piece_identite'],
-          profilComplet: profilAJour,
+          address: data['adresse'],
+          identityNumber: data['numero_piece_identite'],
+          identityType: data['type_piece_identite'],
+          isProfileComplete: _checkIfProfilComplete(data),
+          birthDate: _parseDate(data['date_naissance'], 'date_naissance'),
+          identityExpirationDate: _parseDate(
+            data['date_expiration_piece_identite'],
+            'date_expiration_piece_identite',
+          ),
+          frontDocumentPath: data['front_document_path'],
+          backDocumentPath: data['back_document_path'],
         );
       } else {
         _handleHttpError(response);
@@ -384,10 +442,35 @@ class ApiService {
     }
   }
 
+  bool _checkIfProfilComplete(Map<String, dynamic> data) {
+    List<String> champsRequis = [
+      'lieu_naissance',
+      'sexe',
+      'nationalite',
+      'profession',
+      'adresse',
+      'numero_piece_identite',
+      'type_piece_identite',
+      'date_naissance',
+      'date_expiration_piece_identite',
+      'front_document_path',
+      'back_document_path',
+    ];
+
+    for (String champ in champsRequis) {
+      if (data[champ] == null ||
+          (data[champ] is String && (data[champ] as String).trim().isEmpty)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
   Future<bool> checkProfileStatus() async {
     try {
       User user = await getUserProfile();
-      return user.profilComplet ?? false;
+      return user.isProfileComplete ?? false;
     } catch (e) {
       return false;
     }
@@ -467,9 +550,172 @@ class ApiService {
     }
   }
 
+  Future<Map<String, String>> uploadAssureImages({
+    required String devisId,
+    required String rectoPath,
+    required String versoPath,
+  }) async {
+    try {
+      final url = '$baseUrl/profiles/devis/$devisId/upload/assure-images';
+      final token = await _getToken();
+
+      if (token == null) {
+        throw ApiException('Token d\'authentification manquant');
+      }
+
+      final request = http.MultipartRequest('POST', Uri.parse(url));
+      request.headers.addAll({
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+      });
+
+      // Ajouter les deux fichiers images
+      final rectoFile = File(rectoPath);
+      final versoFile = File(versoPath);
+
+      if (!await rectoFile.exists()) {
+        throw ApiException('Fichier recto introuvable');
+      }
+      if (!await versoFile.exists()) {
+        throw ApiException('Fichier verso introuvable');
+      }
+
+      // Vérifier la taille des fichiers
+
+      // Ajouter les deux fichiers dans le champ 'files'
+      final rectoMultipartFile = await http.MultipartFile.fromPath(
+        'files',
+        rectoPath,
+        filename: 'recto.jpg',
+        contentType: MediaType('image', 'jpeg'),
+      );
+      request.files.add(rectoMultipartFile);
+
+      final versoMultipartFile = await http.MultipartFile.fromPath(
+        'files',
+        versoPath,
+        filename: 'verso.jpg',
+        contentType: MediaType('image', 'jpeg'),
+      );
+      request.files.add(versoMultipartFile);
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final responseData = json.decode(response.body);
+        final rectoPath = responseData['recto_path'];
+        final versoPath = responseData['verso_path'];
+
+        if (rectoPath == null || versoPath == null) {
+          throw ApiException('Chemins des images manquants dans la réponse');
+        }
+
+        return {'recto_path': rectoPath, 'verso_path': versoPath};
+      } else {
+        final errorData = json.decode(response.body);
+        final errorMessage = errorData['message'] ?? 'Erreur lors de l\'upload';
+        throw ApiException('$errorMessage (${response.statusCode})');
+      }
+    } on SocketException {
+      throw ApiException('Pas de connexion internet');
+    } catch (e) {
+      if (e is ApiException) rethrow;
+      throw ApiException('Erreur d\'upload: ${e.toString()}');
+    }
+  }
+
+  Future<Map<String, String>> uploadBothImages({
+    required String rectoPath,
+    required String versoPath,
+  }) async {
+    try {
+      final url = '$baseUrl${ApiConstants.uploadImages}';
+      final token = await _getToken();
+
+      if (token == null) {
+        throw ApiException('Token d\'authentification manquant');
+      }
+
+      final request = http.MultipartRequest('POST', Uri.parse(url));
+      request.headers.addAll({
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+      });
+
+      // Ajouter les deux fichiers images
+      final rectoFile = File(rectoPath);
+      final versoFile = File(versoPath);
+
+      if (!await rectoFile.exists()) {
+        throw ApiException('Fichier recto introuvable');
+      }
+      if (!await versoFile.exists()) {
+        throw ApiException('Fichier verso introuvable');
+      }
+
+      // Vérifier la taille des fichiers
+
+      // Ajouter les deux fichiers dans le champ 'files'
+      final rectoMultipartFile = await http.MultipartFile.fromPath(
+        'files',
+        rectoPath,
+        filename: 'recto.jpg',
+        contentType: MediaType('image', 'jpeg'),
+      );
+      request.files.add(rectoMultipartFile);
+
+      final versoMultipartFile = await http.MultipartFile.fromPath(
+        'files',
+        versoPath,
+        filename: 'verso.jpg',
+        contentType: MediaType('image', 'jpeg'),
+      );
+      request.files.add(versoMultipartFile);
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final responseData = json.decode(response.body);
+        final rectoPath = responseData['recto_path'];
+        final versoPath = responseData['verso_path'];
+
+        if (rectoPath == null || versoPath == null) {
+          throw ApiException('Chemins des images manquants dans la réponse');
+        }
+
+        return {'recto_path': rectoPath, 'verso_path': versoPath};
+      } else {
+        final errorData = json.decode(response.body);
+        final errorMessage = errorData['message'] ?? 'Erreur lors de l\'upload';
+        throw ApiException('$errorMessage (${response.statusCode})');
+      }
+    } on SocketException {
+      throw ApiException('Pas de connexion internet');
+    } catch (e) {
+      if (e is ApiException) rethrow;
+      throw ApiException('Erreur d\'upload: ${e.toString()}');
+    }
+  }
+
   Future<bool> isLoggedIn() async {
     final token = await _getToken();
     return token != null;
+  }
+
+  String getImageUrl(String? imagePath) {
+    if (imagePath == null || imagePath.isEmpty) {
+      return '';
+    }
+
+    // Si l'URL est déjà complète, la retourner telle quelle
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+      return imagePath;
+    }
+
+    // Sinon, ajouter l'URL de base
+    return '$baseUrl/$imagePath';
   }
 }
 

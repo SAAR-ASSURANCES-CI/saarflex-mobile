@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../constants/colors.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/error_handler.dart';
+import '../../utils/validation_cache.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -39,46 +40,158 @@ class _SignupScreenState extends State<SignupScreen> {
   String? _confirmPasswordError;
   String? _generalError;
 
+  final String _nameValidationKey = 'signup_name';
+  final String _emailValidationKey = 'signup_email';
+  final String _phoneValidationKey = 'signup_phone';
+  final String _passwordValidationKey = 'signup_password';
+  final String _confirmPasswordValidationKey = 'signup_confirm_password';
+
   @override
   void initState() {
     super.initState();
-    _nameController.addListener(_validateForm);
-    _emailController.addListener(_validateForm);
-    _phoneController.addListener(_validateForm);
-    _passwordController.addListener(_validateForm);
-    _confirmPasswordController.addListener(_validateForm);
+    _nameController.addListener(_debouncedNameValidation);
+    _emailController.addListener(_debouncedEmailValidation);
+    _phoneController.addListener(_debouncedPhoneValidation);
+    _passwordController.addListener(_debouncedPasswordValidation);
+    _confirmPasswordController.addListener(_debouncedConfirmPasswordValidation);
   }
 
-  void _validateForm() {
-    _nameError = ErrorHandler.validateName(_nameController.text);
-    _emailError = ErrorHandler.validateEmail(_emailController.text);
-    _phoneError = ErrorHandler.validatePhone(_phoneController.text);
-    _passwordErrors = ErrorHandler.validatePassword(_passwordController.text);
+  void _debouncedNameValidation() {
+    ValidationCache.debounceValidation(
+      _nameValidationKey,
+      () => _validateNameOptimized(),
+      delay: Duration(milliseconds: 400),
+    );
+  }
 
+  void _debouncedEmailValidation() {
+    ValidationCache.debounceValidation(
+      _emailValidationKey,
+      () => _validateEmailOptimized(),
+      delay: Duration(milliseconds: 400),
+    );
+  }
+
+  void _debouncedPhoneValidation() {
+    ValidationCache.debounceValidation(
+      _phoneValidationKey,
+      () => _validatePhoneOptimized(),
+      delay: Duration(milliseconds: 400),
+    );
+  }
+
+  void _debouncedPasswordValidation() {
+    ValidationCache.debounceValidation(
+      _passwordValidationKey,
+      () => _validatePasswordOptimized(),
+      delay: Duration(milliseconds: 400),
+    );
+  }
+
+  void _debouncedConfirmPasswordValidation() {
+    ValidationCache.debounceValidation(
+      _confirmPasswordValidationKey,
+      () => _validateConfirmPasswordOptimized(),
+      delay: Duration(milliseconds: 400),
+    );
+  }
+
+  void _validateNameOptimized() {
+    if (!mounted) return;
+    
+    final newNameError = ValidationCache.validateNameOptimized(_nameController.text);
+    
+    if (_nameError != newNameError) {
+      setState(() {
+        _nameError = newNameError;
+        _updateFormValidity();
+      });
+    }
+  }
+
+  void _validateEmailOptimized() {
+    if (!mounted) return;
+    
+    final newEmailError = ValidationCache.validateEmailOptimized(_emailController.text);
+    
+    if (_emailError != newEmailError) {
+      setState(() {
+        _emailError = newEmailError;
+        _updateFormValidity();
+      });
+    }
+  }
+
+  void _validatePhoneOptimized() {
+    if (!mounted) return;
+    
+    final newPhoneError = ValidationCache.validatePhoneOptimized(_phoneController.text);
+    
+    if (_phoneError != newPhoneError) {
+      setState(() {
+        _phoneError = newPhoneError;
+        _updateFormValidity();
+      });
+    }
+  }
+
+  void _validatePasswordOptimized() {
+    if (!mounted) return;
+    
+    final newPasswordErrors = ValidationCache.validatePasswordOptimized(_passwordController.text);
+    
+    if (_passwordErrors.join() != newPasswordErrors.join()) {
+      setState(() {
+        _passwordErrors = newPasswordErrors;
+        _updateFormValidity();
+      });
+    }
+  }
+
+  void _validateConfirmPasswordOptimized() {
+    if (!mounted) return;
+    
+    String? newConfirmPasswordError;
+    
     if (_confirmPasswordController.text.isNotEmpty) {
       if (_confirmPasswordController.text != _passwordController.text) {
-        _confirmPasswordError = 'Les mots de passe ne correspondent pas';
+        newConfirmPasswordError = 'Les mots de passe ne correspondent pas';
       } else {
-        _confirmPasswordError = null;
+        newConfirmPasswordError = null;
       }
+    } else if (_passwordController.text.isNotEmpty) {
+      newConfirmPasswordError = 'Veuillez confirmer votre mot de passe';
     } else {
-      _confirmPasswordError = 'Veuillez confirmer votre mot de passe';
+      newConfirmPasswordError = null;
     }
+    
+    if (_confirmPasswordError != newConfirmPasswordError) {
+      setState(() {
+        _confirmPasswordError = newConfirmPasswordError;
+        _updateFormValidity();
+      });
+    }
+  }
 
-    final isValid =
-        _nameError == null &&
-        _emailError == null &&
-        _phoneError == null &&
-        _passwordErrors.isEmpty &&
-        _confirmPasswordError == null &&
-        _acceptTerms;
+  void _updateFormValidity() {
+    final newIsValid = _nameError == null &&
+                       _emailError == null &&
+                       _phoneError == null &&
+                       _passwordErrors.isEmpty &&
+                       _confirmPasswordError == null &&
+                       _acceptTerms &&
+                       _nameController.text.isNotEmpty &&
+                       _emailController.text.isNotEmpty &&
+                       _phoneController.text.isNotEmpty &&
+                       _passwordController.text.isNotEmpty &&
+                       _confirmPasswordController.text.isNotEmpty;
 
-    setState(() {
-      _isFormValid = isValid;
-      if (isValid) {
+    if (_isFormValid != newIsValid) {
+      _isFormValid = newIsValid;
+      if (newIsValid) {
         _generalError = null;
       }
-    });
+    }
   }
 
   @override
@@ -383,7 +496,7 @@ class _SignupScreenState extends State<SignupScreen> {
           onChanged: (value) {
             setState(() {
               _acceptTerms = value ?? false;
-              _validateForm();
+              _updateFormValidity();
             });
           },
           activeColor: AppColors.primary,
@@ -439,74 +552,39 @@ class _SignupScreenState extends State<SignupScreen> {
     );
   }
 
-  Future<void> _handleSignup(AuthProvider authProvider) async {
-    setState(() {
-      _autovalidateMode = AutovalidateMode.onUserInteraction;
-      _generalError = null;
-    });
+ Future<void> _handleSignup(AuthProvider authProvider) async {
+  setState(() {
+    _generalError = null;
+    _autovalidateMode = AutovalidateMode.onUserInteraction;
+  });
 
-    _validateForm();
+  if (!_formKey.currentState!.validate()) {
+    return;
+  }
 
-    if (!_isFormValid) {
+  try {
+    final success = await authProvider.signup( 
+      nom: _nameController.text.trim(),
+      email: _emailController.text.trim(),
+      telephone: _phoneController.text.trim(),
+      password: _passwordController.text,
+    );
+
+    if (success && mounted) {
+      Navigator.pushReplacementNamed(context, '/dashboard');
+    } else if (mounted) {
       setState(() {
-        _generalError = "Veuillez corriger les erreurs ci-dessus";
+        _generalError = authProvider.errorMessage ?? 'Erreur lors de la création du compte';
       });
-      return;
     }
-
-    if (!_acceptTerms) {
+  } catch (e) {
+    if (mounted) {
       setState(() {
-        _generalError = "Veuillez accepter les conditions d'utilisation";
+        _generalError = 'Une erreur inattendue s\'est produite';
       });
-      return;
-    }
-
-    try {
-      final success = await authProvider.signup(
-        nom: _nameController.text.trim(),
-        email: _emailController.text.trim(),
-        telephone: _phoneController.text.trim(),
-        password: _passwordController.text,
-      );
-
-      if (success && mounted) {
-        ErrorHandler.showSuccessSnackBar(context, 'Compte créé avec succès !');
-        Navigator.pushReplacementNamed(context, '/dashboard');
-      } else if (mounted) {
-        String errorMessage = 'Erreur lors de la création du compte';
-
-        if (authProvider.errorMessage != null) {
-          final message = authProvider.errorMessage!.toLowerCase();
-
-          if (message.contains('email') && message.contains('already')) {
-            errorMessage = 'Un compte existe déjà avec cette adresse email';
-          } else if (message.contains('phone') && message.contains('already')) {
-            errorMessage = 'Ce numéro de téléphone est déjà utilisé';
-          } else if (message.contains('validation')) {
-            errorMessage = 'Données invalides. Vérifiez vos informations';
-          } else if (message.contains('network') ||
-              message.contains('connexion')) {
-            errorMessage = 'Problème de connexion internet';
-          } else if (message.contains('server') ||
-              message.contains('serveur')) {
-            errorMessage = 'Erreur du serveur. Veuillez réessayer plus tard';
-          } else {
-            errorMessage = authProvider.errorMessage!;
-          }
-        }
-
-        setState(() {
-          _generalError = errorMessage;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _generalError = 'Une erreur inattendue s\'est produite';
-        });
-      }
     }
   }
+}
 
   @override
   void dispose() {

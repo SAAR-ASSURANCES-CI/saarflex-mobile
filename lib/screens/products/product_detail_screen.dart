@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:saarflex_app/profile/edit_profile_screen.dart';
+import 'package:saarflex_app/providers/auth_provider.dart';
+import 'package:saarflex_app/screens/simulation/simulation_screen.dart';
+import 'package:saarflex_app/widgets/assure_selector_popup.dart';
 import '../../constants/colors.dart';
 import '../../models/product_model.dart';
 import '../../providers/product_provider.dart';
-import '../../widgets/form_helpers.dart';
+import '../simulation/info_assure_screen.dart';
+import '../../utils/image_labels.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final String productId;
@@ -16,6 +21,134 @@ class ProductDetailScreen extends StatefulWidget {
 }
 
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
+  // Méthode pour vérifier si les photos sont présentes
+  bool _hasRequiredPhotos(AuthProvider authProvider) {
+    final user = authProvider.currentUser;
+    if (user == null) return false;
+
+    // Vérifier que les deux photos sont présentes
+    final hasRectoPhoto =
+        user.frontDocumentPath != null && user.frontDocumentPath!.isNotEmpty;
+    final hasVersoPhoto =
+        user.backDocumentPath != null && user.backDocumentPath!.isNotEmpty;
+
+    return hasRectoPhoto && hasVersoPhoto;
+  }
+
+  // Méthode pour afficher le dialogue de redirection
+  Future<void> _showPhotoRequiredDialog(
+    BuildContext context,
+    String photoTitle,
+    String photoDescription,
+    Product product,
+  ) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Icon(Icons.photo_camera, color: AppColors.primary, size: 28),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Photos requises',
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Pour simuler un devis, vous devez d\'abord uploader vos photos d\'identité.',
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceVariant,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      photoTitle,
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      photoDescription,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                'Annuler',
+                style: GoogleFonts.poppins(
+                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => EditProfileScreen(produit: product),
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Text(
+                'Ajouter mes photos',
+                style: GoogleFonts.poppins(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -35,6 +168,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               : productProvider.selectedProduct == null
               ? _buildErrorState(productProvider)
               : _buildProductDetail(productProvider.selectedProduct!),
+          bottomNavigationBar: productProvider.selectedProduct != null
+              ? _buildSimulationButton(productProvider.selectedProduct!)
+              : null,
         );
       },
     );
@@ -157,7 +293,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 40),
-              Container(
+              SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () => Navigator.pop(context),
@@ -187,35 +323,137 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   }
 
   Widget _buildProductDetail(Product product) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: Column(
-        children: [
-          _buildStyledHeader(product),
-          Expanded(
-            child: Container(
+    return CustomScrollView(
+      slivers: [
+        SliverAppBar(
+          expandedHeight: 200,
+          pinned: true,
+          backgroundColor: AppColors.white,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back_ios_rounded, color: AppColors.primary),
+            onPressed: () => Navigator.pop(context),
+          ),
+          flexibleSpace: FlexibleSpaceBar(
+            background: Container(
               decoration: BoxDecoration(
-                color: AppColors.background,
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(24),
-                  topRight: Radius.circular(24),
-                ),
-              ),
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 20),
-                    _buildProductInfo(product),
-                    const SizedBox(height: 24),
-                    _buildDescriptionSection(product),
-                    const SizedBox(height: 32),
-                    _buildSimulateButton(product),
-                    const SizedBox(height: 20),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    product.type.color.withOpacity(0.8),
+                    product.type.color.withOpacity(0.6),
                   ],
                 ),
               ),
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(0, 50, 0, 0),
+                      child: Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          color: AppColors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Icon(
+                          product.type.icon,
+                          color: AppColors.white,
+                          size: 40,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      product.nom,
+                      style: GoogleFonts.poppins(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.white,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        product.type.label,
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.white,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildDescriptionSection(product),
+                const SizedBox(height: 32),
+                _buildSimulationSection(product),
+                const SizedBox(height: 100),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDescriptionSection(Product product) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            spreadRadius: 0,
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Description',
+            style: GoogleFonts.poppins(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            product.description.isNotEmpty
+                ? product.description
+                : 'Protection complète et personnalisée selon vos besoins.',
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w400,
+              color: AppColors.textSecondary,
+              height: 1.5,
             ),
           ),
         ],
@@ -223,246 +461,85 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     );
   }
 
-  Widget _buildStyledHeader(Product product) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.primary,
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(24),
-          bottomRight: Radius.circular(24),
-        ),
-      ),
-      child: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: AppColors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: AppColors.white.withOpacity(0.3),
-                        width: 1,
-                      ),
-                    ),
-                    child: IconButton(
-                      icon: Icon(
-                        Icons.arrow_back_ios_rounded,
-                        color: AppColors.white,
-                        size: 20,
-                      ),
-                      onPressed: () => Navigator.pop(context),
-                      padding: EdgeInsets.zero,
-                    ),
-                  ),
-                  Expanded(
-                    child: Text(
-                      "Détail du produit",
-                      style: GoogleFonts.poppins(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.white,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  const SizedBox(width: 44),
-                ],
-              ),
-            ),
-
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 0, 24, 0),
-              child: Column(
-                children: [
-                  Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      color: AppColors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          spreadRadius: 0,
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Icon(
-                      product.displayIcon,
-                      color: AppColors.primary,
-                      size: 40,
-                    ),
-                  ),
-                  const SizedBox(height: 15),
-
-                  Text(
-                    product.nom,
-                    style: GoogleFonts.poppins(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.white,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 8),
-
-                  Text(
-                    'Produit d\'assurance ${product.typeShortLabel.toLowerCase()}',
-                    style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.white.withOpacity(0.9),
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  // const SizedBox(height: 16),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDescriptionSection(Product product) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Description',
-          style: GoogleFonts.poppins(
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        const SizedBox(height: 12),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.border, width: 1),
-          ),
-          child: Text(
-            product.description,
-            style: GoogleFonts.poppins(
-              fontSize: 16,
-              fontWeight: FontWeight.w400,
-              color: AppColors.textPrimary,
-              height: 1.6,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildProductInfo(Product product) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Informations',
-          style: GoogleFonts.poppins(
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        const SizedBox(height: 12),
-        Container(
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.border, width: 1),
-          ),
-          child: Column(
-            children: [
-              _buildInfoRow(
-                'Type de produit',
-                product.typeLabel,
-                Icons.category_rounded,
-                AppColors.primary,
-                isFirst: true,
-              ),
-              _buildInfoRow(
-                'Catégorie',
-                product.typeShortLabel,
-                Icons.label_rounded,
-                AppColors.secondary,
-              ),
-              _buildInfoRow(
-                'Disponibilité',
-                'Disponible',
-                Icons.check_circle_rounded,
-                AppColors.success,
-                isLast: true,
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildInfoRow(
-    String label,
-    String value,
-    IconData icon,
-    Color color, {
-    bool isFirst = false,
-    bool isLast = false,
-  }) {
+  Widget _buildSimulationSection(Product product) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        border: !isLast
-            ? Border(bottom: BorderSide(color: AppColors.border, width: 1))
-            : null,
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, color: AppColors.white, size: 20),
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            spreadRadius: 0,
+            blurRadius: 10,
+            offset: const Offset(0, 2),
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.textSecondary,
-                  ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.calculate_rounded, color: AppColors.primary, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                'Simulation de devis',
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  value,
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Obtenez instantanément un devis personnalisé en fonction de votre profil et de vos besoins.',
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w400,
+              color: AppColors.textSecondary,
+              height: 1.5,
+            ),
+          ),
+          const SizedBox(height: 20),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.primary.withOpacity(0.1)),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.flash_on_rounded,
+                  color: AppColors.primary,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Simulation rapide',
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                      Text(
+                        'Résultat en moins de 2 minutes',
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w400,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -473,42 +550,173 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     );
   }
 
-  Widget _buildSimulateButton(Product product) {
+  Widget _buildSimulationButton(Product product) {
     return Container(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: () => _handleSimulateQuote(product),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          foregroundColor: AppColors.white,
-          padding: const EdgeInsets.symmetric(vertical: 18),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            spreadRadius: 0,
+            blurRadius: 10,
+            offset: const Offset(0, -2),
           ),
-          elevation: 0,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.calculate_rounded, size: 24),
-            const SizedBox(width: 12),
-            Text(
-              'Simuler un devis',
-              style: GoogleFonts.poppins(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-              ),
+        ],
+      ),
+      child: SafeArea(
+        child: ElevatedButton(
+          onPressed: () => _navigateToSimulation(product),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primary,
+            foregroundColor: AppColors.white,
+            elevation: 0,
+            minimumSize: const Size(double.infinity, 50),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
             ),
-          ],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.calculate_rounded, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                'Simuler un devis',
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  void _handleSimulateQuote(Product product) {
-    FormHelpers.showInfoSnackBar(
-      context,
-      'Simulation de devis pour "${product.nom}" - Fonctionnalité à venir !',
+  Future<void> _navigateToSimulation(Product product) async {
+    final authProvider = context.read<AuthProvider>();
+
+    final bool? isSelfAssured = await showDialog<bool>(
+      context: context,
+      builder: (context) => AssureSelectorDialog(
+        onConfirm: (value) => Navigator.pop(context, value),
+      ),
     );
+
+    if (!mounted || isSelfAssured == null) return;
+
+    try {
+      if (isSelfAssured) {
+        final currentUser = authProvider.currentUser;
+
+        if (currentUser == null) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Veuillez vous connecter pour continuer')),
+            );
+          }
+          return;
+        }
+
+        if (!(currentUser.isProfileComplete ?? false)) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.person_outline, color: Colors.white, size: 24),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Complétez votre profil pour simuler un devis',
+                      style: TextStyle(fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                ],
+              ),
+              backgroundColor: Colors.orange[800],
+              duration: Duration(seconds: 4),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              margin: EdgeInsets.all(20),
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            ),
+          );
+
+          await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => EditProfileScreen(produit: product),
+            ),
+          );
+
+          await authProvider.loadUserProfile();
+
+          if (authProvider.currentUser?.isProfileComplete == true && mounted) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => SimulationScreen(
+                  produit: product,
+                  assureEstSouscripteur: true,
+                ),
+              ),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Profil toujours incomplet'),
+                backgroundColor: Colors.orange,
+              ),
+            );
+          }
+          return;
+        }
+
+        // Vérifier si les photos sont présentes
+        if (!_hasRequiredPhotos(authProvider)) {
+          final user = authProvider.currentUser;
+          final identityType = user?.identityType;
+          final photoTitle = ImageLabels.getUploadTitle(identityType);
+          final photoDescription = ImageLabels.getUploadDescription(
+            identityType,
+          );
+
+          // Afficher un dialogue pour expliquer pourquoi la redirection
+          await _showPhotoRequiredDialog(
+            context,
+            photoTitle,
+            photoDescription,
+            product,
+          );
+          return;
+        }
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                SimulationScreen(produit: product, assureEstSouscripteur: true),
+          ),
+        );
+      } else {
+        // InfoAssureScreen naviguera directement vers SimulationScreen
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => InfoAssureScreen(produit: product),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+      }
+    }
   }
 }

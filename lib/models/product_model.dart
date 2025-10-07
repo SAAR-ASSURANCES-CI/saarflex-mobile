@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 
-enum ProductType {
-  vie,
-  nonVie,
-}
+enum ProductType { vie, nonVie }
 
 extension ProductTypeExtension on ProductType {
   String get label {
@@ -27,18 +24,18 @@ extension ProductTypeExtension on ProductType {
   IconData get icon {
     switch (this) {
       case ProductType.vie:
-        return Icons.favorite_rounded; 
+        return Icons.favorite_rounded;
       case ProductType.nonVie:
-        return Icons.directions_car_rounded; 
+        return Icons.directions_car_rounded;
     }
   }
 
   Color get color {
     switch (this) {
       case ProductType.vie:
-        return const Color(0xFF10B981); 
+        return const Color(0xFF10B981);
       case ProductType.nonVie:
-        return const Color(0xFF3B82F6); 
+        return const Color(0xFF3B82F6);
     }
   }
 }
@@ -51,6 +48,13 @@ class Product {
   final String? conditionsPdf;
   final IconData? customIcon;
 
+  final String? iconPath;
+  final String? statut;
+  final DateTime? createdAt;
+  final Map<String, dynamic>? branche;
+  final bool necessiteBeneficiaires;
+  final int maxBeneficiaires;
+
   Product({
     required this.id,
     required this.nom,
@@ -58,19 +62,42 @@ class Product {
     required this.description,
     this.conditionsPdf,
     this.customIcon,
+    this.iconPath,
+    this.statut,
+    this.createdAt,
+    this.branche,
+    this.necessiteBeneficiaires = false,
+    this.maxBeneficiaires = 0,
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
       id: json['id'],
       nom: json['nom'],
-      type: ProductType.values.firstWhere(
-        (e) => e.toString().split('.').last == json['type'],
-        orElse: () => ProductType.nonVie,
-      ),
+      type: _parseProductType(json['type']),
       description: json['description'],
       conditionsPdf: json['conditions_pdf'],
+      iconPath: json['icon'],
+      statut: json['statut'],
+      createdAt: json['created_at'] != null
+          ? DateTime.parse(json['created_at'])
+          : null,
+      branche: json['branche'],
+      necessiteBeneficiaires: json['necessite_beneficiaires'] ?? false,
+      maxBeneficiaires: json['max_beneficiaires'] ?? 0,
     );
+  }
+
+  static ProductType _parseProductType(String? typeString) {
+    switch (typeString?.toLowerCase()) {
+      case 'vie':
+        return ProductType.vie;
+      case 'non-vie':
+      case 'nonvie':
+        return ProductType.nonVie;
+      default:
+        return ProductType.nonVie;
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -80,6 +107,12 @@ class Product {
       'type': type.toString().split('.').last,
       'description': description,
       'conditions_pdf': conditionsPdf,
+      'icon': iconPath,
+      'statut': statut,
+      'created_at': createdAt?.toIso8601String(),
+      'branche': branche,
+      'necessite_beneficiaires': necessiteBeneficiaires,
+      'max_beneficiaires': maxBeneficiaires,
     };
   }
 
@@ -90,6 +123,12 @@ class Product {
     String? description,
     String? conditionsPdf,
     IconData? customIcon,
+    String? iconPath,
+    String? statut,
+    DateTime? createdAt,
+    Map<String, dynamic>? branche,
+    bool? necessiteBeneficiaires,
+    int? maxBeneficiaires,
   }) {
     return Product(
       id: id ?? this.id,
@@ -98,6 +137,13 @@ class Product {
       description: description ?? this.description,
       conditionsPdf: conditionsPdf ?? this.conditionsPdf,
       customIcon: customIcon ?? this.customIcon,
+      iconPath: iconPath ?? this.iconPath,
+      statut: statut ?? this.statut,
+      createdAt: createdAt ?? this.createdAt,
+      branche: branche ?? this.branche,
+      necessiteBeneficiaires:
+          necessiteBeneficiaires ?? this.necessiteBeneficiaires,
+      maxBeneficiaires: maxBeneficiaires ?? this.maxBeneficiaires,
     );
   }
 
@@ -107,6 +153,19 @@ class Product {
   String get typeShortLabel => type.shortLabel;
 
   bool get hasConditions => conditionsPdf != null && conditionsPdf!.isNotEmpty;
+
+  bool get isActive => statut?.toLowerCase() == 'actif';
+  String get brancheName => branche?['nom'] ?? 'Non définie';
+
+  // Vérifie si le produit nécessite des bénéficiaires (nouvelle logique backend)
+  bool get requiresBeneficiaires {
+    return necessiteBeneficiaires;
+  }
+
+  // Vérifie si le produit supporte les bénéficiaires
+  bool get supportsBeneficiaires {
+    return maxBeneficiaires > 0;
+  }
 
   @override
   bool operator ==(Object other) =>
@@ -118,6 +177,6 @@ class Product {
 
   @override
   String toString() {
-    return 'Product{id: $id, nom: $nom, type: $type}';
+    return 'Product{id: $id, nom: $nom, type: $type, statut: $statut}';
   }
 }

@@ -3,6 +3,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:saarflex_app/constants/colors.dart';
 import 'package:saarflex_app/providers/auth_provider.dart';
+import 'package:saarflex_app/screens/auth/otp_verification_screen.dart';
+
+
 
 class ResetPasswordScreen extends StatefulWidget {
   const ResetPasswordScreen({super.key});
@@ -15,9 +18,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _emailFocus = FocusNode();
-  bool _isFormValid = false;
-  bool _isEmailSent = false;
+
   AutovalidateMode _autovalidateMode = AutovalidateMode.disabled;
+  bool _isFormValid = false;
 
   @override
   void initState() {
@@ -26,46 +29,46 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   }
 
   void _validateForm() {
-    final isValid = _formKey.currentState?.validate() ?? false;
-    setState(() {
-      _isFormValid = isValid;
-    });
+    final isValid = _emailController.text.trim().isNotEmpty &&
+        _validateEmail(_emailController.text) == null;
+    
+    if (isValid != _isFormValid) {
+      setState(() {
+        _isFormValid = isValid;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<AuthProvider>(
-      builder: (context, authProvider, child) {
-        return Scaffold(
-          backgroundColor: AppColors.background,
-          appBar: _buildAppBar(),
-          body: SingleChildScrollView(
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: _buildAppBar(),
+      body: Consumer<AuthProvider>(
+        builder: (context, authProvider, child) {
+          return SingleChildScrollView(
             padding: const EdgeInsets.all(24),
             child: Form(
               key: _formKey,
               autovalidateMode: _autovalidateMode,
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const SizedBox(height: 20),
                   _buildHeader(),
                   const SizedBox(height: 40),
-
-                  if (authProvider.errorMessage != null && !_isEmailSent)
+                  
+                  if (authProvider.errorMessage != null)
                     _buildErrorMessage(authProvider.errorMessage!),
-
-                  if (!_isEmailSent) ...[
-                    _buildEmailField(),
-                    const SizedBox(height: 40),
-                    _buildResetButton(authProvider),
-                  ] else
-                    _buildSuccessMessage(),
+                  
+                  _buildEmailField(),
+                  const SizedBox(height: 40),
+                  _buildResetButton(authProvider),
                 ],
               ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 
@@ -114,7 +117,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
         ),
         const SizedBox(height: 8),
         Text(
-          "Entrez votre email pour réinitialiser votre mot de passe",
+          "Entrez votre email pour vérifier votre compte",
           style: GoogleFonts.poppins(
             fontSize: 16,
             color: AppColors.textSecondary,
@@ -232,7 +235,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                 ),
               )
             : Text(
-                "Réinitialiser",
+                "Continuer",
                 style: GoogleFonts.poppins(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -242,57 +245,126 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     );
   }
 
-  Widget _buildSuccessMessage() {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: AppColors.success.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.success.withOpacity(0.3)),
-      ),
-      child: Column(
-        children: [
-          Icon(Icons.check_circle, color: AppColors.success, size: 48),
-          const SizedBox(height: 16),
-          Text(
-            "Email envoyé !",
-            style: GoogleFonts.poppins(
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-              color: AppColors.success,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            "Consultez votre boîte mail pour réinitialiser votre mot de passe",
-            textAlign: TextAlign.center,
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              color: AppColors.textSecondary,
-            ),
-          ),
-        ],
-      ),
-    );
+
+Future<void> _handleReset(AuthProvider authProvider) async {
+  setState(() {
+    _autovalidateMode = AutovalidateMode.onUserInteraction;
+  });
+
+  if (!_formKey.currentState!.validate()) {
+    return;
   }
 
-  Future<void> _handleReset(AuthProvider authProvider) async {
-    setState(() {
-      _autovalidateMode = AutovalidateMode.onUserInteraction;
-    });
+  final email = _emailController.text.trim();
 
-    if (!_formKey.currentState!.validate()) {
+  setState(() => _isFormValid = false);
+  
+  try {
+    await authProvider.login(email: email, password: '');
+    
+    await _proceedWithPasswordReset(authProvider, email);
+    
+  } catch (e) {
+    if (authProvider.errorMessage != null) {
+      final errorMessage = authProvider.errorMessage!.toLowerCase();
+      
+      if (errorMessage.contains('user') && 
+          (errorMessage.contains('not found') || 
+           errorMessage.contains('n\'existe pas') || 
+           errorMessage.contains('introuvable'))) {
+        setState(() {
+          _isFormValid = true; 
+        });
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Aucun compte associé à cette adresse email',
+              style: GoogleFonts.poppins(color: Colors.white),
+            ),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+        return;
+        
+      } else if (errorMessage.contains('password') || 
+                 errorMessage.contains('mot de passe') ||
+                 errorMessage.contains('credential')) {
+        await _proceedWithPasswordReset(authProvider, email);
+        
+      } else {
+        setState(() => _isFormValid = true);
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Erreur de connexion. Veuillez réessayer.',
+              style: GoogleFonts.poppins(color: Colors.white),
+            ),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+        return;
+      }
+    } else {
+      setState(() => _isFormValid = true);
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Erreur de connexion. Veuillez réessayer.',
+            style: GoogleFonts.poppins(color: Colors.white),
+          ),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
       return;
     }
-
-    final success = await authProvider.forgotPassword(
-      _emailController.text.trim(),
-    );
-
-    if (success) {
-      setState(() => _isEmailSent = true);
-    }
   }
+}
+
+Future<void> _proceedWithPasswordReset(AuthProvider authProvider, String email) async {
+  authProvider.clearError(); 
+  
+  final success = await authProvider.forgotPassword(email);
+
+  setState(() => _isFormValid = true);
+
+  if (success && mounted) {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => OtpVerificationScreen(email: email),
+      ),
+    );
+  } else if (mounted) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          authProvider.errorMessage ?? 'Erreur lors de l\'envoi',
+          style: GoogleFonts.poppins(color: Colors.white),
+        ),
+        backgroundColor: AppColors.error,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+    );
+  }
+}
 
   String? _validateEmail(String? value) {
     if (value == null || value.trim().isEmpty) {

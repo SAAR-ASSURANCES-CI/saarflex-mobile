@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:saarflex_app/profile/profile_screen.dart';
 import 'package:saarflex_app/screens/auth/components/dashboard_header.dart';
 import 'package:saarflex_app/screens/products/product_list_screen.dart';
+import 'package:saarflex_app/screens/contracts/contracts_screen.dart';
 import '../../constants/colors.dart';
 import '../../providers/auth_provider.dart';
 
@@ -108,7 +109,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         Expanded(
           child: _buildStatCard(
             "Contrats Actifs",
-            "3",
+            "0",
             Icons.description_rounded,
             AppColors.success,
           ),
@@ -126,7 +127,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
+  Widget _buildStatCard(
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -201,13 +207,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
               "Offres Assurance",
               Icons.shopping_bag_rounded,
               AppColors.primary,
-               () => _navigateToProducts(),
+              () => _navigateToProducts(),
             ),
             _buildActionCard(
               "Mes Contrats",
               Icons.description_rounded,
               AppColors.accent,
-              () => _showComingSoon(context),
+              () => _navigateToContracts(),
             ),
             _buildActionCard(
               "Sinistres",
@@ -227,7 +233,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildActionCard(String title, IconData icon, Color color, VoidCallback onTap) {
+  Widget _buildActionCard(
+    String title,
+    IconData icon,
+    Color color,
+    VoidCallback onTap,
+  ) {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
@@ -254,10 +265,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [
-                  color.withOpacity(0.05),
-                  color.withOpacity(0.02),
-                ],
+                colors: [color.withOpacity(0.05), color.withOpacity(0.02)],
               ),
             ),
             child: Column(
@@ -267,10 +275,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [
-                        color.withOpacity(0.2),
-                        color.withOpacity(0.1),
-                      ],
+                      colors: [color.withOpacity(0.2), color.withOpacity(0.1)],
                     ),
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
@@ -309,6 +314,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  void _navigateToProducts() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const ProductListScreen()),
+    );
+  }
+
+  void _navigateToContracts() {
+    try {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const ContractsScreen(),
+          settings: const RouteSettings(name: '/contracts'),
+        ),
+      );
+    } catch (e) {
+      // Fallback en cas d'erreur de navigation
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erreur de navigation: $e'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
+  }
+
   void _showComingSoon(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -333,10 +365,4 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
-  
-void _navigateToProducts() {
-  Navigator.push(
-    context,
-    MaterialPageRoute(builder: (_) => const ProductListScreen()),
-  );
-}}
+}
