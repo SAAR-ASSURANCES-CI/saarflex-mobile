@@ -521,7 +521,7 @@ class _ContractsTabState extends State<ContractsTab> {
         backgroundColor: AppColors.primary,
       ),
     );
-    // TODO: Implémenter le téléchargement réel
+    // Téléchargement sera implémenté
   }
 
   void _manageContract(contract) {
@@ -531,6 +531,6 @@ class _ContractsTabState extends State<ContractsTab> {
         backgroundColor: AppColors.primary,
       ),
     );
-    // TODO: Implémenter la gestion du contrat
+    // Gestion du contrat sera implémentée
   }
 }

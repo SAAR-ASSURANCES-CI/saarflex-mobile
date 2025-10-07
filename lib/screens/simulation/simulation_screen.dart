@@ -6,7 +6,6 @@ import '../../models/critere_tarification_model.dart';
 import '../../providers/simulation_provider.dart';
 import '../../widgets/dynamic_form_field.dart';
 import '../../models/product_model.dart';
-import '../../utils/logger.dart';
 import '../../widgets/beneficiaires_collection_widget.dart';
 import 'simulation_result_screen.dart';
 
@@ -45,32 +44,18 @@ class _SimulationScreenState extends State<SimulationScreen> {
 
     final nomCritereLower = critere.nom.toLowerCase();
 
-    // Logging pour le développement uniquement
-    AppLogger.debug(
-      'Analyzing: "${critere.nom}" -> lowercase: "$nomCritereLower"',
-    );
-
     for (final motCle in champsAvecSeparateurs) {
       final contains = nomCritereLower.contains(motCle);
-      AppLogger.debug('Contains "$motCle": $contains');
       if (contains) {
-        AppLogger.debug('FORMATAGE REQUIS for "${critere.nom}"');
         return true;
       }
     }
-
-    AppLogger.debug('No formatage required for "${critere.nom}"');
     return false;
   }
 
   @override
   void initState() {
     super.initState();
-    AppLogger.debug('SimulationScreen INIT - mounted: $mounted');
-    AppLogger.debug(
-      'Params - assureEstSouscripteur: ${widget.assureEstSouscripteur}',
-    );
-    AppLogger.debug('Params - hasInfos: ${widget.informationsAssure != null}');
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<SimulationProvider>().initierSimulation(
@@ -83,7 +68,6 @@ class _SimulationScreenState extends State<SimulationScreen> {
 
   @override
   void dispose() {
-    AppLogger.debug('SimulationScreen DISPOSE - mounted: $mounted');
     // Nettoyer les ressources si nécessaire
     super.dispose();
   }
@@ -378,11 +362,6 @@ class _SimulationScreenState extends State<SimulationScreen> {
 
     return criteres.map((critere) {
       final besoinFormatage = _critereNecessiteFormatage(critere);
-
-      // Logging pour le développement uniquement
-      AppLogger.debug(
-        'CRITICAL - ${critere.nom}: formatMilliers=$besoinFormatage',
-      );
 
       return DynamicFormField(
         critere: critere,

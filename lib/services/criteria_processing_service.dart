@@ -1,5 +1,4 @@
 import '../models/critere_tarification_model.dart';
-import '../utils/logger.dart';
 
 class CriteriaProcessingService {
   /// Nettoie les critères pour l'envoi à l'API
@@ -25,7 +24,6 @@ class CriteriaProcessingService {
       }
     }
 
-    AppLogger.debug('Critères nettoyés pour API: $cleanedCriteria');
     return cleanedCriteria;
   }
 
@@ -41,9 +39,6 @@ class CriteriaProcessingService {
     // Nettoyer les séparateurs si nécessaire
     if (_critereNecessiteFormatage(critere)) {
       valeurString = valeurString.replaceAll(RegExp(r'[^\d]'), '');
-      AppLogger.debug(
-        'Nettoyage de "${critere.nom}": "$valeur" -> "$valeurString"',
-      );
     }
 
     // Convertir en nombre
@@ -73,7 +68,6 @@ class CriteriaProcessingService {
       }
     }
 
-    AppLogger.debug('Valeurs par défaut initialisées: $defaultValues');
     return defaultValues;
   }
 
@@ -91,10 +85,6 @@ class CriteriaProcessingService {
     ];
 
     final nomCritereLower = critere.nom.toLowerCase();
-
-    AppLogger.debug(
-      'Analyzing: "${critere.nom}" -> lowercase: "$nomCritereLower"',
-    );
 
     return fieldsWithSeparators.any(
       (field) => nomCritereLower.contains(field.toLowerCase()),

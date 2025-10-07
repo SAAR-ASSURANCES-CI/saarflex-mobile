@@ -231,17 +231,12 @@ class SimulationService {
 
   Future<void> sauvegarderDevis(SauvegardeDevisRequest request) async {
     try {
-      print('🔐 Récupération du token...');
       final token = await StorageHelper.getToken();
       if (token == null) {
-        print('❌ Token null - Authentification requise');
         throw Exception('Authentification requise');
       }
-      print('✅ Token récupéré: ${token.substring(0, 20)}...');
 
       final url = '${ApiConfig.baseUrl}/devis-sauvegardes';
-      print('🌐 URL de sauvegarde: $url');
-      print('📦 Payload: ${request.toJson()}');
 
       final response = await http.post(
         Uri.parse(url),
@@ -253,18 +248,11 @@ class SimulationService {
         body: json.encode(request.toJson()),
       );
 
-      print('📡 Réponse reçue - Status: ${response.statusCode}');
-      print('📡 Body: ${response.body}');
-
       if (response.statusCode != 200 && response.statusCode != 201) {
         final errorData = json.decode(response.body);
-        print('❌ Erreur serveur: ${errorData['message']}');
         throw Exception(errorData['message'] ?? 'Erreur lors de la sauvegarde');
       }
-      print('✅ Sauvegarde réussie côté serveur');
     } catch (e) {
-      print('❌ Exception dans sauvegarderDevis: $e');
-      print('❌ Type: ${e.runtimeType}');
       throw Exception(_getUserFriendlyError(e));
     }
   }

@@ -1,5 +1,4 @@
 import '../models/critere_tarification_model.dart';
-import '../utils/logger.dart';
 
 class ValidationService {
   static const List<String> _fieldsWithSeparators = [
@@ -108,10 +107,6 @@ class ValidationService {
   /// Détermine si un critère nécessite un formatage spécial
   static bool _critereNecessiteFormatage(CritereTarification critere) {
     final nomCritereLower = critere.nom.toLowerCase();
-
-    AppLogger.debug(
-      'Analyzing: "${critere.nom}" -> lowercase: "$nomCritereLower"',
-    );
 
     return _fieldsWithSeparators.any(
       (field) => nomCritereLower.contains(field.toLowerCase()),

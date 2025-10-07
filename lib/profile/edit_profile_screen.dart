@@ -26,9 +26,7 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  _EditProfileScreenState() {
-    print('🔍 DEBUG EditProfileScreenState created');
-  }
+  _EditProfileScreenState() {}
 
   final _formKey = GlobalKey<FormState>();
   final _firstNameController = TextEditingController();
@@ -68,7 +66,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   void initState() {
     super.initState();
-    print('🔍 DEBUG EditProfileScreen initState called');
     _loadUserData();
     _addListeners();
   }
@@ -488,8 +485,6 @@ if (_versoImage != null) {
   }
 
   Future<void> _pickImage(bool isRecto) async {
-    print('🔍 DEBUG _pickImage called - isRecto: $isRecto');
-
     try {
       final ImagePicker picker = ImagePicker();
       final XFile? image = await picker.pickImage(
@@ -498,28 +493,18 @@ if (_versoImage != null) {
         // No size restrictions - let user choose any image
       );
 
-      print('🔍 DEBUG Image selected: ${image?.path}');
-
       if (image != null) {
         // Conversion HEIC → JPEG si nécessaire
         String finalImagePath = image.path;
-        print('🔍 DEBUG Image path: ${image.path}');
-        print(
-          '🔍 DEBUG Is HEIC: ${image.path.toLowerCase().endsWith('.heic')}',
-        );
         if (image.path.toLowerCase().endsWith('.heic')) {
-          print('🔍 DEBUG Converting HEIC to JPEG...');
           try {
             // Lire l'image HEIC
             final File heicFile = File(image.path);
             final Uint8List heicBytes = await heicFile.readAsBytes();
 
             // Décoder l'image HEIC
-            print('🔍 DEBUG Reading HEIC file...');
             final img.Image? decodedImage = img.decodeImage(heicBytes);
-            print('🔍 DEBUG Decoded image: ${decodedImage != null}');
             if (decodedImage != null) {
-              print('🔍 DEBUG Encoding to JPEG...');
               // Encoder en JPEG
               final Uint8List jpegBytes = img.encodeJpg(
                 decodedImage,
@@ -528,17 +513,12 @@ if (_versoImage != null) {
 
               // Créer un nouveau fichier JPEG
               final String jpegPath = image.path.replaceAll('.heic', '.jpg');
-              print('🔍 DEBUG JPEG path: $jpegPath');
               final File jpegFile = File(jpegPath);
               await jpegFile.writeAsBytes(jpegBytes);
 
               finalImagePath = jpegPath;
-              print('🔍 DEBUG HEIC converted to JPEG: $jpegPath');
-            } else {
-              print('🔍 DEBUG Failed to decode HEIC image');
-            }
+            } else {}
           } catch (e) {
-            print('🔍 DEBUG HEIC conversion failed: $e');
             // Continuer avec le fichier original
           }
         }
@@ -548,15 +528,11 @@ if (_versoImage != null) {
           finalImagePath,
         );
         if (validationError != null) {
-          print('🔍 DEBUG Validation error: $validationError');
           if (mounted) {
             ErrorHandler.showErrorSnackBar(context, validationError);
           }
           return;
         }
-
-        print('🔍 DEBUG Image validation passed');
-        print('🔍 DEBUG Final image path: $finalImagePath');
 
         // Mettre à jour l'état local
         setState(() {
@@ -570,10 +546,6 @@ if (_versoImage != null) {
             _isUploadingVerso = true;
           }
         });
-
-        print(
-          '🔍 DEBUG State updated - recto: ${_rectoImage != null}, verso: ${_versoImage != null}',
-        );
 
         // Upload de l'image avec le chemin final (converti si nécessaire)
         await _uploadImage(finalImagePath, isRecto);
@@ -589,16 +561,12 @@ if (_versoImage != null) {
   }
 
   Future<void> _uploadImage(String imagePath, bool isRecto) async {
-    print('🔍 DEBUG _uploadImage called - path: $imagePath, isRecto: $isRecto');
-
     try {
       // Vérifier si nous avons maintenant les deux images
       if (_rectoImage != null && _versoImage != null) {
-        print('🔍 DEBUG Both images available - calling _uploadBothImages');
         // Déclencher l'upload automatique des deux images
         await _uploadBothImages();
       } else {
-        print('🔍 DEBUG Only one image - showing message');
         // Message informatif
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -634,23 +602,13 @@ if (_versoImage != null) {
   }
 
   Future<void> _uploadBothImages() async {
-    print('🔍 DEBUG _uploadBothImages called');
-
     if (_rectoImage == null || _versoImage == null) {
-      print(
-        '🔍 DEBUG Missing images - recto: ${_rectoImage != null}, verso: ${_versoImage != null}',
-      );
       ErrorHandler.showErrorSnackBar(
         context,
         'Veuillez sélectionner les deux images avant l\'upload',
       );
       return;
     }
-
-    print(
-      '🔍 DEBUG Starting upload - recto: ${_rectoImagePath}, verso: ${_versoImagePath}',
-    );
-    print('🔍 DEBUG About to call API service...');
 
     try {
       setState(() {
@@ -661,16 +619,11 @@ if (_versoImage != null) {
       final apiService = ApiService();
       final authProvider = context.read<AuthProvider>();
 
-      print('🔍 DEBUG Calling uploadBothImages API');
-      print('🔍 DEBUG API Service created, calling uploadBothImages...');
       // Upload des deux images
       final result = await apiService.uploadBothImages(
         rectoPath: _rectoImagePath!,
         versoPath: _versoImagePath!,
       );
-      print('🔍 DEBUG API call completed, result: $result');
-
-      print('🔍 DEBUG API Response: $result');
 
       if (result.containsKey('recto_path') &&
           result.containsKey('verso_path')) {
