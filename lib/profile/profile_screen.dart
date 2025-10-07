@@ -5,9 +5,14 @@ import 'package:saarflex_app/profile/edit_profile_screen.dart';
 import 'package:saarflex_app/providers/auth_provider.dart';
 import 'package:saarflex_app/screens/auth/otp_verification_screen.dart';
 import 'package:saarflex_app/widgets/form_helpers.dart';
+import 'package:saarflex_app/profile/utils/profile_helpers.dart';
+import 'package:saarflex_app/profile/widgets/profile_section.dart';
+import 'package:saarflex_app/profile/widgets/profile_info_row.dart';
+import 'package:saarflex_app/profile/widgets/profile_header.dart';
+import 'package:saarflex_app/profile/widgets/profile_action_button.dart';
+import 'package:saarflex_app/profile/widgets/image_display_widget.dart';
 import '../models/user_model.dart';
 import '../../constants/colors.dart';
-import '../../constants/api_constants.dart';
 import '../../utils/image_labels.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -73,26 +78,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  String _getTypePieceIdentiteLabel(String? type) {
-    switch (type?.toLowerCase()) {
-      case 'cni':
-        return 'Carte Nationale d\'Identité';
-      case 'passport':
-        return 'Passeport';
-      case 'permis':
-        return 'Permis de conduire';
-      case 'carte_sejour':
-        return 'Carte de séjour';
-      default:
-        return type ?? 'Non renseigné';
-    }
-  }
-
-  String? _formatDate(DateTime? date) {
-    if (date == null) return null;
-    return "${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}";
-  }
-
   @override
   Widget build(BuildContext context) {
     return Consumer<AuthProvider>(
@@ -125,7 +110,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             padding: const EdgeInsets.all(20),
             child: Column(
               children: [
-                _buildProfileHeader(user),
+                ProfileHeader(user: user),
                 const SizedBox(height: 32),
                 _buildEditButton(),
                 const SizedBox(height: 24),
@@ -151,107 +136,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final versoLabel = ImageLabels.getVersoLabel(user?.identityType);
     final sectionTitle = ImageLabels.getUploadTitle(user?.identityType);
 
-    return _buildSection(
+    return ProfileSection(
       title: sectionTitle,
       icon: Icons.photo_library_rounded,
       children: [
         if (user?.frontDocumentPath != null &&
             user!.frontDocumentPath!.isNotEmpty)
-          _buildImageRow(rectoLabel, user.frontDocumentPath!)
+          ImageDisplayWidget(
+            label: rectoLabel,
+            imageUrl: user.frontDocumentPath!,
+            onEdit: _navigateToEditProfile,
+          )
         else
-          _buildInfoRow(rectoLabel, "Non téléchargé", isWarning: true),
+          ProfileInfoRow(
+            label: rectoLabel,
+            value: "Non téléchargé",
+            isWarning: true,
+          ),
 
         const SizedBox(height: 12),
 
         if (user?.backDocumentPath != null &&
             user!.backDocumentPath!.isNotEmpty)
-          _buildImageRow(versoLabel, user.backDocumentPath!)
+          ImageDisplayWidget(
+            label: versoLabel,
+            imageUrl: user.backDocumentPath!,
+            onEdit: _navigateToEditProfile,
+          )
         else
-          _buildInfoRow(versoLabel, "Non téléchargé", isWarning: true),
-      ],
-    );
-  }
-
-  // Méthode pour afficher l'image en plein écran
-  void _showImageDialog(String imageUrl, String label) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          child: Stack(
-            children: [
-              // Image en plein écran
-              Center(
-                child: InteractiveViewer(
-                  child: Image.network(
-                    imageUrl,
-                    fit: BoxFit.contain,
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return Center(
-                        child: CircularProgressIndicator(
-                          value: loadingProgress.expectedTotalBytes != null
-                              ? loadingProgress.cumulativeBytesLoaded /
-                                    loadingProgress.expectedTotalBytes!
-                              : null,
-                        ),
-                      );
-                    },
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        color: AppColors.surfaceVariant,
-                        child: Icon(
-                          Icons.error_outline_rounded,
-                          color: AppColors.error,
-                          size: 60,
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ),
-              // Bouton de fermeture
-              Positioned(
-                top: 40,
-                right: 20,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.5),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: Icon(Icons.close, color: Colors.white, size: 24),
-                  ),
-                ),
-              ),
-              // Label de l'image
-              Positioned(
-                bottom: 40,
-                left: 20,
-                right: 20,
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.7),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    label,
-                    style: GoogleFonts.poppins(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ),
-            ],
+          ProfileInfoRow(
+            label: versoLabel,
+            value: "Non téléchargé",
+            isWarning: true,
           ),
-        );
-      },
+      ],
     );
   }
 
@@ -259,480 +177,102 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _navigateToEditProfile() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => EditProfileScreen()),
-    );
-  }
-
-  Widget _buildImageRow(String label, String imageUrl) {
-    // SOLUTION SIMPLE : Afficher les images si elles existent
-    final hasRealImage =
-        imageUrl.isNotEmpty && imageUrl != 'null' && imageUrl != 'undefined';
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(
-                  label,
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-              ),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    onPressed: () => _showImageDialog(
-                      imageUrl.startsWith('http')
-                          ? imageUrl
-                          : '${ApiConstants.baseUrl}/$imageUrl',
-                      label,
-                    ),
-                    icon: Icon(
-                      Icons.visibility,
-                      size: 20,
-                      color: AppColors.primary,
-                    ),
-                    tooltip: 'Voir en grand',
-                  ),
-                  IconButton(
-                    onPressed: () => _navigateToEditProfile(),
-                    icon: Icon(
-                      Icons.edit,
-                      size: 20,
-                      color: AppColors.secondary,
-                    ),
-                    tooltip: 'Modifier',
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          GestureDetector(
-            onTap: () => _showImageDialog(
-              imageUrl.startsWith('http')
-                  ? imageUrl
-                  : '${ApiConstants.baseUrl}/$imageUrl',
-              label,
-            ),
-            child: Container(
-              height: 150,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.border),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: hasRealImage
-                    ? Image.network(
-                        imageUrl.startsWith('http')
-                            ? imageUrl
-                            : '${ApiConstants.baseUrl}/$imageUrl',
-                        fit: BoxFit.cover,
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return Center(
-                            child: CircularProgressIndicator(
-                              value: loadingProgress.expectedTotalBytes != null
-                                  ? loadingProgress.cumulativeBytesLoaded /
-                                        loadingProgress.expectedTotalBytes!
-                                  : null,
-                            ),
-                          );
-                        },
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            color: Colors.grey[100],
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.photo_library_outlined,
-                                  color: Colors.grey[400],
-                                  size: 40,
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Image non disponible',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 12,
-                                    color: Colors.grey[600],
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      )
-                    : Container(
-                        color: Colors.grey[100],
-                        child: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.photo_library_outlined,
-                                size: 48,
-                                color: Colors.grey[400],
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Image non disponible',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 12,
-                                  color: Colors.grey[600],
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildProfileHeader(User? user) {
-    return Column(
-      children: [
-        Container(
-          width: 100,
-          height: 100,
-          decoration: BoxDecoration(
-            color: AppColors.primary,
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primary.withOpacity(0.2),
-                spreadRadius: 0,
-                blurRadius: 20,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          child: Icon(Icons.person_rounded, color: AppColors.white, size: 50),
-        ),
-        const SizedBox(height: 16),
-        Text(
-          user?.nom ?? "Utilisateur",
-          style: GoogleFonts.poppins(
-            fontSize: 24,
-            fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          user?.email ?? "Email non renseigné",
-          style: GoogleFonts.poppins(
-            fontSize: 16,
-            fontWeight: FontWeight.w400,
-            color: AppColors.textSecondary,
-          ),
-        ),
-      ],
+      MaterialPageRoute(builder: (context) => EditProfileScreenRefactored()),
     );
   }
 
   Widget _buildEditButton() {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton.icon(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const EditProfileScreen()),
-          );
-        },
-        icon: const Icon(Icons.edit_rounded, size: 18),
-        label: Text(
-          "Modifier mon profil",
-          style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600),
-        ),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          foregroundColor: AppColors.white,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          elevation: 2,
-        ),
-      ),
+    return ProfileActionButton(
+      text: "Modifier mon profil",
+      icon: Icons.edit_rounded,
+      onPressed: _navigateToEditProfile,
+      backgroundColor: AppColors.primary,
+      foregroundColor: AppColors.white,
+      borderColor: AppColors.primary,
     );
   }
 
   Widget _buildPersonalInfoSection(User? user) {
-    return _buildSection(
+    return ProfileSection(
       title: "Informations personnelles",
       icon: Icons.person_rounded,
       children: [
-        _buildInfoRow("Nom", user?.nom ?? "Non renseigné"),
-        _buildInfoRow("Email", user?.email ?? "Non renseigné"),
-        _buildInfoRow("Téléphone", user?.telephone ?? "Non renseigné"),
-        _buildInfoRow("Sexe", user?.gender ?? "Non renseigné"),
-        _buildInfoRow(
-          "Date de naissance",
-          _formatDate(user?.birthDate) ?? "Non renseignée",
+        ProfileInfoRow(label: "Nom", value: user?.nom ?? "Non renseigné"),
+        ProfileInfoRow(label: "Email", value: user?.email ?? "Non renseigné"),
+        ProfileInfoRow(
+          label: "Téléphone",
+          value: user?.telephone ?? "Non renseigné",
         ),
-        _buildInfoRow("Lieu de naissance", user?.birthPlace ?? "Non renseigné"),
-        _buildInfoRow("Nationalité", user?.nationality ?? "Non renseignée"),
-        _buildInfoRow("Profession", user?.profession ?? "Non renseignée"),
-        _buildInfoRow("Adresse", user?.address ?? "Non renseignée"),
+        ProfileInfoRow(label: "Sexe", value: user?.gender ?? "Non renseigné"),
+        ProfileInfoRow(
+          label: "Date de naissance",
+          value: ProfileHelpers.formatDate(user?.birthDate) ?? "Non renseignée",
+        ),
+        ProfileInfoRow(
+          label: "Lieu de naissance",
+          value: user?.birthPlace ?? "Non renseigné",
+        ),
+        ProfileInfoRow(
+          label: "Nationalité",
+          value: user?.nationality ?? "Non renseignée",
+        ),
+        ProfileInfoRow(
+          label: "Profession",
+          value: user?.profession ?? "Non renseignée",
+        ),
+        ProfileInfoRow(
+          label: "Adresse",
+          value: user?.address ?? "Non renseignée",
+        ),
       ],
     );
   }
 
   Widget _buildIdentitySection(User? user) {
-    return _buildSection(
+    return ProfileSection(
       title: "Informations d'identité",
       icon: Icons.badge_rounded,
       children: [
-        _buildInfoRow(
-          "Type de pièce",
-          _getTypePieceIdentiteLabel(user?.identityType),
+        ProfileInfoRow(
+          label: "Type de pièce",
+          value: ProfileHelpers.getTypePieceIdentiteLabel(user?.identityType),
         ),
-        _buildInfoRow(
-          "Numéro de pièce",
-          user?.identityNumber ?? "Non renseigné",
+        ProfileInfoRow(
+          label: "Numéro de pièce",
+          value: user?.identityNumber ?? "Non renseigné",
         ),
-        _buildInfoRow(
-          "Date d'expiration",
-          _formatDate(user?.identityExpirationDate) ?? "Non renseignée",
+        ProfileInfoRow(
+          label: "Date d'expiration",
+          value:
+              ProfileHelpers.formatDate(user?.identityExpirationDate) ??
+              "Non renseignée",
           isExpirationDate: true,
         ),
       ],
     );
   }
 
-  Widget _buildSection({
-    required String title,
-    required IconData icon,
-    required List<Widget> children,
-  }) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.shadow,
-            spreadRadius: 0,
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(icon, color: AppColors.primary, size: 20),
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  title,
-                  style: GoogleFonts.poppins(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const Divider(height: 1),
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(children: children),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(
-    String label,
-    String value, {
-    bool isExpirationDate = false,
-    bool isWarning = false,
-  }) {
-    Color? valueColor;
-
-    if (isWarning) {
-      valueColor = AppColors.warning;
-    } else if (isExpirationDate && value != "Non renseignée") {
-      try {
-        final parts = value.split('/');
-        if (parts.length == 3) {
-          final day = int.parse(parts[0]);
-          final month = int.parse(parts[1]);
-          final year = int.parse(parts[2]);
-          final expirationDate = DateTime(year, month, day);
-          final now = DateTime.now();
-          final daysUntilExpiration = expirationDate.difference(now).inDays;
-
-          if (daysUntilExpiration < 0) {
-            valueColor = AppColors.error;
-          } else if (daysUntilExpiration <= 30) {
-            valueColor = AppColors.warning;
-          } else {
-            valueColor = AppColors.success;
-          }
-        }
-      } catch (e) {
-        valueColor = AppColors.textPrimary;
-      }
-    }
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            flex: 2,
-            child: Text(
-              label,
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: AppColors.textSecondary,
-              ),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            flex: 3,
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    value,
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: valueColor ?? AppColors.textPrimary,
-                    ),
-                  ),
-                ),
-                if (isWarning)
-                  Padding(
-                    padding: const EdgeInsets.only(left: 8),
-                    child: Tooltip(
-                      message: "À compléter",
-                      child: Icon(
-                        Icons.warning_rounded,
-                        color: AppColors.warning,
-                        size: 16,
-                      ),
-                    ),
-                  ),
-                if (isExpirationDate && valueColor == AppColors.warning)
-                  Padding(
-                    padding: const EdgeInsets.only(left: 8),
-                    child: Tooltip(
-                      message: "Expire bientôt",
-                      child: Icon(
-                        Icons.warning_rounded,
-                        color: AppColors.warning,
-                        size: 16,
-                      ),
-                    ),
-                  ),
-                if (isExpirationDate && valueColor == AppColors.error)
-                  Padding(
-                    padding: const EdgeInsets.only(left: 8),
-                    child: Tooltip(
-                      message: "Pièce expirée",
-                      child: Icon(
-                        Icons.error_rounded,
-                        color: AppColors.error,
-                        size: 16,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildActionButtons() {
     return Column(
       children: [
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton.icon(
-            onPressed: () => _changePassword(),
-            icon: const Icon(Icons.lock_reset_rounded, size: 18),
-            label: Text(
-              "Changer le mot de passe",
-              style: GoogleFonts.poppins(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppColors.warning,
-              side: BorderSide(color: AppColors.warning),
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          ),
+        ProfileActionButton(
+          text: "Changer le mot de passe",
+          icon: Icons.lock_reset_rounded,
+          onPressed: _changePassword,
+          backgroundColor: AppColors.warning,
+          foregroundColor: AppColors.warning,
+          borderColor: AppColors.warning,
+          isOutlined: true,
         ),
         const SizedBox(height: 12),
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton.icon(
-            onPressed: () => _showLogoutDialog(),
-            icon: const Icon(Icons.logout_rounded, size: 18),
-            label: Text(
-              "Se déconnecter",
-              style: GoogleFonts.poppins(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppColors.error,
-              side: BorderSide(color: AppColors.error),
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          ),
+        ProfileActionButton(
+          text: "Se déconnecter",
+          icon: Icons.logout_rounded,
+          onPressed: _showLogoutDialog,
+          backgroundColor: AppColors.error,
+          foregroundColor: AppColors.error,
+          borderColor: AppColors.error,
+          isOutlined: true,
         ),
       ],
     );
