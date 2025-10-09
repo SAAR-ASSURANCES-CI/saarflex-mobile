@@ -1,12 +1,17 @@
 import 'package:saarflex_app/core/constants/colors.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:saarflex_app/data/models/critere_tarification_model.dart';
 import 'package:saarflex_app/presentation/features/simulation/viewmodels/simulation_viewmodel.dart';
 import 'package:saarflex_app/presentation/shared/widgets/dynamic_form_field.dart';
 import 'package:saarflex_app/data/models/product_model.dart';
 import 'package:saarflex_app/presentation/shared/widgets/beneficiaires_collection_widget.dart';
+import 'package:saarflex_app/presentation/features/simulation/widgets/simulation_app_bar.dart';
+import 'package:saarflex_app/presentation/features/simulation/widgets/simulation_loading_state.dart';
+import 'package:saarflex_app/presentation/features/simulation/widgets/simulation_error_state.dart';
+import 'package:saarflex_app/presentation/features/simulation/widgets/simulation_product_header.dart';
+import 'package:saarflex_app/presentation/features/simulation/widgets/simulation_form_title.dart';
+import 'package:saarflex_app/presentation/features/simulation/widgets/simulation_bottom_button.dart';
 import 'simulation_result_screen.dart';
 
 class SimulationScreen extends StatefulWidget {
@@ -22,6 +27,7 @@ class SimulationScreen extends StatefulWidget {
     this.userId,
     this.informationsAssure,
   });
+
   @override
   State<SimulationScreen> createState() => _SimulationScreenState();
 }
@@ -29,7 +35,7 @@ class SimulationScreen extends StatefulWidget {
 class _SimulationScreenState extends State<SimulationScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  // Dans SimulationScreen - ajoutez cette méthode
+  // Méthode helper pour le formatage
   bool _critereNecessiteFormatage(CritereTarification critere) {
     const champsAvecSeparateurs = [
       'capital',
@@ -68,7 +74,6 @@ class _SimulationScreenState extends State<SimulationScreen> {
 
   @override
   void dispose() {
-    // Nettoyer les ressources si nécessaire
     super.dispose();
   }
 
@@ -78,164 +83,20 @@ class _SimulationScreenState extends State<SimulationScreen> {
       builder: (context, simulationProvider, child) {
         return Scaffold(
           backgroundColor: AppColors.background,
-          appBar: _buildAppBar(),
+          appBar: SimulationAppBar(produit: widget.produit),
           body: simulationProvider.isLoadingCriteres
-              ? _buildLoadingState()
+              ? const SimulationLoadingState()
               : simulationProvider.hasError
-              ? _buildErrorState(simulationProvider)
+              ? SimulationErrorState(provider: simulationProvider)
               : _buildFormContent(simulationProvider),
           bottomNavigationBar: simulationProvider.isLoadingCriteres
               ? null
-              : _buildBottomButton(simulationProvider),
+              : SimulationBottomButton(
+                  provider: simulationProvider,
+                  onSimulate: () => _simuler(simulationProvider),
+                ),
         );
       },
-    );
-  }
-
-  PreferredSizeWidget _buildAppBar() {
-    return AppBar(
-      backgroundColor: AppColors.white,
-      elevation: 0,
-      leading: IconButton(
-        icon: Icon(Icons.arrow_back_ios_rounded, color: AppColors.primary),
-        onPressed: () => Navigator.pop(context),
-      ),
-      title: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Simulation',
-            style: GoogleFonts.poppins(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          Text(
-            widget.produit.nom,
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              fontWeight: FontWeight.w400,
-              color: AppColors.textSecondary,
-            ),
-          ),
-        ],
-      ),
-      centerTitle: false,
-    );
-  }
-
-  Widget _buildLoadingState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(30),
-            ),
-            child: Center(
-              child: SizedBox(
-                width: 30,
-                height: 30,
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-                  strokeWidth: 2,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
-          Text(
-            'Chargement des critÃ¨res...',
-            style: GoogleFonts.poppins(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'PrÃ©paration du formulaire personnalisÃ©',
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              fontWeight: FontWeight.w400,
-              color: AppColors.textSecondary,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildErrorState(SimulationViewModel provider) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                color: AppColors.error.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(40),
-              ),
-              child: Icon(
-                Icons.error_outline_rounded,
-                size: 40,
-                color: AppColors.error,
-              ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'Erreur de chargement',
-              style: GoogleFonts.poppins(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              provider.errorMessage ?? 'Une erreur est survenue',
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                fontWeight: FontWeight.w400,
-                color: AppColors.textSecondary,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () => provider.chargerCriteresProduit(),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: AppColors.white,
-                elevation: 0,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 32,
-                  vertical: 12,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: Text(
-                'RÃ©essayer',
-                style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -247,9 +108,9 @@ class _SimulationScreenState extends State<SimulationScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildProductHeader(),
+            SimulationProductHeader(produit: widget.produit),
             const SizedBox(height: 32),
-            _buildFormTitle(),
+            const SimulationFormTitle(),
             const SizedBox(height: 24),
             ..._buildFormFields(provider),
 
@@ -269,91 +130,6 @@ class _SimulationScreenState extends State<SimulationScreen> {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildProductHeader() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            spreadRadius: 0,
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              color: widget.produit.type.color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              widget.produit.type.icon,
-              color: widget.produit.type.color,
-              size: 24,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  widget.produit.nom,
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  widget.produit.type.label,
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w400,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFormTitle() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Renseignez vos informations',
-          style: GoogleFonts.poppins(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Complètez les champs ci-dessous pour obtenir votre devis personnalisé.',
-          style: GoogleFonts.poppins(
-            fontSize: 14,
-            fontWeight: FontWeight.w400,
-            color: AppColors.textSecondary,
-          ),
-        ),
-      ],
     );
   }
 
@@ -390,7 +166,7 @@ class _SimulationScreenState extends State<SimulationScreen> {
           Expanded(
             child: Text(
               error,
-              style: GoogleFonts.poppins(
+              style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
                 color: AppColors.error,
@@ -402,65 +178,6 @@ class _SimulationScreenState extends State<SimulationScreen> {
     );
   }
 
-  Widget _buildBottomButton(SimulationViewModel provider) {
-    // Vérifier si les bénéficiaires sont requis et complets
-    bool canSimulate = provider.canSimulate;
-    if (widget.produit.necessiteBeneficiaires) {
-      final beneficiaires = provider.beneficiaires;
-      canSimulate =
-          canSimulate &&
-          beneficiaires.length == widget.produit.maxBeneficiaires;
-    }
-
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            spreadRadius: 0,
-            blurRadius: 10,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        child: ElevatedButton(
-          onPressed: canSimulate ? () => _simuler(provider) : null,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: canSimulate
-                ? AppColors.primary
-                : AppColors.textSecondary,
-            foregroundColor: AppColors.white,
-            elevation: 0,
-            minimumSize: const Size(double.infinity, 50),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-          child: provider.isSimulating
-              ? SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.white),
-                    strokeWidth: 2,
-                  ),
-                )
-              : Text(
-                  'Obtenir mon devis',
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-        ),
-      ),
-    );
-  }
-
-  // Dans simulation_screen.dart - méthode _simuler
   Future<void> _simuler(SimulationViewModel provider) async {
     try {
       // Vérifier si les bénéficiaires sont requis et complets
@@ -499,7 +216,6 @@ class _SimulationScreenState extends State<SimulationScreen> {
       await provider.simulerDevisSimplifie();
 
       if (!provider.hasError && provider.dernierResultat != null && mounted) {
-        // 🛠️ OPTIMISATION: Utiliser pushReplacement pour éviter l'accumulation d'écrans
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
