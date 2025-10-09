@@ -1,15 +1,16 @@
-import 'package:saarflex_app/core/constants/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:saarflex_app/presentation/features/simulation/viewmodels/simulation_viewmodel.dart';
-import 'package:saarflex_app/presentation/features/auth/viewmodels/auth_viewmodel.dart';
 import 'package:saarflex_app/presentation/features/contracts/viewmodels/contract_viewmodel.dart';
-import 'package:saarflex_app/data/models/product_model.dart';
-import 'package:saarflex_app/data/models/simulation_model.dart';
+
 import 'package:saarflex_app/core/utils/format_helper.dart';
 import 'package:saarflex_app/presentation/features/contracts/screens/contracts_screen.dart';
 import 'package:saarflex_app/presentation/features/products/screens/product_list_screen.dart';
+import 'package:saarflex_app/core/constants/colors.dart';
+import 'package:saarflex_app/data/models/product_model.dart';
+import 'package:saarflex_app/data/models/simulation_model.dart';
+import 'package:saarflex_app/presentation/features/auth/viewmodels/auth_viewmodel.dart';
 
 class SimulationResultScreen extends StatefulWidget {
   final Product produit;
@@ -51,6 +52,8 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
   Widget build(BuildContext context) {
     return Consumer2<SimulationViewModel, AuthViewModel>(
       builder: (context, simulationProvider, authProvider, child) {
+        final isLoggedIn =
+            authProvider.isLoggedIn && authProvider.currentUser != null;
         _handleSaveMessages(simulationProvider);
         return Scaffold(
           backgroundColor: AppColors.background,
@@ -72,7 +75,7 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
                 const SizedBox(height: 24),
                 _buildBeneficiairesCard(),
 
-                if (authProvider.isLoggedIn) ...[
+                if (isLoggedIn) ...[
                   const SizedBox(height: 24),
                   _buildSaveSection(simulationProvider),
                 ],
@@ -682,7 +685,8 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (authProvider.isLoggedIn) ...[
+            if (authProvider.isLoggedIn &&
+                authProvider.currentUser != null) ...[
               ElevatedButton(
                 onPressed: provider.isSaving
                     ? null
