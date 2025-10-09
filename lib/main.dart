@@ -1,22 +1,19 @@
+import 'package:saarflex_app/core/constants/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-
-import 'providers/auth_provider.dart';
-import 'providers/user_provider.dart';
-import 'providers/product_provider.dart';
-import 'providers/simulation_provider.dart';
-import 'providers/contract_provider.dart';
-import 'providers/beneficiaire_provider.dart';
-
-import 'screens/auth/welcome_screen.dart';
-import 'screens/dashboard/dashboard_screen.dart';
-import 'screens/auth/login_screen.dart';
-import 'screens/auth/signup_screen.dart';
-import 'screens/contracts/contracts_screen.dart';
-
-import 'constants/colors.dart';
+import 'presentation/features/auth/viewmodels/auth_viewmodel.dart';
+import 'presentation/features/profile/viewmodels/profile_viewmodel.dart';
+import 'presentation/features/products/viewmodels/product_viewmodel.dart';
+import 'presentation/features/simulation/viewmodels/simulation_viewmodel.dart';
+import 'presentation/features/contracts/viewmodels/contract_viewmodel.dart';
+import 'presentation/features/beneficiaires/viewmodels/beneficiaire_viewmodel.dart';
+import 'presentation/features/auth/screens/welcome_screen.dart';
+import 'presentation/features/dashboard/screens/dashboard_screen.dart';
+import 'presentation/features/auth/screens/login_screen.dart';
+import 'presentation/features/auth/screens/signup_screen.dart';
+import 'presentation/features/contracts/screens/contracts_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,21 +28,23 @@ class Saarflex extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider<AuthProvider>(
-          create: (_) => AuthProvider()..initializeAuth(),
+        ChangeNotifierProvider<AuthViewModel>(
+          create: (_) => AuthViewModel()..initializeAuth(),
         ),
-        ChangeNotifierProvider<ProductProvider>(
-          create: (_) => ProductProvider(),
+        ChangeNotifierProvider<ProductViewModel>(
+          create: (_) => ProductViewModel(),
         ),
-        ChangeNotifierProvider<UserProvider>(create: (_) => UserProvider()),
-        ChangeNotifierProvider<SimulationProvider>(
-          create: (_) => SimulationProvider(),
+        ChangeNotifierProvider<ProfileViewModel>(
+          create: (_) => ProfileViewModel(),
         ),
-        ChangeNotifierProvider<ContractProvider>(
-          create: (_) => ContractProvider(),
+        ChangeNotifierProvider<SimulationViewModel>(
+          create: (_) => SimulationViewModel(),
         ),
-        ChangeNotifierProvider<BeneficiaireProvider>(
-          create: (_) => BeneficiaireProvider(),
+        ChangeNotifierProvider<ContractViewModel>(
+          create: (_) => ContractViewModel(),
+        ),
+        ChangeNotifierProvider<BeneficiaireViewModel>(
+          create: (_) => BeneficiaireViewModel(),
         ),
       ],
       child: MaterialApp(
@@ -102,7 +101,7 @@ class AuthenticationWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<AuthProvider>(
+    return Consumer<AuthViewModel>(
       builder: (context, authProvider, child) {
         if (authProvider.isLoading) {
           return Scaffold(
