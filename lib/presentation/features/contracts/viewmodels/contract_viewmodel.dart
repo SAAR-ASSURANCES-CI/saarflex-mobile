@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:saarflex_app/data/models/saved_quote_model.dart';
 import 'package:saarflex_app/data/models/contract_model.dart';
-import 'package:saarflex_app/data/repositories/contract_service.dart';
+import 'package:saarflex_app/data/services/contract_service.dart';
 import 'package:saarflex_app/core/utils/logger.dart';
 
 class ContractViewModel extends ChangeNotifier {

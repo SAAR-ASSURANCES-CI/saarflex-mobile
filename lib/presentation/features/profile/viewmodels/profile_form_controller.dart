@@ -3,7 +3,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:saarflex_app/presentation/features/auth/viewmodels/auth_viewmodel.dart';
 import 'package:saarflex_app/presentation/features/profile/viewmodels/profile_validation_controller.dart';
-import 'package:saarflex_app/data/repositories/image_service.dart';
+import 'package:saarflex_app/data/services/image_service.dart';
 import 'package:saarflex_app/core/utils/error_handler.dart';
 
 class ProfileFormController extends ChangeNotifier {

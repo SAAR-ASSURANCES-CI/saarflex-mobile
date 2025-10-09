@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:saarflex_app/data/models/beneficiaire_model.dart';
-import 'package:saarflex_app/data/repositories/beneficiaire_service.dart';
+import 'package:saarflex_app/data/services/beneficiaire_service.dart';
 import 'package:saarflex_app/core/utils/logger.dart';
 
 class BeneficiaireViewModel extends ChangeNotifier {

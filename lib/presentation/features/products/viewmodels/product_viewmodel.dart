@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:saarflex_app/data/models/critere_tarification_model.dart';
 import 'package:saarflex_app/data/models/product_model.dart';
-import 'package:saarflex_app/data/repositories/product_service.dart';
+import 'package:saarflex_app/data/services/product_service.dart';
 
 class ProductViewModel extends ChangeNotifier {
   final ProductService _productService = ProductService();
@@ -27,29 +27,29 @@ class ProductViewModel extends ChangeNotifier {
 
   int get totalProductsCount => _allProducts.length;
   int get filteredProductsCount => _filteredProducts.length;
-  
+
   Future<Map<ProductType, int>> get productCountByType async {
     return await _productService.getProductCountByType();
   }
 
-  List<Product> get vieProducts => 
+  List<Product> get vieProducts =>
       _allProducts.where((p) => p.type == ProductType.vie).toList();
-  
-  List<Product> get nonVieProducts => 
+
+  List<Product> get nonVieProducts =>
       _allProducts.where((p) => p.type == ProductType.nonVie).toList();
 
   bool get hasProducts => _allProducts.isNotEmpty;
   bool get hasFilteredProducts => _filteredProducts.isNotEmpty;
   bool get isFiltered => _selectedFilter != null || _searchQuery.isNotEmpty;
 
+  List<CritereTarification> _criteresProduit = [];
+  final Map<String, dynamic> _grillesTarifaires = {};
+  bool _isLoadingCriteres = false;
 
-List<CritereTarification> _criteresProduit = [];
-final Map<String, dynamic> _grillesTarifaires = {};
-bool _isLoadingCriteres = false;
-
-List<CritereTarification> get criteresProduit => List.unmodifiable(_criteresProduit);
-Map<String, dynamic> get grillesTarifaires => _grillesTarifaires;
-bool get isLoadingCriteres => _isLoadingCriteres;
+  List<CritereTarification> get criteresProduit =>
+      List.unmodifiable(_criteresProduit);
+  Map<String, dynamic> get grillesTarifaires => _grillesTarifaires;
+  bool get isLoadingCriteres => _isLoadingCriteres;
 
   Future<void> loadProducts() async {
     _setLoading(true);
@@ -106,20 +106,22 @@ bool get isLoadingCriteres => _isLoadingCriteres;
 
   void _applyCurrentFilters() {
     List<Product> filtered = List.from(_allProducts);
-    
+
     if (_selectedFilter != null) {
-      filtered = filtered.where((product) => product.type == _selectedFilter).toList();
+      filtered = filtered
+          .where((product) => product.type == _selectedFilter)
+          .toList();
     }
-    
+
     if (_searchQuery.isNotEmpty) {
       final lowerQuery = _searchQuery.toLowerCase();
       filtered = filtered.where((product) {
         return product.nom.toLowerCase().contains(lowerQuery) ||
-               product.description.toLowerCase().contains(lowerQuery) ||
-               product.typeLabel.toLowerCase().contains(lowerQuery);
+            product.description.toLowerCase().contains(lowerQuery) ||
+            product.typeLabel.toLowerCase().contains(lowerQuery);
       }).toList();
     }
-    
+
     _filteredProducts = filtered;
   }
 
@@ -143,45 +145,40 @@ bool get isLoadingCriteres => _isLoadingCriteres;
     notifyListeners();
   }
 
-Future<void> loadProductCriteres(String productId) async {
-  _setLoadingCriteres(true);
-  _clearError();
+  Future<void> loadProductCriteres(String productId) async {
+    _setLoadingCriteres(true);
+    _clearError();
 
-  try {
-    _criteresProduit = await _productService.getProductCriteres(productId);
-  } catch (e) {
-    _setError('Erreur lors du chargement des critères: ${e.toString()}');
-  } finally {
-    _setLoadingCriteres(false);
-  }
-}
-
-
-
-
-Future<String?> getDefaultGrilleTarifaireId(String productId) async {
-  try {
-    final grilles = await _productService.getGrillesTarifaires(productId);
-    
-    if (grilles.isNotEmpty) {
-      final grilleActive = grilles.firstWhere(
-        (grille) => grille['statut'] == 'actif',
-        orElse: () => grilles.first,
-      );
-      
-      final grilleId = grilleActive['id']?.toString();
-      return grilleId;
+    try {
+      _criteresProduit = await _productService.getProductCriteres(productId);
+    } catch (e) {
+      _setError('Erreur lors du chargement des critères: ${e.toString()}');
+    } finally {
+      _setLoadingCriteres(false);
     }
-    return null;
-  } catch (e) {
-    return null;
   }
-}
 
-void _setLoadingCriteres(bool loading) {
-  _isLoadingCriteres = loading;
-  notifyListeners();
-}
+  Future<String?> getDefaultGrilleTarifaireId(String productId) async {
+    try {
+      final grilles = await _productService.getGrillesTarifaires(productId);
 
+      if (grilles.isNotEmpty) {
+        final grilleActive = grilles.firstWhere(
+          (grille) => grille['statut'] == 'actif',
+          orElse: () => grilles.first,
+        );
 
+        final grilleId = grilleActive['id']?.toString();
+        return grilleId;
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  void _setLoadingCriteres(bool loading) {
+    _isLoadingCriteres = loading;
+    notifyListeners();
+  }
 }

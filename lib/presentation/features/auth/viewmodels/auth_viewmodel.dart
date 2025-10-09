@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:path/path.dart' as path;
-import 'package:saarflex_app/data/repositories/api_service.dart';
+import 'package:saarflex_app/data/services/api_service.dart';
 import 'package:saarflex_app/data/models/user_model.dart';
 import 'package:saarflex_app/core/constants/api_constants.dart';
 import 'package:saarflex_app/core/utils/logger.dart';

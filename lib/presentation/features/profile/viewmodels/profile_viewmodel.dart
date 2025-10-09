@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:saarflex_app/data/models/user_model.dart';
-import 'package:saarflex_app/data/repositories/api_service.dart';
+import 'package:saarflex_app/data/services/api_service.dart';
 
 class ProfileViewModel with ChangeNotifier {
   final ApiService _apiService = ApiService();
