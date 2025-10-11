@@ -128,7 +128,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   if (_generalError != null) ...[
                     ErrorHandler.buildAutoDisappearingErrorContainer(
                       _generalError!,
-                      () => setState(() => _generalError = null),
                     ),
                     const SizedBox(height: 20),
                   ],

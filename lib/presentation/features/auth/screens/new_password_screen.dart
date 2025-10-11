@@ -38,8 +38,11 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
   }
 
   void _validateForm() {
-    _passwordErrors = ErrorHandler.validatePassword(_passwordController.text);
-    
+    final passwordError = ErrorHandler.validatePassword(
+      _passwordController.text,
+    );
+    _passwordErrors = passwordError != null ? [passwordError] : [];
+
     if (_confirmPasswordController.text.isNotEmpty) {
       if (_confirmPasswordController.text != _passwordController.text) {
         _confirmPasswordError = 'Les mots de passe ne correspondent pas';
@@ -83,7 +86,6 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
                   if (_generalError != null) ...[
                     ErrorHandler.buildAutoDisappearingErrorContainer(
                       _generalError!,
-                      () => setState(() => _generalError = null),
                     ),
                     const SizedBox(height: 20),
                   ],
@@ -196,7 +198,8 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
                 _obscurePassword ? Icons.visibility_off : Icons.visibility,
                 color: AppColors.textSecondary,
               ),
-              onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+              onPressed: () =>
+                  setState(() => _obscurePassword = !_obscurePassword),
             ),
             filled: true,
             fillColor: AppColors.surface,
@@ -215,7 +218,9 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(
-                color: _passwordErrors.isNotEmpty ? AppColors.error : AppColors.primary,
+                color: _passwordErrors.isNotEmpty
+                    ? AppColors.error
+                    : AppColors.primary,
                 width: 2,
               ),
             ),
@@ -260,10 +265,14 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
             prefixIcon: Icon(Icons.lock_outline, color: AppColors.primary),
             suffixIcon: IconButton(
               icon: Icon(
-                _obscureConfirmPassword ? Icons.visibility_off : Icons.visibility,
+                _obscureConfirmPassword
+                    ? Icons.visibility_off
+                    : Icons.visibility,
                 color: AppColors.textSecondary,
               ),
-              onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+              onPressed: () => setState(
+                () => _obscureConfirmPassword = !_obscureConfirmPassword,
+              ),
             ),
             filled: true,
             fillColor: AppColors.surface,
@@ -282,7 +291,9 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(
-                color: _confirmPasswordError != null ? AppColors.error : AppColors.primary,
+                color: _confirmPasswordError != null
+                    ? AppColors.error
+                    : AppColors.primary,
                 width: 2,
               ),
             ),
@@ -320,7 +331,7 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
     final requirements = [
       "Au moins 8 caractères",
       "Une lettre majuscule",
-      "Une lettre minuscule", 
+      "Une lettre minuscule",
       "Un chiffre",
       "Un caractère spécial (@, !, %, *, ?, &)",
     ];
@@ -478,7 +489,7 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
 
       if (success && mounted) {
         ErrorHandler.showSuccessSnackBar(
-          context, 
+          context,
           'Mot de passe mis à jour avec succès !',
         );
 
@@ -497,15 +508,19 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
         if (authProvider.errorMessage != null) {
           final message = authProvider.errorMessage!.toLowerCase();
 
-          if (message.contains('code') && (message.contains('invalid') || message.contains('incorrect'))) {
+          if (message.contains('code') &&
+              (message.contains('invalid') || message.contains('incorrect'))) {
             errorMessage = 'Code de vérification invalide ou expiré';
           } else if (message.contains('expired')) {
             errorMessage = 'Session expirée. Recommencez le processus';
           } else if (message.contains('password') && message.contains('weak')) {
-            errorMessage = 'Mot de passe trop faible. Utilisez un mot de passe plus complexe';
-          } else if (message.contains('network') || message.contains('connexion')) {
+            errorMessage =
+                'Mot de passe trop faible. Utilisez un mot de passe plus complexe';
+          } else if (message.contains('network') ||
+              message.contains('connexion')) {
             errorMessage = 'Problème de connexion internet';
-          } else if (message.contains('server') || message.contains('serveur')) {
+          } else if (message.contains('server') ||
+              message.contains('serveur')) {
             errorMessage = 'Erreur du serveur. Réessayez plus tard';
           } else {
             errorMessage = authProvider.errorMessage!;

@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:saarflex_app/core/utils/session_manager.dart';
+import 'package:saarflex_app/core/widgets/app_lifecycle_wrapper.dart';
 import 'presentation/features/auth/viewmodels/auth_viewmodel.dart';
 import 'presentation/features/profile/viewmodels/profile_viewmodel.dart';
 import 'presentation/features/products/viewmodels/product_viewmodel.dart';
@@ -17,6 +19,9 @@ import 'presentation/features/contracts/screens/contracts_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialisation du gestionnaire de session
+  SessionManager().initialize();
 
   runApp(const Saarflex());
 }
@@ -47,50 +52,52 @@ class Saarflex extends StatelessWidget {
           create: (_) => BeneficiaireViewModel(),
         ),
       ],
-      child: MaterialApp(
-        title: 'SAAR Assurances',
-        debugShowCheckedModeBanner: false,
+      child: AppLifecycleWrapper(
+        child: MaterialApp(
+          title: 'SAAR Assurances',
+          debugShowCheckedModeBanner: false,
 
-        localizationsDelegates: const [
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: const [Locale('fr', 'FR'), Locale('en', 'US')],
-        locale: const Locale('fr', 'FR'),
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('fr', 'FR'), Locale('en', 'US')],
+          locale: const Locale('fr', 'FR'),
 
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-          primaryColor: AppColors.primary,
-          fontFamily: GoogleFonts.poppins().fontFamily,
+          theme: ThemeData(
+            primarySwatch: Colors.blue,
+            primaryColor: AppColors.primary,
+            fontFamily: GoogleFonts.poppins().fontFamily,
 
-          colorScheme: ColorScheme.light(
-            primary: AppColors.primary,
-            secondary: AppColors.secondary,
-            surface: AppColors.white,
-          ),
-
-          appBarTheme: AppBarTheme(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            titleTextStyle: GoogleFonts.poppins(
-              color: AppColors.primary,
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
+            colorScheme: ColorScheme.light(
+              primary: AppColors.primary,
+              secondary: AppColors.secondary,
+              surface: AppColors.white,
             ),
-            iconTheme: IconThemeData(color: AppColors.primary),
+
+            appBarTheme: AppBarTheme(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              titleTextStyle: GoogleFonts.poppins(
+                color: AppColors.primary,
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+              ),
+              iconTheme: IconThemeData(color: AppColors.primary),
+            ),
           ),
+
+          home: const AuthenticationWrapper(),
+
+          routes: {
+            '/welcome': (context) => const WelcomeScreen(),
+            '/login': (context) => const LoginScreen(),
+            '/signup': (context) => const SignupScreen(),
+            '/dashboard': (context) => const DashboardScreen(),
+            '/contracts': (context) => const ContractsScreen(),
+          },
         ),
-
-        home: const AuthenticationWrapper(),
-
-        routes: {
-          '/welcome': (context) => const WelcomeScreen(),
-          '/login': (context) => const LoginScreen(),
-          '/signup': (context) => const SignupScreen(),
-          '/dashboard': (context) => const DashboardScreen(),
-          '/contracts': (context) => const ContractsScreen(),
-        },
       ),
     );
   }

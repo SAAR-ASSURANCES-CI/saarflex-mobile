@@ -21,7 +21,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
     (index) => TextEditingController(),
   );
   final List<FocusNode> _focusNodes = List.generate(6, (index) => FocusNode());
-  
+
   bool _isFormValid = false;
   String? _generalError;
 
@@ -37,7 +37,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
     final isValid = _controllers.every(
       (controller) => controller.text.isNotEmpty && controller.text.length == 1,
     );
-    
+
     setState(() {
       _isFormValid = isValid;
       if (isValid) {
@@ -66,7 +66,6 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                 if (_generalError != null) ...[
                   ErrorHandler.buildAutoDisappearingErrorContainer(
                     _generalError!,
-                    () => setState(() => _generalError = null),
                   ),
                   const SizedBox(height: 20),
                 ],
@@ -334,14 +333,12 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
 
       if (success && mounted) {
         ErrorHandler.showSuccessSnackBar(context, 'Code vérifié avec succès !');
-        
+
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (_) => NewPasswordScreen(
-              email: widget.email, 
-              code: _otpCode,
-            ),
+            builder: (_) =>
+                NewPasswordScreen(email: widget.email, code: _otpCode),
           ),
         );
       } else if (mounted) {
@@ -350,17 +347,21 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
         if (authProvider.errorMessage != null) {
           final message = authProvider.errorMessage!.toLowerCase();
 
-          if (message.contains('code') && (message.contains('incorrect') || message.contains('invalid'))) {
+          if (message.contains('code') &&
+              (message.contains('incorrect') || message.contains('invalid'))) {
             errorMessage = 'Code incorrect. Vérifiez le code reçu par email';
             _clearOtpFields();
-          } else if (message.contains('expired') || message.contains('expire')) {
+          } else if (message.contains('expired') ||
+              message.contains('expire')) {
             errorMessage = 'Code expiré. Demandez un nouveau code';
             _clearOtpFields();
           } else if (message.contains('too many')) {
             errorMessage = 'Trop de tentatives. Patientez quelques minutes';
-          } else if (message.contains('network') || message.contains('connexion')) {
+          } else if (message.contains('network') ||
+              message.contains('connexion')) {
             errorMessage = 'Problème de connexion internet';
-          } else if (message.contains('server') || message.contains('serveur')) {
+          } else if (message.contains('server') ||
+              message.contains('serveur')) {
             errorMessage = 'Erreur du serveur. Réessayez plus tard';
           } else {
             errorMessage = authProvider.errorMessage!;
@@ -382,7 +383,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
 
   Future<void> _handleResendCode() async {
     final authProvider = context.read<AuthViewModel>();
-    
+
     setState(() {
       _generalError = null;
     });
@@ -402,7 +403,8 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
 
           if (message.contains('too many')) {
             errorMessage = 'Trop de tentatives. Patientez quelques minutes';
-          } else if (message.contains('network') || message.contains('connexion')) {
+          } else if (message.contains('network') ||
+              message.contains('connexion')) {
             errorMessage = 'Problème de connexion internet';
           } else {
             errorMessage = authProvider.errorMessage!;

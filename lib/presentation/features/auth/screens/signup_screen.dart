@@ -98,9 +98,11 @@ class _SignupScreenState extends State<SignupScreen> {
 
   void _validateNameOptimized() {
     if (!mounted) return;
-    
-    final newNameError = ValidationCache.validateNameOptimized(_nameController.text);
-    
+
+    final newNameError = ValidationCache.validateNameOptimized(
+      _nameController.text,
+    );
+
     if (_nameError != newNameError) {
       setState(() {
         _nameError = newNameError;
@@ -111,9 +113,11 @@ class _SignupScreenState extends State<SignupScreen> {
 
   void _validateEmailOptimized() {
     if (!mounted) return;
-    
-    final newEmailError = ValidationCache.validateEmailOptimized(_emailController.text);
-    
+
+    final newEmailError = ValidationCache.validateEmailOptimized(
+      _emailController.text,
+    );
+
     if (_emailError != newEmailError) {
       setState(() {
         _emailError = newEmailError;
@@ -124,9 +128,11 @@ class _SignupScreenState extends State<SignupScreen> {
 
   void _validatePhoneOptimized() {
     if (!mounted) return;
-    
-    final newPhoneError = ValidationCache.validatePhoneOptimized(_phoneController.text);
-    
+
+    final newPhoneError = ValidationCache.validatePhoneOptimized(
+      _phoneController.text,
+    );
+
     if (_phoneError != newPhoneError) {
       setState(() {
         _phoneError = newPhoneError;
@@ -137,9 +143,11 @@ class _SignupScreenState extends State<SignupScreen> {
 
   void _validatePasswordOptimized() {
     if (!mounted) return;
-    
-    final newPasswordErrors = ValidationCache.validatePasswordOptimized(_passwordController.text);
-    
+
+    final newPasswordErrors = ValidationCache.validatePasswordOptimized(
+      _passwordController.text,
+    );
+
     if (_passwordErrors.join() != newPasswordErrors.join()) {
       setState(() {
         _passwordErrors = newPasswordErrors;
@@ -150,9 +158,9 @@ class _SignupScreenState extends State<SignupScreen> {
 
   void _validateConfirmPasswordOptimized() {
     if (!mounted) return;
-    
+
     String? newConfirmPasswordError;
-    
+
     if (_confirmPasswordController.text.isNotEmpty) {
       if (_confirmPasswordController.text != _passwordController.text) {
         newConfirmPasswordError = 'Les mots de passe ne correspondent pas';
@@ -164,7 +172,7 @@ class _SignupScreenState extends State<SignupScreen> {
     } else {
       newConfirmPasswordError = null;
     }
-    
+
     if (_confirmPasswordError != newConfirmPasswordError) {
       setState(() {
         _confirmPasswordError = newConfirmPasswordError;
@@ -174,17 +182,18 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 
   void _updateFormValidity() {
-    final newIsValid = _nameError == null &&
-                       _emailError == null &&
-                       _phoneError == null &&
-                       _passwordErrors.isEmpty &&
-                       _confirmPasswordError == null &&
-                       _acceptTerms &&
-                       _nameController.text.isNotEmpty &&
-                       _emailController.text.isNotEmpty &&
-                       _phoneController.text.isNotEmpty &&
-                       _passwordController.text.isNotEmpty &&
-                       _confirmPasswordController.text.isNotEmpty;
+    final newIsValid =
+        _nameError == null &&
+        _emailError == null &&
+        _phoneError == null &&
+        _passwordErrors.isEmpty &&
+        _confirmPasswordError == null &&
+        _acceptTerms &&
+        _nameController.text.isNotEmpty &&
+        _emailController.text.isNotEmpty &&
+        _phoneController.text.isNotEmpty &&
+        _passwordController.text.isNotEmpty &&
+        _confirmPasswordController.text.isNotEmpty;
 
     if (_isFormValid != newIsValid) {
       _isFormValid = newIsValid;
@@ -216,7 +225,6 @@ class _SignupScreenState extends State<SignupScreen> {
                   if (_generalError != null) ...[
                     ErrorHandler.buildAutoDisappearingErrorContainer(
                       _generalError!,
-                      () => setState(() => _generalError = null),
                     ),
                     const SizedBox(height: 20),
                   ],
@@ -552,39 +560,41 @@ class _SignupScreenState extends State<SignupScreen> {
     );
   }
 
- Future<void> _handleSignup(AuthViewModel authProvider) async {
-  setState(() {
-    _generalError = null;
-    _autovalidateMode = AutovalidateMode.onUserInteraction;
-  });
+  Future<void> _handleSignup(AuthViewModel authProvider) async {
+    setState(() {
+      _generalError = null;
+      _autovalidateMode = AutovalidateMode.onUserInteraction;
+    });
 
-  if (!_formKey.currentState!.validate()) {
-    return;
-  }
-
-  try {
-    final success = await authProvider.signup( 
-      nom: _nameController.text.trim(),
-      email: _emailController.text.trim(),
-      telephone: _phoneController.text.trim(),
-      password: _passwordController.text,
-    );
-
-    if (success && mounted) {
-      Navigator.pushReplacementNamed(context, '/dashboard');
-    } else if (mounted) {
-      setState(() {
-        _generalError = authProvider.errorMessage ?? 'Erreur lors de la création du compte';
-      });
+    if (!_formKey.currentState!.validate()) {
+      return;
     }
-  } catch (e) {
-    if (mounted) {
-      setState(() {
-        _generalError = 'Une erreur inattendue s\'est produite';
-      });
+
+    try {
+      final success = await authProvider.signup(
+        nom: _nameController.text.trim(),
+        email: _emailController.text.trim(),
+        telephone: _phoneController.text.trim(),
+        password: _passwordController.text,
+      );
+
+      if (success && mounted) {
+        Navigator.pushReplacementNamed(context, '/dashboard');
+      } else if (mounted) {
+        setState(() {
+          _generalError =
+              authProvider.errorMessage ??
+              'Erreur lors de la création du compte';
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _generalError = 'Une erreur inattendue s\'est produite';
+        });
+      }
     }
   }
-}
 
   @override
   void dispose() {

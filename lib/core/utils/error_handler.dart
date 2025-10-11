@@ -1,405 +1,299 @@
-import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:saarflex_app/core/constants/colors.dart';
 import 'package:saarflex_app/data/services/api_service.dart';
+import 'package:saarflex_app/core/utils/logger.dart';
 
+/// Gestionnaire d'erreurs centralisé
+/// Responsabilité : Gestion uniforme des erreurs dans l'application
 class ErrorHandler {
-  static const Map<String, String> _authErrors = {
-    'email_not_found': 'Aucun compte trouvé',
-    'invalid_password': 'Mot de passe incorrect',
-    'user_disabled': 'Ce compte a été désactivé',
-    'too_many_requests':
-        'Trop de tentatives. Veuillez patienter quelques minutes',
-    'email_already_exists': 'Un compte existe déjà avec cette adresse email',
-    'weak_password': 'Le mot de passe est trop faible',
-    'invalid_email': 'Format d\'email invalide',
-    'network_error': 'Problème de connexion internet',
-    'server_error': 'Erreur du serveur. Veuillez réessayer plus tard',
-    'timeout': 'Délai d\'attente dépassé. Vérifiez votre connexion',
-    'unauthorized': 'Session expirée. Veuillez vous reconnecter',
-    'forbidden': 'Accès non autorisé',
-    'not_found': 'Service non disponible',
-    'validation_error': 'Données invalides',
-    'unknown_error': 'Une erreur inattendue s\'est produite',
-  };
-
-  static const Map<String, String> _profileErrors = {
-    'name_required': 'Le nom est obligatoire',
-    'name_too_short': 'Le nom doit contenir au moins 2 caractères',
-    'name_too_long': 'Le nom ne peut pas dépasser 50 caractères',
-    'email_required': 'L\'email est obligatoire',
-    'email_invalid': 'Format d\'email invalide (exemple: nom@domaine.com)',
-    'email_exists': 'Cette adresse email est déjà utilisée',
-    'phone_required': 'Le numéro de téléphone est obligatoire',
-    'phone_invalid': 'Format de téléphone invalide',
-    'phone_too_short': 'Le numéro doit contenir au moins 10 chiffres',
-    'phone_exists': 'Ce numéro de téléphone est déjà utilisé',
-    'password_required': 'Le mot de passe est obligatoire',
-    'password_too_short': 'Le mot de passe doit contenir au moins 8 caractères',
-    'password_missing_lowercase':
-        'Le mot de passe doit contenir au moins une minuscule',
-    'password_missing_uppercase':
-        'Le mot de passe doit contenir au moins une majuscule',
-    'password_missing_number':
-        'Le mot de passe doit contenir au moins un chiffre',
-    'password_missing_special':
-        'Le mot de passe doit contenir un caractère spécial',
-    'passwords_dont_match': 'Les mots de passe ne correspondent pas',
-    'update_failed': 'Erreur lors de la mise à jour du profil',
-    'no_changes': 'Aucune modification détectée',
-  };
-
-  static const Map<String, String> _generalErrors = {
-    'connection_error': 'Problème de connexion. Vérifiez votre internet',
-    'server_unavailable': 'Service temporairement indisponible',
-    'invalid_data': 'Données invalides',
-    'permission_denied': 'Permission refusée',
-    'file_too_large': 'Le fichier est trop volumineux',
-    'unsupported_format': 'Format de fichier non supporté',
-  };
-
-  static String getAuthErrorMessage(ApiException exception) {
-    final message = exception.message.toLowerCase();
-
-    if (message.contains('email') &&
-        message.contains('not') &&
-        message.contains('found')) {
-      return _authErrors['email_not_found']!;
+  /// Traitement des erreurs d'authentification
+  /// Convertit les erreurs techniques en messages utilisateur
+  static String handleAuthError(dynamic error) {
+    try {
+      if (error is ApiException) {
+        return _getAuthErrorMessage(error);
+      } else if (error is SocketException) {
+        return 'Problème de connexion internet. Vérifiez votre réseau.';
+      } else if (error is FormatException) {
+        return 'Erreur de format des données. Veuillez réessayer.';
+      } else if (error is HttpException) {
+        return 'Erreur de communication avec le serveur.';
+      } else {
+        return 'Une erreur inattendue est survenue.';
+      }
+    } catch (e) {
+      AppLogger.error('❌ Erreur dans ErrorHandler: $e');
+      return 'Erreur de traitement des erreurs.';
     }
+  }
 
-    if (message.contains('password') && message.contains('incorrect')) {
-      return _authErrors['invalid_password']!;
+  /// Traitement des erreurs d'upload
+  /// Convertit les erreurs d'upload en messages utilisateur
+  static String handleUploadError(dynamic error) {
+    try {
+      if (error is ApiException) {
+        return _getUploadErrorMessage(error);
+      } else if (error is SocketException) {
+        return 'Problème de connexion internet. Vérifiez votre réseau.';
+      } else if (error is FormatException) {
+        return 'Format de fichier non supporté.';
+      } else if (error is HttpException) {
+        return 'Erreur de communication avec le serveur.';
+      } else if (error.toString().contains('Fichier trop volumineux')) {
+        return 'Fichier trop volumineux. Taille maximum: 10MB.';
+      } else if (error.toString().contains('Format de fichier non supporté')) {
+        return 'Format de fichier non supporté. Utilisez JPG, PNG ou WebP.';
+      } else {
+        return 'Erreur lors de l\'upload du fichier.';
+      }
+    } catch (e) {
+      AppLogger.error('❌ Erreur dans ErrorHandler upload: $e');
+      return 'Erreur de traitement des erreurs d\'upload.';
     }
+  }
 
-    if (message.contains('email') &&
-        message.contains('already') &&
-        message.contains('exist')) {
-      return _authErrors['email_already_exists']!;
+  /// Traitement des erreurs de profil
+  /// Convertit les erreurs de profil en messages utilisateur
+  static String handleProfileError(dynamic error) {
+    try {
+      if (error is ApiException) {
+        return _getProfileErrorMessage(error);
+      } else if (error is SocketException) {
+        return 'Problème de connexion internet. Vérifiez votre réseau.';
+      } else if (error is FormatException) {
+        return 'Erreur de format des données.';
+      } else if (error is HttpException) {
+        return 'Erreur de communication avec le serveur.';
+      } else {
+        return 'Erreur lors de la mise à jour du profil.';
+      }
+    } catch (e) {
+      AppLogger.error('❌ Erreur dans ErrorHandler profile: $e');
+      return 'Erreur de traitement des erreurs de profil.';
     }
+  }
 
-    if (message.contains('too many') || message.contains('rate limit')) {
-      return _authErrors['too_many_requests']!;
+  /// Traitement des erreurs génériques
+  /// Convertit les erreurs génériques en messages utilisateur
+  static String handleGenericError(dynamic error) {
+    try {
+      if (error is ApiException) {
+        return error.message;
+      } else if (error is SocketException) {
+        return 'Problème de connexion internet. Vérifiez votre réseau.';
+      } else if (error is FormatException) {
+        return 'Erreur de format des données.';
+      } else if (error is HttpException) {
+        return 'Erreur de communication avec le serveur.';
+      } else {
+        return 'Une erreur inattendue est survenue.';
+      }
+    } catch (e) {
+      AppLogger.error('❌ Erreur dans ErrorHandler générique: $e');
+      return 'Erreur de traitement des erreurs.';
     }
+  }
 
-    if (message.contains('network') || message.contains('connection')) {
-      return _authErrors['network_error']!;
-    }
+  /// Messages d'erreur spécifiques à l'authentification
+  /// Retourne un message utilisateur basé sur le code d'erreur
+  static String _getAuthErrorMessage(ApiException error) {
+    final statusCode = error.statusCode;
+    final message = error.message.toLowerCase();
 
-    if (message.contains('timeout')) {
-      return _authErrors['timeout']!;
-    }
-
-    switch (exception.statusCode) {
+    switch (statusCode) {
+      case 400:
+        if (message.contains('email') || message.contains('utilisateur')) {
+          return 'Aucun compte associé à cet email.';
+        } else if (message.contains('mot de passe') ||
+            message.contains('password')) {
+          return 'Mot de passe incorrect.';
+        } else {
+          return 'Données invalides. Vérifiez vos informations.';
+        }
       case 401:
-        return _authErrors['invalid_password']!;
+        return 'Email ou mot de passe incorrect.';
       case 403:
-        return _authErrors['forbidden']!;
+        return 'Accès interdit. Vérifiez vos permissions.';
       case 404:
-        return _authErrors['email_not_found']!;
+        return 'Service non disponible.';
       case 409:
-        return _authErrors['email_already_exists']!;
+        return 'Un compte avec cet email existe déjà.';
       case 422:
-        return _authErrors['validation_error']!;
+        return 'Erreur de validation. Vérifiez vos données.';
       case 429:
-        return _authErrors['too_many_requests']!;
+        return 'Trop de tentatives. Veuillez patienter quelques minutes.';
       case 500:
-        return _authErrors['server_error']!;
+        return 'Erreur serveur. Veuillez réessayer plus tard.';
       case 503:
-        return _authErrors['server_error']!;
+        return 'Service temporairement indisponible.';
       default:
-        return _authErrors['unknown_error']!;
+        return 'Erreur de connexion. Veuillez réessayer.';
     }
   }
 
-  static String getProfileErrorMessage(ApiException exception) {
-    final message = exception.message.toLowerCase();
+  /// Messages d'erreur spécifiques à l'upload
+  /// Retourne un message utilisateur basé sur le type d'erreur d'upload
+  static String _getUploadErrorMessage(ApiException error) {
+    final statusCode = error.statusCode;
+    final message = error.message.toLowerCase();
 
-    if (message.contains('email') && message.contains('already')) {
-      return _profileErrors['email_exists']!;
-    }
-
-    if (message.contains('phone') && message.contains('already')) {
-      return _profileErrors['phone_exists']!;
-    }
-
-    if (message.contains('validation')) {
-      return _profileErrors['update_failed']!;
-    }
-
-    if (message.contains('connection') || message.contains('network')) {
-      return _generalErrors['connection_error']!;
-    }
-
-    switch (exception.statusCode) {
-      case 409:
-        return _profileErrors['email_exists']!;
-      case 422:
-        return _profileErrors['update_failed']!;
+    switch (statusCode) {
+      case 400:
+        if (message.contains('fichier') || message.contains('file')) {
+          return 'Fichier invalide. Vérifiez le format et la taille.';
+        } else {
+          return 'Données d\'upload invalides.';
+        }
+      case 401:
+        return 'Authentification requise pour l\'upload.';
+      case 403:
+        return 'Permission d\'upload refusée.';
+      case 413:
+        return 'Fichier trop volumineux. Taille maximum: 10MB.';
+      case 415:
+        return 'Format de fichier non supporté.';
       case 500:
-        return _generalErrors['server_unavailable']!;
+        return 'Erreur serveur lors de l\'upload.';
       default:
-        return _profileErrors['update_failed']!;
+        return 'Erreur lors de l\'upload du fichier.';
     }
   }
 
-  static String? validateEmail(String? email) {
-    if (email == null || email.trim().isEmpty) {
-      return _profileErrors['email_required'];
+  /// Messages d'erreur spécifiques au profil
+  /// Retourne un message utilisateur basé sur le type d'erreur de profil
+  static String _getProfileErrorMessage(ApiException error) {
+    final statusCode = error.statusCode;
+    final message = error.message.toLowerCase();
+
+    switch (statusCode) {
+      case 400:
+        if (message.contains('email')) {
+          return 'Email invalide.';
+        } else if (message.contains('téléphone') ||
+            message.contains('telephone')) {
+          return 'Numéro de téléphone invalide.';
+        } else {
+          return 'Données de profil invalides.';
+        }
+      case 401:
+        return 'Authentification requise.';
+      case 403:
+        return 'Permission de modification refusée.';
+      case 404:
+        return 'Profil non trouvé.';
+      case 422:
+        return 'Erreur de validation des données.';
+      case 500:
+        return 'Erreur serveur lors de la mise à jour.';
+      default:
+        return 'Erreur lors de la mise à jour du profil.';
     }
-
-    final cleanEmail = email.trim();
-
-    if (!cleanEmail.contains('@')) {
-      return 'L\'email doit contenir le symbole @';
-    }
-
-    if (cleanEmail.startsWith('@') || cleanEmail.endsWith('@')) {
-      return _profileErrors['email_invalid'];
-    }
-
-    final parts = cleanEmail.split('@');
-    if (parts.length != 2 || parts[0].isEmpty || parts[1].isEmpty) {
-      return _profileErrors['email_invalid'];
-    }
-
-    if (!parts[1].contains('.') ||
-        parts[1].endsWith('.') ||
-        parts[1].startsWith('.')) {
-      return _profileErrors['email_invalid'];
-    }
-
-    if (!RegExp(r'^[\w\.-]+@[\w\.-]+\.[a-zA-Z]{2,}$').hasMatch(cleanEmail)) {
-      return _profileErrors['email_invalid'];
-    }
-
-    return null;
   }
 
-  static List<String> validatePassword(String? password) {
-    List<String> errors = [];
-
-    if (password == null || password.isEmpty) {
-      errors.add(_profileErrors['password_required']!);
-      return errors;
+  /// Vérification si une erreur est récupérable
+  /// Retourne true si l'utilisateur peut réessayer l'action
+  static bool isRecoverableError(dynamic error) {
+    if (error is SocketException) return true;
+    if (error is HttpException) return true;
+    if (error is ApiException) {
+      final statusCode = error.statusCode;
+      return statusCode == null ||
+          statusCode >= 500 ||
+          statusCode == 429; // Erreurs temporaires
     }
-
-    if (password.length < 8) {
-      errors.add(_profileErrors['password_too_short']!);
-    }
-
-    if (!RegExp(r'[a-z]').hasMatch(password)) {
-      errors.add(_profileErrors['password_missing_lowercase']!);
-    }
-
-    if (!RegExp(r'[A-Z]').hasMatch(password)) {
-      errors.add(_profileErrors['password_missing_uppercase']!);
-    }
-
-    if (!RegExp(r'\d').hasMatch(password)) {
-      errors.add(_profileErrors['password_missing_number']!);
-    }
-
-    if (!RegExp(r'[@$!%*?&]').hasMatch(password)) {
-      errors.add(_profileErrors['password_missing_special']!);
-    }
-
-    return errors;
+    return false;
   }
 
-  static String? validateName(String? name) {
-    if (name == null || name.trim().isEmpty) {
-      return _profileErrors['name_required'];
-    }
-
-    if (name.trim().length < 2) {
-      return _profileErrors['name_too_short'];
-    }
-
-    if (name.trim().length > 50) {
-      return _profileErrors['name_too_long'];
-    }
-
-    if (!RegExp(r'[a-zA-ZÀ-ÿ]').hasMatch(name)) {
-      return 'Le nom doit contenir au moins une lettre';
-    }
-
-    return null;
+  /// Obtention du type d'erreur pour le logging
+  /// Retourne le type d'erreur pour faciliter le debugging
+  static String getErrorType(dynamic error) {
+    if (error is ApiException) return 'API_ERROR';
+    if (error is SocketException) return 'NETWORK_ERROR';
+    if (error is FormatException) return 'FORMAT_ERROR';
+    if (error is HttpException) return 'HTTP_ERROR';
+    return 'UNKNOWN_ERROR';
   }
 
-  static String? validatePhone(String? phone) {
-    if (phone == null || phone.trim().isEmpty) {
-      return _profileErrors['phone_required'];
-    }
+  // ===== MÉTHODES POUR L'UI (Widgets) =====
 
-    String cleanPhone = phone.replaceAll(RegExp(r'[\s\-\(\)\+]'), '');
-
-    if (cleanPhone.length < 10) {
-      return _profileErrors['phone_too_short'];
-    }
-
-    if (cleanPhone.length > 15) {
-      return 'Le numéro ne doit pas dépasser 15 chiffres';
-    }
-
-    if (!RegExp(r'^[0-9]+$').hasMatch(cleanPhone)) {
-      return 'Le numéro ne doit contenir que des chiffres';
-    }
-
-    return null;
-  }
-
+  /// Affichage d'un message d'erreur dans un SnackBar
+  /// Affiche un message d'erreur à l'utilisateur
   static void showErrorSnackBar(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Row(
-          children: [
-            Icon(Icons.error_outline_rounded, color: Colors.white, size: 20),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                message,
-                style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ],
-        ),
-        backgroundColor: AppColors.error,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        duration: const Duration(seconds: 4),
-        margin: const EdgeInsets.all(16),
+        content: Text(message),
+        backgroundColor: Colors.red,
+        duration: const Duration(seconds: 3),
       ),
     );
   }
 
+  /// Affichage d'un message de succès dans un SnackBar
+  /// Affiche un message de succès à l'utilisateur
   static void showSuccessSnackBar(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Row(
-          children: [
-            Icon(
-              Icons.check_circle_outline_rounded,
-              color: Colors.white,
-              size: 20,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                message,
-                style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ],
-        ),
-        backgroundColor: AppColors.success,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        duration: const Duration(seconds: 3),
-        margin: const EdgeInsets.all(16),
+        content: Text(message),
+        backgroundColor: Colors.green,
+        duration: const Duration(seconds: 2),
       ),
     );
   }
 
-  static void showWarningSnackBar(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            Icon(Icons.warning_amber_outlined, color: Colors.white, size: 20),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                message,
-                style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ],
-        ),
-        backgroundColor: AppColors.warning,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        duration: const Duration(seconds: 3),
-        margin: const EdgeInsets.all(16),
-      ),
-    );
-  }
+  /// Construction d'un widget d'erreur auto-disparissant
+  /// Crée un widget d'erreur qui disparaît automatiquement
+  static Widget buildAutoDisappearingErrorContainer(String? error) {
+    if (error == null || error.isEmpty) {
+      return const SizedBox.shrink();
+    }
 
-  static Widget buildErrorContainer(String message) {
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.all(12.0),
       decoration: BoxDecoration(
-        color: AppColors.error.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.error.withOpacity(0.3)),
+        color: Colors.red.shade50,
+        border: Border.all(color: Colors.red.shade300),
+        borderRadius: BorderRadius.circular(8.0),
       ),
       child: Row(
         children: [
-          Icon(Icons.error_outline, color: AppColors.error, size: 20),
-          const SizedBox(width: 12),
+          Icon(Icons.error, color: Colors.red.shade600, size: 20),
+          const SizedBox(width: 8),
           Expanded(
-            child: Text(
-              message,
-              style: GoogleFonts.poppins(
-                color: AppColors.error,
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
+            child: Text(error, style: TextStyle(color: Colors.red.shade700)),
           ),
         ],
       ),
     );
   }
 
-  static Widget buildAutoDisappearingErrorContainer(
-    String message,
-    VoidCallback onDismiss,
-  ) {
-    return _AutoDismissErrorWidget(message: message, onDismiss: onDismiss);
-  }
-
+  /// Construction d'une liste d'erreurs
+  /// Crée un widget affichant une liste d'erreurs
   static Widget buildErrorList(List<String> errors) {
-    final nonNullErrors = errors.whereType<String>().toList();
-    if (nonNullErrors.isEmpty) return const SizedBox.shrink();
+    if (errors.isEmpty) {
+      return const SizedBox.shrink();
+    }
 
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.all(12.0),
       decoration: BoxDecoration(
-        color: AppColors.error.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.error.withOpacity(0.3)),
+        color: Colors.red.shade50,
+        border: Border.all(color: Colors.red.shade300),
+        borderRadius: BorderRadius.circular(8.0),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.error_outline, color: AppColors.error, size: 20),
+              Icon(Icons.error, color: Colors.red.shade600, size: 20),
               const SizedBox(width: 8),
               Text(
-                'Corrections nécessaires :',
-                style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.error,
-                  fontSize: 14,
+                'Erreurs détectées:',
+                style: TextStyle(
+                  color: Colors.red.shade700,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ],
@@ -407,13 +301,10 @@ class ErrorHandler {
           const SizedBox(height: 8),
           ...errors.map(
             (error) => Padding(
-              padding: const EdgeInsets.only(left: 28, bottom: 4),
+              padding: const EdgeInsets.only(left: 16, bottom: 4),
               child: Text(
                 '• $error',
-                style: GoogleFonts.poppins(
-                  color: AppColors.error,
-                  fontSize: 13,
-                ),
+                style: TextStyle(color: Colors.red.shade700),
               ),
             ),
           ),
@@ -421,105 +312,62 @@ class ErrorHandler {
       ),
     );
   }
-}
 
-class _AutoDismissErrorWidget extends StatefulWidget {
-  final String message;
-  final VoidCallback onDismiss;
+  // ===== MÉTHODES DE VALIDATION =====
 
-  const _AutoDismissErrorWidget({
-    required this.message,
-    required this.onDismiss,
-  });
-
-  @override
-  State<_AutoDismissErrorWidget> createState() =>
-      _AutoDismissErrorWidgetState();
-}
-
-class _AutoDismissErrorWidgetState extends State<_AutoDismissErrorWidget> {
-  bool isVisible = true;
-  Timer? _timer;
-
-  @override
-  void initState() {
-    super.initState();
-    _timer = Timer(const Duration(seconds: 2), () {
-      if (mounted && isVisible) {
-        setState(() {
-          isVisible = false;
-        });
-        Timer(const Duration(milliseconds: 300), () {
-          if (mounted) {
-            widget.onDismiss();
-          }
-        });
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
-  }
-
-  void _dismissManually() {
-    if (mounted) {
-      setState(() {
-        isVisible = false;
-      });
-      Timer(const Duration(milliseconds: 300), () {
-        if (mounted) {
-          widget.onDismiss();
-        }
-      });
+  /// Validation d'un nom
+  /// Retourne un message d'erreur si le nom est invalide
+  static String? validateName(String? name) {
+    if (name == null || name.trim().isEmpty) {
+      return 'Le nom est obligatoire';
     }
+    if (name.trim().length < 2) {
+      return 'Le nom doit contenir au moins 2 caractères';
+    }
+    return null;
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedOpacity(
-      opacity: isVisible ? 1.0 : 0.0,
-      duration: const Duration(milliseconds: 300),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        height: isVisible ? null : 0,
-        margin: const EdgeInsets.symmetric(vertical: 8),
-        padding: isVisible ? const EdgeInsets.all(16) : EdgeInsets.zero,
-        decoration: BoxDecoration(
-          color: AppColors.error.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.error.withOpacity(0.3)),
-        ),
-        child: isVisible
-            ? Row(
-                children: [
-                  Icon(Icons.error_outline, color: AppColors.error, size: 20),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      widget.message,
-                      style: GoogleFonts.poppins(
-                        color: AppColors.error,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: _dismissManually,
-                    icon: Icon(Icons.close, color: AppColors.error, size: 18),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(
-                      minWidth: 32,
-                      minHeight: 32,
-                    ),
-                  ),
-                ],
-              )
-            : const SizedBox.shrink(),
-      ),
+  /// Validation d'un email
+  /// Retourne un message d'erreur si l'email est invalide
+  static String? validateEmail(String? email) {
+    if (email == null || email.trim().isEmpty) {
+      return 'L\'email est obligatoire';
+    }
+
+    final emailRegex = RegExp(
+      r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
     );
+    if (!emailRegex.hasMatch(email.trim())) {
+      return 'Format d\'email invalide';
+    }
+
+    return null;
+  }
+
+  /// Validation d'un téléphone
+  /// Retourne un message d'erreur si le téléphone est invalide
+  static String? validatePhone(String? phone) {
+    if (phone == null || phone.trim().isEmpty) {
+      return 'Le téléphone est obligatoire';
+    }
+
+    final cleanPhone = phone.replaceAll(RegExp(r'[^\d]'), '');
+    if (cleanPhone.length < 8 || cleanPhone.length > 15) {
+      return 'Numéro de téléphone invalide';
+    }
+
+    return null;
+  }
+
+  /// Validation d'un mot de passe
+  /// Retourne un message d'erreur si le mot de passe est invalide
+  static String? validatePassword(String? password) {
+    if (password == null || password.isEmpty) {
+      return 'Le mot de passe est obligatoire';
+    }
+    if (password.length < 6) {
+      return 'Le mot de passe doit contenir au moins 6 caractères';
+    }
+    return null;
   }
 }

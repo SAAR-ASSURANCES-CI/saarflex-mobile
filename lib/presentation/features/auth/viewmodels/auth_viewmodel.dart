@@ -1,16 +1,17 @@
-import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:http_parser/http_parser.dart';
-import 'package:path/path.dart' as path;
-import 'package:saarflex_app/data/services/api_service.dart';
+import 'package:saarflex_app/data/services/auth_service.dart';
+import 'package:saarflex_app/data/services/user_service.dart';
+import 'package:saarflex_app/data/services/file_upload_service.dart';
 import 'package:saarflex_app/data/models/user_model.dart';
-import 'package:saarflex_app/core/constants/api_constants.dart';
+import 'package:saarflex_app/core/utils/error_handler.dart';
 import 'package:saarflex_app/core/utils/logger.dart';
 
 class AuthViewModel extends ChangeNotifier {
-  final ApiService _apiService = ApiService();
+  // Services - Logique métier déléguée
+  final AuthService _authService = AuthService();
+  final UserService _userService = UserService();
+  final FileUploadService _fileUploadService = FileUploadService();
 
   bool _isLoading = false;
   bool _isLoggedIn = false;
@@ -38,21 +39,50 @@ class AuthViewModel extends ChangeNotifier {
   bool get isAdmin => _currentUser?.isAdmin ?? false;
   bool get isProfileComplete => _currentUser?.isProfileComplete ?? false;
 
+  /// Initialisation de l'authentification
+  /// Vérifie le statut de connexion au démarrage
+  /// RÈGLE: Reload → Déconnexion immédiate
   Future<void> initializeAuth() async {
     _setLoading(true);
     try {
-      final isLoggedIn = await _apiService.isLoggedIn();
+      // RÈGLE 2: Reload détecté → Déconnexion immédiate
+      await _handleReloadLogout();
+
+      final isLoggedIn = await _authService.initializeAuth();
+      _isLoggedIn = isLoggedIn;
+
       if (isLoggedIn) {
         await loadUserProfile();
       }
     } catch (e) {
       _isLoggedIn = false;
       _currentUser = null;
+      _setError(ErrorHandler.handleAuthError(e));
     } finally {
       _setLoading(false);
     }
   }
 
+  /// Gestion de la déconnexion au reload
+  /// RÈGLE 2: Reload → Déconnexion immédiate
+  Future<void> _handleReloadLogout() async {
+    try {
+      // Vérifier si c'est un reload (app redémarrée)
+      // Si l'app démarre et qu'il y a des données de session, c'est un reload
+      final hasStoredToken = await _authService.checkTokenValidity();
+
+      if (hasStoredToken) {
+        // RÈGLE 2: Reload détecté → Déconnexion immédiate
+        AppLogger.error('🔄 Reload détecté - Déconnexion immédiate');
+        await _authService.logout();
+      }
+    } catch (e) {
+      AppLogger.error('❌ Erreur gestion reload: $e');
+    }
+  }
+
+  /// Inscription utilisateur
+  /// Crée un nouveau compte utilisateur
   Future<bool> signup({
     required String nom,
     required String email,
@@ -63,7 +93,7 @@ class AuthViewModel extends ChangeNotifier {
     _clearError();
 
     try {
-      final authResponse = await _apiService.signup(
+      final authResponse = await _authService.signup(
         nom: nom,
         email: email,
         telephone: telephone,
@@ -77,23 +107,21 @@ class AuthViewModel extends ChangeNotifier {
       _setLoading(false);
       notifyListeners();
       return true;
-    } on ApiException catch (e) {
-      _setError(_getErrorMessage(e));
-      _setLoading(false);
-      return false;
     } catch (e) {
-      _setError('Erreur lors de la création du compte');
+      _setError(ErrorHandler.handleAuthError(e));
       _setLoading(false);
       return false;
     }
   }
 
+  /// Connexion utilisateur
+  /// Authentifie l'utilisateur avec email et mot de passe
   Future<bool> login({required String email, required String password}) async {
     _setLoading(true);
     _clearError();
 
     try {
-      final authResponse = await _apiService.login(
+      final authResponse = await _authService.login(
         email: email,
         password: password,
       );
@@ -102,7 +130,7 @@ class AuthViewModel extends ChangeNotifier {
       _isLoggedIn = true;
 
       try {
-        final completeUser = await _apiService.getUserProfile();
+        final completeUser = await _userService.getUserProfile();
         _currentUser = completeUser;
       } catch (profileError) {
         _currentUser = authResponse.user;
@@ -111,43 +139,39 @@ class AuthViewModel extends ChangeNotifier {
       _setLoading(false);
       notifyListeners();
       return true;
-    } on ApiException catch (e) {
-      _setError(_getErrorMessage(e));
-      _setLoading(false);
-      return false;
     } catch (e) {
-      _setError('Erreur de connexion');
+      _setError(ErrorHandler.handleAuthError(e));
       _setLoading(false);
       return false;
     }
   }
 
+  /// Demande de réinitialisation de mot de passe
+  /// Envoie un email avec un code de réinitialisation
   Future<bool> forgotPassword(String email) async {
     _setLoading(true);
     _clearError();
 
     try {
-      await _apiService.forgotPassword(email);
+      await _authService.forgotPassword(email);
       _setLoading(false);
       return true;
-    } on ApiException catch (e) {
-      _setError(_getErrorMessage(e));
-      _setLoading(false);
-      return false;
     } catch (e) {
-      _setError('Erreur lors de l\'envoi');
+      _setError(ErrorHandler.handleAuthError(e));
       _setLoading(false);
       return false;
     }
   }
 
+  /// Déconnexion utilisateur
+  /// Nettoie les données locales et notifie le serveur
   Future<void> logout() async {
     _setLoading(true);
 
     try {
-      await _apiService.logout();
+      await _authService.logout();
     } catch (e) {
-      _setError('Erreur lors de la déconnexion');
+      _setError(ErrorHandler.handleAuthError(e));
     }
 
     _isLoggedIn = false;
@@ -158,6 +182,8 @@ class AuthViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Chargement du profil utilisateur
+  /// Récupère les informations complètes de l'utilisateur
   Future<void> loadUserProfile() async {
     if (!_isLoggedIn) return;
 
@@ -165,19 +191,18 @@ class AuthViewModel extends ChangeNotifier {
     _clearError();
 
     try {
-      final user = await _apiService.getUserProfile();
+      final user = await _userService.getUserProfile();
       _currentUser = user;
       _setLoading(false);
       notifyListeners();
-    } on ApiException catch (e) {
-      _setError(_getErrorMessage(e));
-      _setLoading(false);
     } catch (e) {
-      _setError('Erreur de chargement du profil');
+      _setError(ErrorHandler.handleProfileError(e));
       _setLoading(false);
     }
   }
 
+  /// Mise à jour du profil utilisateur
+  /// Met à jour les informations utilisateur
   Future<bool> updateProfile(Map<String, dynamic> updates) async {
     if (!_isLoggedIn) return false;
 
@@ -185,41 +210,37 @@ class AuthViewModel extends ChangeNotifier {
     _clearError();
 
     try {
-      final updatedUser = await _apiService.updateProfile(updates);
+      final updatedUser = await _userService.updateProfile(updates);
       _currentUser = updatedUser;
       _setLoading(false);
       notifyListeners();
       return true;
-    } on ApiException catch (e) {
-      _setError(_getErrorMessage(e));
-      _setLoading(false);
-      return false;
     } catch (e) {
-      _setError('Erreur lors de la mise à jour du profil');
+      _setError(ErrorHandler.handleProfileError(e));
       _setLoading(false);
       return false;
     }
   }
 
+  /// Vérification du code OTP
+  /// Valide le code reçu par email
   Future<bool> verifyOtp({required String email, required String code}) async {
     _setLoading(true);
     _clearError();
 
     try {
-      await _apiService.verifyOtp(email: email, code: code);
+      await _authService.verifyOtp(email: email, code: code);
       _setLoading(false);
       return true;
-    } on ApiException catch (e) {
-      _setError(_getErrorMessage(e));
-      _setLoading(false);
-      return false;
     } catch (e) {
-      _setError('Code invalide');
+      _setError(ErrorHandler.handleAuthError(e));
       _setLoading(false);
       return false;
     }
   }
 
+  /// Réinitialisation du mot de passe avec code
+  /// Change le mot de passe après vérification du code
   Future<bool> resetPasswordWithCode({
     required String email,
     required String code,
@@ -229,112 +250,53 @@ class AuthViewModel extends ChangeNotifier {
     _clearError();
 
     try {
-      await _apiService.resetPasswordWithCode(
+      await _authService.resetPasswordWithCode(
         email: email,
         code: code,
         newPassword: newPassword,
       );
       _setLoading(false);
       return true;
-    } on ApiException catch (e) {
-      _setError(_getErrorMessage(e));
-      _setLoading(false);
-      return false;
     } catch (e) {
-      _setError('Erreur lors de la réinitialisation');
+      _setError(ErrorHandler.handleAuthError(e));
       _setLoading(false);
       return false;
     }
   }
 
+  /// Upload d'un document d'identité
+  /// Upload un fichier image (recto ou verso) pour l'identité
   Future<bool> uploadIdentityDocument(File imageFile, String type) async {
     _setUploading(true);
     _clearUploadError();
 
     try {
-      _validateAuthToken();
-      final request = await _createUploadRequest(imageFile, type);
-      final response = await _sendUploadRequest(request);
-      final imageUrl = await _extractImageUrl(response);
-      final success = await _updateProfileWithImageUrl(imageUrl, type);
+      if (_authToken == null) {
+        throw Exception('Utilisateur non authentifié');
+      }
+
+      final imageUrl = await _fileUploadService.uploadIdentityDocument(
+        imageFile: imageFile,
+        type: type,
+        authToken: _authToken!,
+      );
+
+      final fieldName = type == 'recto'
+          ? 'front_document_path'
+          : 'back_document_path';
+      final success = await updateProfile({fieldName: imageUrl});
 
       _setUploading(false);
       return success;
-    } on ApiException catch (e) {
-      _setUploadError(_getErrorMessage(e));
-      _setUploading(false);
-      return false;
     } catch (e) {
-      _setUploadError('Erreur lors de l\'upload du document: ${e.toString()}');
+      _setUploadError(ErrorHandler.handleUploadError(e));
       _setUploading(false);
       return false;
     }
   }
 
-  void _validateAuthToken() {
-    if (_authToken == null) {
-      throw Exception('Utilisateur non authentifié');
-    }
-  }
-
-  Future<http.MultipartRequest> _createUploadRequest(
-    File imageFile,
-    String type,
-  ) async {
-    final request = http.MultipartRequest(
-      'POST',
-      Uri.parse('${ApiConstants.baseUrl}${ApiConstants.uploadDocument}'),
-    );
-
-    request.headers['Authorization'] = 'Bearer $_authToken';
-    request.files.add(
-      await http.MultipartFile.fromPath(
-        'file',
-        imageFile.path,
-        filename: path.basename(imageFile.path),
-        contentType: MediaType('image', 'jpeg'),
-      ),
-    );
-    request.fields['type'] = type;
-
-    return request;
-  }
-
-  Future<http.StreamedResponse> _sendUploadRequest(
-    http.MultipartRequest request,
-  ) async {
-    return await request.send();
-  }
-
-  Future<String> _extractImageUrl(http.StreamedResponse response) async {
-    final responseBody = await response.stream.bytesToString();
-
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      final responseData = json.decode(responseBody);
-      final imageUrl = responseData['data']?['url'] ?? responseData['url'];
-
-      if (imageUrl == null) {
-        throw Exception('URL de l\'image non reçue du serveur');
-      }
-
-      return imageUrl;
-    } else {
-      AppLogger.error(
-        'Erreur upload document: ${response.statusCode} - $responseBody',
-      );
-      final errorData = json.decode(responseBody);
-      final errorMessage = errorData['message'] ?? 'Erreur lors de l\'upload';
-      throw Exception('$errorMessage (${response.statusCode})');
-    }
-  }
-
-  Future<bool> _updateProfileWithImageUrl(String imageUrl, String type) async {
-    final fieldName = type == 'recto'
-        ? 'front_document_path'
-        : 'back_document_path';
-    return await updateProfile({fieldName: imageUrl});
-  }
-
+  /// Suppression d'un document d'identité
+  /// Supprime un document d'identité du profil
   Future<bool> deleteIdentityDocument(String type) async {
     _setLoading(true);
     _clearError();
@@ -348,17 +310,17 @@ class AuthViewModel extends ChangeNotifier {
       _setLoading(false);
       return success;
     } catch (e) {
-      _setError('Erreur lors de la suppression du document');
+      _setError(ErrorHandler.handleProfileError(e));
       _setLoading(false);
       return false;
     }
   }
 
+  /// Vérification de la complétion des documents d'identité
+  /// Retourne true si tous les documents sont présents
   bool hasCompleteIdentityDocuments() {
-    return _currentUser?.frontDocumentPath != null &&
-        _currentUser?.frontDocumentPath!.isNotEmpty == true &&
-        _currentUser?.backDocumentPath != null &&
-        _currentUser?.backDocumentPath!.isNotEmpty == true;
+    if (_currentUser == null) return false;
+    return _userService.hasCompleteIdentityDocuments(_currentUser!);
   }
 
   void clearError() {
@@ -417,33 +379,33 @@ class AuthViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  String _getErrorMessage(ApiException e) {
-    return e.message;
-  }
-
+  /// Vérification des rôles utilisateur
+  /// Retourne true si l'utilisateur a le rôle spécifié
   bool hasRole(TypeUtilisateur role) {
-    return _currentUser?.typeUtilisateur == role;
+    if (_currentUser == null) return false;
+    return _userService.hasRole(_currentUser!, role);
   }
 
+  /// Vérification des permissions d'accès
+  /// Retourne true si l'utilisateur peut accéder aux rôles spécifiés
   bool canAccess(List<TypeUtilisateur> allowedRoles) {
     if (_currentUser == null) return false;
-    return allowedRoles.contains(_currentUser!.typeUtilisateur);
+    return _userService.canAccess(_currentUser!, allowedRoles);
   }
 
+  /// Actualisation des données utilisateur
+  /// Recharge les données utilisateur depuis le serveur
   Future<void> refreshUserData() async {
     if (_isLoggedIn) {
       await loadUserProfile();
     }
   }
 
+  /// Vérification de la validité du token
+  /// Retourne true si le token est valide
   Future<bool> checkTokenValidity() async {
     if (_authToken == null) return false;
-
-    try {
-      return true;
-    } catch (e) {
-      return false;
-    }
+    return await _authService.checkTokenValidity();
   }
 
   void forceLogout() {
@@ -455,65 +417,17 @@ class AuthViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void updateUserField(String fieldName, dynamic value) {
+  /// Mise à jour d'un champ spécifique du profil
+  /// Met à jour un seul champ du profil utilisateur
+  Future<void> updateUserField(String fieldName, dynamic value) async {
     if (_currentUser == null) return;
 
-    // Créer une nouvelle instance de User avec le champ mis à jour
-    final updatedUser = User(
-      id: _currentUser!.id,
-      nom: fieldName == 'nom' ? value : _currentUser!.nom,
-      email: fieldName == 'email' ? value : _currentUser!.email,
-      telephone: fieldName == 'telephone' ? value : _currentUser!.telephone,
-      typeUtilisateur: _currentUser!.typeUtilisateur,
-      statut: _currentUser!.statut,
-      dateCreation: _currentUser!.dateCreation,
-      updatedAt: _currentUser!.updatedAt,
-      birthPlace: fieldName == 'lieu_naissance'
-          ? value
-          : _currentUser!.birthPlace,
-      gender: fieldName == 'sexe' ? value : _currentUser!.gender,
-      nationality: fieldName == 'nationalite'
-          ? value
-          : _currentUser!.nationality,
-      profession: fieldName == 'profession' ? value : _currentUser!.profession,
-      address: fieldName == 'adresse' ? value : _currentUser!.address,
-      birthDate: fieldName == 'date_naissance'
-          ? value
-          : _currentUser!.birthDate,
-      identityNumber: fieldName == 'numero_piece_identite'
-          ? value
-          : _currentUser!.identityNumber,
-      identityType: fieldName == 'type_piece_identite'
-          ? value
-          : _currentUser!.identityType,
-      identityExpirationDate: fieldName == 'date_expiration_piece_identite'
-          ? value
-          : _currentUser!.identityExpirationDate,
-      frontDocumentPath: fieldName == 'frontDocumentPath'
-          ? value
-          : _currentUser!.frontDocumentPath,
-      backDocumentPath: fieldName == 'backDocumentPath'
-          ? value
-          : _currentUser!.backDocumentPath,
-    );
-
-    _currentUser = updatedUser;
-
-    // Vérifier et mettre à jour le statut du profil
-    _updateProfileCompletionStatus();
-
-    notifyListeners();
-  }
-
-  void _updateProfileCompletionStatus() {
-    if (_currentUser == null) return;
-
-    // Vérifier si le profil est maintenant complet
-    final isComplete = _currentUser!.isProfileCompleteValue;
-
-    // Si le profil est complet mais que le statut n'est pas à jour, le mettre à jour
-    if (isComplete && _currentUser!.isProfileComplete != true) {
-      _currentUser = _currentUser!.copyWith(isProfileComplete: true);
+    try {
+      final updatedUser = await _userService.updateUserField(fieldName, value);
+      _currentUser = updatedUser;
+      notifyListeners();
+    } catch (e) {
+      _setError(ErrorHandler.handleProfileError(e));
     }
   }
 }
