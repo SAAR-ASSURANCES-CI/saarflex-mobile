@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:saarflex_app/data/models/user_model.dart';
-import 'package:saarflex_app/data/services/api_service.dart';
+import 'package:saarflex_app/data/services/profile_service.dart';
+import 'package:saarflex_app/data/services/image_upload_service.dart';
+import 'package:saarflex_app/core/utils/error_handler.dart';
 
+/// ViewModel de profil - États UI uniquement
+/// Responsabilité : Gestion des états UI et orchestration des services
 class ProfileViewModel with ChangeNotifier {
-  final ApiService _apiService = ApiService();
+  // Services - Logique métier déléguée
+  final ProfileService _profileService = ProfileService();
+  final ImageUploadService _imageUploadService = ImageUploadService();
 
   bool _isLoading = false;
   String? _errorMessage;
@@ -11,59 +17,108 @@ class ProfileViewModel with ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
+  /// Récupération du profil utilisateur
+  /// Délégation au service
   Future<User?> refreshUserProfile() async {
     _setLoading(true);
     _clearError();
 
     try {
-      final user = await _apiService.getUserProfile();
+      final user = await _profileService.getUserProfile();
       _setLoading(false);
       return user;
-    } on ApiException catch (e) {
-      _setError(e.message);
-      _setLoading(false);
-      return null;
     } catch (e) {
-      _setError('Erreur lors du chargement du profil');
+      _setError(ErrorHandler.handleProfileError(e));
       _setLoading(false);
       return null;
     }
   }
 
+  /// Mise à jour d'un champ spécifique
+  /// Délégation au service
   Future<bool> updateSpecificField(String field, dynamic value) async {
     _setLoading(true);
     _clearError();
 
     try {
-      await _apiService.updateProfile({field: value});
+      await _profileService.updateProfileField(field, value);
       _setLoading(false);
       return true;
-    } on ApiException catch (e) {
-      _setError(e.message);
-      _setLoading(false);
-      return false;
     } catch (e) {
-      _setError('Erreur lors de la mise à jour');
+      _setError(ErrorHandler.handleProfileError(e));
       _setLoading(false);
       return false;
     }
   }
 
+  /// Upload d'un avatar
+  /// Délégation au service
   Future<bool> uploadAvatar(String imagePath) async {
     _setLoading(true);
     _clearError();
 
     try {
-      await Future.delayed(Duration(seconds: 2));
+      await _imageUploadService.uploadAvatar(imagePath);
       _setLoading(false);
       return true;
     } catch (e) {
-      _setError('Erreur lors de l\'upload de l\'image');
+      _setError(ErrorHandler.handleImageUploadError(e));
       _setLoading(false);
       return false;
     }
   }
 
+  /// Mise à jour complète du profil
+  /// Délégation au service
+  Future<bool> updateProfile(Map<String, dynamic> profileData) async {
+    _setLoading(true);
+    _clearError();
+
+    try {
+      await _profileService.updateProfile(profileData);
+      _setLoading(false);
+      return true;
+    } catch (e) {
+      _setError(ErrorHandler.handleProfileError(e));
+      _setLoading(false);
+      return false;
+    }
+  }
+
+  /// Upload d'un document d'identité
+  /// Délégation au service
+  Future<bool> uploadIdentityDocument(
+    String imagePath,
+    String documentType,
+  ) async {
+    _setLoading(true);
+    _clearError();
+
+    try {
+      await _imageUploadService.uploadIdentityDocument(imagePath, documentType);
+      _setLoading(false);
+      return true;
+    } catch (e) {
+      _setError(ErrorHandler.handleImageUploadError(e));
+      _setLoading(false);
+      return false;
+    }
+  }
+
+  /// Validation des données du profil
+  /// Délégation au service
+  Map<String, String> validateProfileData(Map<String, dynamic> data) {
+    return _profileService.validateProfileData(data);
+  }
+
+  /// Vérification de la complétude du profil
+  /// Délégation au service
+  bool isProfileComplete(User user) {
+    return _profileService.isProfileComplete(user);
+  }
+
+  /// Nettoyage des données utilisateur
+  /// Logique UI uniquement
   void clearUserData() {
     _clearError();
     notifyListeners();

@@ -22,6 +22,8 @@ class ErrorHandler {
     'not_found': 'Service non disponible',
     'validation_error': 'Données invalides',
     'unknown_error': 'Une erreur inattendue s\'est produite',
+    'profile_error': 'Erreur lors de la gestion du profil',
+    'upload_error': 'Erreur lors de l\'upload de l\'image',
   };
 
   static const Map<String, String> _profileErrors = {
@@ -141,6 +143,22 @@ class ErrorHandler {
       default:
         return _profileErrors['update_failed']!;
     }
+  }
+
+  /// Gestion des erreurs de profil
+  static String handleProfileError(dynamic error) {
+    if (error is String) {
+      return error;
+    }
+    return _generalErrors['profile_error']!;
+  }
+
+  /// Gestion des erreurs d'upload d'images
+  static String handleImageUploadError(dynamic error) {
+    if (error is String) {
+      return error;
+    }
+    return _generalErrors['upload_error']!;
   }
 
   static String? validateEmail(String? email) {

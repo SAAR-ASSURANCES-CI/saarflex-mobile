@@ -3,10 +3,15 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:saarflex_app/presentation/features/auth/viewmodels/auth_viewmodel.dart';
 import 'package:saarflex_app/presentation/features/profile/viewmodels/profile_validation_controller.dart';
-import 'package:saarflex_app/data/services/image_service.dart';
+import 'package:saarflex_app/data/services/image_upload_service.dart';
 import 'package:saarflex_app/core/utils/error_handler.dart';
 
+/// Controller de formulaire de profil - États UI uniquement
+/// Responsabilité : Gestion des états UI et orchestration des services
 class ProfileFormController extends ChangeNotifier {
+  // Services - Logique métier déléguée
+  final ImageUploadService _imageUploadService = ImageUploadService();
+
   // Controllers pour les champs de texte
   final _firstNameController = TextEditingController();
   final _birthPlaceController = TextEditingController();
@@ -226,34 +231,40 @@ class ProfileFormController extends ChangeNotifier {
     _checkForChanges();
   }
 
+  /// Sélection d'une image
+  /// Délégation au service
   Future<void> pickImage(bool isRecto, BuildContext context) async {
     try {
-      final image = await ImageService.pickImage();
-      if (image != null) {
-        final processedPath = await ImageService.processImage(image.path);
-        if (processedPath != null) {
-          if (isRecto) {
-            _rectoImage = image;
-            _rectoImagePath = processedPath;
-            _isUploadingRecto = true;
-          } else {
-            _versoImage = image;
-            _versoImagePath = processedPath;
-            _isUploadingVerso = true;
-          }
-          notifyListeners();
+      final imagePicker = ImagePicker();
+      final image = await imagePicker.pickImage(source: ImageSource.gallery);
 
-          await _uploadImage(processedPath, isRecto, context);
+      if (image != null) {
+        // Validation de l'image
+        await _imageUploadService.validateXFile(image);
+
+        if (isRecto) {
+          _rectoImage = image;
+          _rectoImagePath = image.path;
+          _isUploadingRecto = true;
+        } else {
+          _versoImage = image;
+          _versoImagePath = image.path;
+          _isUploadingVerso = true;
         }
+        notifyListeners();
+
+        await _uploadImage(image.path, isRecto, context);
       }
     } catch (e) {
       ErrorHandler.showErrorSnackBar(
         context,
-        'Erreur lors de la sélection de l\'image',
+        ErrorHandler.handleImageUploadError(e),
       );
     }
   }
 
+  /// Upload d'une image
+  /// Délégation au service
   Future<void> _uploadImage(
     String imagePath,
     bool isRecto,
@@ -263,13 +274,17 @@ class ProfileFormController extends ChangeNotifier {
       if (_rectoImage != null && _versoImage != null) {
         await _uploadBothImages(context);
       } else {
-        ImageService.showImageSelectionMessage(context, isRecto);
+        // Message pour sélectionner l'autre image
+        final message = isRecto
+            ? 'Veuillez maintenant sélectionner l\'image verso'
+            : 'Veuillez maintenant sélectionner l\'image recto';
+        ErrorHandler.showSuccessSnackBar(context, message);
       }
       _checkForChanges();
     } catch (e) {
       ErrorHandler.showErrorSnackBar(
         context,
-        'Erreur lors de la sélection: ${e.toString()}',
+        ErrorHandler.handleImageUploadError(e),
       );
     } finally {
       if (isRecto) {
@@ -281,6 +296,8 @@ class ProfileFormController extends ChangeNotifier {
     }
   }
 
+  /// Upload des deux images
+  /// Délégation au service
   Future<void> _uploadBothImages(BuildContext context) async {
     if (_rectoImage == null || _versoImage == null) {
       ErrorHandler.showErrorSnackBar(
@@ -295,22 +312,31 @@ class ProfileFormController extends ChangeNotifier {
       _isUploadingVerso = true;
       notifyListeners();
 
-      final result = await ImageService.uploadBothImages(
-        rectoPath: _rectoImagePath!,
-        versoPath: _versoImagePath!,
+      // Upload des deux images via le service
+      final rectoUrl = await _imageUploadService.uploadIdentityDocument(
+        _rectoImagePath!,
+        'recto',
       );
 
-      if (result.containsKey('recto_path') &&
-          result.containsKey('verso_path')) {
-        final authProvider = context.read<AuthViewModel>();
-        authProvider.updateUserField('frontDocumentPath', result['recto_path']);
-        authProvider.updateUserField('backDocumentPath', result['verso_path']);
+      final versoUrl = await _imageUploadService.uploadIdentityDocument(
+        _versoImagePath!,
+        'verso',
+      );
 
-        ImageService.showUploadSuccessMessage(context);
-        _checkForChanges();
-      }
+      final authProvider = context.read<AuthViewModel>();
+      authProvider.updateUserField('frontDocumentPath', rectoUrl);
+      authProvider.updateUserField('backDocumentPath', versoUrl);
+
+      ErrorHandler.showSuccessSnackBar(
+        context,
+        'Images uploadées avec succès !',
+      );
+      _checkForChanges();
     } catch (e) {
-      ImageService.showUploadErrorMessage(context, e.toString());
+      ErrorHandler.showErrorSnackBar(
+        context,
+        ErrorHandler.handleImageUploadError(e),
+      );
     } finally {
       _isUploadingRecto = false;
       _isUploadingVerso = false;
