@@ -62,7 +62,7 @@ class ProfileViewModel with ChangeNotifier {
       _setLoading(false);
       return true;
     } catch (e) {
-      _setError(ErrorHandler.handleImageUploadError(e));
+      _setError(ErrorHandler.handleUploadError(e));
       _setLoading(false);
       return false;
     }
@@ -99,7 +99,7 @@ class ProfileViewModel with ChangeNotifier {
       _setLoading(false);
       return true;
     } catch (e) {
-      _setError(ErrorHandler.handleImageUploadError(e));
+      _setError(ErrorHandler.handleUploadError(e));
       _setLoading(false);
       return false;
     }

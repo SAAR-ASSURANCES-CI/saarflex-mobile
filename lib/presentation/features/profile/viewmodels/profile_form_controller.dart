@@ -261,7 +261,7 @@ class ProfileFormController extends ChangeNotifier {
     } catch (e) {
       ErrorHandler.showErrorSnackBar(
         context,
-        ErrorHandler.handleImageUploadError(e),
+        ErrorHandler.handleUploadError(e),
       );
     }
   }
@@ -287,7 +287,7 @@ class ProfileFormController extends ChangeNotifier {
     } catch (e) {
       ErrorHandler.showErrorSnackBar(
         context,
-        ErrorHandler.handleImageUploadError(e),
+        ErrorHandler.handleUploadError(e),
       );
     } finally {
       if (isRecto) {
@@ -334,7 +334,7 @@ class ProfileFormController extends ChangeNotifier {
     } catch (e) {
       ErrorHandler.showErrorSnackBar(
         context,
-        ErrorHandler.handleImageUploadError(e),
+        ErrorHandler.handleUploadError(e),
       );
     } finally {
       _isUploadingRecto = false;
