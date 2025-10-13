@@ -59,6 +59,7 @@ class ErrorHandler {
     'permission_denied': 'Permission refusée',
     'file_too_large': 'Le fichier est trop volumineux',
     'unsupported_format': 'Format de fichier non supporté',
+    'upload_error': 'Erreur lors de l\'upload de l\'image',
   };
 
   static String getAuthErrorMessage(ApiException exception) {

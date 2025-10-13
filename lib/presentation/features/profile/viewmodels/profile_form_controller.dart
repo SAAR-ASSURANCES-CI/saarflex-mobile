@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:saarflex_app/presentation/features/auth/viewmodels/auth_viewmodel.dart';
 import 'package:saarflex_app/presentation/features/profile/viewmodels/profile_validation_controller.dart';
 import 'package:saarflex_app/data/services/image_upload_service.dart';
+import 'package:saarflex_app/data/services/api_service.dart';
 import 'package:saarflex_app/core/utils/error_handler.dart';
 
 /// Controller de formulaire de profil - États UI uniquement
@@ -137,8 +138,10 @@ class ProfileFormController extends ChangeNotifier {
     if (_hasChanges != hasChanged) {
       _hasChanges = hasChanged;
       _fieldErrors.clear();
-      notifyListeners();
     }
+
+    // Toujours notifier pour forcer la reconstruction de tous les widgets
+    notifyListeners();
   }
 
   bool _areDatesEqual(DateTime? date1, DateTime? date2) {
@@ -312,20 +315,16 @@ class ProfileFormController extends ChangeNotifier {
       _isUploadingVerso = true;
       notifyListeners();
 
-      // Upload des deux images via le service
-      final rectoUrl = await _imageUploadService.uploadIdentityDocument(
-        _rectoImagePath!,
-        'recto',
-      );
-
-      final versoUrl = await _imageUploadService.uploadIdentityDocument(
-        _versoImagePath!,
-        'verso',
+      // Upload des deux images ensemble via ApiService
+      final apiService = ApiService();
+      final result = await apiService.uploadBothImages(
+        rectoPath: _rectoImagePath!,
+        versoPath: _versoImagePath!,
       );
 
       final authProvider = context.read<AuthViewModel>();
-      authProvider.updateUserField('frontDocumentPath', rectoUrl);
-      authProvider.updateUserField('backDocumentPath', versoUrl);
+      authProvider.updateUserField('frontDocumentPath', result['recto_path']);
+      authProvider.updateUserField('backDocumentPath', result['verso_path']);
 
       ErrorHandler.showSuccessSnackBar(
         context,

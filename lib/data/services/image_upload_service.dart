@@ -85,7 +85,7 @@ class ImageUploadService {
       // Validation du fichier
       _validateImageFile(imagePath);
 
-      final url = Uri.parse('${ApiConfig.baseUrl}$_basePath/identity');
+      final url = Uri.parse('${ApiConfig.baseUrl}/profiles/upload/images');
       final headers = {'Authorization': 'Bearer $token'};
 
       AppLogger.info('📄 Upload document $documentType: $imagePath');
@@ -95,7 +95,7 @@ class ImageUploadService {
 
       // Ajouter le fichier
       final multipartFile = await http.MultipartFile.fromPath(
-        'document',
+        'files',
         imagePath,
         filename: path.basename(imagePath),
       );
