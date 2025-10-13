@@ -63,7 +63,6 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                   if (_generalError != null) ...[
                     ErrorHandler.buildAutoDisappearingErrorContainer(
                       _generalError!,
-                      () => setState(() => _generalError = null),
                     ),
                     const SizedBox(height: 20),
                   ],
@@ -271,35 +270,28 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
     try {
       await authProvider.login(email: email, password: 'test123invalid');
-      
+
       await _proceedWithPasswordReset(authProvider, email);
-      
     } catch (e) {
       if (authProvider.errorMessage != null) {
         final errorMessage = authProvider.errorMessage!.toLowerCase();
-        
-        if (errorMessage.contains('user not found') || 
+
+        if (errorMessage.contains('user not found') ||
             errorMessage.contains('utilisateur introuvable') ||
             errorMessage.contains('user does not exist') ||
             errorMessage.contains('email not found')) {
-          
           setState(() {
             _generalError = 'Aucun compte associé à cette adresse email';
           });
           return;
-        }
-        
-        else if (errorMessage.contains('mot de passe') ||
-                 errorMessage.contains('password') ||
-                 errorMessage.contains('caractères') ||
-                 errorMessage.contains('obligatoire') ||
-                 errorMessage.contains('incorrect') ||
-                 errorMessage.contains('invalid')) {
-          
+        } else if (errorMessage.contains('mot de passe') ||
+            errorMessage.contains('password') ||
+            errorMessage.contains('caractères') ||
+            errorMessage.contains('obligatoire') ||
+            errorMessage.contains('incorrect') ||
+            errorMessage.contains('invalid')) {
           await _proceedWithPasswordReset(authProvider, email);
-        }
-        
-        else {
+        } else {
           setState(() {
             _generalError = 'Erreur de connexion. Veuillez réessayer.';
           });
@@ -314,9 +306,12 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     }
   }
 
-  Future<void> _proceedWithPasswordReset(AuthViewModel authProvider, String email) async {
+  Future<void> _proceedWithPasswordReset(
+    AuthViewModel authProvider,
+    String email,
+  ) async {
     authProvider.clearError();
-    
+
     try {
       final success = await authProvider.forgotPassword(email);
 
@@ -329,7 +324,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
         );
       } else if (mounted) {
         setState(() {
-          _generalError = authProvider.errorMessage ?? 'Erreur lors de l\'envoi';
+          _generalError =
+              authProvider.errorMessage ?? 'Erreur lors de l\'envoi';
         });
       }
     } catch (e) {

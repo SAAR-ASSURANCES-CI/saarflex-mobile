@@ -36,11 +36,14 @@ class ApiService {
   Future<void> _saveToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('auth_token', token);
+    // Sauvegarder la date de connexion pour gestion timeout
+    await prefs.setString('auth_timestamp', DateTime.now().toIso8601String());
   }
 
   Future<void> _clearToken() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('auth_token');
+    await prefs.remove('auth_timestamp');
   }
 
   void _handleHttpError(http.Response response) {
@@ -699,9 +702,69 @@ class ApiService {
     }
   }
 
+  /// Vérification de la validité de la session
+  /// Retourne true si l'utilisateur est connecté ET le token est valide
   Future<bool> isLoggedIn() async {
-    final token = await _getToken();
-    return token != null;
+    try {
+      final token = await _getToken();
+      if (token == null) return false;
+
+      // Vérifier la validité du token avec le serveur
+      final response = await http.get(
+        Uri.parse('$baseUrl${ApiConstants.updateProfile}'),
+        headers: await _authHeaders,
+      );
+
+      if (response.statusCode == 200) {
+        AppLogger.info('✅ Token valide - Session active');
+        return true;
+      } else if (response.statusCode == 401) {
+        AppLogger.error('⚠️ Token expiré - Déconnexion automatique');
+        await _clearToken();
+        return false;
+      } else {
+        AppLogger.error('⚠️ Erreur serveur - Session maintenue localement');
+        return true; // Maintenir la session en cas d'erreur serveur
+      }
+    } catch (e) {
+      AppLogger.error('❌ Erreur vérification session: $e');
+      // En cas d'erreur réseau, maintenir la session si token existe
+      final token = await _getToken();
+      return token != null;
+    }
+  }
+
+  /// Vérification de session avec timeout (alternative)
+  /// Retourne true si la session est valide et n'a pas expiré
+  Future<bool> isLoggedInWithTimeout({
+    Duration timeout = const Duration(hours: 24),
+  }) async {
+    try {
+      final token = await _getToken();
+      if (token == null) return false;
+
+      final prefs = await SharedPreferences.getInstance();
+      final timestampStr = prefs.getString('auth_timestamp');
+      if (timestampStr == null) return false;
+
+      final loginTime = DateTime.parse(timestampStr);
+      final now = DateTime.now();
+      final sessionAge = now.difference(loginTime);
+
+      if (sessionAge > timeout) {
+        AppLogger.error(
+          '⚠️ Session expirée (${sessionAge.inHours}h) - Déconnexion',
+        );
+        await _clearToken();
+        return false;
+      }
+
+      AppLogger.info('✅ Session valide (${sessionAge.inMinutes}min)');
+      return true;
+    } catch (e) {
+      AppLogger.error('❌ Erreur vérification session: $e');
+      return false;
+    }
   }
 
   String getImageUrl(String? imagePath) {
