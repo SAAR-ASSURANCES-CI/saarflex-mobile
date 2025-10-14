@@ -5,7 +5,6 @@ import 'package:saarflex_app/core/constants/colors.dart';
 import 'package:saarflex_app/core/utils/image_labels.dart';
 import 'package:saarflex_app/presentation/features/simulation/widgets/image_upload_field.dart';
 
-/// Widget de section d'upload d'images d'identité
 class IdentityImagesSection extends StatelessWidget {
   final String? identityType;
   final bool isUploadingRecto;

@@ -16,7 +16,6 @@ class SimulationViewModel extends ChangeNotifier {
   String? _saveError;
   String? get saveError => _saveError;
 
-  // Variables pour l'upload d'images
   XFile? _tempRectoImage;
   XFile? _tempVersoImage;
   String? _devisId;
@@ -56,7 +55,6 @@ class SimulationViewModel extends ChangeNotifier {
   bool get assureEstSouscripteur => _assureEstSouscripteur;
   Map<String, dynamic>? get informationsAssure => _informationsAssure;
 
-  // Getters pour l'upload d'images
   XFile? get tempRectoImage => _tempRectoImage;
   XFile? get tempVersoImage => _tempVersoImage;
   String? get devisId => _devisId;
@@ -145,18 +143,15 @@ class SimulationViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Dans simulation_provider.dart - méthode _validateCritere
   void _validateCritere(String nomCritere, dynamic valeur) {
     final critere = _criteresProduit.firstWhere(
       (c) => c.nom == nomCritere,
       orElse: () => throw Exception('Critère $nomCritere non trouvé'),
     );
 
-    // Gestion des séparateurs pour les champs numériques
     if (critere.type == TypeCritere.numerique && valeur != null) {
       String valeurString = valeur.toString();
 
-      // Enlever les séparateurs de milliers pour la validation si nécessaire
       if (_critereNecessiteFormatage(critere)) {
         valeurString = valeurString.replaceAll(RegExp(r'[^\d]'), '');
       }
@@ -166,11 +161,9 @@ class SimulationViewModel extends ChangeNotifier {
         _validationErrors[nomCritere] = 'Veuillez entrer un nombre valide';
         return;
       }
-      // Stocker la valeur numérique (sans séparateurs)
       _criteresReponses[nomCritere] = numericValue;
     }
 
-    // Le reste de votre validation existante...
     if (critere.obligatoire &&
         (valeur == null || valeur.toString().trim().isEmpty)) {
       _validationErrors[nomCritere] = 'Ce champ est obligatoire';
@@ -180,7 +173,6 @@ class SimulationViewModel extends ChangeNotifier {
     switch (critere.type) {
       case TypeCritere.numerique:
         if (valeur != null && valeur.toString().isNotEmpty) {
-          // Utiliser la valeur déjà nettoyée des séparateurs
           final doubleValue = _criteresReponses[nomCritere] is num
               ? _criteresReponses[nomCritere].toDouble()
               : double.tryParse(
@@ -221,7 +213,6 @@ class SimulationViewModel extends ChangeNotifier {
     }
   }
 
-  // Ajouter cette méthode helper dans SimulationViewModel
   bool _critereNecessiteFormatage(CritereTarification critere) {
     const champsAvecSeparateurs = [
       'capital',
@@ -257,7 +248,6 @@ class SimulationViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Dans simulation_provider.dart - méthode simulerDevisSimplifie
   Future<void> simulerDevisSimplifie() async {
     validateForm();
 
@@ -270,14 +260,12 @@ class SimulationViewModel extends ChangeNotifier {
     _clearError();
 
     try {
-      // Nettoyer les valeurs des séparateurs avant envoi
       final criteresNettoyes = Map<String, dynamic>.from(_criteresReponses);
 
       for (final critere in _criteresProduit) {
         if (critere.type == TypeCritere.numerique &&
             _critereNecessiteFormatage(critere) &&
             criteresNettoyes[critere.nom] is String) {
-          // Nettoyer la valeur des séparateurs
           final valeurNettoyee = criteresNettoyes[critere.nom]
               .toString()
               .replaceAll(RegExp(r'[^\d]'), '');
@@ -286,14 +274,12 @@ class SimulationViewModel extends ChangeNotifier {
         }
       }
 
-      // Convertir les informations de l'assuré si nécessaire
       Map<String, dynamic>? informationsAssureConverties;
       if (_informationsAssure != null) {
         informationsAssureConverties = Map<String, dynamic>.from(
           _informationsAssure!,
         );
 
-        // Convertir la date de naissance en string si c'est un DateTime
         if (informationsAssureConverties.containsKey('date_naissance')) {
           final dateNaissance = informationsAssureConverties['date_naissance'];
           if (dateNaissance is DateTime) {
@@ -307,7 +293,7 @@ class SimulationViewModel extends ChangeNotifier {
 
       _dernierResultat = await _simulationService.simulerDevisSimplifie(
         produitId: _produitId!,
-        criteres: criteresNettoyes, // Utiliser les valeurs nettoyées
+        criteres: criteresNettoyes,
         assureEstSouscripteur: _assureEstSouscripteur,
         informationsAssure: informationsAssureConverties,
       );
@@ -364,10 +350,8 @@ class SimulationViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Réinitialise complètement pour une nouvelle simulation
   void resetForNewSimulation() {
     resetSimulation();
-    // S'assurer que les images temporaires sont bien nettoyées
     _clearTempImages();
   }
 
@@ -380,7 +364,6 @@ class SimulationViewModel extends ChangeNotifier {
     _isUploadingImages = false;
   }
 
-  /// Nettoie uniquement les images temporaires (garde les URLs uploadées)
   void _clearTempImages() {
     _tempRectoImage = null;
     _tempVersoImage = null;
@@ -415,20 +398,17 @@ class SimulationViewModel extends ChangeNotifier {
     return _validationErrors.containsKey(nomCritere);
   }
 
-  // Méthodes pour l'upload d'images
   void setDevisId(String devisId) {
     _devisId = devisId;
     notifyListeners();
   }
 
-  /// Sélection d'une image (stockage temporaire)
   Future<void> pickImage(bool isRecto, BuildContext context) async {
     try {
       final imagePicker = ImagePicker();
       final image = await imagePicker.pickImage(source: ImageSource.gallery);
 
       if (image != null) {
-        // Validation basique de l'image
         final extension = image.path.toLowerCase();
         if (!extension.endsWith('.jpg') &&
             !extension.endsWith('.jpeg') &&
@@ -439,7 +419,6 @@ class SimulationViewModel extends ChangeNotifier {
           );
         }
 
-        // Stockage temporaire (pas d'upload immédiat)
         if (isRecto) {
           _tempRectoImage = image;
         } else {
@@ -448,7 +427,6 @@ class SimulationViewModel extends ChangeNotifier {
 
         notifyListeners();
 
-        // Message pour l'autre image
         if (_tempRectoImage != null && _tempVersoImage != null) {
           ErrorHandler.showSuccessSnackBar(
             context,
@@ -469,7 +447,6 @@ class SimulationViewModel extends ChangeNotifier {
     }
   }
 
-  /// Upload des images après sauvegarde du devis
   Future<void> uploadImagesAfterSave(
     String devisId,
     BuildContext? context,
@@ -484,20 +461,16 @@ class SimulationViewModel extends ChangeNotifier {
       _isUploadingImages = true;
       notifyListeners();
 
-      // Upload avec retry (sans context pour éviter l'erreur)
       final result = await _uploadWithRetry(devisId);
 
-      // Stocker les URLs
       _uploadedRectoUrl = result['recto_path'];
       _uploadedVersoUrl = result['verso_path'];
 
-      // Mettre à jour les informations de l'assuré
       if (_informationsAssure != null) {
         _informationsAssure!['assure_recto_image'] = result['recto_path'];
         _informationsAssure!['assure_verso_image'] = result['verso_path'];
       }
 
-      // Afficher le message seulement si le context est encore valide
       if (context != null && context.mounted) {
         ErrorHandler.showSuccessSnackBar(
           context,
@@ -505,10 +478,8 @@ class SimulationViewModel extends ChangeNotifier {
         );
       }
 
-      // Nettoyer les images temporaires après upload réussi
       _clearTempImages();
     } catch (e) {
-      // Afficher l'erreur seulement si le context est encore valide
       if (context != null && context.mounted) {
         ErrorHandler.showErrorSnackBar(
           context,
@@ -521,7 +492,6 @@ class SimulationViewModel extends ChangeNotifier {
     }
   }
 
-  /// Upload avec retry automatique
   Future<Map<String, String>> _uploadWithRetry(String devisId) async {
     const maxRetries = 3;
 
@@ -539,7 +509,6 @@ class SimulationViewModel extends ChangeNotifier {
           throw Exception('Échec après $maxRetries tentatives: $e');
         }
 
-        // Attendre avant le retry
         await Future.delayed(Duration(seconds: 2 * attempt));
       }
     }
@@ -547,7 +516,6 @@ class SimulationViewModel extends ChangeNotifier {
     throw Exception('Upload impossible après $maxRetries tentatives');
   }
 
-  /// Suppression d'une image temporaire
   void deleteTempImage(bool isRecto) {
     if (isRecto) {
       _tempRectoImage = null;
@@ -557,13 +525,11 @@ class SimulationViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Mise à jour des informations de l'assuré
   void updateInformationsAssure(Map<String, dynamic> informations) {
     _informationsAssure = informations;
     notifyListeners();
   }
 
-  /// Nettoie les images temporaires après sauvegarde (méthode publique)
   void clearTempImagesAfterSave() {
     _clearTempImages();
   }

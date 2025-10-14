@@ -6,7 +6,6 @@ import 'package:saarflex_app/data/models/simulation_model.dart';
 import 'package:saarflex_app/presentation/features/simulation/viewmodels/simulation_result_viewmodel.dart';
 import 'package:saarflex_app/presentation/features/simulation/viewmodels/simulation_viewmodel.dart';
 
-/// Dialog de confirmation pour la sauvegarde du devis
 class ResultSaveConfirmationDialog extends StatelessWidget {
   final String nomDevis;
   final String notes;

@@ -4,7 +4,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:saarflex_app/core/constants/colors.dart';
 
-/// Widget de champ d'upload d'image réutilisable
 class ImageUploadField extends StatelessWidget {
   final String label;
   final bool isUploading;

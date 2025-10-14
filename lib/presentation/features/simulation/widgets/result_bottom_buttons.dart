@@ -4,7 +4,6 @@ import 'package:saarflex_app/core/constants/colors.dart';
 import 'package:saarflex_app/presentation/features/simulation/viewmodels/simulation_viewmodel.dart';
 import 'package:saarflex_app/presentation/features/auth/viewmodels/auth_viewmodel.dart';
 
-/// Widget des boutons en bas de l'écran de résultats
 class ResultBottomButtons extends StatelessWidget {
   final SimulationViewModel simulationProvider;
   final AuthViewModel authProvider;

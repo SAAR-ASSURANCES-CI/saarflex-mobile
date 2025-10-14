@@ -7,8 +7,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:saarflex_app/core/constants/api_constants.dart';
 import 'package:saarflex_app/core/utils/storage_helper.dart';
 
-/// Service d'upload d'images pour la simulation
-/// Gère l'upload des pièces d'identité de l'assuré dans le contexte d'une simulation
 class SimulationImageUploadService {
   static const int _maxFileSize = 5 * 1024 * 1024; // 5MB
   static const List<String> _allowedExtensions = [
@@ -18,8 +16,6 @@ class SimulationImageUploadService {
     '.webp',
   ];
 
-  /// Upload des images d'identité pour un devis spécifique
-  /// Logique métier : Upload des documents d'identité de l'assuré
   Future<Map<String, String>> uploadAssureImages({
     required String devisId,
     required String rectoPath,
@@ -31,7 +27,6 @@ class SimulationImageUploadService {
         throw SimulationImageUploadException('Authentification requise');
       }
 
-      // Validation des fichiers
       _validateImageFile(rectoPath);
       _validateImageFile(versoPath);
 
@@ -45,18 +40,17 @@ class SimulationImageUploadService {
         'Accept': 'application/json',
       });
 
-      // Ajouter les fichiers avec le bon nom de champ et type MIME
       final rectoFile = await http.MultipartFile.fromPath(
         'files',
         rectoPath,
-        filename: 'recto.jpg',
-        contentType: MediaType('image', 'jpeg'),
+        filename: _getFileName(rectoPath),
+        contentType: _getMediaType(rectoPath),
       );
       final versoFile = await http.MultipartFile.fromPath(
         'files',
         versoPath,
-        filename: 'verso.jpg',
-        contentType: MediaType('image', 'jpeg'),
+        filename: _getFileName(versoPath),
+        contentType: _getMediaType(versoPath),
       );
 
       request.files.add(rectoFile);
@@ -85,8 +79,6 @@ class SimulationImageUploadService {
     }
   }
 
-  /// Validation d'un fichier image
-  /// Vérifie que le fichier est valide pour l'upload
   void _validateImageFile(String imagePath) {
     final file = File(imagePath);
 
@@ -109,10 +101,7 @@ class SimulationImageUploadService {
     }
   }
 
-  /// Validation d'une image depuis XFile
-  /// Logique métier : Valide une image sélectionnée
   Future<void> validateXFile(XFile xFile) async {
-    // Vérifier la taille
     final fileSize = await xFile.length();
     if (fileSize > _maxFileSize) {
       throw SimulationImageUploadException(
@@ -120,7 +109,6 @@ class SimulationImageUploadService {
       );
     }
 
-    // Vérifier l'extension
     final extension = path.extension(xFile.path).toLowerCase();
     if (!_allowedExtensions.contains(extension)) {
       throw SimulationImageUploadException(
@@ -129,7 +117,28 @@ class SimulationImageUploadService {
     }
   }
 
-  /// Conversion d'erreur technique en message utilisateur
+  String _getFileName(String imagePath) {
+    final extension = path.extension(imagePath).toLowerCase();
+    final baseName = path.basenameWithoutExtension(imagePath);
+    return '$baseName$extension';
+  }
+
+  MediaType _getMediaType(String imagePath) {
+    final extension = path.extension(imagePath).toLowerCase();
+
+    switch (extension) {
+      case '.jpg':
+      case '.jpeg':
+        return MediaType('image', 'jpeg');
+      case '.png':
+        return MediaType('image', 'png');
+      case '.webp':
+        return MediaType('image', 'webp');
+      default:
+        return MediaType('image', 'jpeg');
+    }
+  }
+
   String _getUserFriendlyError(dynamic error) {
     if (error is SimulationImageUploadException) {
       return error.message;
@@ -147,7 +156,6 @@ class SimulationImageUploadService {
   }
 }
 
-/// Exception spécifique aux uploads d'images de simulation
 class SimulationImageUploadException implements Exception {
   final String message;
 

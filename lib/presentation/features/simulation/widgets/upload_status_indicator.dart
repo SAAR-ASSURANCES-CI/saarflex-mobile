@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:saarflex_app/core/constants/colors.dart';
 
-/// Widget pour afficher le statut d'upload des images
 class UploadStatusIndicator extends StatelessWidget {
   final bool isUploading;
   final bool hasUploadedImages;

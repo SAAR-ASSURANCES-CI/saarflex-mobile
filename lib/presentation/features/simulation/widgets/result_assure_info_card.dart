@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:saarflex_app/core/constants/colors.dart';
 import 'package:saarflex_app/data/models/simulation_model.dart';
 
-/// Widget pour afficher les informations de l'assuré dans le résultat de simulation
 class ResultAssureInfoCard extends StatelessWidget {
   final SimulationResponse resultat;
 

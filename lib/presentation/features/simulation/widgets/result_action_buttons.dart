@@ -4,7 +4,6 @@ import 'package:saarflex_app/core/constants/colors.dart';
 import 'package:saarflex_app/data/models/simulation_model.dart';
 import 'package:saarflex_app/presentation/features/simulation/viewmodels/simulation_result_viewmodel.dart';
 
-/// Widget pour les boutons d'action du résultat de simulation
 class ResultActionButtons extends StatelessWidget {
   final SimulationResponse resultat;
   final SimulationResultViewModel viewModel;

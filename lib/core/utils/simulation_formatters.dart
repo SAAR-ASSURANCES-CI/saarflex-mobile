@@ -1,17 +1,13 @@
 import 'package:saarflex_app/data/models/simulation_model.dart';
 
-/// Utilitaires de formatage spécialisés pour la simulation
 class SimulationFormatters {
-  /// Formate le texte des détails de calcul en ajoutant des séparateurs de milliers
   static String formatCalculationText(String text) {
-    // Remplacer les nombres par des versions formatées avec séparateurs
     return text.replaceAllMapped(RegExp(r'\b\d{1,3}(?:\s\d{3})*\b'), (match) {
       final number = match.group(0)?.replaceAll(' ', '') ?? '';
       return _formatNumberWithSpaces(int.tryParse(number) ?? 0);
     });
   }
 
-  /// Formate un nombre avec des espaces comme séparateurs de milliers
   static String _formatNumberWithSpaces(int number) {
     return number.toString().replaceAllMapped(
       RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
@@ -19,14 +15,12 @@ class SimulationFormatters {
     );
   }
 
-  /// Formate la prime avec la périodicité
   static String formatPrimeWithPeriodicity(double prime, String periodicite) {
     final formattedPrime = _formatNumberWithSpaces(prime.toInt());
     final periodiciteFormatee = _formatPeriodicity(periodicite);
     return '$formattedPrime FCFA ($periodiciteFormatee)';
   }
 
-  /// Formate la franchise
   static String formatFranchise(double? franchise) {
     if (franchise == null || franchise == 0) {
       return 'Non applicable';
@@ -34,13 +28,11 @@ class SimulationFormatters {
     return '${_formatNumberWithSpaces(franchise.toInt())} FCFA';
   }
 
-  /// Formate le plafond
   static String? formatPlafond(double? plafond) {
     if (plafond == null) return null;
     return '${_formatNumberWithSpaces(plafond.toInt())} FCFA';
   }
 
-  /// Formate la périodicité de prime
   static String _formatPeriodicity(String periodicite) {
     switch (periodicite.toLowerCase()) {
       case 'mensuel':
@@ -56,7 +48,6 @@ class SimulationFormatters {
     }
   }
 
-  /// Formate les informations de l'assuré pour l'affichage
   static String formatAssureInfo(Map<String, dynamic> informations) {
     final nom = informations['nom_complet']?.toString() ?? 'Non renseigné';
     final telephone = informations['telephone']?.toString() ?? 'Non renseigné';
@@ -66,7 +57,6 @@ class SimulationFormatters {
     return '$nom - $telephone ($piece)';
   }
 
-  /// Formate les informations d'un bénéficiaire
   static String formatBeneficiaireInfo(Map<String, dynamic> beneficiaire) {
     final nom = beneficiaire['nom_complet']?.toString() ?? 'Non renseigné';
     final lien =
@@ -75,7 +65,6 @@ class SimulationFormatters {
     return '$nom ($lien)';
   }
 
-  /// Formate la date d'expiration du devis
   static String formatExpirationDate(DateTime? expiresAt) {
     if (expiresAt == null) return 'Non définie';
 
@@ -98,7 +87,6 @@ class SimulationFormatters {
     }
   }
 
-  /// Formate le statut du devis pour l'affichage
   static String formatStatutDevis(StatutDevis statut) {
     switch (statut) {
       case StatutDevis.simulation:
@@ -110,7 +98,6 @@ class SimulationFormatters {
     }
   }
 
-  /// Formate les critères utilisateur pour l'affichage
   static String formatCriteresUtilisateur(Map<String, dynamic> criteres) {
     final List<String> criteresFormates = [];
 
@@ -125,9 +112,7 @@ class SimulationFormatters {
     return criteresFormates.join('\n');
   }
 
-  /// Formate la clé d'un critère
   static String _formatCritereKey(String key) {
-    // Capitaliser la première lettre et remplacer les underscores
     return key
         .split('_')
         .map(
@@ -138,7 +123,6 @@ class SimulationFormatters {
         .join(' ');
   }
 
-  /// Formate la valeur d'un critère
   static String _formatCritereValue(dynamic value) {
     if (value is num) {
       return _formatNumberWithSpaces(value.toInt());

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:saarflex_app/core/constants/colors.dart';
 
-/// Widget de chargement spécialisé pour la simulation
 class SimulationLoadingWidget extends StatelessWidget {
   final String title;
   final String subtitle;
