@@ -1,127 +1,148 @@
-import 'package:saarflex_app/data/models/critere_tarification_model.dart';
-import 'package:saarflex_app/core/utils/format_helper.dart';
-import 'package:saarflex_app/core/utils/simulation_validators.dart';
+import 'package:saarflex_app/data/models/simulation_model.dart';
 
-/// Utilitaires de formatage pour la simulation
+/// Utilitaires de formatage spécialisés pour la simulation
 class SimulationFormatters {
-  /// Formate une valeur de critère selon son type
-  static String formatCritereValue(
-    CritereTarification critere,
-    dynamic valeur,
-  ) {
-    if (valeur == null) return '';
+  /// Formate le texte des détails de calcul en ajoutant des séparateurs de milliers
+  static String formatCalculationText(String text) {
+    // Remplacer les nombres par des versions formatées avec séparateurs
+    return text.replaceAllMapped(RegExp(r'\b\d{1,3}(?:\s\d{3})*\b'), (match) {
+      final number = match.group(0)?.replaceAll(' ', '') ?? '';
+      return _formatNumberWithSpaces(int.tryParse(number) ?? 0);
+    });
+  }
 
-    switch (critere.type) {
-      case TypeCritere.numerique:
-        return _formatNumerique(critere, valeur);
-      case TypeCritere.categoriel:
-        return valeur.toString();
-      case TypeCritere.booleen:
-        return valeur ? 'Oui' : 'Non';
+  /// Formate un nombre avec des espaces comme séparateurs de milliers
+  static String _formatNumberWithSpaces(int number) {
+    return number.toString().replaceAllMapped(
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+      (match) => '${match[1]} ',
+    );
+  }
+
+  /// Formate la prime avec la périodicité
+  static String formatPrimeWithPeriodicity(double prime, String periodicite) {
+    final formattedPrime = _formatNumberWithSpaces(prime.toInt());
+    final periodiciteFormatee = _formatPeriodicity(periodicite);
+    return '$formattedPrime FCFA ($periodiciteFormatee)';
+  }
+
+  /// Formate la franchise
+  static String formatFranchise(double? franchise) {
+    if (franchise == null || franchise == 0) {
+      return 'Non applicable';
+    }
+    return '${_formatNumberWithSpaces(franchise.toInt())} FCFA';
+  }
+
+  /// Formate le plafond
+  static String? formatPlafond(double? plafond) {
+    if (plafond == null) return null;
+    return '${_formatNumberWithSpaces(plafond.toInt())} FCFA';
+  }
+
+  /// Formate la périodicité de prime
+  static String _formatPeriodicity(String periodicite) {
+    switch (periodicite.toLowerCase()) {
+      case 'mensuel':
+        return 'mensuelle';
+      case 'annuel':
+        return 'annuelle';
+      case 'trimestriel':
+        return 'trimestrielle';
+      case 'semestriel':
+        return 'semestrielle';
+      default:
+        return periodicite;
     }
   }
 
-  /// Formate une valeur numérique
-  static String _formatNumerique(CritereTarification critere, dynamic valeur) {
-    if (valeur == null) return '';
+  /// Formate les informations de l'assuré pour l'affichage
+  static String formatAssureInfo(Map<String, dynamic> informations) {
+    final nom = informations['nom_complet']?.toString() ?? 'Non renseigné';
+    final telephone = informations['telephone']?.toString() ?? 'Non renseigné';
+    final piece =
+        informations['type_piece_identite']?.toString() ?? 'Non renseigné';
 
-    // Nettoyer la valeur des séparateurs si nécessaire
-    String valeurString = valeur.toString();
-    if (SimulationValidators.critereNecessiteFormatage(critere)) {
-      valeurString = valeurString.replaceAll(RegExp(r'[^\d]'), '');
-    }
-
-    final numericValue = num.tryParse(valeurString);
-    if (numericValue == null) return valeur.toString();
-
-    // Formater avec séparateurs de milliers si nécessaire
-    if (SimulationValidators.critereNecessiteFormatage(critere)) {
-      return FormatHelper.formatNombre(numericValue.toDouble());
-    }
-
-    return numericValue.toString();
+    return '$nom - $telephone ($piece)';
   }
 
-  /// Nettoie les critères en supprimant les séparateurs des champs numériques
-  static Map<String, dynamic> nettoyerCriteres(Map<String, dynamic> criteres) {
-    final criteresNettoyes = <String, dynamic>{};
+  /// Formate les informations d'un bénéficiaire
+  static String formatBeneficiaireInfo(Map<String, dynamic> beneficiaire) {
+    final nom = beneficiaire['nom_complet']?.toString() ?? 'Non renseigné';
+    final lien =
+        beneficiaire['lien_souscripteur']?.toString() ?? 'Non renseigné';
 
-    for (final entry in criteres.entries) {
-      final key = entry.key;
-      final value = entry.value;
+    return '$nom ($lien)';
+  }
 
-      if (value is String && _isNumericField(key)) {
-        // Nettoyer la valeur des séparateurs
-        final valeurNettoyee = value.replaceAll(RegExp(r'[^\d]'), '');
-        final numericValue = num.tryParse(valeurNettoyee);
-        criteresNettoyes[key] = numericValue ?? 0;
-      } else {
-        criteresNettoyes[key] = value;
+  /// Formate la date d'expiration du devis
+  static String formatExpirationDate(DateTime? expiresAt) {
+    if (expiresAt == null) return 'Non définie';
+
+    final now = DateTime.now();
+    final difference = expiresAt.difference(now);
+
+    if (difference.isNegative) {
+      return 'Expiré';
+    }
+
+    final days = difference.inDays;
+    if (days == 0) {
+      return 'Expire aujourd\'hui';
+    } else if (days == 1) {
+      return 'Expire demain';
+    } else if (days <= 7) {
+      return 'Expire dans $days jours';
+    } else {
+      return 'Expire le ${expiresAt.formatDate()}';
+    }
+  }
+
+  /// Formate le statut du devis pour l'affichage
+  static String formatStatutDevis(StatutDevis statut) {
+    switch (statut) {
+      case StatutDevis.simulation:
+        return 'Simulation en cours';
+      case StatutDevis.sauvegarde:
+        return 'Sauvegardé';
+      case StatutDevis.expire:
+        return 'Expiré';
+    }
+  }
+
+  /// Formate les critères utilisateur pour l'affichage
+  static String formatCriteresUtilisateur(Map<String, dynamic> criteres) {
+    final List<String> criteresFormates = [];
+
+    criteres.forEach((key, value) {
+      if (value != null && value.toString().isNotEmpty) {
+        final keyFormatted = _formatCritereKey(key);
+        final valueFormatted = _formatCritereValue(value);
+        criteresFormates.add('$keyFormatted: $valueFormatted');
       }
+    });
+
+    return criteresFormates.join('\n');
+  }
+
+  /// Formate la clé d'un critère
+  static String _formatCritereKey(String key) {
+    // Capitaliser la première lettre et remplacer les underscores
+    return key
+        .split('_')
+        .map(
+          (word) => word.isNotEmpty
+              ? '${word[0].toUpperCase()}${word.substring(1).toLowerCase()}'
+              : '',
+        )
+        .join(' ');
+  }
+
+  /// Formate la valeur d'un critère
+  static String _formatCritereValue(dynamic value) {
+    if (value is num) {
+      return _formatNumberWithSpaces(value.toInt());
     }
-
-    return criteresNettoyes;
-  }
-
-  /// Détermine si un champ est numérique et nécessite un nettoyage
-  static bool _isNumericField(String fieldName) {
-    const champsNumeriques = [
-      'capital',
-      'capital_assure',
-      'montant',
-      'prime',
-      'franchise',
-      'plafond',
-      'souscription',
-      'assurance',
-    ];
-
-    final nomFieldLower = fieldName.toLowerCase();
-
-    for (final motCle in champsNumeriques) {
-      if (nomFieldLower.contains(motCle)) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  /// Formate un montant avec la devise
-  static String formatMontant(double montant) {
-    return FormatHelper.formatMontant(montant);
-  }
-
-  /// Formate un montant optionnel
-  static String? formatMontantOptionnel(double? montant) {
-    return FormatHelper.formatMontantOptionnel(montant);
-  }
-
-  /// Formate le texte de calcul en ajoutant des séparateurs de milliers
-  static String formatTexteCalcul(String texte) {
-    return FormatHelper.formatTexteCalcul(texte);
-  }
-
-  /// Formate une date au format DD-MM-YYYY
-  static String formatDate(DateTime date) {
-    final day = date.day.toString().padLeft(2, '0');
-    final month = date.month.toString().padLeft(2, '0');
-    return '$day-$month-${date.year}';
-  }
-
-  /// Formate une date depuis un string DD-MM-YYYY
-  static DateTime? parseDate(String dateString) {
-    try {
-      final parts = dateString.split('-');
-      if (parts.length == 3) {
-        final day = int.parse(parts[0]);
-        final month = int.parse(parts[1]);
-        final year = int.parse(parts[2]);
-        return DateTime(year, month, day);
-      }
-    } catch (e) {
-      // Retourner null en cas d'erreur de parsing
-    }
-    return null;
+    return value.toString();
   }
 }

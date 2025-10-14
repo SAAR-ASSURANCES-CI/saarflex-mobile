@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:saarflex_app/data/models/critere_tarification_model.dart';
-import 'package:saarflex_app/core/utils/simulation_validators.dart';
-import 'package:saarflex_app/core/utils/simulation_formatters.dart';
 import 'package:saarflex_app/core/utils/simulation_cache.dart';
 
 /// ViewModel spécialisé pour la gestion du formulaire de simulation
@@ -63,9 +61,10 @@ class SimulationFormViewModel extends ChangeNotifier {
       orElse: () => throw Exception('Critère $nomCritere non trouvé'),
     );
 
-    final error = SimulationValidators.validateCritere(critere, valeur);
-    if (error != null) {
-      _validationErrors[nomCritere] = error;
+    // Validation basique des critères
+    if (critere.obligatoire &&
+        (valeur == null || valeur.toString().trim().isEmpty)) {
+      _validationErrors[nomCritere] = 'Ce champ est obligatoire';
     }
   }
 
@@ -117,7 +116,22 @@ class SimulationFormViewModel extends ChangeNotifier {
 
   /// Nettoie les critères pour l'envoi
   Map<String, dynamic> getCriteresNettoyes() {
-    return SimulationFormatters.nettoyerCriteres(_criteresReponses);
+    // Nettoyer les valeurs des séparateurs pour les champs numériques
+    final criteresNettoyes = Map<String, dynamic>.from(_criteresReponses);
+
+    for (final critere in _criteresProduit) {
+      if (critere.type == TypeCritere.numerique &&
+          criteresNettoyes[critere.nom] is String) {
+        // Nettoyer la valeur des séparateurs
+        final valeurNettoyee = criteresNettoyes[critere.nom]
+            .toString()
+            .replaceAll(RegExp(r'[^\d]'), '');
+
+        criteresNettoyes[critere.nom] = num.tryParse(valeurNettoyee) ?? 0;
+      }
+    }
+
+    return criteresNettoyes;
   }
 
   /// Sauvegarde les réponses en cache

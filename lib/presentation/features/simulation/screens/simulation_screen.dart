@@ -5,7 +5,6 @@ import 'package:saarflex_app/data/models/critere_tarification_model.dart';
 import 'package:saarflex_app/presentation/features/simulation/viewmodels/simulation_viewmodel.dart';
 import 'package:saarflex_app/presentation/shared/widgets/dynamic_form_field.dart';
 import 'package:saarflex_app/data/models/product_model.dart';
-import 'package:saarflex_app/presentation/shared/widgets/beneficiaires_collection_widget.dart';
 import 'package:saarflex_app/presentation/features/simulation/widgets/simulation_app_bar.dart';
 import 'package:saarflex_app/presentation/features/simulation/widgets/simulation_loading_state.dart';
 import 'package:saarflex_app/presentation/features/simulation/widgets/simulation_error_state.dart';
@@ -114,14 +113,6 @@ class _SimulationScreenState extends State<SimulationScreen> {
             const SizedBox(height: 24),
             ..._buildFormFields(provider),
 
-            // Section bénéficiaires - affichée seulement si nécessaire
-            if (widget.produit.necessiteBeneficiaires) ...[
-              const SizedBox(height: 24),
-              BeneficiairesCollectionWidget(
-                maxBeneficiaires: widget.produit.maxBeneficiaires,
-                productName: widget.produit.nom,
-              ),
-            ],
             if (provider.hasError) ...[
               const SizedBox(height: 16),
               _buildFormError(provider.errorMessage!),
@@ -180,23 +171,6 @@ class _SimulationScreenState extends State<SimulationScreen> {
 
   Future<void> _simuler(SimulationViewModel provider) async {
     try {
-      // Vérifier si les bénéficiaires sont requis et complets
-      if (widget.produit.necessiteBeneficiaires) {
-        final beneficiaires = provider.beneficiaires;
-        if (beneficiaires.length != widget.produit.maxBeneficiaires) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Vous devez ajouter ${widget.produit.maxBeneficiaires} bénéficiaire(s) pour ce produit avant de pouvoir simuler votre devis.',
-              ),
-              backgroundColor: AppColors.warning,
-              duration: const Duration(seconds: 4),
-            ),
-          );
-          return;
-        }
-      }
-
       Map<String, dynamic> infosAEnvoyer = {};
 
       if (widget.informationsAssure != null) {
