@@ -6,7 +6,6 @@ import 'package:saarflex_app/data/models/critere_tarification_model.dart';
 class SimulationCache {
   static const String _criteresKey = 'simulation_criteres';
   static const String _criteresReponsesKey = 'simulation_criteres_reponses';
-  static const String _beneficiairesKey = 'simulation_beneficiaires';
   static const String _informationsAssureKey = 'simulation_informations_assure';
   static const String _produitIdKey = 'simulation_produit_id';
   static const String _cacheTimestampKey = 'simulation_cache_timestamp';
@@ -82,29 +81,6 @@ class SimulationCache {
     }
   }
 
-  /// Sauvegarde les bénéficiaires
-  static Future<void> saveBeneficiaires(
-    List<Map<String, dynamic>> beneficiaires,
-  ) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_beneficiairesKey, json.encode(beneficiaires));
-  }
-
-  /// Récupère les bénéficiaires
-  static Future<List<Map<String, dynamic>>?> getBeneficiaires() async {
-    final prefs = await SharedPreferences.getInstance();
-    final beneficiairesJsonString = prefs.getString(_beneficiairesKey);
-
-    if (beneficiairesJsonString == null) return null;
-
-    try {
-      final beneficiairesJson = json.decode(beneficiairesJsonString) as List;
-      return beneficiairesJson.cast<Map<String, dynamic>>();
-    } catch (e) {
-      return null;
-    }
-  }
-
   /// Sauvegarde les informations de l'assuré
   static Future<void> saveInformationsAssure(
     Map<String, dynamic> informations,
@@ -146,12 +122,10 @@ class SimulationCache {
     required String produitId,
     required List<CritereTarification> criteres,
     required Map<String, dynamic> criteresReponses,
-    required List<Map<String, dynamic>> beneficiaires,
     Map<String, dynamic>? informationsAssure,
   }) async {
     await saveCriteres(produitId, criteres);
     await saveCriteresReponses(criteresReponses);
-    await saveBeneficiaires(beneficiaires);
     await saveProduitId(produitId);
 
     if (informationsAssure != null) {
@@ -166,10 +140,9 @@ class SimulationCache {
 
     final criteres = await getCriteres(produitId);
     final criteresReponses = await getCriteresReponses();
-    final beneficiaires = await getBeneficiaires();
     final informationsAssure = await getInformationsAssure();
 
-    if (criteres == null || criteresReponses == null || beneficiaires == null) {
+    if (criteres == null || criteresReponses == null) {
       return null;
     }
 
@@ -177,7 +150,6 @@ class SimulationCache {
       produitId: produitId,
       criteres: criteres,
       criteresReponses: criteresReponses,
-      beneficiaires: beneficiaires,
       informationsAssure: informationsAssure,
     );
   }
@@ -207,7 +179,6 @@ class SimulationCache {
     for (final key in keys) {
       if (key.startsWith(_criteresKey) ||
           key == _criteresReponsesKey ||
-          key == _beneficiairesKey ||
           key == _informationsAssureKey ||
           key == _produitIdKey ||
           key == _cacheTimestampKey) {
@@ -228,14 +199,12 @@ class SimulationCacheData {
   final String produitId;
   final List<CritereTarification> criteres;
   final Map<String, dynamic> criteresReponses;
-  final List<Map<String, dynamic>> beneficiaires;
   final Map<String, dynamic>? informationsAssure;
 
   SimulationCacheData({
     required this.produitId,
     required this.criteres,
     required this.criteresReponses,
-    required this.beneficiaires,
     this.informationsAssure,
   });
 }

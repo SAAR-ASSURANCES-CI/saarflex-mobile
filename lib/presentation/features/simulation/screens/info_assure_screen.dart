@@ -1,13 +1,8 @@
-import 'dart:io';
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:image/image.dart' as img;
+import 'package:provider/provider.dart';
 import 'package:saarflex_app/core/constants/colors.dart';
 import 'package:saarflex_app/data/models/product_model.dart';
-import 'package:saarflex_app/core/utils/error_handler.dart';
 import 'package:saarflex_app/presentation/features/simulation/screens/simulation_screen.dart';
-import 'package:saarflex_app/core/utils/image_validator.dart';
 import 'package:saarflex_app/presentation/features/simulation/widgets/info_assure_app_bar.dart';
 import 'package:saarflex_app/presentation/features/simulation/widgets/info_assure_header.dart';
 import 'package:saarflex_app/presentation/features/simulation/widgets/custom_text_field.dart';
@@ -15,6 +10,7 @@ import 'package:saarflex_app/presentation/features/simulation/widgets/custom_dat
 import 'package:saarflex_app/presentation/features/simulation/widgets/custom_dropdown_field.dart';
 import 'package:saarflex_app/presentation/features/simulation/widgets/identity_images_section.dart';
 import 'package:saarflex_app/presentation/features/simulation/widgets/continue_button.dart';
+import 'package:saarflex_app/presentation/features/simulation/viewmodels/simulation_viewmodel.dart';
 
 class InfoAssureScreen extends StatefulWidget {
   final Product produit;
@@ -33,11 +29,6 @@ class _InfoAssureScreenState extends State<InfoAssureScreen> {
   bool _isFormValid = false;
   AutovalidateMode _autovalidateMode = AutovalidateMode.disabled;
 
-  XFile? _rectoImage;
-  XFile? _versoImage;
-  bool _isUploadingRecto = false;
-  bool _isUploadingVerso = false;
-
   final List<String> _typesPiece = ['Carte d\'identité', 'Passeport'];
 
   @override
@@ -48,7 +39,8 @@ class _InfoAssureScreenState extends State<InfoAssureScreen> {
 
   void _validateForm() {
     final isValid = _formKey.currentState?.validate() ?? false;
-    final hasRequiredImages = _rectoImage != null && _versoImage != null;
+    final simulationViewModel = context.read<SimulationViewModel>();
+    final hasRequiredImages = simulationViewModel.hasTempImages;
 
     setState(() {
       _isFormValid =
@@ -81,14 +73,20 @@ class _InfoAssureScreenState extends State<InfoAssureScreen> {
                 const SizedBox(height: 32),
                 _buildFormFields(),
                 const SizedBox(height: 32),
-                IdentityImagesSection(
-                  identityType: _formData['type_piece_identite'],
-                  isUploadingRecto: _isUploadingRecto,
-                  isUploadingVerso: _isUploadingVerso,
-                  onPickRecto: () => _pickImage(true),
-                  onPickVerso: () => _pickImage(false),
-                  rectoImage: _rectoImage,
-                  versoImage: _versoImage,
+                Consumer<SimulationViewModel>(
+                  builder: (context, simulationViewModel, child) {
+                    return IdentityImagesSection(
+                      identityType: _formData['type_piece_identite'],
+                      isUploadingRecto: false, // Pas d'upload immédiat
+                      isUploadingVerso: false, // Pas d'upload immédiat
+                      onPickRecto: () => _pickImage(true),
+                      onPickVerso: () => _pickImage(false),
+                      rectoImage: simulationViewModel.tempRectoImage,
+                      versoImage: simulationViewModel.tempVersoImage,
+                      uploadedRectoUrl: null, // Pas d'URL uploadée ici
+                      uploadedVersoUrl: null, // Pas d'URL uploadée ici
+                    );
+                  },
                 ),
                 const SizedBox(height: 32),
                 ContinueButton(isEnabled: _isFormValid, onPressed: _continue),
@@ -195,93 +193,9 @@ class _InfoAssureScreenState extends State<InfoAssureScreen> {
   }
 
   Future<void> _pickImage(bool isRecto) async {
-    try {
-      final ImagePicker picker = ImagePicker();
-      final XFile? image = await picker.pickImage(
-        source: ImageSource.gallery,
-        maxWidth: 1920,
-        maxHeight: 1080,
-        imageQuality: 85,
-      );
-
-      if (image != null) {
-        setState(() {
-          if (isRecto) {
-            _isUploadingRecto = true;
-          } else {
-            _isUploadingVerso = true;
-          }
-        });
-
-        // Validation de l'image
-        final isValid = await ImageValidator.validateImage(image.path);
-        if (!isValid) {
-          ErrorHandler.showErrorSnackBar(
-            context,
-            'Erreur d\'image: Format d\'image non supporté',
-          );
-          setState(() {
-            if (isRecto) {
-              _isUploadingRecto = false;
-            } else {
-              _isUploadingVerso = false;
-            }
-          });
-          return;
-        }
-
-        // Conversion HEIC vers JPEG si nécessaire
-        XFile processedImage = image;
-        if (image.path.toLowerCase().endsWith('.heic')) {
-          processedImage = await _convertHeicToJpeg(image);
-        }
-
-        setState(() {
-          if (isRecto) {
-            _rectoImage = processedImage;
-            _isUploadingRecto = false;
-          } else {
-            _versoImage = processedImage;
-            _isUploadingVerso = false;
-          }
-        });
-
-        _validateForm();
-      }
-    } catch (e) {
-      setState(() {
-        if (isRecto) {
-          _isUploadingRecto = false;
-        } else {
-          _isUploadingVerso = false;
-        }
-      });
-
-      ErrorHandler.showErrorSnackBar(
-        context,
-        'Erreur: Impossible de sélectionner l\'image: $e',
-      );
-    }
-  }
-
-  Future<XFile> _convertHeicToJpeg(XFile heicFile) async {
-    try {
-      final Uint8List heicBytes = await heicFile.readAsBytes();
-      final img.Image? image = img.decodeImage(heicBytes);
-
-      if (image == null) {
-        throw Exception('Impossible de décoder l\'image HEIC');
-      }
-
-      final Uint8List jpegBytes = img.encodeJpg(image, quality: 85);
-      final String tempPath = '${heicFile.path}.jpg';
-      final File jpegFile = File(tempPath);
-      await jpegFile.writeAsBytes(jpegBytes);
-
-      return XFile(jpegFile.path);
-    } catch (e) {
-      throw Exception('Erreur lors de la conversion HEIC: $e');
-    }
+    final simulationViewModel = context.read<SimulationViewModel>();
+    await simulationViewModel.pickImage(isRecto, context);
+    _validateForm();
   }
 
   void _continue() {
@@ -290,13 +204,28 @@ class _InfoAssureScreenState extends State<InfoAssureScreen> {
         _autovalidateMode = AutovalidateMode.disabled;
       });
 
+      // Convertir la date de naissance en string pour la sérialisation
+      Map<String, dynamic> infosAEnvoyer = Map.from(_formData);
+      if (infosAEnvoyer.containsKey('date_naissance')) {
+        final dateNaissance = infosAEnvoyer['date_naissance'];
+        if (dateNaissance is DateTime) {
+          final day = dateNaissance.day.toString().padLeft(2, '0');
+          final month = dateNaissance.month.toString().padLeft(2, '0');
+          infosAEnvoyer['date_naissance'] = '$day-$month-${dateNaissance.year}';
+        }
+      }
+
+      // Mettre à jour les informations de l'assuré dans le ViewModel
+      final simulationViewModel = context.read<SimulationViewModel>();
+      simulationViewModel.updateInformationsAssure(infosAEnvoyer);
+
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (context) => SimulationScreen(
             produit: widget.produit,
-            assureEstSouscripteur: true,
-            informationsAssure: _formData,
+            assureEstSouscripteur: false, // L'assuré n'est PAS le souscripteur
+            informationsAssure: infosAEnvoyer,
           ),
         ),
       );

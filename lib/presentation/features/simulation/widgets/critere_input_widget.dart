@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:saarflex_app/core/constants/colors.dart';
 import 'package:saarflex_app/data/models/critere_tarification_model.dart';
-import 'package:saarflex_app/core/utils/simulation_formatters.dart';
 import 'package:saarflex_app/presentation/features/simulation/widgets/validation_error_widget.dart';
 
 /// Widget d'entrée spécialisé pour les critères de simulation
@@ -55,11 +54,15 @@ class _CritereInputWidgetState extends State<CritereInputWidget> {
 
     switch (widget.critere.type) {
       case TypeCritere.numerique:
-        if (widget.formatMilliers) {
-          return SimulationFormatters.formatCritereValue(
-            widget.critere,
-            widget.valeur,
-          );
+        if (widget.formatMilliers && widget.valeur != null) {
+          // Formater la valeur avec des séparateurs de milliers
+          final numValue = num.tryParse(widget.valeur.toString());
+          if (numValue != null) {
+            return numValue.toString().replaceAllMapped(
+              RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+              (match) => '${match[1]} ',
+            );
+          }
         }
         return widget.valeur.toString();
       case TypeCritere.categoriel:

@@ -14,6 +14,8 @@ class IdentityImagesSection extends StatelessWidget {
   final VoidCallback onPickVerso;
   final XFile? rectoImage;
   final XFile? versoImage;
+  final String? uploadedRectoUrl;
+  final String? uploadedVersoUrl;
 
   const IdentityImagesSection({
     super.key,
@@ -24,6 +26,8 @@ class IdentityImagesSection extends StatelessWidget {
     required this.onPickVerso,
     required this.rectoImage,
     required this.versoImage,
+    this.uploadedRectoUrl,
+    this.uploadedVersoUrl,
   });
 
   @override
@@ -55,6 +59,7 @@ class IdentityImagesSection extends StatelessWidget {
           isUploading: isUploadingRecto,
           onTap: onPickRecto,
           selectedImage: rectoImage,
+          uploadedImageUrl: uploadedRectoUrl,
         ),
         const SizedBox(height: 20),
         ImageUploadField(
@@ -62,6 +67,7 @@ class IdentityImagesSection extends StatelessWidget {
           isUploading: isUploadingVerso,
           onTap: onPickVerso,
           selectedImage: versoImage,
+          uploadedImageUrl: uploadedVersoUrl,
         ),
       ],
     );

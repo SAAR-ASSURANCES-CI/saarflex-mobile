@@ -1,145 +1,141 @@
-import 'package:saarflex_app/data/models/critere_tarification_model.dart';
-
-/// Utilitaires de validation pour la simulation
+/// Utilitaires de validation spécialisés pour la simulation
 class SimulationValidators {
-  /// Valide un critère individuel
-  static String? validateCritere(CritereTarification critere, dynamic valeur) {
-    // Validation des champs obligatoires
-    if (critere.obligatoire &&
-        (valeur == null || valeur.toString().trim().isEmpty)) {
-      return 'Ce champ est obligatoire';
-    }
-
-    // Validation selon le type de critère
-    switch (critere.type) {
-      case TypeCritere.numerique:
-        return _validateNumerique(critere, valeur);
-      case TypeCritere.categoriel:
-        return _validateCategoriel(critere, valeur);
-      case TypeCritere.booleen:
-        return null; // Les booléens sont toujours valides
-    }
-  }
-
-  /// Valide un critère numérique
-  static String? _validateNumerique(
-    CritereTarification critere,
-    dynamic valeur,
-  ) {
-    if (valeur == null || valeur.toString().isEmpty) return null;
-
-    // Nettoyer la valeur des séparateurs si nécessaire
-    String valeurString = valeur.toString();
-    if (critereNecessiteFormatage(critere)) {
-      valeurString = valeurString.replaceAll(RegExp(r'[^\d]'), '');
-    }
-
-    final numericValue = num.tryParse(valeurString);
-    if (numericValue == null) {
-      return 'Veuillez entrer un nombre valide';
-    }
-
-    // Vérifier les limites min/max
-    for (final valeurCritere in critere.valeurs) {
-      if (valeurCritere.valeurMin != null &&
-          numericValue < valeurCritere.valeurMin!) {
-        return 'Valeur minimum: ${valeurCritere.valeurMin}';
-      }
-      if (valeurCritere.valeurMax != null &&
-          numericValue > valeurCritere.valeurMax!) {
-        return 'Valeur maximum: ${valeurCritere.valeurMax}';
-      }
-    }
-
-    return null;
-  }
-
-  /// Valide un critère catégoriel
-  static String? _validateCategoriel(
-    CritereTarification critere,
-    dynamic valeur,
-  ) {
-    if (valeur == null || !critere.hasValeurs) return null;
-
-    if (!critere.valeursString.contains(valeur.toString())) {
-      return 'Valeur non autorisée';
-    }
-
-    return null;
-  }
-
-  /// Valide l'ensemble du formulaire
-  static bool validateForm(
-    Map<String, dynamic> criteres,
-    List<CritereTarification> criteresProduit,
-  ) {
-    for (final critere in criteresProduit) {
-      final valeur = criteres[critere.nom];
-      final error = validateCritere(critere, valeur);
-      if (error != null) return false;
-    }
-    return true;
-  }
-
-  /// Retourne toutes les erreurs de validation
-  static Map<String, String> getValidationErrors(
-    Map<String, dynamic> criteres,
-    List<CritereTarification> criteresProduit,
+  /// Valide les informations de l'assuré
+  static ValidationResult validateAssureInfo(
+    Map<String, dynamic> informations,
   ) {
     final errors = <String, String>{};
 
-    for (final critere in criteresProduit) {
-      final valeur = criteres[critere.nom];
-      final error = validateCritere(critere, valeur);
-      if (error != null) {
-        errors[critere.nom] = error;
+    // Validation du nom complet
+    final nomComplet = informations['nom_complet']?.toString().trim();
+    if (nomComplet == null || nomComplet.isEmpty) {
+      errors['nom_complet'] = 'Le nom complet est obligatoire';
+    } else if (nomComplet.length < 2) {
+      errors['nom_complet'] = 'Le nom doit contenir au moins 2 caractères';
+    }
+
+    // Validation de la date de naissance
+    final dateNaissance = informations['date_naissance']?.toString();
+    if (dateNaissance != null && dateNaissance.isNotEmpty) {
+      final date = DateTime.tryParse(dateNaissance);
+      if (date == null) {
+        errors['date_naissance'] = 'Format de date invalide';
+      } else {
+        final age = DateTime.now().year - date.year;
+        if (age < 18) {
+          errors['date_naissance'] = 'L\'âge minimum est de 18 ans';
+        } else if (age > 100) {
+          errors['date_naissance'] = 'L\'âge maximum est de 100 ans';
+        }
       }
     }
 
-    return errors;
+    // Validation du téléphone
+    final telephone = informations['telephone']?.toString().trim();
+    if (telephone != null && telephone.isNotEmpty) {
+      if (!_isValidPhoneNumber(telephone)) {
+        errors['telephone'] = 'Format de téléphone invalide';
+      }
+    }
+
+    // Validation de l'email (optionnel)
+    final email = informations['email']?.toString().trim();
+    if (email != null && email.isNotEmpty) {
+      if (!_isValidEmail(email)) {
+        errors['email'] = 'Format d\'email invalide';
+      }
+    }
+
+    return ValidationResult(isValid: errors.isEmpty, errors: errors);
   }
 
-  /// Détermine si un critère nécessite un formatage spécial
-  static bool critereNecessiteFormatage(CritereTarification critere) {
-    const champsAvecSeparateurs = [
-      'capital',
-      'capital_assure',
-      'montant',
-      'prime',
-      'franchise',
-      'plafond',
-      'souscription',
-      'assurance',
-    ];
+  /// Valide les critères de simulation
+  static ValidationResult validateCriteres(
+    Map<String, dynamic> criteres,
+    List<String> criteresObligatoires,
+  ) {
+    final errors = <String, String>{};
 
-    final nomCritereLower = critere.nom.toLowerCase();
-
-    for (final motCle in champsAvecSeparateurs) {
-      if (nomCritereLower.contains(motCle)) {
-        return true;
+    for (final critere in criteresObligatoires) {
+      final valeur = criteres[critere];
+      if (valeur == null || valeur.toString().trim().isEmpty) {
+        errors[critere] = 'Ce critère est obligatoire';
       }
+    }
+
+    return ValidationResult(isValid: errors.isEmpty, errors: errors);
+  }
+
+  /// Valide les informations de sauvegarde
+  static ValidationResult validateSaveInfo({
+    required String devisId,
+    String? nomPersonnalise,
+    String? notes,
+  }) {
+    final errors = <String, String>{};
+
+    if (devisId.trim().isEmpty) {
+      errors['devis_id'] = 'L\'ID du devis est obligatoire';
+    }
+
+    if (nomPersonnalise != null && nomPersonnalise.trim().isNotEmpty) {
+      if (nomPersonnalise.trim().length < 2) {
+        errors['nom_personnalise'] =
+            'Le nom doit contenir au moins 2 caractères';
+      } else if (nomPersonnalise.trim().length > 100) {
+        errors['nom_personnalise'] =
+            'Le nom ne peut pas dépasser 100 caractères';
+      }
+    }
+
+    if (notes != null && notes.trim().isNotEmpty) {
+      if (notes.trim().length > 500) {
+        errors['notes'] = 'Les notes ne peuvent pas dépasser 500 caractères';
+      }
+    }
+
+    return ValidationResult(isValid: errors.isEmpty, errors: errors);
+  }
+
+  /// Vérifie si un numéro de téléphone est valide
+  static bool _isValidPhoneNumber(String phone) {
+    // Supprimer tous les espaces et caractères non numériques
+    final cleaned = phone.replaceAll(RegExp(r'[^\d]'), '');
+
+    // Vérifier que c'est un numéro camerounais valide
+    if (cleaned.length == 9 && cleaned.startsWith('6')) {
+      return true;
+    }
+
+    // Vérifier que c'est un numéro international valide
+    if (cleaned.length >= 10 && cleaned.length <= 15) {
+      return true;
     }
 
     return false;
   }
 
-  /// Valide les bénéficiaires
-  static bool validateBeneficiaires(
-    List<Map<String, dynamic>> beneficiaires,
-    int maxBeneficiaires,
-  ) {
-    if (beneficiaires.length != maxBeneficiaires) return false;
-
-    for (final beneficiaire in beneficiaires) {
-      if (beneficiaire['nom_complet']?.toString().trim().isEmpty ?? true) {
-        return false;
-      }
-      if (beneficiaire['lien_souscripteur']?.toString().trim().isEmpty ??
-          true) {
-        return false;
-      }
-    }
-
-    return true;
+  /// Vérifie si un email est valide
+  static bool _isValidEmail(String email) {
+    return RegExp(
+      r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+    ).hasMatch(email);
   }
+}
+
+/// Résultat de validation
+class ValidationResult {
+  final bool isValid;
+  final Map<String, String> errors;
+
+  const ValidationResult({required this.isValid, required this.errors});
+
+  /// Retourne le premier message d'erreur
+  String? get firstError {
+    if (errors.isEmpty) return null;
+    return errors.values.first;
+  }
+
+  /// Retourne tous les messages d'erreur
+  List<String> get allErrors => errors.values.toList();
 }
