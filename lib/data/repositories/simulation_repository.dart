@@ -3,15 +3,12 @@ import 'package:saarflex_app/data/models/critere_tarification_model.dart';
 import 'package:saarflex_app/data/services/simulation_service.dart';
 import 'package:saarflex_app/core/utils/logger.dart';
 
-/// Repository pour l'abstraction de l'accès aux données de simulation
-/// Suit l'architecture clean en séparant la logique d'accès aux données
 class SimulationRepository {
   final SimulationService _simulationService;
 
   SimulationRepository({SimulationService? simulationService})
     : _simulationService = simulationService ?? SimulationService();
 
-  /// Récupère les critères de tarification pour un produit
   Future<List<CritereTarification>> getCriteresProduit(
     String produitId, {
     int page = 1,
@@ -36,7 +33,6 @@ class SimulationRepository {
     }
   }
 
-  /// Effectue une simulation de devis simplifiée
   Future<SimulationResponse> simulerDevisSimplifie({
     required String produitId,
     required Map<String, dynamic> criteres,
@@ -67,7 +63,6 @@ class SimulationRepository {
     }
   }
 
-  /// Sauvegarde un devis
   Future<void> sauvegarderDevis(SauvegardeDevisRequest request) async {
     try {
       AppLogger.info('💾 Sauvegarde du devis: ${request.devisId}');
@@ -83,7 +78,6 @@ class SimulationRepository {
     }
   }
 
-  /// Récupère la grille tarifaire pour un produit
   Future<String?> getGrilleTarifaireForProduit(String produitId) async {
     try {
       AppLogger.info('📊 Récupération de la grille tarifaire pour: $produitId');
@@ -100,7 +94,6 @@ class SimulationRepository {
     }
   }
 
-  /// Récupère les devis sauvegardés de l'utilisateur
   Future<List<SimulationResponse>> getMesDevis({
     int page = 1,
     int limit = 10,
@@ -123,7 +116,6 @@ class SimulationRepository {
     }
   }
 
-  /// Supprime un devis sauvegardé
   Future<void> supprimerDevis(String devisId) async {
     try {
       AppLogger.info('🗑️ Suppression du devis: $devisId');
