@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:saarflex_app/data/models/critere_tarification_model.dart';
 
-/// Gestionnaire de cache pour la simulation
 class SimulationCache {
   static const String _criteresKey = 'simulation_criteres';
   static const String _criteresReponsesKey = 'simulation_criteres_reponses';
@@ -10,17 +9,14 @@ class SimulationCache {
   static const String _produitIdKey = 'simulation_produit_id';
   static const String _cacheTimestampKey = 'simulation_cache_timestamp';
 
-  // Durée de validité du cache (24 heures)
   static const Duration _cacheValidityDuration = Duration(hours: 24);
 
-  /// Sauvegarde les critères en cache
   static Future<void> saveCriteres(
     String produitId,
     List<CritereTarification> criteres,
   ) async {
     final prefs = await SharedPreferences.getInstance();
 
-    // Convertir les critères en JSON
     final criteresJson = criteres.map((c) => c.toJson()).toList();
 
     await prefs.setString(
@@ -30,13 +26,11 @@ class SimulationCache {
     await prefs.setString(_cacheTimestampKey, DateTime.now().toIso8601String());
   }
 
-  /// Récupère les critères du cache
   static Future<List<CritereTarification>?> getCriteres(
     String produitId,
   ) async {
     final prefs = await SharedPreferences.getInstance();
 
-    // Vérifier si le cache est encore valide
     if (!await _isCacheValid()) {
       await clearCache();
       return null;
@@ -51,13 +45,11 @@ class SimulationCache {
           .map((json) => CritereTarification.fromJson(json))
           .toList();
     } catch (e) {
-      // En cas d'erreur de parsing, nettoyer le cache
       await clearCache();
       return null;
     }
   }
 
-  /// Sauvegarde les réponses aux critères
   static Future<void> saveCriteresReponses(
     Map<String, dynamic> reponses,
   ) async {
@@ -65,7 +57,6 @@ class SimulationCache {
     await prefs.setString(_criteresReponsesKey, json.encode(reponses));
   }
 
-  /// Récupère les réponses aux critères
   static Future<Map<String, dynamic>?> getCriteresReponses() async {
     final prefs = await SharedPreferences.getInstance();
     final reponsesJsonString = prefs.getString(_criteresReponsesKey);
@@ -81,7 +72,6 @@ class SimulationCache {
     }
   }
 
-  /// Sauvegarde les informations de l'assuré
   static Future<void> saveInformationsAssure(
     Map<String, dynamic> informations,
   ) async {
@@ -89,7 +79,6 @@ class SimulationCache {
     await prefs.setString(_informationsAssureKey, json.encode(informations));
   }
 
-  /// Récupère les informations de l'assuré
   static Future<Map<String, dynamic>?> getInformationsAssure() async {
     final prefs = await SharedPreferences.getInstance();
     final informationsJsonString = prefs.getString(_informationsAssureKey);
@@ -105,19 +94,16 @@ class SimulationCache {
     }
   }
 
-  /// Sauvegarde l'ID du produit
   static Future<void> saveProduitId(String produitId) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_produitIdKey, produitId);
   }
 
-  /// Récupère l'ID du produit
   static Future<String?> getProduitId() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_produitIdKey);
   }
 
-  /// Sauvegarde une simulation complète
   static Future<void> saveSimulationData({
     required String produitId,
     required List<CritereTarification> criteres,
@@ -133,7 +119,6 @@ class SimulationCache {
     }
   }
 
-  /// Récupère toutes les données de simulation
   static Future<SimulationCacheData?> getSimulationData() async {
     final produitId = await getProduitId();
     if (produitId == null) return null;
@@ -154,7 +139,6 @@ class SimulationCache {
     );
   }
 
-  /// Vérifie si le cache est encore valide
   static Future<bool> _isCacheValid() async {
     final prefs = await SharedPreferences.getInstance();
     final timestampString = prefs.getString(_cacheTimestampKey);
@@ -170,11 +154,9 @@ class SimulationCache {
     }
   }
 
-  /// Nettoie tout le cache
   static Future<void> clearCache() async {
     final prefs = await SharedPreferences.getInstance();
 
-    // Supprimer toutes les clés liées à la simulation
     final keys = prefs.getKeys();
     for (final key in keys) {
       if (key.startsWith(_criteresKey) ||
@@ -187,14 +169,12 @@ class SimulationCache {
     }
   }
 
-  /// Nettoie le cache pour un produit spécifique
   static Future<void> clearCacheForProduit(String produitId) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('${_criteresKey}_$produitId');
   }
 }
 
-/// Modèle de données pour le cache de simulation
 class SimulationCacheData {
   final String produitId;
   final List<CritereTarification> criteres;

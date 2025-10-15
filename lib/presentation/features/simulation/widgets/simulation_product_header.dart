@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:saarflex_app/core/constants/colors.dart';
 import 'package:saarflex_app/data/models/product_model.dart';
 
-/// Widget d'en-tête du produit pour la simulation
 class SimulationProductHeader extends StatelessWidget {
   final Product produit;
 

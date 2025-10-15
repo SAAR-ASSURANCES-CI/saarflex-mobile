@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:saarflex_app/core/constants/colors.dart';
 
-/// Widget de dropdown personnalisé réutilisable
 class CustomDropdownField extends StatelessWidget {
   final String fieldName;
   final String label;

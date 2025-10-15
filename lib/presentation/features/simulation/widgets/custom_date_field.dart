@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:saarflex_app/core/constants/colors.dart';
 
-/// Widget de champ de date personnalisé réutilisable
 class CustomDateField extends StatelessWidget {
   final String fieldName;
   final String label;

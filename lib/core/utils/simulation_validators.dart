@@ -1,12 +1,9 @@
-/// Utilitaires de validation spécialisés pour la simulation
 class SimulationValidators {
-  /// Valide les informations de l'assuré
   static ValidationResult validateAssureInfo(
     Map<String, dynamic> informations,
   ) {
     final errors = <String, String>{};
 
-    // Validation du nom complet
     final nomComplet = informations['nom_complet']?.toString().trim();
     if (nomComplet == null || nomComplet.isEmpty) {
       errors['nom_complet'] = 'Le nom complet est obligatoire';
@@ -14,7 +11,6 @@ class SimulationValidators {
       errors['nom_complet'] = 'Le nom doit contenir au moins 2 caractères';
     }
 
-    // Validation de la date de naissance
     final dateNaissance = informations['date_naissance']?.toString();
     if (dateNaissance != null && dateNaissance.isNotEmpty) {
       final date = DateTime.tryParse(dateNaissance);
@@ -30,7 +26,6 @@ class SimulationValidators {
       }
     }
 
-    // Validation du téléphone
     final telephone = informations['telephone']?.toString().trim();
     if (telephone != null && telephone.isNotEmpty) {
       if (!_isValidPhoneNumber(telephone)) {
@@ -38,7 +33,6 @@ class SimulationValidators {
       }
     }
 
-    // Validation de l'email (optionnel)
     final email = informations['email']?.toString().trim();
     if (email != null && email.isNotEmpty) {
       if (!_isValidEmail(email)) {
@@ -49,7 +43,6 @@ class SimulationValidators {
     return ValidationResult(isValid: errors.isEmpty, errors: errors);
   }
 
-  /// Valide les critères de simulation
   static ValidationResult validateCriteres(
     Map<String, dynamic> criteres,
     List<String> criteresObligatoires,
@@ -66,7 +59,6 @@ class SimulationValidators {
     return ValidationResult(isValid: errors.isEmpty, errors: errors);
   }
 
-  /// Valide les informations de sauvegarde
   static ValidationResult validateSaveInfo({
     required String devisId,
     String? nomPersonnalise,
@@ -97,17 +89,13 @@ class SimulationValidators {
     return ValidationResult(isValid: errors.isEmpty, errors: errors);
   }
 
-  /// Vérifie si un numéro de téléphone est valide
   static bool _isValidPhoneNumber(String phone) {
-    // Supprimer tous les espaces et caractères non numériques
     final cleaned = phone.replaceAll(RegExp(r'[^\d]'), '');
 
-    // Vérifier que c'est un numéro camerounais valide
     if (cleaned.length == 9 && cleaned.startsWith('6')) {
       return true;
     }
 
-    // Vérifier que c'est un numéro international valide
     if (cleaned.length >= 10 && cleaned.length <= 15) {
       return true;
     }
@@ -115,7 +103,6 @@ class SimulationValidators {
     return false;
   }
 
-  /// Vérifie si un email est valide
   static bool _isValidEmail(String email) {
     return RegExp(
       r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
@@ -123,19 +110,16 @@ class SimulationValidators {
   }
 }
 
-/// Résultat de validation
 class ValidationResult {
   final bool isValid;
   final Map<String, String> errors;
 
   const ValidationResult({required this.isValid, required this.errors});
 
-  /// Retourne le premier message d'erreur
   String? get firstError {
     if (errors.isEmpty) return null;
     return errors.values.first;
   }
 
-  /// Retourne tous les messages d'erreur
   List<String> get allErrors => errors.values.toList();
 }

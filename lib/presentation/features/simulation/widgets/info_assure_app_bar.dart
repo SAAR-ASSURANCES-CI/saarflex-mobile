@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:saarflex_app/core/constants/colors.dart';
 
-/// AppBar spécialisé pour l'écran d'informations de l'assuré
 class InfoAssureAppBar extends StatelessWidget implements PreferredSizeWidget {
   const InfoAssureAppBar({super.key});
 

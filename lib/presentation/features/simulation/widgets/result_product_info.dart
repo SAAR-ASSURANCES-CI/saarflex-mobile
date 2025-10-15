@@ -4,7 +4,6 @@ import 'package:saarflex_app/core/constants/colors.dart';
 import 'package:saarflex_app/data/models/product_model.dart';
 import 'package:saarflex_app/data/models/simulation_model.dart';
 
-/// Widget d'informations du produit pour les résultats
 class ResultProductInfo extends StatelessWidget {
   final Product produit;
   final SimulationResponse resultat;

@@ -3,7 +3,6 @@ import 'package:saarflex_app/data/models/simulation_model.dart';
 import 'package:saarflex_app/data/repositories/simulation_repository.dart';
 import 'package:saarflex_app/core/utils/simulation_validators.dart';
 
-/// ViewModel spécialisé pour la gestion des résultats de simulation
 class SimulationResultViewModel extends ChangeNotifier {
   final SimulationRepository _simulationRepository;
 
@@ -15,7 +14,6 @@ class SimulationResultViewModel extends ChangeNotifier {
   String? _saveError;
   final Map<String, String> _validationErrors = {};
 
-  // Getters
   SimulationResponse? get dernierResultat => _dernierResultat;
   bool get isSaving => _isSaving;
   String? get saveError => _saveError;
@@ -23,14 +21,12 @@ class SimulationResultViewModel extends ChangeNotifier {
   Map<String, String> get validationErrors =>
       Map.unmodifiable(_validationErrors);
 
-  /// Définit le résultat de simulation
   void setResultat(SimulationResponse resultat) {
     _dernierResultat = resultat;
     _clearSaveError();
     notifyListeners();
   }
 
-  /// Sauvegarde un devis avec validation
   Future<bool> sauvegarderDevis({
     required String devisId,
     String? nomPersonnalise,
@@ -42,7 +38,6 @@ class SimulationResultViewModel extends ChangeNotifier {
       return false;
     }
 
-    // Validation des données de sauvegarde
     final validationResult = SimulationValidators.validateSaveInfo(
       devisId: devisId,
       nomPersonnalise: nomPersonnalise,
@@ -72,14 +67,12 @@ class SimulationResultViewModel extends ChangeNotifier {
 
       await _simulationRepository.sauvegarderDevis(request);
 
-      // Mettre à jour le statut du résultat
       _dernierResultat = _dernierResultat!.copyWith(
         statut: StatutDevis.sauvegarde,
       );
 
       _clearSaveError();
 
-      // Déclencher l'upload des images après sauvegarde
       _triggerImageUploadAfterSave(request.devisId);
 
       return true;
@@ -94,26 +87,16 @@ class SimulationResultViewModel extends ChangeNotifier {
     }
   }
 
-  /// Efface l'erreur de sauvegarde
   void clearSaveError() {
     _clearSaveError();
     _validationErrors.clear();
     notifyListeners();
   }
 
-  /// Déclenche l'upload des images après sauvegarde
-  void _triggerImageUploadAfterSave(String devisId) {
-    // Cette méthode sera appelée depuis l'UI pour déclencher l'upload
-    // L'UI devra récupérer le SimulationViewModel et appeler uploadImagesAfterSave
-  }
+  void _triggerImageUploadAfterSave(String devisId) {}
 
-  /// Nettoie les images temporaires après sauvegarde
-  void clearTempImagesAfterSave() {
-    // Cette méthode sera appelée depuis l'UI pour nettoyer les images
-    // L'UI devra récupérer le SimulationViewModel et appeler clearTempImagesAfterSave
-  }
+  void clearTempImagesAfterSave() {}
 
-  /// Réinitialise le résultat
   void resetResultat() {
     _dernierResultat = null;
     _clearSaveError();
@@ -121,57 +104,47 @@ class SimulationResultViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Vérifie si le devis peut être sauvegardé
   bool get canSave {
     return _dernierResultat != null &&
         _dernierResultat!.statut != StatutDevis.sauvegarde &&
         !_isSaving;
   }
 
-  /// Vérifie si le devis est déjà sauvegardé
   bool get isAlreadySaved {
     return _dernierResultat?.statut == StatutDevis.sauvegarde;
   }
 
-  /// Vérifie s'il y a des erreurs de validation
   bool get hasValidationErrors => _validationErrors.isNotEmpty;
 
-  /// Retourne l'erreur de validation pour un champ spécifique
   String? getValidationError(String field) {
     return _validationErrors[field];
   }
 
-  /// Définit une erreur de validation pour un champ
   void setValidationError(String field, String error) {
     _validationErrors[field] = error;
     notifyListeners();
   }
 
-  /// Supprime une erreur de validation pour un champ
   void clearValidationError(String field) {
     _validationErrors.remove(field);
     notifyListeners();
   }
 
-  /// Définit l'état de sauvegarde
   void _setSaving(bool saving) {
     _isSaving = saving;
     notifyListeners();
   }
 
-  /// Définit une erreur de sauvegarde
   void _setSaveError(String error) {
     _saveError = error;
     notifyListeners();
   }
 
-  /// Efface l'erreur de sauvegarde
   void _clearSaveError() {
     _saveError = null;
     notifyListeners();
   }
 
-  /// Convertit les erreurs techniques en messages utilisateur
   String _getUserFriendlyError(dynamic error) {
     final errorString = error.toString().toLowerCase();
 
@@ -198,7 +171,6 @@ class SimulationResultViewModel extends ChangeNotifier {
   }
 }
 
-/// Extension pour créer une copie de SimulationResponse avec des modifications
 extension SimulationResponseCopyWith on SimulationResponse {
   SimulationResponse copyWith({
     String? id,

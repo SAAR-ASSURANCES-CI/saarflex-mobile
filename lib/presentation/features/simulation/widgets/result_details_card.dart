@@ -4,7 +4,6 @@ import 'package:saarflex_app/core/constants/colors.dart';
 import 'package:saarflex_app/core/utils/format_helper.dart';
 import 'package:saarflex_app/data/models/simulation_model.dart';
 
-/// Widget de la carte des détails de calcul
 class ResultDetailsCard extends StatelessWidget {
   final SimulationResponse resultat;
 

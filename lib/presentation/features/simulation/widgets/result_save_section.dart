@@ -6,7 +6,6 @@ import 'package:saarflex_app/presentation/features/simulation/widgets/result_sav
 import 'package:saarflex_app/presentation/features/contracts/screens/contracts_screen.dart';
 import 'package:saarflex_app/presentation/features/simulation/viewmodels/simulation_result_viewmodel.dart';
 
-/// Widget pour la section de sauvegarde du devis
 class ResultSaveSection extends StatefulWidget {
   final SimulationResponse resultat;
   final SimulationResultViewModel viewModel;

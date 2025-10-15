@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:saarflex_app/core/constants/colors.dart';
 
-/// Widget de bouton continuer réutilisable
 class ContinueButton extends StatelessWidget {
   final bool isEnabled;
   final VoidCallback onPressed;

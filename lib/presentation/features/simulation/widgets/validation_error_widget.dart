@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:saarflex_app/core/constants/colors.dart';
 
-/// Widget d'erreur de validation pour la simulation
 class ValidationErrorWidget extends StatelessWidget {
   final String error;
   final VoidCallback? onDismiss;

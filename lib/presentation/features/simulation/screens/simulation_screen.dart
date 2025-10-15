@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:saarflex_app/data/models/critere_tarification_model.dart';
 import 'package:saarflex_app/presentation/features/simulation/viewmodels/simulation_viewmodel.dart';
-import 'package:saarflex_app/presentation/shared/widgets/dynamic_form_field.dart';
 import 'package:saarflex_app/data/models/product_model.dart';
+import 'package:saarflex_app/presentation/shared/widgets/dynamic_form_field.dart';
 import 'package:saarflex_app/presentation/features/simulation/widgets/simulation_app_bar.dart';
 import 'package:saarflex_app/presentation/features/simulation/widgets/simulation_loading_state.dart';
 import 'package:saarflex_app/presentation/features/simulation/widgets/simulation_error_state.dart';
@@ -34,7 +34,6 @@ class SimulationScreen extends StatefulWidget {
 class _SimulationScreenState extends State<SimulationScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  // Méthode helper pour le formatage
   bool _critereNecessiteFormatage(CritereTarification critere) {
     const champsAvecSeparateurs = [
       'capital',

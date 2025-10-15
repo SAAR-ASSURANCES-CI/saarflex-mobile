@@ -5,7 +5,6 @@ import 'package:saarflex_app/core/constants/colors.dart';
 import 'package:saarflex_app/data/models/critere_tarification_model.dart';
 import 'package:saarflex_app/presentation/features/simulation/widgets/validation_error_widget.dart';
 
-/// Widget d'entrée spécialisé pour les critères de simulation
 class CritereInputWidget extends StatefulWidget {
   final CritereTarification critere;
   final dynamic valeur;
@@ -55,7 +54,6 @@ class _CritereInputWidgetState extends State<CritereInputWidget> {
     switch (widget.critere.type) {
       case TypeCritere.numerique:
         if (widget.formatMilliers && widget.valeur != null) {
-          // Formater la valeur avec des séparateurs de milliers
           final numValue = num.tryParse(widget.valeur.toString());
           if (numValue != null) {
             return numValue.toString().replaceAllMapped(
@@ -149,7 +147,6 @@ class _CritereInputWidgetState extends State<CritereInputWidget> {
       style: GoogleFonts.poppins(fontSize: 16, color: AppColors.textPrimary),
       onChanged: (value) {
         if (widget.formatMilliers) {
-          // Nettoyer la valeur des séparateurs
           final cleanValue = value.replaceAll(RegExp(r'[^\d]'), '');
           final numericValue = num.tryParse(cleanValue);
           widget.onChanged(numericValue);

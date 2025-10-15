@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:saarflex_app/core/constants/colors.dart';
 import 'package:saarflex_app/presentation/features/simulation/viewmodels/simulation_viewmodel.dart';
 
-/// Widget d'état d'erreur pour la simulation
 class SimulationErrorState extends StatelessWidget {
   final SimulationViewModel provider;
 
