@@ -1,7 +1,6 @@
 import 'package:saarflex_app/data/models/simulation_model.dart';
 import 'package:saarflex_app/data/models/critere_tarification_model.dart';
 import 'package:saarflex_app/data/services/simulation_service.dart';
-import 'package:saarflex_app/core/utils/logger.dart';
 
 class SimulationRepository {
   final SimulationService _simulationService;
