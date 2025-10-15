@@ -1,4 +1,3 @@
-/// Utilitaires de validation spécialisés pour la simulation
 class SimulationValidators {
   static ValidationResult validateAssureInfo(
     Map<String, dynamic> informations,
