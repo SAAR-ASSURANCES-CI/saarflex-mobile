@@ -29,7 +29,7 @@ class ResetPasswordWidgets {
         keyboardType: keyboardType,
         validator: validator,
         style: GoogleFonts.poppins(
-          fontSize: 16, 
+          fontSize: 16,
           fontWeight: FontWeight.w500,
           color: AppColors.textPrimary,
         ),
@@ -95,19 +95,21 @@ class ResetPasswordWidgets {
     Color? borderColor,
   }) {
     final isOutlined = backgroundColor == Colors.transparent;
-    
+
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
-        boxShadow: !isOutlined && isEnabled && !isLoading ? [
-          BoxShadow(
-            color: backgroundColor.withOpacity(0.3),
-            spreadRadius: 0,
-            blurRadius: 15,
-            offset: const Offset(0, 4),
-          ),
-        ] : null,
-        border: isOutlined && borderColor != null 
+        boxShadow: !isOutlined && isEnabled && !isLoading
+            ? [
+                BoxShadow(
+                  color: backgroundColor.withOpacity(0.3),
+                  spreadRadius: 0,
+                  blurRadius: 15,
+                  offset: const Offset(0, 4),
+                ),
+              ]
+            : null,
+        border: isOutlined && borderColor != null
             ? Border.all(color: borderColor, width: 2)
             : null,
       ),
@@ -115,7 +117,9 @@ class ResetPasswordWidgets {
         onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: isEnabled ? backgroundColor : AppColors.disabled,
-          foregroundColor: isEnabled ? (textColor ?? AppColors.white) : AppColors.disabledText,
+          foregroundColor: isEnabled
+              ? (textColor ?? AppColors.white)
+              : AppColors.disabledText,
           minimumSize: const Size(double.infinity, 56),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
@@ -204,7 +208,11 @@ class ResetPasswordWidgets {
       SnackBar(
         content: Row(
           children: [
-            Icon(Icons.check_circle_outline_rounded, color: Colors.white, size: 20),
+            Icon(
+              Icons.check_circle_outline_rounded,
+              color: Colors.white,
+              size: 20,
+            ),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
