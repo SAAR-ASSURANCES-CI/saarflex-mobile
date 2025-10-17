@@ -10,7 +10,7 @@ import 'presentation/features/profile/viewmodels/profile_viewmodel.dart';
 import 'presentation/features/products/viewmodels/product_viewmodel.dart';
 import 'presentation/features/simulation/viewmodels/simulation_viewmodel.dart';
 import 'presentation/features/contracts/viewmodels/contract_viewmodel.dart';
-import 'presentation/features/beneficiaires/viewmodels/beneficiaire_viewmodel.dart';
+import 'presentation/features/souscription/viewmodels/souscription_viewmodel.dart';
 import 'presentation/features/auth/screens/welcome_screen.dart';
 import 'presentation/features/dashboard/screens/dashboard_screen.dart';
 import 'presentation/features/auth/screens/login_screen.dart';
@@ -48,8 +48,8 @@ class Saarflex extends StatelessWidget {
         ChangeNotifierProvider<ContractViewModel>(
           create: (_) => ContractViewModel(),
         ),
-        ChangeNotifierProvider<BeneficiaireViewModel>(
-          create: (_) => BeneficiaireViewModel(),
+        ChangeNotifierProvider<SouscriptionViewModel>(
+          create: (_) => SouscriptionViewModel(),
         ),
       ],
       child: AppLifecycleWrapper(

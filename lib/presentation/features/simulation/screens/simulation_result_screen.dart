@@ -18,6 +18,7 @@ import 'package:saarflex_app/presentation/features/simulation/widgets/upload_sta
 import 'package:saarflex_app/presentation/features/simulation/viewmodels/simulation_viewmodel.dart';
 import 'package:saarflex_app/presentation/features/contracts/screens/contracts_screen.dart';
 import 'package:saarflex_app/presentation/features/products/screens/product_list_screen.dart';
+import 'package:saarflex_app/presentation/features/souscription/screens/souscription_screen.dart';
 
 class SimulationResultScreen extends StatefulWidget {
   final Product produit;
@@ -70,7 +71,6 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
               ),
               const SizedBox(height: 24),
 
-              // Afficher les informations de l'assuré en premier si ce n'est pas le souscripteur
               if (!widget.resultat.assureEstSouscripteur &&
                   widget.resultat.informationsAssure != null) ...[
                 ResultAssureInfoCard(resultat: widget.resultat),
@@ -87,7 +87,6 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
                   if (authProvider.isLoggedIn) {
                     return Column(
                       children: [
-                        // Indicateur d'upload des images
                         Consumer<SimulationViewModel>(
                           builder: (context, simulationViewModel, child) {
                             return UploadStatusIndicator(
@@ -100,7 +99,6 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
                             );
                           },
                         ),
-                        // Notification d'upload en arrière-plan
                         Consumer<SimulationViewModel>(
                           builder: (context, simulationViewModel, child) {
                             if (simulationViewModel.isUploadingImages) {
@@ -191,7 +189,6 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
       leading: IconButton(
         icon: Icon(Icons.close_rounded, color: AppColors.primary),
         onPressed: () {
-          // Rediriger vers le dashboard au lieu de revenir en arrière
           Navigator.pushNamedAndRemoveUntil(
             context,
             '/dashboard',
@@ -211,25 +208,19 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
     );
   }
 
-  /// Affiche le dialog de confirmation de sauvegarde
   void _showSaveConfirmationDialog() {
-    // Récupérer les données du formulaire via la clé
     final saveSectionState = _saveSectionKey.currentState;
     if (saveSectionState == null) return;
 
-    // Caster vers le bon type pour accéder aux getters
     final typedState = saveSectionState as dynamic;
     final nomDevis = typedState.nomController.text.trim();
     final notes = typedState.notesController.text.trim();
-
-    // Vérifier que le nom est renseigné
     if (nomDevis.isEmpty) {
       _resultViewModel.setValidationError(
         'nom_personnalise',
         'Le nom du devis est obligatoire',
       );
 
-      // Afficher un message d'erreur à l'utilisateur
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -244,7 +235,7 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
         ),
       );
 
-      return; // Ne pas ouvrir le popup
+      return;
     }
 
     ResultSaveConfirmationDialog.show(
@@ -258,14 +249,47 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
     );
   }
 
-  /// Procède à la souscription
   void _procederSouscription() {
-    Navigator.of(
+    final saveSectionState = _saveSectionKey.currentState;
+    if (saveSectionState == null) return;
+
+    final typedState = saveSectionState as dynamic;
+    final nomDevis = typedState.nomController.text.trim();
+    if (nomDevis.isEmpty) {
+      _resultViewModel.setValidationError(
+        'nom_personnalise',
+        'Le nom du devis est obligatoire',
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Veuillez saisir un nom pour votre devis',
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          backgroundColor: AppColors.error,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+
+      return;
+    }
+
+    Navigator.push(
       context,
-    ).push(MaterialPageRoute(builder: (context) => const ContractsScreen()));
+      MaterialPageRoute(
+        builder: (context) => souscriptionScreen(
+          simulationResult: widget.resultat,
+          product: widget.produit,
+          source: 'simulation',
+        ),
+      ),
+    );
   }
 
-  /// Navigue vers la liste des produits
   void _naviguerVersProduits() {
     Navigator.pushReplacement(
       context,
@@ -273,17 +297,15 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
     );
   }
 
-  /// Retry l'upload des images
   void _retryImageUpload(SimulationViewModel simulationViewModel) {
     if (simulationViewModel.devisId != null) {
       simulationViewModel.uploadImagesAfterSave(
         simulationViewModel.devisId!,
-        context, // Context valide ici car on est dans l'écran
+        context,
       );
     }
   }
 
-  /// Navigue vers les contrats
   void _naviguerVersContrats() {
     Navigator.pushReplacement(
       context,

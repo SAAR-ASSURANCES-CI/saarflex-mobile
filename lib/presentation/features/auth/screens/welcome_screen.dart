@@ -17,16 +17,14 @@ class WelcomeScreen extends StatelessWidget {
           builder: (context, constraints) {
             return SingleChildScrollView(
               child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: constraints.maxHeight,
-                ),
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
                 child: IntrinsicHeight(
                   child: Padding(
                     padding: const EdgeInsets.all(24.0),
                     child: Column(
                       children: [
                         const SizedBox(height: 20),
-                        
+
                         Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -55,14 +53,18 @@ class WelcomeScreen extends StatelessWidget {
                                         width: 120,
                                         height: 120,
                                         decoration: BoxDecoration(
-                                          color: AppColors.secondary.withOpacity(0.2),
-                                          borderRadius: BorderRadius.circular(60),
+                                          color: AppColors.secondary
+                                              .withOpacity(0.2),
+                                          borderRadius: BorderRadius.circular(
+                                            60,
+                                          ),
                                         ),
                                       ),
                                     ),
                                     Center(
                                       child: Column(
-                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
                                         children: [
                                           SizedBox(
                                             width: 250,
@@ -72,7 +74,8 @@ class WelcomeScreen extends StatelessWidget {
                                               child: Image.asset(
                                                 'lib/assets/images/logoSaarCI.png',
                                                 fit: BoxFit.contain,
-                                                semanticLabel: "Logo SAAR Assurance",
+                                                semanticLabel:
+                                                    "Logo SAAR Assurance",
                                               ),
                                             ),
                                           ),
@@ -129,7 +132,10 @@ class WelcomeScreen extends StatelessWidget {
                                 height: 56,
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
-                                    colors: [AppColors.primary, AppColors.primaryLight],
+                                    colors: [
+                                      AppColors.primary,
+                                      AppColors.primaryLight,
+                                    ],
                                   ),
                                   borderRadius: BorderRadius.circular(28),
                                   boxShadow: [
@@ -182,7 +188,9 @@ class WelcomeScreen extends StatelessWidget {
                                   );
                                 },
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 16,
+                                  ),
                                   child: RichText(
                                     textAlign: TextAlign.center,
                                     text: TextSpan(
@@ -192,7 +200,9 @@ class WelcomeScreen extends StatelessWidget {
                                         color: AppColors.textSecondary,
                                       ),
                                       children: [
-                                        const TextSpan(text: 'Déjà un compte ? '),
+                                        const TextSpan(
+                                          text: 'Déjà un compte ? ',
+                                        ),
                                         TextSpan(
                                           text: 'Se connecter',
                                           style: GoogleFonts.poppins(
@@ -212,7 +222,9 @@ class WelcomeScreen extends StatelessWidget {
                               duration: const Duration(milliseconds: 400),
                               delay: const Duration(milliseconds: 1100),
                               child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 16),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                ),
                                 child: Text(
                                   "En continuant, vous acceptez nos Conditions Générales d'Utilisation",
                                   style: GoogleFonts.poppins(

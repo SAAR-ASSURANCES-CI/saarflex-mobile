@@ -44,10 +44,7 @@ class ActionCard extends StatelessWidget {
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [
-                  color.withOpacity(0.05),
-                  color.withOpacity(0.02),
-                ],
+                colors: [color.withOpacity(0.05), color.withOpacity(0.02)],
               ),
             ),
             child: Column(
@@ -57,10 +54,7 @@ class ActionCard extends StatelessWidget {
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [
-                        color.withOpacity(0.2),
-                        color.withOpacity(0.1),
-                      ],
+                      colors: [color.withOpacity(0.2), color.withOpacity(0.1)],
                     ),
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [

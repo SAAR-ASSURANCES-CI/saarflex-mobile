@@ -7,6 +7,7 @@ import 'package:saarflex_app/data/models/saved_quote_model.dart';
 import 'package:saarflex_app/core/utils/format_helper.dart';
 import 'package:saarflex_app/presentation/shared/widgets/quote_card.dart';
 import 'package:saarflex_app/presentation/shared/widgets/empty_state_widget.dart';
+import 'package:saarflex_app/presentation/features/souscription/screens/souscription_screen.dart';
 
 class SavedQuotesTab extends StatefulWidget {
   const SavedQuotesTab({super.key});
@@ -438,32 +439,17 @@ class _SavedQuotesTabState extends State<SavedQuotesTab> {
   }
 
   Future<void> _subscribeQuote(SavedQuote quote) async {
-    try {
-      await Provider.of<ContractViewModel>(
-        context,
-        listen: false,
-      ).subscribeQuote(quote.id);
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Devis "${quote.nomPersonnalise ?? quote.nomProduit}" souscrit avec succès !',
-            ),
-            backgroundColor: AppColors.success,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erreur lors de la souscription: $e'),
-            backgroundColor: AppColors.error,
-          ),
-        );
-      }
-    }
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => souscriptionScreen(
+          savedQuote: quote,
+          source: 'saved_quote',
+          // TODO: Récupérer le produit depuis l'API ou le cache
+          // product: await _getProductById(quote.productId),
+        ),
+      ),
+    );
   }
 
   Widget _buildSectionTitle(String title) {

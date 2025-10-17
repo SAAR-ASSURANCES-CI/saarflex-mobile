@@ -75,11 +75,7 @@ class DashboardHeader extends StatelessWidget {
           ),
         ],
       ),
-      child: Icon(
-        Icons.person_rounded, 
-        color: AppColors.primary, 
-        size: 30
-      ),
+      child: Icon(Icons.person_rounded, color: AppColors.primary, size: 30),
     );
   }
 
@@ -127,10 +123,7 @@ class DashboardHeader extends StatelessWidget {
           onTap: onNotification,
         ),
         const SizedBox(width: 12),
-        _buildHeaderButton(
-          icon: Icons.person_rounded, 
-          onTap: onProfil,
-        ),
+        _buildHeaderButton(icon: Icons.person_rounded, onTap: onProfil),
       ],
     );
   }
@@ -145,17 +138,10 @@ class DashboardHeader extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.white.withOpacity(0.2),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: AppColors.white.withOpacity(0.3),
-          width: 1,
-        ),
+        border: Border.all(color: AppColors.white.withOpacity(0.3), width: 1),
       ),
       child: IconButton(
-        icon: Icon(
-          icon, 
-          color: AppColors.white, 
-          size: 20
-        ),
+        icon: Icon(icon, color: AppColors.white, size: 20),
         onPressed: onTap,
         padding: EdgeInsets.zero,
       ),

@@ -9,9 +9,7 @@ class LoadingScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
-          gradient: AppColors.saarGradient,
-        ),
+        decoration: BoxDecoration(gradient: AppColors.saarGradient),
         child: SafeArea(
           child: Center(
             child: Column(
@@ -62,7 +60,9 @@ class LoadingScreen extends StatelessWidget {
                       height: 35,
                       child: CircularProgressIndicator(
                         strokeWidth: 4,
-                        valueColor: AlwaysStoppedAnimation<Color>(AppColors.textPrimary),
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          AppColors.textPrimary,
+                        ),
                       ),
                     ),
                   ),
@@ -90,7 +90,10 @@ class LoadingScreen extends StatelessWidget {
                 const SizedBox(height: 16),
 
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.white.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(20),
@@ -151,8 +154,7 @@ class LoadingScreen extends StatelessWidget {
                 ),
               );
             },
-            onEnd: () {
-            },
+            onEnd: () {},
           ),
         );
       }),

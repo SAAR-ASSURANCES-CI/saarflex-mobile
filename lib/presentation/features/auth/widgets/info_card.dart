@@ -26,18 +26,11 @@ class InfoCard extends StatelessWidget {
           ],
         ),
         borderRadius: BorderRadius.circular(15),
-        border: Border.all(
-          color: AppColors.primary.withOpacity(0.2),
-          width: 1,
-        ),
+        border: Border.all(color: AppColors.primary.withOpacity(0.2), width: 1),
       ),
       child: Column(
         children: [
-          Icon(
-            icon,
-            color: AppColors.primary,
-            size: 30,
-          ),
+          Icon(icon, color: AppColors.primary, size: 30),
           const SizedBox(height: 12),
           Text(
             title,

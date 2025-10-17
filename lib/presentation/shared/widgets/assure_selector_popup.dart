@@ -33,25 +33,25 @@ class _AssureSelectorDialogState extends State<AssureSelectorDialog> {
               ),
             ),
             const SizedBox(height: 16),
-            
+
             _buildOption(
               title: 'Je suis l\'assuré',
               subtitle: 'Je souscris pour moi-même',
               isSelected: _isSelfAssured,
               onTap: () => setState(() => _isSelfAssured = true),
             ),
-            
+
             const SizedBox(height: 12),
-            
+
             _buildOption(
               title: 'Une autre personne',
               subtitle: 'Je souscris pour quelqu\'un d\'autre',
               isSelected: !_isSelfAssured,
               onTap: () => setState(() => _isSelfAssured = false),
             ),
-            
+
             const SizedBox(height: 24),
-            
+
             Row(
               children: [
                 Expanded(
@@ -103,7 +103,7 @@ class _AssureSelectorDialogState extends State<AssureSelectorDialog> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected 
+          color: isSelected
               ? AppColors.primary.withOpacity(0.1)
               : AppColors.surfaceVariant,
           borderRadius: BorderRadius.circular(12),
@@ -120,7 +120,9 @@ class _AssureSelectorDialogState extends State<AssureSelectorDialog> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                  color: isSelected
+                      ? AppColors.primary
+                      : AppColors.textSecondary,
                   width: 2,
                 ),
                 color: isSelected ? AppColors.primary : Colors.transparent,

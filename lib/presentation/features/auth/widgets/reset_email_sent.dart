@@ -5,8 +5,6 @@ import 'package:saarflex_app/core/constants/colors.dart';
 import 'package:saarflex_app/presentation/features/auth/viewmodels/auth_viewmodel.dart';
 import 'package:saarflex_app/presentation/features/auth/screens/otp_verification_screen.dart';
 
-
-
 class ResetPasswordScreen extends StatefulWidget {
   const ResetPasswordScreen({super.key});
 
@@ -29,9 +27,10 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   }
 
   void _validateForm() {
-    final isValid = _emailController.text.trim().isNotEmpty &&
+    final isValid =
+        _emailController.text.trim().isNotEmpty &&
         _validateEmail(_emailController.text) == null;
-    
+
     if (isValid != _isFormValid) {
       setState(() {
         _isFormValid = isValid;
@@ -56,10 +55,10 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                 children: [
                   _buildHeader(),
                   const SizedBox(height: 40),
-                  
+
                   if (authProvider.errorMessage != null)
                     _buildErrorMessage(authProvider.errorMessage!),
-                  
+
                   _buildEmailField(),
                   const SizedBox(height: 40),
                   _buildResetButton(authProvider),
@@ -245,60 +244,74 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     );
   }
 
+  Future<void> _handleReset(AuthViewModel authProvider) async {
+    setState(() {
+      _autovalidateMode = AutovalidateMode.onUserInteraction;
+    });
 
-Future<void> _handleReset(AuthViewModel authProvider) async {
-  setState(() {
-    _autovalidateMode = AutovalidateMode.onUserInteraction;
-  });
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
 
-  if (!_formKey.currentState!.validate()) {
-    return;
-  }
+    final email = _emailController.text.trim();
 
-  final email = _emailController.text.trim();
+    setState(() => _isFormValid = false);
 
-  setState(() => _isFormValid = false);
-  
-  try {
-    await authProvider.login(email: email, password: '');
-    
-    await _proceedWithPasswordReset(authProvider, email);
-    
-  } catch (e) {
-    if (authProvider.errorMessage != null) {
-      final errorMessage = authProvider.errorMessage!.toLowerCase();
-      
-      if (errorMessage.contains('user') && 
-          (errorMessage.contains('not found') || 
-           errorMessage.contains('n\'existe pas') || 
-           errorMessage.contains('introuvable'))) {
-        setState(() {
-          _isFormValid = true; 
-        });
-        
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Aucun compte associé à cette adresse email',
-              style: GoogleFonts.poppins(color: Colors.white),
+    try {
+      await authProvider.login(email: email, password: '');
+
+      await _proceedWithPasswordReset(authProvider, email);
+    } catch (e) {
+      if (authProvider.errorMessage != null) {
+        final errorMessage = authProvider.errorMessage!.toLowerCase();
+
+        if (errorMessage.contains('user') &&
+            (errorMessage.contains('not found') ||
+                errorMessage.contains('n\'existe pas') ||
+                errorMessage.contains('introuvable'))) {
+          setState(() {
+            _isFormValid = true;
+          });
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Aucun compte associé à cette adresse email',
+                style: GoogleFonts.poppins(color: Colors.white),
+              ),
+              backgroundColor: AppColors.error,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
-            backgroundColor: AppColors.error,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
+          );
+          return;
+        } else if (errorMessage.contains('password') ||
+            errorMessage.contains('mot de passe') ||
+            errorMessage.contains('credential')) {
+          await _proceedWithPasswordReset(authProvider, email);
+        } else {
+          setState(() => _isFormValid = true);
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Erreur de connexion. Veuillez réessayer.',
+                style: GoogleFonts.poppins(color: Colors.white),
+              ),
+              backgroundColor: AppColors.error,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
-          ),
-        );
-        return;
-        
-      } else if (errorMessage.contains('password') || 
-                 errorMessage.contains('mot de passe') ||
-                 errorMessage.contains('credential')) {
-        await _proceedWithPasswordReset(authProvider, email);
-        
+          );
+          return;
+        }
       } else {
         setState(() => _isFormValid = true);
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -314,13 +327,31 @@ Future<void> _handleReset(AuthViewModel authProvider) async {
         );
         return;
       }
-    } else {
-      setState(() => _isFormValid = true);
-      
+    }
+  }
+
+  Future<void> _proceedWithPasswordReset(
+    AuthViewModel authProvider,
+    String email,
+  ) async {
+    authProvider.clearError();
+
+    final success = await authProvider.forgotPassword(email);
+
+    setState(() => _isFormValid = true);
+
+    if (success && mounted) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => OtpVerificationScreen(email: email),
+        ),
+      );
+    } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Erreur de connexion. Veuillez réessayer.',
+            authProvider.errorMessage ?? 'Erreur lors de l\'envoi',
             style: GoogleFonts.poppins(color: Colors.white),
           ),
           backgroundColor: AppColors.error,
@@ -330,41 +361,8 @@ Future<void> _handleReset(AuthViewModel authProvider) async {
           ),
         ),
       );
-      return;
     }
   }
-}
-
-Future<void> _proceedWithPasswordReset(AuthViewModel authProvider, String email) async {
-  authProvider.clearError(); 
-  
-  final success = await authProvider.forgotPassword(email);
-
-  setState(() => _isFormValid = true);
-
-  if (success && mounted) {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => OtpVerificationScreen(email: email),
-      ),
-    );
-  } else if (mounted) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          authProvider.errorMessage ?? 'Erreur lors de l\'envoi',
-          style: GoogleFonts.poppins(color: Colors.white),
-        ),
-        backgroundColor: AppColors.error,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-      ),
-    );
-  }
-}
 
   String? _validateEmail(String? value) {
     if (value == null || value.trim().isEmpty) {

@@ -111,10 +111,7 @@ class _ResultSaveSectionState extends State<ResultSaveSection> {
           _buildNomField(),
           const SizedBox(height: 16),
           _buildNotesField(),
-          if (widget.viewModel.hasValidationErrors) ...[
-            const SizedBox(height: 12),
-            _buildValidationErrors(),
-          ],
+        
         ],
       ),
     );
@@ -127,17 +124,6 @@ class _ResultSaveSectionState extends State<ResultSaveSection> {
 
     return TextFormField(
       controller: _nomController,
-      onChanged: (value) {
-        // Validation en temps réel
-        if (value.trim().isEmpty) {
-          widget.viewModel.setValidationError(
-            'nom_personnalise',
-            'Le nom du devis est obligatoire',
-          );
-        } else {
-          widget.viewModel.clearValidationError('nom_personnalise');
-        }
-      },
       decoration: InputDecoration(
         label: RichText(
           text: TextSpan(
