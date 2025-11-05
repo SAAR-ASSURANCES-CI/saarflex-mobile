@@ -1,5 +1,5 @@
 class ApiConstants {
-  static const String _devBaseUrl = 'http://192.168.2.2:3000';
+  static const String _devBaseUrl = 'https://c04093492725.ngrok-free.app';
 
   static const Environment environment = Environment.dev;
 

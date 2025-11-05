@@ -1,5 +1,5 @@
 class ApiConfig {
-  static const String baseUrl = 'http://192.168.2.2:3000';
+  static const String baseUrl = 'https://c04093492725.ngrok-free.app';
   static const Duration timeout = Duration(seconds: 30);
 
   static const Map<String, String> defaultHeaders = {

@@ -26,6 +26,26 @@ class AppLogger {
     }
   }
 
+  /// Log de niveau error avec stack trace complet
+  static void errorWithStack(String message, dynamic error, [StackTrace? stackTrace]) {
+    if (kDebugMode) {
+      print('❌ ERROR: $message');
+      print('❌ ERROR TYPE: ${error.runtimeType}');
+      print('❌ ERROR MESSAGE: $error');
+      if (stackTrace != null) {
+        print('❌ STACK TRACE:');
+        print(stackTrace.toString());
+      } else {
+        try {
+          print('❌ STACK TRACE:');
+          print(StackTrace.current.toString());
+        } catch (_) {
+          print('❌ STACK TRACE: Non disponible');
+        }
+      }
+    }
+  }
+
   /// Log pour les opérations API
   static void api(String message) {
     if (kDebugMode) {

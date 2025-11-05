@@ -5,6 +5,7 @@ import 'package:saarflex_app/data/models/critere_tarification_model.dart';
 import 'package:saarflex_app/data/services/simulation_service.dart';
 import 'package:saarflex_app/data/services/api_service.dart';
 import 'package:saarflex_app/core/utils/error_handler.dart';
+import 'package:saarflex_app/core/utils/logger.dart';
 
 class SimulationViewModel extends ChangeNotifier {
   final SimulationService _simulationService = SimulationService();
@@ -124,7 +125,17 @@ class SimulationViewModel extends ChangeNotifier {
           _criteresReponses[critere.nom] = null;
         }
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      AppLogger.errorWithStack(
+        '''\n================= VIEWMODEL - CHARGER CRITERES ===============
+PRODUIT_ID : $_produitId
+MESSAGE    : Erreur lors du chargement des critères
+DETAILS    : $e
+TYPE       : ${e.runtimeType}
+---------------------------------------------------------------''',
+        e,
+        stackTrace,
+      );
       _setError('Erreur lors du chargement des critères: $e');
     } finally {
       _setLoadingCriteres(false);
@@ -259,8 +270,11 @@ class SimulationViewModel extends ChangeNotifier {
     _setSimulating(true);
     _clearError();
 
+    Map<String, dynamic> criteresNettoyes = {};
+    Map<String, dynamic>? informationsAssureConverties;
+
     try {
-      final criteresNettoyes = Map<String, dynamic>.from(_criteresReponses);
+      criteresNettoyes = Map<String, dynamic>.from(_criteresReponses);
 
       for (final critere in _criteresProduit) {
         if (critere.type == TypeCritere.numerique &&
@@ -274,7 +288,6 @@ class SimulationViewModel extends ChangeNotifier {
         }
       }
 
-      Map<String, dynamic>? informationsAssureConverties;
       if (_informationsAssure != null) {
         informationsAssureConverties = Map<String, dynamic>.from(
           _informationsAssure!,
@@ -291,13 +304,37 @@ class SimulationViewModel extends ChangeNotifier {
         }
       }
 
+      AppLogger.debug('''\n================= VIEWMODEL - SIMULATION ===================
+PRODUIT_ID              : $_produitId
+ASSURE_EST_SOUSCRIPTEUR  : $_assureEstSouscripteur
+CRITERES_COUNT           : ${criteresNettoyes.length}
+CRITERES                 : ${criteresNettoyes.toString()}
+CRITERES_KEYS            : ${criteresNettoyes.keys.join(', ')}
+HAS_INFORMATIONS_ASSURE  : ${informationsAssureConverties != null}
+---------------------------------------------------------------''');
+
       _dernierResultat = await _simulationService.simulerDevisSimplifie(
         produitId: _produitId!,
         criteres: criteresNettoyes,
         assureEstSouscripteur: _assureEstSouscripteur,
         informationsAssure: informationsAssureConverties,
       );
-    } catch (e) {
+
+      AppLogger.info('Simulation réussie pour produit $_produitId');
+    } catch (e, stackTrace) {
+      AppLogger.errorWithStack(
+        '''\n================= VIEWMODEL - SIMULATION ERROR ============
+PRODUIT_ID              : $_produitId
+ASSURE_EST_SOUSCRIPTEUR  : $_assureEstSouscripteur
+CRITERES                 : ${criteresNettoyes.toString()}
+INFORMATIONS_ASSURE      : ${informationsAssureConverties?.toString() ?? 'null'}
+MESSAGE                  : Erreur lors de la simulation
+DETAILS                  : $e
+TYPE                     : ${e.runtimeType}
+---------------------------------------------------------------''',
+        e,
+        stackTrace,
+      );
       _setError(e.toString());
     } finally {
       _setSimulating(false);
@@ -321,9 +358,27 @@ class SimulationViewModel extends ChangeNotifier {
         notes: notes,
       );
 
+      AppLogger.debug('''\n================= VIEWMODEL - SAUVEGARDE DEVIS ============
+DEVIS_ID        : $devisId
+NOM_PERSONNALISE : $nomPersonnalise
+HAS_NOTES        : ${notes != null}
+---------------------------------------------------------------''');
+
       await _simulationService.sauvegarderDevis(request);
       _saveError = null;
-    } catch (error) {
+      AppLogger.info('Devis sauvegardé avec succès: $devisId');
+    } catch (error, stackTrace) {
+      AppLogger.errorWithStack(
+        '''\n================= VIEWMODEL - SAUVEGARDE ERROR ============
+DEVIS_ID        : $devisId
+NOM_PERSONNALISE : $nomPersonnalise
+MESSAGE          : Erreur lors de la sauvegarde
+DETAILS          : $error
+TYPE             : ${error.runtimeType}
+---------------------------------------------------------------''',
+        error,
+        stackTrace,
+      );
       _saveError = 'Erreur lors de la sauvegarde: $error';
     } finally {
       _isSaving = false;

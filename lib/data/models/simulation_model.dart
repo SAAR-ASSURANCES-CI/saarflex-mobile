@@ -246,17 +246,68 @@ class SimulationResponse {
     }
   }
 
+  /// Recherche flexible d'un critère dans criteres_utilisateur
+  /// Essaie plusieurs variantes de noms pour trouver la valeur
+  static String? _findCritereValue(
+    Map<String, dynamic>? criteres,
+    List<String> nomsPossibles,
+  ) {
+    if (criteres == null) return null;
+    
+    // Cherche d'abord avec correspondance exacte
+    for (final nom in nomsPossibles) {
+      if (criteres.containsKey(nom)) {
+        return criteres[nom]?.toString();
+      }
+    }
+    
+    // Si pas trouvé, cherche avec correspondance insensible à la casse
+    final criteresLower = criteres.map((k, v) => MapEntry(k.toLowerCase(), v));
+    for (final nom in nomsPossibles) {
+      final nomLower = nom.toLowerCase();
+      if (criteresLower.containsKey(nomLower)) {
+        return criteresLower[nomLower]?.toString();
+      }
+    }
+    
+    // Si toujours pas trouvé, cherche par contenu (contient le mot-clé)
+    for (final entry in criteres.entries) {
+      final keyLower = entry.key.toLowerCase();
+      for (final nom in nomsPossibles) {
+        final nomLower = nom.toLowerCase();
+        if (keyLower.contains(nomLower) || nomLower.contains(keyLower)) {
+          return entry.value?.toString();
+        }
+      }
+    }
+    
+    return null;
+  }
+
   static DetailsCalcul _createDefaultDetailsCalcul(
     Map<String, dynamic> json,
     String periodicitePrime,
   ) {
-    final capital =
-        json['criteres_utilisateur']?['capital']?.toString() ?? 'N/A';
-    final duree =
-        json['criteres_utilisateur']?['Durée de cotisation']?.toString() ??
-        'N/A';
-    final age =
-        json['criteres_utilisateur']?['Age Assuré']?.toString() ?? 'N/A';
+    final criteresUtilisateur = json['criteres_utilisateur'] as Map<String, dynamic>?;
+    
+    // Recherche flexible du capital avec plusieurs variantes possibles
+    final capital = _findCritereValue(
+      criteresUtilisateur,
+      ['Capital Assuré', 'capital', 'Capital', 'capital assuré', 'Capital assuré'],
+    ) ?? 'N/A';
+    
+    // Recherche flexible de la durée avec plusieurs variantes possibles
+    final duree = _findCritereValue(
+      criteresUtilisateur,
+      ['Durée Cotisation', 'Durée de cotisation', 'duree', 'Durée', 'durée cotisation', 'Durée cotisation'],
+    ) ?? 'N/A';
+    
+    // Recherche flexible de l'âge avec plusieurs variantes possibles
+    final age = _findCritereValue(
+      criteresUtilisateur,
+      ['Age Assuré', 'age', 'Age', 'âge assuré', 'Age assuré', 'age assuré'],
+    ) ?? 'N/A';
+    
     final prime = _parseDouble(json['prime_calculee']);
     final periodiciteFormatee = _getPeriodiciteFormatee(periodicitePrime);
 

@@ -5,6 +5,7 @@ import 'package:saarflex_app/data/models/simulation_model.dart';
 import 'package:saarflex_app/data/models/critere_tarification_model.dart';
 import 'package:saarflex_app/core/utils/api_config.dart';
 import 'package:saarflex_app/core/utils/storage_helper.dart';
+import 'package:saarflex_app/core/utils/logger.dart';
 
 class SimulationService {
   static const String _basePath = '/simulation-devis-simplifie';
@@ -15,9 +16,12 @@ class SimulationService {
     required bool assureEstSouscripteur,
     Map<String, dynamic>? informationsAssure,
   }) async {
+    Uri? url;
+    Map<String, dynamic>? payload;
+    
     try {
       final token = await StorageHelper.getToken();
-      final url = Uri.parse('${ApiConfig.baseUrl}/simulation-devis-simplifie');
+      url = Uri.parse('${ApiConfig.baseUrl}/simulation-devis-simplifie');
 
       final headers = {
         'Content-Type': 'application/json',
@@ -25,15 +29,50 @@ class SimulationService {
         if (token != null) 'Authorization': 'Bearer $token',
       };
 
-      final payload = {
+      // ✅ CORRECT - Utiliser directement les critères sans transformation
+      // Les clés doivent être exactement les noms des critères chargés depuis l'API
+      AppLogger.debug('''\n================= SIMULATION SERVICE =================
+PRODUIT_ID              : $produitId
+ASSURE_EST_SOUSCRIPTEUR : $assureEstSouscripteur
+CRITERES (AVANT ENVOI)  : ${criteres.toString()}
+CRITERES_KEYS           : ${criteres.keys.join(', ')}
+CRITERES_COUNT          : ${criteres.length}
+======================================================
+''');
+
+      payload = {
         'produit_id': produitId,
         'assure_est_souscripteur': assureEstSouscripteur,
-        'criteres_utilisateur': _normaliserCriteres(criteres),
+        'criteres_utilisateur': criteres, // ✅ Utiliser directement, pas de transformation !
       };
 
       if (!assureEstSouscripteur && informationsAssure != null) {
         payload['informations_assure'] = informationsAssure;
       }
+
+      // Logs détaillés de la requête (format lisible)
+      final criteresUtilisateur = payload['criteres_utilisateur'];
+      final criteresType = criteresUtilisateur.runtimeType.toString();
+      
+      String criteresKeys;
+      int criteresCount = 0;
+      if (criteresUtilisateur is Map) {
+        criteresKeys = criteresUtilisateur.keys.join(', ');
+        criteresCount = criteresUtilisateur.length;
+      } else {
+        criteresKeys = 'N/A (Type: $criteresType, Value: ${criteresUtilisateur?.toString() ?? 'null'})';
+      }
+      
+      AppLogger.api('''\n================= SIMULATION DEVIS - REQUEST =================
+METHOD  : POST
+URL     : ${url.toString()}
+HEADERS : ${_prettyJson(_maskHeaders(headers))}
+BODY    : ${_prettyJson(payload)}
+CRITERES_TYPE            : $criteresType
+CRITERES_KEYS (ENVOYÉS)  : $criteresKeys
+CRITERES_COUNT           : $criteresCount
+---------------------------------------------------------------''');
+      _logRequestChecklist(payload);
 
       final response = await http.post(
         url,
@@ -41,53 +80,107 @@ class SimulationService {
         body: json.encode(payload),
       );
 
+      AppLogger.api('''\n================= SIMULATION DEVIS - RESPONSE ================
+STATUS  : ${response.statusCode}
+URL     : ${url.toString()}
+BODY    : ${_prettyResponseBody(response.body)}
+---------------------------------------------------------------''');
+
       if (response.statusCode == 200 || response.statusCode == 201) {
         final responseData = json.decode(response.body);
         return SimulationResponse.fromJson(responseData);
       } else {
-        final errorData = json.decode(response.body);
+        final errorData = _tryDecode(response.body);
         final errorMessage =
-            errorData['message'] ??
-            'Erreur de simulation (${response.statusCode})';
+            (errorData is Map && errorData['message'] != null)
+                ? errorData['message']
+                : 'Erreur de simulation (${response.statusCode})';
+        AppLogger.error('''\n================= SIMULATION DEVIS - ERROR ===================
+STATUS  : ${response.statusCode}
+URL     : ${url.toString()}
+MESSAGE : $errorMessage
+BODY    : ${_prettyResponseBody(response.body)}
+---------------------------------------------------------------''');
         throw Exception(errorMessage);
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      AppLogger.errorWithStack(
+        '''\n================= SIMULATION DEVIS - EXCEPTION ===============
+MESSAGE : Erreur inattendue
+DETAILS : $e
+TYPE    : ${e.runtimeType}
+URL     : ${url?.toString() ?? 'Non disponible'}
+PAYLOAD : ${payload != null ? _prettyJson(payload) : 'Non disponible'}
+---------------------------------------------------------------''',
+        e,
+        stackTrace,
+      );
       throw Exception(_getUserFriendlyError(e));
     }
   }
 
-  Map<String, dynamic> _normaliserCriteres(
-    Map<String, dynamic> criteresOriginaux,
-  ) {
-    final Map<String, dynamic> criteresNormalises = {};
+  // ❌ SUPPRIMÉ - Cette méthode transformait les noms de critères
+  // Les critères doivent être envoyés avec leurs noms exacts depuis l'API
+  // Ancienne méthode _normaliserCriteres() supprimée car elle transformait:
+  // - "Capital Assuré" → "capital"
+  // - "Durée Cotisation" → "Durée de cotisation"
+  // L'API attend maintenant les noms exacts sans transformation.
 
-    for (final entry in criteresOriginaux.entries) {
-      final String key = entry.key;
-      final dynamic value = entry.value;
-
-      String cleNormalisee = key;
-
-      if (key.toLowerCase().contains('capital')) {
-        cleNormalisee = 'capital';
-      } else if (key.toLowerCase().contains('durée') ||
-          key.toLowerCase().contains('duree')) {
-        cleNormalisee = 'Durée de cotisation';
-      }
-
-      dynamic valeurNormalisee = value;
-
-      if (value is num) {
-        valeurNormalisee = value.toString();
-      } else if (value is String) {
-        if (key.toLowerCase().contains('capital')) {
-          valeurNormalisee = value.replaceAll(' ', '');
-        }
-      }
-
-      criteresNormalises[cleNormalisee] = valeurNormalisee;
+  Map<String, String> _maskHeaders(Map<String, String> input) {
+    final Map<String, String> masked = Map<String, String>.from(input);
+    if (masked.containsKey('Authorization')) {
+      masked['Authorization'] = 'Bearer ***';
     }
+    return masked;
+  }
 
-    return criteresNormalises;
+  String _prettyJson(dynamic data) {
+    try {
+      final encoder = const JsonEncoder.withIndent('  ');
+      if (data is String) {
+        final decoded = json.decode(data);
+        return encoder.convert(decoded);
+      }
+      return encoder.convert(data);
+    } catch (_) {
+      return data.toString();
+    }
+  }
+
+  dynamic _tryDecode(String body) {
+    try {
+      return json.decode(body);
+    } catch (_) {
+      return body;
+    }
+  }
+
+  String _prettyResponseBody(String body) {
+    final decoded = _tryDecode(body);
+    return _prettyJson(decoded);
+  }
+
+  void _logRequestChecklist(Map<String, dynamic> payload) {
+    final missing = <String>[];
+    if (!payload.containsKey('produit_id') || (payload['produit_id']?.toString().isEmpty ?? true)) {
+      missing.add('produit_id');
+    }
+    if (!payload.containsKey('assure_est_souscripteur')) {
+      missing.add('assure_est_souscripteur');
+    }
+    if (!payload.containsKey('criteres_utilisateur')) {
+      missing.add('criteres_utilisateur');
+    }
+    final hasInfosAssure = payload['informations_assure'] != null;
+    final checklist = {
+      'present_fields': payload.keys.toList(),
+      'missing_required_fields': missing,
+      'has_informations_assure': hasInfosAssure,
+      'criteres_keys': (payload['criteres_utilisateur'] is Map)
+          ? (payload['criteres_utilisateur'] as Map).keys.toList()
+          : [],
+    };
+    AppLogger.debug('[SIMULATION][REQUEST][CHECKLIST] ${_prettyJson(checklist)}');
   }
 
   Future<List<CritereTarification>> getCriteresProduit(
@@ -123,7 +216,17 @@ class SimulationService {
       } else {
         throw Exception('Erreur serveur: ${response.statusCode}');
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      AppLogger.errorWithStack(
+        '''\n================= GET CRITERES PRODUIT - EXCEPTION ===========
+PRODUIT_ID : $produitId
+MESSAGE    : Erreur lors de la récupération des critères
+DETAILS    : $e
+TYPE       : ${e.runtimeType}
+---------------------------------------------------------------''',
+        e,
+        stackTrace,
+      );
       throw Exception(_getUserFriendlyError(e));
     }
   }
@@ -162,7 +265,17 @@ class SimulationService {
       } else {
         throw Exception('Impossible de récupérer la grille tarifaire');
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      AppLogger.errorWithStack(
+        '''\n================= GET GRILLE TARIFAIRE - EXCEPTION ============
+PRODUIT_ID : $produitId
+MESSAGE    : Erreur lors de la récupération de la grille tarifaire
+DETAILS    : $e
+TYPE       : ${e.runtimeType}
+---------------------------------------------------------------''',
+        e,
+        stackTrace,
+      );
       throw Exception(_getUserFriendlyError(e));
     }
   }
@@ -190,7 +303,17 @@ class SimulationService {
         final errorData = json.decode(response.body);
         throw Exception(errorData['message'] ?? 'Erreur lors de la sauvegarde');
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      AppLogger.errorWithStack(
+        '''\n================= SAUVEGARDER DEVIS - EXCEPTION ===============
+DEVIS_ID : ${request.devisId}
+MESSAGE  : Erreur lors de la sauvegarde du devis
+DETAILS  : $e
+TYPE     : ${e.runtimeType}
+---------------------------------------------------------------''',
+        e,
+        stackTrace,
+      );
       throw Exception(_getUserFriendlyError(e));
     }
   }
@@ -229,7 +352,18 @@ class SimulationService {
           errorData['message'] ?? 'Erreur lors du chargement des devis',
         );
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      AppLogger.errorWithStack(
+        '''\n================= GET MES DEVIS - EXCEPTION =================
+PAGE     : $page
+LIMIT    : $limit
+MESSAGE  : Erreur lors du chargement des devis
+DETAILS  : $e
+TYPE     : ${e.runtimeType}
+---------------------------------------------------------------''',
+        e,
+        stackTrace,
+      );
       throw Exception(_getUserFriendlyError(e));
     }
   }
@@ -256,7 +390,17 @@ class SimulationService {
           errorData['message'] ?? 'Erreur lors de la suppression',
         );
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      AppLogger.errorWithStack(
+        '''\n================= SUPPRIMER DEVIS - EXCEPTION ===============
+DEVIS_ID : $devisId
+MESSAGE  : Erreur lors de la suppression du devis
+DETAILS  : $e
+TYPE     : ${e.runtimeType}
+---------------------------------------------------------------''',
+        e,
+        stackTrace,
+      );
       throw Exception(_getUserFriendlyError(e));
     }
   }
