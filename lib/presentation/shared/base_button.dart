@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:saarflex_app/core/design/design_system.dart';
+import 'package:saarflex_app/core/constants/design_system.dart';
 import 'package:saarflex_app/core/constants/colors.dart';
 
-/// Widget de bouton de base réutilisable
 class BaseButton extends StatelessWidget {
   final String text;
   final VoidCallback? onPressed;
@@ -54,7 +53,6 @@ class BaseButton extends StatelessWidget {
   }
 }
 
-/// Widget de bouton secondaire
 class SecondaryButton extends StatelessWidget {
   final String text;
   final VoidCallback? onPressed;
@@ -84,7 +82,6 @@ class SecondaryButton extends StatelessWidget {
   }
 }
 
-/// Widget de bouton avec ombre
 class ShadowButton extends StatelessWidget {
   final String text;
   final VoidCallback? onPressed;
@@ -127,3 +124,4 @@ class ShadowButton extends StatelessWidget {
     );
   }
 }
+

@@ -1,11 +1,16 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:saarflex_app/data/models/souscription_model.dart';
-import 'package:saarflex_app/core/utils/api_config.dart';
+import 'package:saarflex_app/core/constants/api_constants.dart';
 import 'package:saarflex_app/core/utils/storage_helper.dart';
 
 class souscriptionService {
-  static const String _basePath = '/devis';
+  String _mapMethodePaiement(String methodePaiement) {
+    if (methodePaiement == 'wave') {
+      return 'wallet';
+    }
+    return 'mobile_money';
+  }
 
   Future<SouscriptionResponse> souscrire(SouscriptionRequest request) async {
     try {
@@ -15,7 +20,7 @@ class souscriptionService {
       }
 
       final url = Uri.parse(
-        '${ApiConfig.baseUrl}$_basePath/${request.devisId}/souscrire',
+        '${ApiConstants.baseUrl}${ApiConstants.souscriptionBasePath}/${request.devisId}/souscrire',
       );
 
       final headers = {
@@ -24,10 +29,14 @@ class souscriptionService {
         'Authorization': 'Bearer $token',
       };
 
+      final requestBody = request.toJson();
+      requestBody['methode_paiement'] = _mapMethodePaiement(request.methodePaiement);
+      requestBody['currency'] = request.currency;
+
       final response = await http.post(
         url,
         headers: headers,
-        body: json.encode(request.toJson()),
+        body: json.encode(requestBody),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -56,7 +65,7 @@ class souscriptionService {
       }
 
       final url = Uri.parse(
-        '${ApiConfig.baseUrl}$_basePath?page=$page&limit=$limit',
+        '${ApiConstants.baseUrl}${ApiConstants.souscriptionBasePath}?page=$page&limit=$limit',
       );
 
       final headers = {
@@ -89,7 +98,7 @@ class souscriptionService {
         throw Exception('Authentification requise');
       }
 
-      final url = Uri.parse('${ApiConfig.baseUrl}$_basePath/$id');
+      final url = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.souscriptionBasePath}/$id');
 
       final headers = {
         'Content-Type': 'application/json',
@@ -117,7 +126,7 @@ class souscriptionService {
         throw Exception('Authentification requise');
       }
 
-      final url = Uri.parse('${ApiConfig.baseUrl}$_basePath/$id/annuler');
+      final url = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.souscriptionBasePath}/$id/annuler');
 
       final headers = {
         'Content-Type': 'application/json',

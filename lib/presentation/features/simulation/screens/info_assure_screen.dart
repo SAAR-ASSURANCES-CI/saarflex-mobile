@@ -204,7 +204,6 @@ class _InfoAssureScreenState extends State<InfoAssureScreen> {
         _autovalidateMode = AutovalidateMode.disabled;
       });
 
-      // Convertir la date de naissance en string pour la sérialisation
       Map<String, dynamic> infosAEnvoyer = Map.from(_formData);
       if (infosAEnvoyer.containsKey('date_naissance')) {
         final dateNaissance = infosAEnvoyer['date_naissance'];
@@ -215,7 +214,6 @@ class _InfoAssureScreenState extends State<InfoAssureScreen> {
         }
       }
 
-      // Mettre à jour les informations de l'assuré dans le ViewModel
       final simulationViewModel = context.read<SimulationViewModel>();
       simulationViewModel.updateInformationsAssure(infosAEnvoyer);
 

@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:saarflex_app/data/models/critere_tarification_model.dart';
 import 'package:saarflex_app/presentation/features/simulation/viewmodels/simulation_viewmodel.dart';
 import 'package:saarflex_app/data/models/product_model.dart';
-import 'package:saarflex_app/presentation/shared/widgets/dynamic_form_field.dart';
+import 'package:saarflex_app/presentation/features/simulation/widgets/dynamic_form_field.dart';
 import 'package:saarflex_app/presentation/features/simulation/widgets/simulation_app_bar.dart';
 import 'package:saarflex_app/presentation/features/simulation/widgets/simulation_loading_state.dart';
 import 'package:saarflex_app/presentation/features/simulation/widgets/simulation_error_state.dart';
@@ -33,6 +33,7 @@ class SimulationScreen extends StatefulWidget {
 
 class _SimulationScreenState extends State<SimulationScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  VoidCallback? _calculationListener;
 
   bool _critereNecessiteFormatage(CritereTarification critere) {
     const champsAvecSeparateurs = [
@@ -60,18 +61,42 @@ class _SimulationScreenState extends State<SimulationScreen> {
   @override
   void initState() {
     super.initState();
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<SimulationViewModel>().initierSimulation(
+      final simulationProvider = context.read<SimulationViewModel>();
+      simulationProvider.initierSimulation(
         produitId: widget.produit.id,
         assureEstSouscripteur: widget.assureEstSouscripteur,
         informationsAssure: widget.informationsAssure,
       );
+      if (_isSaarNansou(widget.produit.nom)) {
+        void checkAndCalculate() {
+          if (!simulationProvider.isLoadingCriteres && 
+              simulationProvider.criteresProduit.isNotEmpty) {
+            if (_calculationListener != null) {
+              simulationProvider.removeListener(_calculationListener!);
+              _calculationListener = null;
+            }
+            simulationProvider.calcAutoDureeWithContext(context);
+          }
+        }
+        _calculationListener = checkAndCalculate;
+        simulationProvider.addListener(_calculationListener!);
+        checkAndCalculate();
+      }
     });
+  }
+
+  bool _isSaarNansou(String nomProduit) {
+    final nomLower = nomProduit.toLowerCase();
+    return nomLower.contains('nansou') || nomLower.contains('saar nansou');
   }
 
   @override
   void dispose() {
+    if (_calculationListener != null) {
+      context.read<SimulationViewModel>().removeListener(_calculationListener!);
+      _calculationListener = null;
+    }
     super.dispose();
   }
 
@@ -125,9 +150,19 @@ class _SimulationScreenState extends State<SimulationScreen> {
 
   List<Widget> _buildFormFields(SimulationViewModel provider) {
     final criteres = provider.criteresProduitTries;
+    final isSaarNansou = _isSaarNansou(widget.produit.nom);
 
     return criteres.map((critere) {
       final besoinFormatage = _critereNecessiteFormatage(critere);
+      final nomLower = critere.nom.toLowerCase();
+      final isDureeCotisation = nomLower.contains('durée') || 
+                                 nomLower.contains('duree') || 
+                                 nomLower.contains('cotisation');
+      final enabled = !(isSaarNansou && isDureeCotisation);
+      String? infoText;
+      if (isSaarNansou && isDureeCotisation && !enabled) {
+        infoText = 'Cette durée est déterminée automatiquement selon votre âge.';
+      }
 
       return DynamicFormField(
         critere: critere,
@@ -137,6 +172,8 @@ class _SimulationScreenState extends State<SimulationScreen> {
         },
         errorText: provider.getValidationError(critere.nom),
         formatMilliers: besoinFormatage,
+        enabled: enabled,
+        infoText: infoText,
       );
     }).toList();
   }

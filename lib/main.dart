@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:saarflex_app/core/utils/session_manager.dart';
-import 'package:saarflex_app/core/widgets/app_lifecycle_wrapper.dart';
+import 'package:saarflex_app/presentation/shared/app_lifecycle_wrapper.dart';
 import 'presentation/features/auth/viewmodels/auth_viewmodel.dart';
 import 'presentation/features/profile/viewmodels/profile_viewmodel.dart';
 import 'presentation/features/products/viewmodels/product_viewmodel.dart';
@@ -19,12 +19,22 @@ import 'presentation/features/contracts/screens/contracts_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  // Initialisation du gestionnaire de session
-  SessionManager().initialize();
-
+  
+  final sessionManager = SessionManager();
+  assert(() {
+    sessionManager.onAppReload();
+    return true;
+  }());
+  sessionManager.initialize();
+  
+  await GoogleFonts.pendingFonts([
+    GoogleFonts.poppins(),
+  ]);
+  
   runApp(const Saarflex());
 }
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 class Saarflex extends StatelessWidget {
   const Saarflex({super.key});
@@ -34,26 +44,32 @@ class Saarflex extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<AuthViewModel>(
-          create: (_) => AuthViewModel()..initializeAuth(),
+          create: (_) => AuthViewModel(),
         ),
         ChangeNotifierProvider<ProductViewModel>(
           create: (_) => ProductViewModel(),
+          lazy: true,
         ),
         ChangeNotifierProvider<ProfileViewModel>(
           create: (_) => ProfileViewModel(),
+          lazy: true,
         ),
         ChangeNotifierProvider<SimulationViewModel>(
           create: (_) => SimulationViewModel(),
+          lazy: true,
         ),
         ChangeNotifierProvider<ContractViewModel>(
           create: (_) => ContractViewModel(),
+          lazy: true,
         ),
         ChangeNotifierProvider<SouscriptionViewModel>(
           create: (_) => SouscriptionViewModel(),
+          lazy: true,
         ),
       ],
       child: AppLifecycleWrapper(
         child: MaterialApp(
+          navigatorKey: navigatorKey,
           title: 'SAAR Assurances',
           debugShowCheckedModeBanner: false,
 
@@ -69,13 +85,11 @@ class Saarflex extends StatelessWidget {
             primarySwatch: Colors.blue,
             primaryColor: AppColors.primary,
             fontFamily: GoogleFonts.poppins().fontFamily,
-
             colorScheme: ColorScheme.light(
               primary: AppColors.primary,
               secondary: AppColors.secondary,
               surface: AppColors.white,
             ),
-
             appBarTheme: AppBarTheme(
               backgroundColor: Colors.transparent,
               elevation: 0,
@@ -103,14 +117,34 @@ class Saarflex extends StatelessWidget {
   }
 }
 
-class AuthenticationWrapper extends StatelessWidget {
+class AuthenticationWrapper extends StatefulWidget {
   const AuthenticationWrapper({super.key});
+
+  @override
+  State<AuthenticationWrapper> createState() => _AuthenticationWrapperState();
+}
+
+class _AuthenticationWrapperState extends State<AuthenticationWrapper> {
+  bool _initialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<AuthViewModel>().initializeAuth();
+        setState(() {
+          _initialized = true;
+        });
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<AuthViewModel>(
       builder: (context, authProvider, child) {
-        if (authProvider.isLoading) {
+        if (!_initialized || authProvider.isLoading) {
           return Scaffold(
             backgroundColor: AppColors.background,
             body: Center(

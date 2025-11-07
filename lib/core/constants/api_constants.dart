@@ -1,12 +1,9 @@
+import 'package:saarflex_app/core/config/environment.dart';
+
 class ApiConstants {
-  static const String _devBaseUrl = 'https://c04093492725.ngrok-free.app';
+  static Environment get environment => EnvironmentConfig.current;
 
-  static const Environment environment = Environment.dev;
-
-  static String get baseUrl {
-    Environment.dev;
-    return _devBaseUrl;
-  }
+  static String get baseUrl => EnvironmentConfig.baseUrl;
 
   static const String login = '/users/login';
   static const String register = '/users/register';
@@ -18,17 +15,31 @@ class ApiConstants {
   static const String uploadDocument = '/users/upload-piece-identite';
   static const String uploadImages = '/profiles/upload/images';
 
+  static const String simulationBasePath = '/simulation-devis-simplifie';
+  static const String souscriptionBasePath = '/devis';
+  static const String profileBasePath = '/profile';
+  static const String productsBasePath = '/produits';
+  static const String uploadBasePath = '/upload';
+
+  static const String savedQuotes = '/devis-sauvegardes';
+  static const String grillesTarifaires = '/grilles-tarifaires';
+  static const String productCriteres = '/criteres';
+  static const String uploadAssureImages = '/profiles/devis';
+
   static const Duration connectTimeout = Duration(seconds: 30);
   static const Duration receiveTimeout = Duration(seconds: 30);
 
-  // Image upload constraints - Only size restriction
-  static const int maxImageSizeBytes = 5 * 1024 * 1024; // 5MB
-  // No other restrictions - all formats and dimensions allowed
+  static const int maxImageSizeBytes = 5 * 1024 * 1024;
+  static const int maxFileSizeBytes = 5 * 1024 * 1024;
+  static const List<String> allowedImageExtensions = [
+    '.jpg',
+    '.jpeg',
+    '.png',
+    '.webp',
+  ];
 
   static const Map<String, String> defaultHeaders = {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   };
 }
-
-enum Environment { dev, staging, prod }

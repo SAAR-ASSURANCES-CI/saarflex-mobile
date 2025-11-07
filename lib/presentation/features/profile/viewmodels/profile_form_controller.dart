@@ -3,17 +3,15 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:saarflex_app/presentation/features/auth/viewmodels/auth_viewmodel.dart';
 import 'package:saarflex_app/presentation/features/profile/viewmodels/profile_validation_controller.dart';
-import 'package:saarflex_app/data/services/image_upload_service.dart';
-import 'package:saarflex_app/data/services/api_service.dart';
+import 'package:saarflex_app/data/services/file_upload_service.dart';
+import 'package:saarflex_app/data/repositories/profile_repository.dart';
 import 'package:saarflex_app/core/utils/error_handler.dart';
 
-/// Controller de formulaire de profil - États UI uniquement
-/// Responsabilité : Gestion des états UI et orchestration des services
-class ProfileFormController extends ChangeNotifier {
-  // Services - Logique métier déléguée
-  final ImageUploadService _imageUploadService = ImageUploadService();
 
-  // Controllers pour les champs de texte
+class ProfileFormController extends ChangeNotifier {
+  final FileUploadService _fileUploadService = FileUploadService();
+  final ProfileRepository _profileRepository = ProfileRepository();
+
   final _firstNameController = TextEditingController();
   final _birthPlaceController = TextEditingController();
   final _nationalityController = TextEditingController();
@@ -23,13 +21,11 @@ class ProfileFormController extends ChangeNotifier {
   final _addressController = TextEditingController();
   final _idNumberController = TextEditingController();
 
-  // État des champs
   String? _selectedGender;
   String? _selectedIdType;
   DateTime? _selectedBirthDate;
   DateTime? _selectedExpirationDate;
 
-  // État des images
   XFile? _rectoImage;
   XFile? _versoImage;
   String? _rectoImagePath;
@@ -37,20 +33,17 @@ class ProfileFormController extends ChangeNotifier {
   bool _isUploadingRecto = false;
   bool _isUploadingVerso = false;
 
-  // État général
   bool _isLoading = false;
   bool _hasChanges = false;
   Map<String, dynamic> _originalData = {};
   Map<String, String?> _fieldErrors = {};
 
-  // Options pour les dropdowns
   final List<String> _genderOptions = ['Masculin', 'Féminin'];
   final List<String> _idTypeOptions = [
     'Carte Nationale d\'Identité',
     'Passeport',
   ];
 
-  // Getters
   TextEditingController get firstNameController => _firstNameController;
   TextEditingController get birthPlaceController => _birthPlaceController;
   TextEditingController get nationalityController => _nationalityController;
@@ -140,7 +133,6 @@ class ProfileFormController extends ChangeNotifier {
       _fieldErrors.clear();
     }
 
-    // Toujours notifier pour forcer la reconstruction de tous les widgets
     notifyListeners();
   }
 
@@ -194,7 +186,6 @@ class ProfileFormController extends ChangeNotifier {
         'date_expiration_piece_identite': user.identityExpirationDate,
       };
 
-      // Initialiser l'état des changements après avoir chargé les données
       _checkForChanges();
     }
   }
@@ -234,16 +225,15 @@ class ProfileFormController extends ChangeNotifier {
     _checkForChanges();
   }
 
-  /// Sélection d'une image
-  /// Délégation au service
+
   Future<void> pickImage(bool isRecto, BuildContext context) async {
     try {
       final imagePicker = ImagePicker();
       final image = await imagePicker.pickImage(source: ImageSource.gallery);
 
       if (image != null) {
-        // Validation de l'image
-        await _imageUploadService.validateXFile(image);
+
+        await _fileUploadService.validateXFile(image);
 
         if (isRecto) {
           _rectoImage = image;
@@ -266,8 +256,7 @@ class ProfileFormController extends ChangeNotifier {
     }
   }
 
-  /// Upload d'une image
-  /// Délégation au service
+
   Future<void> _uploadImage(
     String imagePath,
     bool isRecto,
@@ -277,7 +266,7 @@ class ProfileFormController extends ChangeNotifier {
       if (_rectoImage != null && _versoImage != null) {
         await _uploadBothImages(context);
       } else {
-        // Message pour sélectionner l'autre image
+
         final message = isRecto
             ? 'Veuillez maintenant sélectionner l\'image verso'
             : 'Veuillez maintenant sélectionner l\'image recto';
@@ -299,8 +288,7 @@ class ProfileFormController extends ChangeNotifier {
     }
   }
 
-  /// Upload des deux images
-  /// Délégation au service
+
   Future<void> _uploadBothImages(BuildContext context) async {
     if (_rectoImage == null || _versoImage == null) {
       ErrorHandler.showErrorSnackBar(
@@ -315,9 +303,7 @@ class ProfileFormController extends ChangeNotifier {
       _isUploadingVerso = true;
       notifyListeners();
 
-      // Upload des deux images ensemble via ApiService
-      final apiService = ApiService();
-      final result = await apiService.uploadBothImages(
+      final result = await _profileRepository.uploadIdentityImages(
         rectoPath: _rectoImagePath!,
         versoPath: _versoImagePath!,
       );
@@ -378,7 +364,6 @@ class ProfileFormController extends ChangeNotifier {
       final authProvider = context.read<AuthViewModel>();
       final Map<String, dynamic> profileData = {};
 
-      // Collecter les données modifiées
       if (_firstNameController.text.trim() != _originalData['nom']) {
         profileData['nom'] = _firstNameController.text.trim();
       }

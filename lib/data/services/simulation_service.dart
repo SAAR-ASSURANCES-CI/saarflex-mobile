@@ -3,12 +3,10 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:saarflex_app/data/models/simulation_model.dart';
 import 'package:saarflex_app/data/models/critere_tarification_model.dart';
-import 'package:saarflex_app/core/utils/api_config.dart';
+import 'package:saarflex_app/core/constants/api_constants.dart';
 import 'package:saarflex_app/core/utils/storage_helper.dart';
-import 'package:saarflex_app/core/utils/logger.dart';
 
 class SimulationService {
-  static const String _basePath = '/simulation-devis-simplifie';
 
   Future<SimulationResponse> simulerDevisSimplifie({
     required String produitId,
@@ -21,7 +19,7 @@ class SimulationService {
     
     try {
       final token = await StorageHelper.getToken();
-      url = Uri.parse('${ApiConfig.baseUrl}/simulation-devis-simplifie');
+      url = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.simulationBasePath}');
 
       final headers = {
         'Content-Type': 'application/json',
@@ -29,62 +27,21 @@ class SimulationService {
         if (token != null) 'Authorization': 'Bearer $token',
       };
 
-      // ✅ CORRECT - Utiliser directement les critères sans transformation
-      // Les clés doivent être exactement les noms des critères chargés depuis l'API
-      AppLogger.debug('''\n================= SIMULATION SERVICE =================
-PRODUIT_ID              : $produitId
-ASSURE_EST_SOUSCRIPTEUR : $assureEstSouscripteur
-CRITERES (AVANT ENVOI)  : ${criteres.toString()}
-CRITERES_KEYS           : ${criteres.keys.join(', ')}
-CRITERES_COUNT          : ${criteres.length}
-======================================================
-''');
-
       payload = {
         'produit_id': produitId,
         'assure_est_souscripteur': assureEstSouscripteur,
-        'criteres_utilisateur': criteres, // ✅ Utiliser directement, pas de transformation !
+        'criteres_utilisateur': criteres,
       };
 
       if (!assureEstSouscripteur && informationsAssure != null) {
         payload['informations_assure'] = informationsAssure;
       }
 
-      // Logs détaillés de la requête (format lisible)
-      final criteresUtilisateur = payload['criteres_utilisateur'];
-      final criteresType = criteresUtilisateur.runtimeType.toString();
-      
-      String criteresKeys;
-      int criteresCount = 0;
-      if (criteresUtilisateur is Map) {
-        criteresKeys = criteresUtilisateur.keys.join(', ');
-        criteresCount = criteresUtilisateur.length;
-      } else {
-        criteresKeys = 'N/A (Type: $criteresType, Value: ${criteresUtilisateur?.toString() ?? 'null'})';
-      }
-      
-      AppLogger.api('''\n================= SIMULATION DEVIS - REQUEST =================
-METHOD  : POST
-URL     : ${url.toString()}
-HEADERS : ${_prettyJson(_maskHeaders(headers))}
-BODY    : ${_prettyJson(payload)}
-CRITERES_TYPE            : $criteresType
-CRITERES_KEYS (ENVOYÉS)  : $criteresKeys
-CRITERES_COUNT           : $criteresCount
----------------------------------------------------------------''');
-      _logRequestChecklist(payload);
-
       final response = await http.post(
         url,
         headers: headers,
         body: json.encode(payload),
       );
-
-      AppLogger.api('''\n================= SIMULATION DEVIS - RESPONSE ================
-STATUS  : ${response.statusCode}
-URL     : ${url.toString()}
-BODY    : ${_prettyResponseBody(response.body)}
----------------------------------------------------------------''');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final responseData = json.decode(response.body);
@@ -95,55 +52,10 @@ BODY    : ${_prettyResponseBody(response.body)}
             (errorData is Map && errorData['message'] != null)
                 ? errorData['message']
                 : 'Erreur de simulation (${response.statusCode})';
-        AppLogger.error('''\n================= SIMULATION DEVIS - ERROR ===================
-STATUS  : ${response.statusCode}
-URL     : ${url.toString()}
-MESSAGE : $errorMessage
-BODY    : ${_prettyResponseBody(response.body)}
----------------------------------------------------------------''');
         throw Exception(errorMessage);
       }
-    } catch (e, stackTrace) {
-      AppLogger.errorWithStack(
-        '''\n================= SIMULATION DEVIS - EXCEPTION ===============
-MESSAGE : Erreur inattendue
-DETAILS : $e
-TYPE    : ${e.runtimeType}
-URL     : ${url?.toString() ?? 'Non disponible'}
-PAYLOAD : ${payload != null ? _prettyJson(payload) : 'Non disponible'}
----------------------------------------------------------------''',
-        e,
-        stackTrace,
-      );
+    } catch (e) {
       throw Exception(_getUserFriendlyError(e));
-    }
-  }
-
-  // ❌ SUPPRIMÉ - Cette méthode transformait les noms de critères
-  // Les critères doivent être envoyés avec leurs noms exacts depuis l'API
-  // Ancienne méthode _normaliserCriteres() supprimée car elle transformait:
-  // - "Capital Assuré" → "capital"
-  // - "Durée Cotisation" → "Durée de cotisation"
-  // L'API attend maintenant les noms exacts sans transformation.
-
-  Map<String, String> _maskHeaders(Map<String, String> input) {
-    final Map<String, String> masked = Map<String, String>.from(input);
-    if (masked.containsKey('Authorization')) {
-      masked['Authorization'] = 'Bearer ***';
-    }
-    return masked;
-  }
-
-  String _prettyJson(dynamic data) {
-    try {
-      final encoder = const JsonEncoder.withIndent('  ');
-      if (data is String) {
-        final decoded = json.decode(data);
-        return encoder.convert(decoded);
-      }
-      return encoder.convert(data);
-    } catch (_) {
-      return data.toString();
     }
   }
 
@@ -155,34 +67,6 @@ PAYLOAD : ${payload != null ? _prettyJson(payload) : 'Non disponible'}
     }
   }
 
-  String _prettyResponseBody(String body) {
-    final decoded = _tryDecode(body);
-    return _prettyJson(decoded);
-  }
-
-  void _logRequestChecklist(Map<String, dynamic> payload) {
-    final missing = <String>[];
-    if (!payload.containsKey('produit_id') || (payload['produit_id']?.toString().isEmpty ?? true)) {
-      missing.add('produit_id');
-    }
-    if (!payload.containsKey('assure_est_souscripteur')) {
-      missing.add('assure_est_souscripteur');
-    }
-    if (!payload.containsKey('criteres_utilisateur')) {
-      missing.add('criteres_utilisateur');
-    }
-    final hasInfosAssure = payload['informations_assure'] != null;
-    final checklist = {
-      'present_fields': payload.keys.toList(),
-      'missing_required_fields': missing,
-      'has_informations_assure': hasInfosAssure,
-      'criteres_keys': (payload['criteres_utilisateur'] is Map)
-          ? (payload['criteres_utilisateur'] as Map).keys.toList()
-          : [],
-    };
-    AppLogger.debug('[SIMULATION][REQUEST][CHECKLIST] ${_prettyJson(checklist)}');
-  }
-
   Future<List<CritereTarification>> getCriteresProduit(
     String produitId, {
     int page = 1,
@@ -190,7 +74,7 @@ PAYLOAD : ${payload != null ? _prettyJson(payload) : 'Non disponible'}
   }) async {
     try {
       final token = await StorageHelper.getToken();
-      final url = Uri.parse('${ApiConfig.baseUrl}/produits/$produitId/criteres')
+      final url = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.productsBasePath}/$produitId${ApiConstants.productCriteres}')
           .replace(
             queryParameters: {
               'page': page.toString(),
@@ -216,17 +100,7 @@ PAYLOAD : ${payload != null ? _prettyJson(payload) : 'Non disponible'}
       } else {
         throw Exception('Erreur serveur: ${response.statusCode}');
       }
-    } catch (e, stackTrace) {
-      AppLogger.errorWithStack(
-        '''\n================= GET CRITERES PRODUIT - EXCEPTION ===========
-PRODUIT_ID : $produitId
-MESSAGE    : Erreur lors de la récupération des critères
-DETAILS    : $e
-TYPE       : ${e.runtimeType}
----------------------------------------------------------------''',
-        e,
-        stackTrace,
-      );
+    } catch (e) {
       throw Exception(_getUserFriendlyError(e));
     }
   }
@@ -235,7 +109,7 @@ TYPE       : ${e.runtimeType}
     try {
       final token = await StorageHelper.getToken();
       final url = Uri.parse(
-        '${ApiConfig.baseUrl}/grilles-tarifaires/produit/$produitId',
+        '${ApiConstants.baseUrl}${ApiConstants.grillesTarifaires}/produit/$produitId',
       );
 
       final headers = {
@@ -265,17 +139,7 @@ TYPE       : ${e.runtimeType}
       } else {
         throw Exception('Impossible de récupérer la grille tarifaire');
       }
-    } catch (e, stackTrace) {
-      AppLogger.errorWithStack(
-        '''\n================= GET GRILLE TARIFAIRE - EXCEPTION ============
-PRODUIT_ID : $produitId
-MESSAGE    : Erreur lors de la récupération de la grille tarifaire
-DETAILS    : $e
-TYPE       : ${e.runtimeType}
----------------------------------------------------------------''',
-        e,
-        stackTrace,
-      );
+    } catch (e) {
       throw Exception(_getUserFriendlyError(e));
     }
   }
@@ -287,7 +151,7 @@ TYPE       : ${e.runtimeType}
         throw Exception('Authentification requise');
       }
 
-      final url = '${ApiConfig.baseUrl}/devis-sauvegardes';
+      final url = '${ApiConstants.baseUrl}${ApiConstants.savedQuotes}';
 
       final response = await http.post(
         Uri.parse(url),
@@ -303,17 +167,7 @@ TYPE       : ${e.runtimeType}
         final errorData = json.decode(response.body);
         throw Exception(errorData['message'] ?? 'Erreur lors de la sauvegarde');
       }
-    } catch (e, stackTrace) {
-      AppLogger.errorWithStack(
-        '''\n================= SAUVEGARDER DEVIS - EXCEPTION ===============
-DEVIS_ID : ${request.devisId}
-MESSAGE  : Erreur lors de la sauvegarde du devis
-DETAILS  : $e
-TYPE     : ${e.runtimeType}
----------------------------------------------------------------''',
-        e,
-        stackTrace,
-      );
+    } catch (e) {
       throw Exception(_getUserFriendlyError(e));
     }
   }
@@ -330,7 +184,7 @@ TYPE     : ${e.runtimeType}
 
       final response = await http.get(
         Uri.parse(
-          '${ApiConfig.baseUrl}$_basePath/mes-devis?page=$page&limit=$limit',
+          '${ApiConstants.baseUrl}${ApiConstants.simulationBasePath}/mes-devis?page=$page&limit=$limit',
         ),
         headers: {
           'Content-Type': 'application/json',
@@ -352,18 +206,7 @@ TYPE     : ${e.runtimeType}
           errorData['message'] ?? 'Erreur lors du chargement des devis',
         );
       }
-    } catch (e, stackTrace) {
-      AppLogger.errorWithStack(
-        '''\n================= GET MES DEVIS - EXCEPTION =================
-PAGE     : $page
-LIMIT    : $limit
-MESSAGE  : Erreur lors du chargement des devis
-DETAILS  : $e
-TYPE     : ${e.runtimeType}
----------------------------------------------------------------''',
-        e,
-        stackTrace,
-      );
+    } catch (e) {
       throw Exception(_getUserFriendlyError(e));
     }
   }
@@ -376,7 +219,7 @@ TYPE     : ${e.runtimeType}
       }
 
       final response = await http.delete(
-        Uri.parse('${ApiConfig.baseUrl}$_basePath/mes-devis/$devisId'),
+        Uri.parse('${ApiConstants.baseUrl}${ApiConstants.simulationBasePath}/mes-devis/$devisId'),
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -390,17 +233,7 @@ TYPE     : ${e.runtimeType}
           errorData['message'] ?? 'Erreur lors de la suppression',
         );
       }
-    } catch (e, stackTrace) {
-      AppLogger.errorWithStack(
-        '''\n================= SUPPRIMER DEVIS - EXCEPTION ===============
-DEVIS_ID : $devisId
-MESSAGE  : Erreur lors de la suppression du devis
-DETAILS  : $e
-TYPE     : ${e.runtimeType}
----------------------------------------------------------------''',
-        e,
-        stackTrace,
-      );
+    } catch (e) {
       throw Exception(_getUserFriendlyError(e));
     }
   }
@@ -420,5 +253,200 @@ TYPE     : ${e.runtimeType}
       return 'Une erreur est survenue';
     }
     return 'Une erreur inattendue est survenue';
+  }
+
+  bool critereNecessiteFormatage(CritereTarification critere) {
+    const champsAvecSeparateurs = [
+      'capital',
+      'capital_assure',
+      'montant',
+      'prime',
+      'franchise',
+      'plafond',
+      'souscription',
+      'assurance',
+    ];
+
+    final nomCritereLower = critere.nom.toLowerCase();
+
+    for (final motCle in champsAvecSeparateurs) {
+      if (nomCritereLower.contains(motCle)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  Map<String, dynamic> nettoyerCriteres(
+    Map<String, dynamic> criteres,
+    List<CritereTarification> criteresProduit,
+  ) {
+    final criteresNettoyes = <String, dynamic>{};
+
+    for (final critere in criteresProduit) {
+      final valeur = criteres[critere.nom];
+      if (valeur == null) continue;
+
+      if (critere.type == TypeCritere.numerique &&
+          critereNecessiteFormatage(critere) &&
+          valeur is String) {
+        final valeurNettoyee = valeur.toString().replaceAll(RegExp(r'[^\d]'), '');
+        criteresNettoyes[critere.nom] = num.tryParse(valeurNettoyee) ?? 0;
+      } else {
+        criteresNettoyes[critere.nom] = valeur;
+      }
+    }
+
+    return criteresNettoyes;
+  }
+
+  String? validateCritere(
+    CritereTarification critere,
+    dynamic valeur,
+  ) {
+    if (critere.obligatoire &&
+        (valeur == null || valeur.toString().trim().isEmpty)) {
+      return 'Ce champ est obligatoire';
+    }
+
+    switch (critere.type) {
+      case TypeCritere.numerique:
+        if (valeur != null && valeur.toString().isNotEmpty) {
+          String valeurString = valeur.toString();
+
+          if (critereNecessiteFormatage(critere)) {
+            valeurString = valeurString.replaceAll(RegExp(r'[^\d]'), '');
+          }
+
+          final numericValue = num.tryParse(valeurString);
+          if (numericValue == null) {
+            return 'Veuillez entrer un nombre valide';
+          }
+
+          for (final valeurCritere in critere.valeurs) {
+            if (valeurCritere.valeurMin != null &&
+                numericValue.toDouble() < valeurCritere.valeurMin!) {
+              return 'Valeur minimum: ${valeurCritere.valeurMin}';
+            }
+            if (valeurCritere.valeurMax != null &&
+                numericValue.toDouble() > valeurCritere.valeurMax!) {
+              return 'Valeur maximum: ${valeurCritere.valeurMax}';
+            }
+          }
+        }
+        break;
+
+      case TypeCritere.categoriel:
+        if (valeur != null && critere.hasValeurs) {
+          if (!critere.valeursString.contains(valeur.toString())) {
+            return 'Valeur non autorisée';
+          }
+        }
+        break;
+
+      case TypeCritere.booleen:
+        break;
+    }
+
+    return null;
+  }
+
+  Map<String, String> validateAllCriteres(
+    Map<String, dynamic> criteresReponses,
+    List<CritereTarification> criteresProduit,
+  ) {
+    final errors = <String, String>{};
+
+    for (final critere in criteresProduit) {
+      final valeur = criteresReponses[critere.nom];
+      final error = validateCritere(critere, valeur);
+      if (error != null) {
+        errors[critere.nom] = error;
+      }
+    }
+
+    return errors;
+  }
+
+  bool isSaarNansou(String? produitId) {
+    const saarNansouId = '5a024ee8-6e8c-4cce-88a4-00b998248604';
+    return produitId == saarNansouId;
+  }
+
+  int? calculerDureeAuto(int age) {
+    if (age >= 40 && age <= 68) return 10;
+    if (age >= 69 && age <= 71) return 5;
+    if (age >= 72 && age <= 75) return 2;
+    return null;
+  }
+
+  int calculerAge(DateTime birthDate) {
+    final now = DateTime.now();
+    int age = now.year - birthDate.year;
+    if (now.month < birthDate.month ||
+        (now.month == birthDate.month && now.day < birthDate.day)) {
+      age--;
+    }
+    return age;
+  }
+
+  DateTime? parseBirthDate(dynamic dateNaissance) {
+    if (dateNaissance == null) return null;
+
+    if (dateNaissance is DateTime) {
+      return dateNaissance;
+    }
+
+    if (dateNaissance is String) {
+      DateTime? birthDate = DateTime.tryParse(dateNaissance);
+      if (birthDate != null) return birthDate;
+
+      final parts = dateNaissance.split('-');
+      if (parts.length == 3) {
+        try {
+          final day = int.parse(parts[0]);
+          final month = int.parse(parts[1]);
+          final year = int.parse(parts[2]);
+          return DateTime(year, month, day);
+        } catch (e) {
+          return null;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  String? formatBirthDateForApi(DateTime? birthDate) {
+    if (birthDate == null) return null;
+
+    final day = birthDate.day.toString().padLeft(2, '0');
+    final month = birthDate.month.toString().padLeft(2, '0');
+    return '$day-$month-${birthDate.year}';
+  }
+
+  Map<String, dynamic>? nettoyerInformationsAssure(
+    Map<String, dynamic>? informationsAssure,
+  ) {
+    if (informationsAssure == null) return null;
+
+    final informationsNettoyees = Map<String, dynamic>.from(informationsAssure);
+
+    if (informationsNettoyees.containsKey('date_naissance')) {
+      final dateNaissance = informationsNettoyees['date_naissance'];
+      if (dateNaissance is DateTime) {
+        informationsNettoyees['date_naissance'] =
+            formatBirthDateForApi(dateNaissance);
+      } else if (dateNaissance is String) {
+        final parsed = parseBirthDate(dateNaissance);
+        if (parsed != null) {
+          informationsNettoyees['date_naissance'] =
+              formatBirthDateForApi(parsed);
+        }
+      }
+    }
+
+    return informationsNettoyees;
   }
 }

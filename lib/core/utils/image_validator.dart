@@ -6,12 +6,10 @@ class ImageValidator {
     try {
       final file = File(imagePath);
 
-      // Vérifier que le fichier existe
       if (!await file.exists()) {
         return false;
       }
 
-      // Vérifier uniquement la taille du fichier
       final fileSize = await file.length();
       if (fileSize > ApiConstants.maxImageSizeBytes) {
         return false;

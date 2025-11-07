@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:saarflex_app/core/constants/colors.dart';
 import 'package:saarflex_app/data/models/beneficiaire_model.dart';
 import 'package:saarflex_app/data/models/simulation_model.dart';
@@ -45,7 +46,9 @@ class _souscriptionScreenState extends State<souscriptionScreen> {
     super.initState();
     _souscriptionViewModel = SouscriptionViewModel();
     _initializesouscription();
-    _loadProductDetails();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadProductDetails();
+    });
   }
 
   @override
@@ -311,8 +314,6 @@ class _souscriptionScreenState extends State<souscriptionScreen> {
 
           const SizedBox(height: 48),
 
-          const SizedBox(height: 16),
-
           _buildSubscribeButton(),
         ],
       ),
@@ -327,8 +328,8 @@ class _souscriptionScreenState extends State<souscriptionScreen> {
           height: 50,
           child: ElevatedButton(
             onPressed:
-                provider?.isSubscribing == true ||
-                    !(provider?.isFormValid ?? false)
+                provider.isSubscribing == true ||
+                    !provider.isFormValid
                 ? null
                 : _handlesouscription,
             style: ElevatedButton.styleFrom(
@@ -339,7 +340,7 @@ class _souscriptionScreenState extends State<souscriptionScreen> {
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            child: provider?.isSubscribing == true
+            child: provider.isSubscribing == true
                 ? const SizedBox(
                     width: 20,
                     height: 20,
@@ -366,14 +367,46 @@ class _souscriptionScreenState extends State<souscriptionScreen> {
   Future<void> _handlesouscription() async {
     final success = await _souscriptionViewModel.souscrire();
 
-    if (success && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Souscription effectuée avec succès !'),
-          backgroundColor: AppColors.success,
-        ),
-      );
-    } else if (mounted) {
+    if (!mounted) return;
+
+    if (success) {
+      final paymentUrl = _souscriptionViewModel.paymentUrl;
+      
+      if (paymentUrl != null && paymentUrl.isNotEmpty) {
+        try {
+          final uri = Uri.parse(paymentUrl);
+          final launched = await launchUrl(
+            uri,
+            mode: LaunchMode.externalApplication,
+          );
+          
+          if (!launched) {
+            await launchUrl(
+              uri,
+              mode: LaunchMode.platformDefault,
+            );
+          }
+        } catch (e) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'Erreur lors de l\'ouverture de l\'URL de paiement: ${e.toString()}',
+                ),
+                backgroundColor: AppColors.error,
+              ),
+            );
+          }
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Souscription effectuée avec succès !'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      }
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -390,6 +423,8 @@ class _souscriptionScreenState extends State<souscriptionScreen> {
       _loadedProduct = widget.product;
       return;
     }
+
+    if (!mounted) return;
 
     setState(() {
       _isLoadingProduct = true;
@@ -408,20 +443,18 @@ class _souscriptionScreenState extends State<souscriptionScreen> {
         );
       }
 
-      if (product != null) {
+      if (mounted) {
         setState(() {
           _loadedProduct = product;
           _isLoadingProduct = false;
         });
-      } else {
+      }
+    } catch (e) {
+      if (mounted) {
         setState(() {
           _isLoadingProduct = false;
         });
       }
-    } catch (e) {
-      setState(() {
-        _isLoadingProduct = false;
-      });
     }
   }
 

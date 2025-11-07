@@ -1,7 +1,7 @@
 import 'package:saarflex_app/data/models/critere_tarification_model.dart';
 
 class CriteriaProcessingService {
-  /// Nettoie les critères pour l'envoi à l'API
+
   static Map<String, dynamic> cleanCriteriaForApi(
     List<CritereTarification> criteres,
     Map<String, dynamic> reponses,
@@ -12,14 +12,13 @@ class CriteriaProcessingService {
       final valeur = reponses[critere.nom];
       if (valeur == null) continue;
 
-      // Traitement spécial pour les critères numériques
       if (critere.type == TypeCritere.numerique) {
         final cleanedValue = _processNumericValue(critere, valeur);
         if (cleanedValue != null) {
           cleanedCriteria[critere.nom] = cleanedValue;
         }
       } else {
-        // Pour les autres types, utiliser la valeur telle quelle
+
         cleanedCriteria[critere.nom] = valeur;
       }
     }
@@ -27,7 +26,6 @@ class CriteriaProcessingService {
     return cleanedCriteria;
   }
 
-  /// Traite une valeur numérique
   static dynamic _processNumericValue(
     CritereTarification critere,
     dynamic valeur,
@@ -36,17 +34,14 @@ class CriteriaProcessingService {
 
     String valeurString = valeur.toString();
 
-    // Nettoyer les séparateurs si nécessaire
     if (_critereNecessiteFormatage(critere)) {
       valeurString = valeurString.replaceAll(RegExp(r'[^\d]'), '');
     }
 
-    // Convertir en nombre
     final numericValue = num.tryParse(valeurString);
     return numericValue;
   }
 
-  /// Initialise les valeurs par défaut pour les critères
   static Map<String, dynamic> initializeDefaultValues(
     List<CritereTarification> criteres,
   ) {
@@ -71,7 +66,6 @@ class CriteriaProcessingService {
     return defaultValues;
   }
 
-  /// Détermine si un critère nécessite un formatage spécial
   static bool _critereNecessiteFormatage(CritereTarification critere) {
     const List<String> fieldsWithSeparators = [
       'capital',
@@ -91,7 +85,6 @@ class CriteriaProcessingService {
     );
   }
 
-  /// Formate une valeur pour l'affichage
   static String formatValueForDisplay(
     CritereTarification critere,
     dynamic valeur,
@@ -110,14 +103,12 @@ class CriteriaProcessingService {
     }
   }
 
-  /// Formate un nombre avec des séparateurs de milliers
   static String _formatNumericWithSeparators(dynamic valeur) {
     if (valeur == null) return '';
 
     final numValue = num.tryParse(valeur.toString());
     if (numValue == null) return valeur.toString();
 
-    // Formater avec des séparateurs de milliers
     final formatter = RegExp(r'(\d)(?=(\d{3})+(?!\d))');
     return numValue.toString().replaceAllMapped(
       formatter,
@@ -125,7 +116,6 @@ class CriteriaProcessingService {
     );
   }
 
-  /// Vérifie si un critère a des valeurs valides
   static bool hasValidValues(CritereTarification critere) {
     switch (critere.type) {
       case TypeCritere.booleen:
@@ -137,7 +127,6 @@ class CriteriaProcessingService {
     }
   }
 
-  /// Obtient les options pour un critère catégoriel
   static List<String> getCategoricalOptions(CritereTarification critere) {
     if (critere.type != TypeCritere.categoriel || !critere.hasValeurs) {
       return [];
@@ -145,7 +134,6 @@ class CriteriaProcessingService {
     return critere.valeursString;
   }
 
-  /// Obtient les contraintes pour un critère numérique
   static Map<String, num?> getNumericConstraints(CritereTarification critere) {
     if (critere.type != TypeCritere.numerique || critere.valeurs.isEmpty) {
       return {'min': null, 'max': null};

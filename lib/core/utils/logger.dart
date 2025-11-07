@@ -1,76 +1,18 @@
-import 'package:flutter/foundation.dart';
-
-/// Système de logging optimisé pour la production
 class AppLogger {
-  /// Log de niveau debug (développement uniquement)
-  static void debug(String message) {
-    if (kDebugMode) {
-      print('🐛 DEBUG: $message');
-    }
-  }
+  static void debug(String message) {}
 
-  /// Log de niveau info
-  static void info(String message) {
-    if (kDebugMode) {
-      print('ℹ️ INFO: $message');
-    }
-  }
+  static void info(String message) {}
 
-  /// Log de niveau error
-  static void error(String message, [dynamic error]) {
-    if (kDebugMode) {
-      print('❌ ERROR: $message');
-      if (error != null) {
-        print('❌ ERROR DETAILS: $error');
-      }
-    }
-  }
+  static void error(String message, [dynamic error]) {}
 
-  /// Log de niveau error avec stack trace complet
   static void errorWithStack(String message, dynamic error, [StackTrace? stackTrace]) {
-    if (kDebugMode) {
-      print('❌ ERROR: $message');
-      print('❌ ERROR TYPE: ${error.runtimeType}');
-      print('❌ ERROR MESSAGE: $error');
-      if (stackTrace != null) {
-        print('❌ STACK TRACE:');
-        print(stackTrace.toString());
-      } else {
-        try {
-          print('❌ STACK TRACE:');
-          print(StackTrace.current.toString());
-        } catch (_) {
-          print('❌ STACK TRACE: Non disponible');
-        }
-      }
-    }
   }
 
-  /// Log pour les opérations API
-  static void api(String message) {
-    if (kDebugMode) {
-      print('🌐 API: $message');
-    }
-  }
+  static void api(String message) {}
 
-  /// Log pour les opérations d'authentification
-  static void auth(String message) {
-    if (kDebugMode) {
-      print('🔐 AUTH: $message');
-    }
-  }
+  static void auth(String message) {}
 
-  /// Log pour les performances (développement uniquement)
-  static void performance(String message) {
-    if (kDebugMode) {
-      print('⚡ PERF: $message');
-    }
-  }
+  static void performance(String message) {}
 
-  /// Log pour la navigation
-  static void navigation(String message) {
-    if (kDebugMode) {
-      print('🧭 NAV: $message');
-    }
-  }
+  static void navigation(String message) {}
 }

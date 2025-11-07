@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:saarflex_app/presentation/features/auth/viewmodels/auth_viewmodel.dart';
 import 'package:saarflex_app/presentation/features/simulation/screens/simulation_screen.dart';
-import 'package:saarflex_app/presentation/shared/widgets/assure_selector_popup.dart';
+import 'package:saarflex_app/presentation/features/products/widgets/assure_selector_popup.dart';
 import 'package:saarflex_app/data/models/product_model.dart';
 import 'package:saarflex_app/presentation/features/products/viewmodels/product_viewmodel.dart';
 import 'package:saarflex_app/presentation/features/simulation/screens/info_assure_screen.dart';

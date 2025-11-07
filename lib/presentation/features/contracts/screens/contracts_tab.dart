@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:saarflex_app/presentation/features/contracts/viewmodels/contract_viewmodel.dart';
 import 'package:saarflex_app/core/utils/format_helper.dart';
-import 'package:saarflex_app/presentation/shared/widgets/empty_state_widget.dart';
+import 'package:saarflex_app/presentation/shared/empty_state_widget.dart';
 
 class ContractsTab extends StatefulWidget {
   final TabController? tabController;
@@ -19,7 +19,7 @@ class _ContractsTabState extends State<ContractsTab> {
   @override
   void initState() {
     super.initState();
-    // Charger les contrats au démarrage
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<ContractViewModel>(context, listen: false).loadContracts();
     });
@@ -130,7 +130,7 @@ class _ContractsTabState extends State<ContractsTab> {
           'Vous n\'avez pas encore de contrats actifs.\nSouscrivez un devis pour créer votre premier contrat !',
       actionText: 'Voir mes devis',
       onAction: () {
-        // Changer vers l'onglet des devis simulés
+
         widget.tabController?.animateTo(0);
       },
     );
@@ -521,7 +521,7 @@ class _ContractsTabState extends State<ContractsTab> {
         backgroundColor: AppColors.primary,
       ),
     );
-    // Téléchargement sera implémenté
+
   }
 
   void _manageContract(contract) {
@@ -531,6 +531,6 @@ class _ContractsTabState extends State<ContractsTab> {
         backgroundColor: AppColors.primary,
       ),
     );
-    // Gestion du contrat sera implémentée
+
   }
 }

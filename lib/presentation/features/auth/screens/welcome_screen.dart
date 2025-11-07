@@ -72,7 +72,7 @@ class WelcomeScreen extends StatelessWidget {
                                             child: Padding(
                                               padding: const EdgeInsets.all(16),
                                               child: Image.asset(
-                                                'lib/assets/images/logoSaarCI.png',
+                                                'lib/assets/logoSaarCI.png',
                                                 fit: BoxFit.contain,
                                                 semanticLabel:
                                                     "Logo SAAR Assurance",

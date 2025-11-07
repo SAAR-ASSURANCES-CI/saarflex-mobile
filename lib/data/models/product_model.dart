@@ -157,12 +157,10 @@ class Product {
   bool get isActive => statut?.toLowerCase() == 'actif';
   String get brancheName => branche?['nom'] ?? 'Non définie';
 
-  // Vérifie si le produit nécessite des bénéficiaires (nouvelle logique backend)
   bool get requiresBeneficiaires {
     return necessiteBeneficiaires;
   }
 
-  // Vérifie si le produit supporte les bénéficiaires
   bool get supportsBeneficiaires {
     return maxBeneficiaires > 0;
   }

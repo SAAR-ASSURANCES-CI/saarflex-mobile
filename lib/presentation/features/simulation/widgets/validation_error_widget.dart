@@ -93,7 +93,6 @@ class ValidationErrorWidget extends StatelessWidget {
   }
 }
 
-/// Widget pour afficher les erreurs de validation d'un formulaire
 class FormValidationErrorsWidget extends StatelessWidget {
   final Map<String, String> errors;
   final VoidCallback? onClearAll;

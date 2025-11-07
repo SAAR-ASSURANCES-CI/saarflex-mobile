@@ -5,8 +5,8 @@ import 'package:provider/provider.dart';
 import 'package:saarflex_app/presentation/features/contracts/viewmodels/contract_viewmodel.dart';
 import 'package:saarflex_app/data/models/saved_quote_model.dart';
 import 'package:saarflex_app/core/utils/format_helper.dart';
-import 'package:saarflex_app/presentation/shared/widgets/quote_card.dart';
-import 'package:saarflex_app/presentation/shared/widgets/empty_state_widget.dart';
+import 'package:saarflex_app/presentation/features/contracts/widgets/quote_card.dart';
+import 'package:saarflex_app/presentation/shared/empty_state_widget.dart';
 import 'package:saarflex_app/presentation/features/souscription/screens/souscription_screen.dart';
 
 class SavedQuotesTab extends StatefulWidget {
@@ -46,7 +46,6 @@ class _SavedQuotesTabState extends State<SavedQuotesTab> {
       _isLoadingMore = true;
     });
 
-    // Pagination sera implémentée quand l'API le supportera
     await Future.delayed(const Duration(seconds: 1));
 
     setState(() {
@@ -165,7 +164,7 @@ class _SavedQuotesTabState extends State<SavedQuotesTab> {
       actionText: 'Faire une simulation',
       onAction: () {
         Navigator.pop(context);
-        // Navigation vers la liste des produits
+
       },
     );
   }
@@ -273,7 +272,6 @@ class _SavedQuotesTabState extends State<SavedQuotesTab> {
                     _formatDate(quote.createdAt),
                   ),
 
-                  // Section Informations de l'assuré
                   if (quote.informationsAssure != null) ...[
                     const SizedBox(height: 24),
                     _buildSectionTitle('Informations de l\'assuré'),
@@ -445,8 +443,8 @@ class _SavedQuotesTabState extends State<SavedQuotesTab> {
         builder: (context) => souscriptionScreen(
           savedQuote: quote,
           source: 'saved_quote',
-          // TODO: Récupérer le produit depuis l'API ou le cache
-          // product: await _getProductById(quote.productId),
+
+
         ),
       ),
     );
@@ -498,7 +496,6 @@ class _SavedQuotesTabState extends State<SavedQuotesTab> {
             '${informations['type_piece_identite']} - ${informations['numero_piece_identite']}',
           ),
 
-        // Section Bénéficiaires
         if ((beneficiaires != null && beneficiaires.isNotEmpty) ||
             (informations['nombre_beneficiaires'] != null &&
                 informations['nombre_beneficiaires'] > 0)) ...[

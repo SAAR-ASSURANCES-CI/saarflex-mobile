@@ -1,18 +1,21 @@
+import 'package:saarflex_app/data/services/auth_service.dart';
 import 'package:saarflex_app/data/services/api_service.dart';
 
-class AuthService {
-  final ApiService _apiService = ApiService();
+class AuthRepository {
+  final AuthService _authService;
+
+  AuthRepository({AuthService? authService})
+      : _authService = authService ?? AuthService();
 
   Future<AuthResponse> login({
     required String email,
     required String password,
   }) async {
     try {
-      final authResponse = await _apiService.login(
+      return await _authService.login(
         email: email,
         password: password,
       );
-      return authResponse;
     } catch (e) {
       rethrow;
     }
@@ -25,13 +28,12 @@ class AuthService {
     required String password,
   }) async {
     try {
-      final authResponse = await _apiService.signup(
+      return await _authService.signup(
         nom: nom,
         email: email,
         telephone: telephone,
         password: password,
       );
-      return authResponse;
     } catch (e) {
       rethrow;
     }
@@ -39,14 +41,15 @@ class AuthService {
 
   Future<void> logout() async {
     try {
-      await _apiService.logout();
+      await _authService.logout();
     } catch (e) {
+      rethrow;
     }
   }
 
   Future<bool> isLoggedIn() async {
     try {
-      return await _apiService.isLoggedIn();
+      return await _authService.isLoggedIn();
     } catch (e) {
       return false;
     }
@@ -54,15 +57,18 @@ class AuthService {
 
   Future<void> forgotPassword(String email) async {
     try {
-      await _apiService.forgotPassword(email);
+      await _authService.forgotPassword(email);
     } catch (e) {
       rethrow;
     }
   }
 
-  Future<void> verifyOtp({required String email, required String code}) async {
+  Future<void> verifyOtp({
+    required String email,
+    required String code,
+  }) async {
     try {
-      await _apiService.verifyOtp(email: email, code: code);
+      await _authService.verifyOtp(email: email, code: code);
     } catch (e) {
       rethrow;
     }
@@ -74,7 +80,7 @@ class AuthService {
     required String newPassword,
   }) async {
     try {
-      await _apiService.resetPasswordWithCode(
+      await _authService.resetPasswordWithCode(
         email: email,
         code: code,
         newPassword: newPassword,
@@ -86,8 +92,7 @@ class AuthService {
 
   Future<bool> checkTokenValidity() async {
     try {
-      final isLoggedIn = await _apiService.isLoggedIn();
-      return isLoggedIn;
+      return await _authService.checkTokenValidity();
     } catch (e) {
       return false;
     }
@@ -95,10 +100,10 @@ class AuthService {
 
   Future<bool> initializeAuth() async {
     try {
-      final isLoggedIn = await _apiService.isLoggedInWithTimeout();
-      return isLoggedIn;
+      return await _authService.initializeAuth();
     } catch (e) {
       return false;
     }
   }
 }
+

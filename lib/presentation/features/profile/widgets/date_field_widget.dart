@@ -134,14 +134,13 @@ class DateFieldWidget extends StatelessWidget {
         ? DateTime(now.year + 20, now.month, now.day)
         : DateTime(now.year - 16, now.month, now.day);
 
-    // Gérer le cas où currentDate est antérieure à firstDate
     DateTime initialDate;
     if (currentDate != null) {
       if (currentDate.isBefore(firstDate)) {
-        // Si la date actuelle est antérieure à firstDate, utiliser firstDate
+
         initialDate = firstDate;
       } else if (currentDate.isAfter(lastDate)) {
-        // Si la date actuelle est postérieure à lastDate, utiliser lastDate
+
         initialDate = lastDate;
       } else {
         initialDate = currentDate;

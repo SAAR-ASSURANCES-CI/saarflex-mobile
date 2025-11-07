@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
@@ -6,7 +7,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import 'package:saarflex_app/data/models/user_model.dart';
 import 'package:saarflex_app/core/constants/api_constants.dart';
-import 'package:saarflex_app/core/utils/logger.dart';
 
 class ApiService {
   static final ApiService _instance = ApiService._internal();
@@ -36,7 +36,6 @@ class ApiService {
   Future<void> _saveToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('auth_token', token);
-    // Sauvegarder la date de connexion pour gestion timeout
     await prefs.setString('auth_timestamp', DateTime.now().toIso8601String());
   }
 
@@ -188,6 +187,11 @@ class ApiService {
         Uri.parse(url),
         headers: _defaultHeaders,
         body: json.encode(body),
+      ).timeout(
+        ApiConstants.connectTimeout,
+        onTimeout: () {
+          throw ApiException('Délai d\'attente dépassé', 408);
+        },
       );
       if (response.statusCode == 200 || response.statusCode == 201) {
         final responseData = json.decode(response.body);
@@ -234,10 +238,12 @@ class ApiService {
         _handleHttpError(response);
         throw ApiException('Erreur de connexion', response.statusCode);
       }
-    } on SocketException {
-      throw ApiException('Pas de connexion internet');
-    } on FormatException {
-      throw ApiException('Erreur de format de réponse');
+    } on SocketException catch (e) {
+      throw ApiException('Pas de connexion internet: ${e.message}');
+    } on FormatException catch (e) {
+      throw ApiException('Erreur de format de réponse: ${e.message}');
+    } on TimeoutException {
+      throw ApiException('Délai d\'attente dépassé', 408);
     } catch (e) {
       if (e is ApiException) rethrow;
       throw ApiException('Erreur de connexion: ${e.toString()}');
@@ -332,7 +338,6 @@ class ApiService {
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
         final data = responseData['data'] ?? responseData;
-        AppLogger.api('API Response: $data');
         return User(
           id: data['id'],
           nom: data['nom'],
@@ -559,7 +564,7 @@ class ApiService {
     required String versoPath,
   }) async {
     try {
-      final url = '$baseUrl/profiles/devis/$devisId/upload/assure-images';
+      final url = '$baseUrl${ApiConstants.uploadAssureImages}/$devisId/upload/assure-images';
       final token = await _getToken();
 
       if (token == null) {
@@ -572,7 +577,6 @@ class ApiService {
         'Accept': 'application/json',
       });
 
-      // Ajouter les deux fichiers images
       final rectoFile = File(rectoPath);
       final versoFile = File(versoPath);
 
@@ -583,9 +587,6 @@ class ApiService {
         throw ApiException('Fichier verso introuvable');
       }
 
-      // Vérifier la taille des fichiers
-
-      // Ajouter les deux fichiers dans le champ 'files'
       final rectoMultipartFile = await http.MultipartFile.fromPath(
         'files',
         rectoPath,
@@ -646,7 +647,6 @@ class ApiService {
         'Accept': 'application/json',
       });
 
-      // Ajouter les deux fichiers images
       final rectoFile = File(rectoPath);
       final versoFile = File(versoPath);
 
@@ -657,9 +657,6 @@ class ApiService {
         throw ApiException('Fichier verso introuvable');
       }
 
-      // Vérifier la taille des fichiers
-
-      // Ajouter les deux fichiers dans le champ 'files'
       final rectoMultipartFile = await http.MultipartFile.fromPath(
         'files',
         rectoPath,
@@ -702,40 +699,29 @@ class ApiService {
     }
   }
 
-  /// Vérification de la validité de la session
-  /// Retourne true si l'utilisateur est connecté ET le token est valide
   Future<bool> isLoggedIn() async {
     try {
       final token = await _getToken();
       if (token == null) return false;
-
-      // Vérifier la validité du token avec le serveur
       final response = await http.get(
         Uri.parse('$baseUrl${ApiConstants.updateProfile}'),
         headers: await _authHeaders,
       );
 
       if (response.statusCode == 200) {
-        AppLogger.info('✅ Token valide - Session active');
         return true;
       } else if (response.statusCode == 401) {
-        AppLogger.error('⚠️ Token expiré - Déconnexion automatique');
         await _clearToken();
         return false;
       } else {
-        AppLogger.error('⚠️ Erreur serveur - Session maintenue localement');
-        return true; // Maintenir la session en cas d'erreur serveur
+        return true;
       }
     } catch (e) {
-      AppLogger.error('❌ Erreur vérification session: $e');
-      // En cas d'erreur réseau, maintenir la session si token existe
       final token = await _getToken();
       return token != null;
     }
   }
 
-  /// Vérification de session avec timeout (alternative)
-  /// Retourne true si la session est valide et n'a pas expiré
   Future<bool> isLoggedInWithTimeout({
     Duration timeout = const Duration(hours: 24),
   }) async {
@@ -752,17 +738,12 @@ class ApiService {
       final sessionAge = now.difference(loginTime);
 
       if (sessionAge > timeout) {
-        AppLogger.error(
-          '⚠️ Session expirée (${sessionAge.inHours}h) - Déconnexion',
-        );
         await _clearToken();
         return false;
       }
 
-      AppLogger.info('✅ Session valide (${sessionAge.inMinutes}min)');
       return true;
     } catch (e) {
-      AppLogger.error('❌ Erreur vérification session: $e');
       return false;
     }
   }
@@ -772,12 +753,10 @@ class ApiService {
       return '';
     }
 
-    // Si l'URL est déjà complète, la retourner telle quelle
     if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
       return imagePath;
     }
 
-    // Sinon, ajouter l'URL de base
     return '$baseUrl/$imagePath';
   }
 }

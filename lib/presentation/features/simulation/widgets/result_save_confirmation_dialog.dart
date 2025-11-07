@@ -24,26 +24,23 @@ class ResultSaveConfirmationDialog extends StatelessWidget {
     required this.onViewQuotes,
   });
 
-  /// Déclenche l'upload des images après sauvegarde
   void _triggerImageUpload(BuildContext context, String devisId) {
     try {
       final simulationViewModel = context.read<SimulationViewModel>();
       if (simulationViewModel.hasTempImages) {
-        // Upload en arrière-plan sans context pour éviter l'erreur
         simulationViewModel.uploadImagesAfterSave(devisId, null);
       }
     } catch (e) {
-      // SimulationViewModel non disponible, pas grave
+
     }
   }
 
-  /// Nettoie les images temporaires après sauvegarde
   void _clearTempImagesAfterSave(BuildContext context) {
     try {
       final simulationViewModel = context.read<SimulationViewModel>();
       simulationViewModel.clearTempImagesAfterSave();
     } catch (e) {
-      // SimulationViewModel non disponible, pas grave
+
     }
   }
 
@@ -60,7 +57,7 @@ class ResultSaveConfirmationDialog extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Bouton fermer en haut à droite
+
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
@@ -74,7 +71,7 @@ class ResultSaveConfirmationDialog extends StatelessWidget {
                 ),
               ],
             ),
-            // Icône de sauvegarde
+
             Container(
               width: 80,
               height: 80,
@@ -90,7 +87,6 @@ class ResultSaveConfirmationDialog extends StatelessWidget {
             ),
             const SizedBox(height: 24),
 
-            // Titre
             Text(
               'Sauvegarder le devis',
               style: GoogleFonts.poppins(
@@ -102,7 +98,6 @@ class ResultSaveConfirmationDialog extends StatelessWidget {
             ),
             const SizedBox(height: 12),
 
-            // Message
             Text(
               'Votre devis "$nomDevis" sera sauvegardé. Que souhaitez-vous faire ensuite ?',
               style: GoogleFonts.poppins(
@@ -115,13 +110,12 @@ class ResultSaveConfirmationDialog extends StatelessWidget {
             ),
             const SizedBox(height: 32),
 
-            // Boutons d'action
             Row(
               children: [
                 Expanded(
                   child: OutlinedButton(
                     onPressed: () async {
-                      // Sauvegarder avec le nom et les notes saisis
+
                       final success = await viewModel.sauvegarderDevis(
                         devisId: resultat.id,
                         nomPersonnalise: nomDevis,
@@ -130,14 +124,14 @@ class ResultSaveConfirmationDialog extends StatelessWidget {
                       );
 
                       if (success) {
-                        // Déclencher l'upload des images après sauvegarde
+
                         _triggerImageUpload(context, resultat.id);
-                        // Nettoyer les images temporaires après sauvegarde
+
                         _clearTempImagesAfterSave(context);
                         Navigator.pop(context);
                         onNewSimulation(); // Redirection vers nouvelle simulation
                       } else {
-                        // Afficher l'erreur si échec
+
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text('Impossible de sauvegarder le devis'),
@@ -168,7 +162,7 @@ class ResultSaveConfirmationDialog extends StatelessWidget {
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () async {
-                      // Sauvegarder avec le nom et les notes saisis
+
                       final success = await viewModel.sauvegarderDevis(
                         devisId: resultat.id,
                         nomPersonnalise: nomDevis,
@@ -177,14 +171,14 @@ class ResultSaveConfirmationDialog extends StatelessWidget {
                       );
 
                       if (success) {
-                        // Déclencher l'upload des images après sauvegarde
+
                         _triggerImageUpload(context, resultat.id);
-                        // Nettoyer les images temporaires après sauvegarde
+
                         _clearTempImagesAfterSave(context);
                         Navigator.pop(context);
                         onViewQuotes(); // Navigation vers contrats
                       } else {
-                        // Afficher l'erreur si échec
+
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text('Impossible de sauvegarder le devis'),
@@ -220,7 +214,6 @@ class ResultSaveConfirmationDialog extends StatelessWidget {
     );
   }
 
-  /// Affiche le dialog de confirmation
   static Future<void> show({
     required BuildContext context,
     required String nomDevis,

@@ -54,6 +54,7 @@ dependencies:
   http_parser: ^4.1.2
   path: ^1.9.1
   image: ^4.2.0
+  url_launcher: ^6.2.5
   
   
 
@@ -82,27 +83,26 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-    - lib/assets/images/payment_logos/
-    - lib/assets/images/
+    - lib/assets/
   #   - images/a_dot_ham.jpeg
 
 flutter_launcher_icons:
   android: true
   ios: true
   remove_alpha_ios: true
-  image_path: "lib/assets/images/logoSaarCI.png"
+  image_path: "lib/assets/logoSaarCI.png"
 
 
 # flutter_native_splash.yaml
 flutter_native_splash:
   color: "#E53E3E" 
-  image: lib/assets/images/Saar_ip_logo.png
+  image: lib/assets/Saar_ip_logo.png
   # branding: assets/images/branding.png
 
   
   # Android 12+
   android_12:
-    image: lib/assets/images/Saar_android12.png
+    image: lib/assets/Saar_android12.png
     icon_background_color: "#E53E3E"
     # image_dark: lib/assets/images/Saar_android12.png
     # icon_background_color_dark: "#1A1A1A"

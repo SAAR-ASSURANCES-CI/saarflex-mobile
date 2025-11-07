@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:saarflex_app/core/constants/colors.dart';
 
-/// Gestionnaire d'erreurs spécialisé pour la simulation
 class SimulationErrorHandler {
-  /// Gère les erreurs de validation
+
   static void handleValidationError(BuildContext context, String error) {
     _showErrorSnackBar(
       context,
@@ -14,57 +13,46 @@ class SimulationErrorHandler {
     );
   }
 
-  /// Gère les erreurs de simulation
   static void handleSimulationError(BuildContext context, String error) {
     _showErrorSnackBar(context, 'Erreur de simulation', error, AppColors.error);
   }
 
-  /// Gère les erreurs de sauvegarde
   static void handleSaveError(BuildContext context, String error) {
     _showErrorSnackBar(context, 'Erreur de sauvegarde', error, AppColors.error);
   }
 
-  /// Gère les erreurs de chargement
   static void handleLoadingError(BuildContext context, String error) {
     _showErrorSnackBar(context, 'Erreur de chargement', error, AppColors.error);
   }
 
-  /// Convertit une erreur technique en message utilisateur
   static String getUserFriendlyError(dynamic error) {
     final errorString = error.toString().toLowerCase();
 
-    // Erreurs de réseau
     if (errorString.contains('socketexception') ||
         errorString.contains('network') ||
         errorString.contains('connection')) {
       return 'Problème de connexion. Vérifiez votre connexion internet.';
     }
 
-    // Erreurs de timeout
     if (errorString.contains('timeout')) {
       return 'La requête a pris trop de temps. Veuillez réessayer.';
     }
 
-    // Erreurs de serveur
     if (errorString.contains('500') || errorString.contains('server')) {
       return 'Erreur du serveur. Veuillez réessayer plus tard.';
     }
 
-    // Erreurs d'authentification
     if (errorString.contains('401') || errorString.contains('unauthorized')) {
       return 'Session expirée. Veuillez vous reconnecter.';
     }
 
-    // Erreurs de validation
     if (errorString.contains('validation') || errorString.contains('400')) {
       return 'Données invalides. Vérifiez vos informations.';
     }
 
-    // Erreur générique
     return 'Une erreur inattendue s\'est produite. Veuillez réessayer.';
   }
 
-  /// Affiche un SnackBar d'erreur stylisé
   static void _showErrorSnackBar(
     BuildContext context,
     String title,
@@ -105,7 +93,6 @@ class SimulationErrorHandler {
     );
   }
 
-  /// Affiche un SnackBar de succès
   static void showSuccessSnackBar(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -134,7 +121,6 @@ class SimulationErrorHandler {
     );
   }
 
-  /// Affiche un SnackBar d'information
   static void showInfoSnackBar(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -163,7 +149,6 @@ class SimulationErrorHandler {
     );
   }
 
-  /// Affiche un dialogue d'erreur
   static void showErrorDialog(
     BuildContext context,
     String title,

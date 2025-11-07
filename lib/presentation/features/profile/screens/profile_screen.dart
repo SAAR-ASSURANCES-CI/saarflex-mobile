@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:saarflex_app/presentation/features/profile/screens/edit_profile_screen.dart';
 import 'package:saarflex_app/presentation/features/auth/viewmodels/auth_viewmodel.dart';
 import 'package:saarflex_app/presentation/features/auth/screens/otp_verification_screen.dart';
-import 'package:saarflex_app/presentation/shared/widgets/form_helpers.dart';
+import 'package:saarflex_app/presentation/features/profile/widgets/form_helpers.dart';
 import 'package:saarflex_app/core/utils/profile_helpers.dart';
 import 'package:saarflex_app/presentation/features/profile/widgets/profile_section.dart';
 import 'package:saarflex_app/presentation/features/profile/widgets/profile_info_row.dart';
@@ -131,7 +131,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildIdentityImagesSection(User? user) {
-    // Utiliser les labels contextuels selon le type de pièce
+
     final rectoLabel = ImageLabels.getRectoLabel(user?.identityType);
     final versoLabel = ImageLabels.getVersoLabel(user?.identityType);
     final sectionTitle = ImageLabels.getUploadTitle(user?.identityType);
@@ -173,7 +173,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  // Méthode pour naviguer vers l'édition du profil
   void _navigateToEditProfile() {
     Navigator.push(
       context,

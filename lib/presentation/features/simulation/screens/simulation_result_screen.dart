@@ -163,7 +163,7 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
                   return const SizedBox.shrink();
                 },
               ),
-              const SizedBox(height: 100),
+              const SizedBox(height: 80),
             ],
           ),
         ),

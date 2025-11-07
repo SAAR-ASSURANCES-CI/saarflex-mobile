@@ -1,16 +1,16 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:saarflex_app/data/services/auth_service.dart';
-import 'package:saarflex_app/data/services/user_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:saarflex_app/data/repositories/auth_repository.dart';
+import 'package:saarflex_app/data/repositories/profile_repository.dart';
 import 'package:saarflex_app/data/services/file_upload_service.dart';
 import 'package:saarflex_app/data/models/user_model.dart';
 import 'package:saarflex_app/core/utils/error_handler.dart';
-import 'package:saarflex_app/core/utils/logger.dart';
 
 class AuthViewModel extends ChangeNotifier {
-  // Services - Logique métier déléguée
-  final AuthService _authService = AuthService();
-  final UserService _userService = UserService();
+  final AuthRepository _authRepository = AuthRepository();
+  final ProfileRepository _profileRepository = ProfileRepository();
   final FileUploadService _fileUploadService = FileUploadService();
 
   bool _isLoading = false;
@@ -22,6 +22,9 @@ class AuthViewModel extends ChangeNotifier {
   bool _isUploadingDocument = false;
   String? _uploadErrorMessage;
   double _uploadProgress = 0.0;
+
+  static bool _hasInitialized = false;
+  static const String _initTimestampKey = 'auth_init_timestamp';
 
   bool get isLoading => _isLoading;
   bool get isLoggedIn => _isLoggedIn;
@@ -39,50 +42,66 @@ class AuthViewModel extends ChangeNotifier {
   bool get isAdmin => _currentUser?.isAdmin ?? false;
   bool get isProfileComplete => _currentUser?.isProfileComplete ?? false;
 
-  /// Initialisation de l'authentification
-  /// Vérifie le statut de connexion au démarrage
-  /// RÈGLE: Reload → Déconnexion immédiate
   Future<void> initializeAuth() async {
+    final prefs = await SharedPreferences.getInstance();
+    final existingTimestamp = prefs.getString(_initTimestampKey);
+    final currentTimestamp = DateTime.now().toIso8601String();
+    
+    if (_hasInitialized && existingTimestamp != null) {
+      await _forceLogoutForReload();
+      return;
+    }
+    
+    await prefs.setString(_initTimestampKey, currentTimestamp);
+    _hasInitialized = true;
+
     _setLoading(true);
     try {
-      // RÈGLE 2: Reload détecté → Déconnexion immédiate
-      await _handleReloadLogout();
-
-      final isLoggedIn = await _authService.initializeAuth();
+      final isLoggedIn = await _authRepository.initializeAuth();
       _isLoggedIn = isLoggedIn;
 
       if (isLoggedIn) {
         await loadUserProfile();
+      } else {
+        _currentUser = null;
+        _authToken = null;
       }
     } catch (e) {
       _isLoggedIn = false;
       _currentUser = null;
-      _setError(ErrorHandler.handleAuthError(e));
+      _authToken = null;
     } finally {
       _setLoading(false);
     }
   }
 
-  /// Gestion de la déconnexion au reload
-  /// RÈGLE 2: Reload → Déconnexion immédiate
-  Future<void> _handleReloadLogout() async {
+  Future<void> _forceLogoutForReload() async {
     try {
-      // Vérifier si c'est un reload (app redémarrée)
-      // Si l'app démarre et qu'il y a des données de session, c'est un reload
-      final hasStoredToken = await _authService.checkTokenValidity();
-
-      if (hasStoredToken) {
-        // RÈGLE 2: Reload détecté → Déconnexion immédiate
-        AppLogger.error('🔄 Reload détecté - Déconnexion immédiate');
-        await _authService.logout();
-      }
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('auth_token');
+      await prefs.remove('auth_timestamp');
+      await prefs.remove(_initTimestampKey);
+      
+      _hasInitialized = false;
+      
+      _isLoggedIn = false;
+      _currentUser = null;
+      _authToken = null;
+      _clearError();
+      
+      notifyListeners();
+      
+      _authRepository.logout().catchError((e) {
+      });
     } catch (e) {
-      AppLogger.error('❌ Erreur gestion reload: $e');
+      _isLoggedIn = false;
+      _currentUser = null;
+      _authToken = null;
+      notifyListeners();
     }
   }
 
-  /// Inscription utilisateur
-  /// Crée un nouveau compte utilisateur
+
   Future<bool> signup({
     required String nom,
     required String email,
@@ -93,7 +112,7 @@ class AuthViewModel extends ChangeNotifier {
     _clearError();
 
     try {
-      final authResponse = await _authService.signup(
+      final authResponse = await _authRepository.signup(
         nom: nom,
         email: email,
         telephone: telephone,
@@ -114,14 +133,12 @@ class AuthViewModel extends ChangeNotifier {
     }
   }
 
-  /// Connexion utilisateur
-  /// Authentifie l'utilisateur avec email et mot de passe
   Future<bool> login({required String email, required String password}) async {
     _setLoading(true);
     _clearError();
 
     try {
-      final authResponse = await _authService.login(
+      final authResponse = await _authRepository.login(
         email: email,
         password: password,
       );
@@ -130,7 +147,7 @@ class AuthViewModel extends ChangeNotifier {
       _isLoggedIn = true;
 
       try {
-        final completeUser = await _userService.getUserProfile();
+        final completeUser = await _profileRepository.getUserProfile();
         _currentUser = completeUser;
       } catch (profileError) {
         _currentUser = authResponse.user;
@@ -146,14 +163,12 @@ class AuthViewModel extends ChangeNotifier {
     }
   }
 
-  /// Demande de réinitialisation de mot de passe
-  /// Envoie un email avec un code de réinitialisation
   Future<bool> forgotPassword(String email) async {
     _setLoading(true);
     _clearError();
 
     try {
-      await _authService.forgotPassword(email);
+      await _authRepository.forgotPassword(email);
       _setLoading(false);
       return true;
     } catch (e) {
@@ -163,16 +178,22 @@ class AuthViewModel extends ChangeNotifier {
     }
   }
 
-  /// Déconnexion utilisateur
-  /// Nettoie les données locales et notifie le serveur
   Future<void> logout() async {
     _setLoading(true);
 
     try {
-      await _authService.logout();
+      await _authRepository.logout();
     } catch (e) {
       _setError(ErrorHandler.handleAuthError(e));
     }
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_initTimestampKey);
+    } catch (e) {
+    }
+    
+    _hasInitialized = false;
 
     _isLoggedIn = false;
     _currentUser = null;
@@ -182,27 +203,42 @@ class AuthViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Chargement du profil utilisateur
-  /// Récupère les informations complètes de l'utilisateur
   Future<void> loadUserProfile() async {
     if (!_isLoggedIn) return;
 
     _setLoading(true);
     _clearError();
 
+    final previousUser = _currentUser;
+
     try {
-      final user = await _userService.getUserProfile();
+      final user = await _profileRepository.getUserProfile();
       _currentUser = user;
       _setLoading(false);
       notifyListeners();
     } catch (e) {
-      _setError(ErrorHandler.handleProfileError(e));
+      final errorMessage = ErrorHandler.handleProfileError(e);
+      
+      final isAuthError = errorMessage.toLowerCase().contains('401') ||
+          errorMessage.toLowerCase().contains('authentification') ||
+          errorMessage.toLowerCase().contains('non authentifié') ||
+          errorMessage.toLowerCase().contains('token') ||
+          errorMessage.toLowerCase().contains('unauthorized');
+      
+      if (isAuthError) {
+        _isLoggedIn = false;
+        _currentUser = null;
+        _authToken = null;
+      } else {
+        _currentUser = previousUser;
+      }
+      
+      _setError(errorMessage);
       _setLoading(false);
+      notifyListeners();
     }
   }
 
-  /// Mise à jour du profil utilisateur
-  /// Met à jour les informations utilisateur
   Future<bool> updateProfile(Map<String, dynamic> updates) async {
     if (!_isLoggedIn) return false;
 
@@ -210,7 +246,7 @@ class AuthViewModel extends ChangeNotifier {
     _clearError();
 
     try {
-      final updatedUser = await _userService.updateProfile(updates);
+      final updatedUser = await _profileRepository.updateProfile(updates);
       _currentUser = updatedUser;
       _setLoading(false);
       notifyListeners();
@@ -222,14 +258,12 @@ class AuthViewModel extends ChangeNotifier {
     }
   }
 
-  /// Vérification du code OTP
-  /// Valide le code reçu par email
   Future<bool> verifyOtp({required String email, required String code}) async {
     _setLoading(true);
     _clearError();
 
     try {
-      await _authService.verifyOtp(email: email, code: code);
+      await _authRepository.verifyOtp(email: email, code: code);
       _setLoading(false);
       return true;
     } catch (e) {
@@ -239,8 +273,6 @@ class AuthViewModel extends ChangeNotifier {
     }
   }
 
-  /// Réinitialisation du mot de passe avec code
-  /// Change le mot de passe après vérification du code
   Future<bool> resetPasswordWithCode({
     required String email,
     required String code,
@@ -250,7 +282,7 @@ class AuthViewModel extends ChangeNotifier {
     _clearError();
 
     try {
-      await _authService.resetPasswordWithCode(
+      await _authRepository.resetPasswordWithCode(
         email: email,
         code: code,
         newPassword: newPassword,
@@ -264,8 +296,6 @@ class AuthViewModel extends ChangeNotifier {
     }
   }
 
-  /// Upload d'un document d'identité
-  /// Upload un fichier image (recto ou verso) pour l'identité
   Future<bool> uploadIdentityDocument(File imageFile, String type) async {
     _setUploading(true);
     _clearUploadError();
@@ -295,8 +325,6 @@ class AuthViewModel extends ChangeNotifier {
     }
   }
 
-  /// Suppression d'un document d'identité
-  /// Supprime un document d'identité du profil
   Future<bool> deleteIdentityDocument(String type) async {
     _setLoading(true);
     _clearError();
@@ -316,11 +344,10 @@ class AuthViewModel extends ChangeNotifier {
     }
   }
 
-  /// Vérification de la complétion des documents d'identité
-  /// Retourne true si tous les documents sont présents
   bool hasCompleteIdentityDocuments() {
     if (_currentUser == null) return false;
-    return _userService.hasCompleteIdentityDocuments(_currentUser!);
+    return _currentUser!.frontDocumentPath != null &&
+        _currentUser!.backDocumentPath != null;
   }
 
   void clearError() {
@@ -379,33 +406,31 @@ class AuthViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Vérification des rôles utilisateur
-  /// Retourne true si l'utilisateur a le rôle spécifié
   bool hasRole(TypeUtilisateur role) {
     if (_currentUser == null) return false;
-    return _userService.hasRole(_currentUser!, role);
+    return _currentUser!.typeUtilisateur == role;
   }
 
-  /// Vérification des permissions d'accès
-  /// Retourne true si l'utilisateur peut accéder aux rôles spécifiés
   bool canAccess(List<TypeUtilisateur> allowedRoles) {
     if (_currentUser == null) return false;
-    return _userService.canAccess(_currentUser!, allowedRoles);
+    return allowedRoles.contains(_currentUser!.typeUtilisateur);
   }
 
-  /// Actualisation des données utilisateur
-  /// Recharge les données utilisateur depuis le serveur
   Future<void> refreshUserData() async {
     if (_isLoggedIn) {
       await loadUserProfile();
     }
   }
 
-  /// Vérification de la validité du token
-  /// Retourne true si le token est valide
+  Future<void> ensureUserProfileLoaded() async {
+    if (_isLoggedIn && _currentUser == null) {
+      await loadUserProfile();
+    }
+  }
+
   Future<bool> checkTokenValidity() async {
     if (_authToken == null) return false;
-    return await _authService.checkTokenValidity();
+    return await _authRepository.checkTokenValidity();
   }
 
   void forceLogout() {
@@ -417,13 +442,12 @@ class AuthViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Mise à jour d'un champ spécifique du profil
-  /// Met à jour un seul champ du profil utilisateur
   Future<void> updateUserField(String fieldName, dynamic value) async {
     if (_currentUser == null) return;
 
     try {
-      final updatedUser = await _userService.updateUserField(fieldName, value);
+      final updatedUser =
+          await _profileRepository.updateProfileField(fieldName, value);
       _currentUser = updatedUser;
       notifyListeners();
     } catch (e) {

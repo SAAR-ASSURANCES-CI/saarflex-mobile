@@ -23,7 +23,7 @@ class PaymentMethodSelector extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Mobile Money',
+          'Méthode de paiement',
           style: GoogleFonts.poppins(
             fontSize: 18,
             fontWeight: FontWeight.w700,
@@ -111,51 +111,23 @@ class PaymentMethodSelector extends StatelessWidget {
             borderRadius: BorderRadius.circular(8),
           ),
           child: Image.asset(
-            'lib/assets/images/payment_logos/wave.png',
+            'lib/assets/wave.png',
             width: 24,
             height: 24,
           ),
         );
-      case MethodePaiement.orangeMoney:
+      case MethodePaiement.mobileMoney:
         return Container(
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: const Color(0xFFFF6600),
+            color: const Color(0xFF4CAF50),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Image.asset(
-            'lib/assets/images/payment_logos/orange.jpg',
-            width: 24,
-            height: 24,
-          ),
-        );
-      case MethodePaiement.mtn:
-        return Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: const Color(0xFFFFD700),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Image.asset(
-            'lib/assets/images/payment_logos/Mtn.png',
-            width: 24,
-            height: 24,
-          ),
-        );
-      case MethodePaiement.moov:
-        return Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: const Color(0xFF3B82F6),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Image.asset(
-            'lib/assets/images/payment_logos/moov.png',
-            width: 24,
-            height: 24,
+          child: const Icon(
+            Icons.account_balance_wallet,
+            color: Colors.white,
+            size: 24,
           ),
         );
     }

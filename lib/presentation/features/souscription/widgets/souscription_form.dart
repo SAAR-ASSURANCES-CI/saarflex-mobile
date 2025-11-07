@@ -138,12 +138,8 @@ class souscriptionForm extends StatelessWidget {
     switch (selectedPaymentMethod!) {
       case MethodePaiement.wave:
         return 'Numéro Wave pour le paiement';
-      case MethodePaiement.orangeMoney:
-        return 'Numéro Orange Money pour le paiement';
-      case MethodePaiement.mtn:
-        return 'Numéro MTN Money pour le paiement';
-      case MethodePaiement.moov:
-        return 'Numéro Moov Money pour le paiement';
+      case MethodePaiement.mobileMoney:
+        return 'Numéro de téléphone pour le paiement Mobile Money (Orange, MTN, Moov)';
     }
   }
 
@@ -155,12 +151,8 @@ class souscriptionForm extends StatelessWidget {
     switch (selectedPaymentMethod!) {
       case MethodePaiement.wave:
         return 'Ex: 771234567 (Wave)';
-      case MethodePaiement.orangeMoney:
-        return 'Ex: 771234567 (Orange)';
-      case MethodePaiement.mtn:
-        return 'Ex: 771234567 (MTN)';
-      case MethodePaiement.moov:
-        return 'Ex: 771234567 (Moov)';
+      case MethodePaiement.mobileMoney:
+        return 'Ex: 771234567 (Orange, MTN ou Moov)';
     }
   }
 }

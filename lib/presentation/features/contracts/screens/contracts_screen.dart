@@ -28,7 +28,6 @@ class _ContractsScreenState extends State<ContractsScreen>
       initialIndex: widget.initialTab,
     );
 
-    // Charger les données au démarrage
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<ContractViewModel>(context, listen: false).loadAllData();
     });

@@ -74,7 +74,6 @@ class Contract {
     };
   }
 
-  // Méthodes utilitaires
   bool get isActive => statut == 'actif';
   bool get isExpired => statut == 'expire';
   bool get isSuspended => statut == 'suspendu';

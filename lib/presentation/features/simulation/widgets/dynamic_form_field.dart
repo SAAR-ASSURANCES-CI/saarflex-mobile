@@ -5,12 +5,13 @@ import 'package:saarflex_app/core/constants/colors.dart';
 import 'package:saarflex_app/data/models/critere_tarification_model.dart';
 
 class DynamicFormField extends StatefulWidget {
-  // Changé de StatelessWidget à StatefulWidget
   final CritereTarification critere;
   final dynamic valeur;
   final Function(dynamic) onChanged;
   final String? errorText;
-  final bool formatMilliers; // Nouveau paramètre pour activer le formatage
+  final bool formatMilliers;
+  final bool enabled;
+  final String? infoText;
 
   const DynamicFormField({
     super.key,
@@ -18,7 +19,9 @@ class DynamicFormField extends StatefulWidget {
     required this.valeur,
     required this.onChanged,
     this.errorText,
-    this.formatMilliers = false, // Valeur par défaut
+    this.formatMilliers = false,
+    this.enabled = true,
+    this.infoText,
   });
 
   @override
@@ -26,20 +29,18 @@ class DynamicFormField extends StatefulWidget {
 }
 
 class _DynamicFormFieldState extends State<DynamicFormField> {
-  final TextEditingController _controller =
-      TextEditingController(); // Contrôleur pour gérer le texte
-  bool _isEditing = false; // Pour savoir si l'utilisateur est en train d'éditer
+  final TextEditingController _controller = TextEditingController();
+  bool _isEditing = false;
 
   @override
   void initState() {
     super.initState();
-    _updateControllerValue(); // Initialiser la valeur du contrôleur
+    _updateControllerValue();
   }
 
   @override
   void didUpdateWidget(DynamicFormField oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Mettre à jour le contrôleur seulement si nécessaire
     if (!_isEditing &&
         (oldWidget.valeur != widget.valeur ||
             oldWidget.formatMilliers != widget.formatMilliers)) {
@@ -47,28 +48,20 @@ class _DynamicFormFieldState extends State<DynamicFormField> {
     }
   }
 
-  // Méthode pour formater un nombre avec séparateurs de milliers
   String _formatNombreAvecSeparateurs(String valeur) {
-    // Enlever les séparateurs existants pour éviter les doublons
     String valeurSansSeparateurs = valeur.replaceAll(RegExp(r'[^\d]'), '');
-
-    // Convertir en nombre
     final number = int.tryParse(valeurSansSeparateurs);
     if (number == null) return valeur;
-
-    // Formater avec séparateurs d'espace (format français)
     return number.toString().replaceAllMapped(
       RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
       (Match m) => '${m[1]} ',
     );
   }
 
-  // Méthode pour enlever les séparateurs avant traitement
   String _enleverSeparateurs(String valeur) {
     return valeur.replaceAll(RegExp(r'[^\d]'), '');
   }
 
-  // Mettre à jour la valeur du contrôleur selon le formatage
   void _updateControllerValue() {
     if (widget.valeur != null) {
       if (widget.formatMilliers) {
@@ -94,6 +87,10 @@ class _DynamicFormFieldState extends State<DynamicFormField> {
         if (widget.errorText != null) ...[
           const SizedBox(height: 4),
           _buildError(),
+        ],
+        if (widget.infoText != null) ...[
+          const SizedBox(height: 4),
+          _buildInfoText(),
         ],
         const SizedBox(height: 16),
       ],
@@ -145,18 +142,16 @@ class _DynamicFormFieldState extends State<DynamicFormField> {
 
   Widget _buildNumericField() {
     return TextFormField(
-      controller: _controller, // Utiliser le contrôleur au lieu de initialValue
-      keyboardType: TextInputType.number, // Type de clavier numérique
+      controller: _controller,
+      enabled: widget.enabled,
+      keyboardType: TextInputType.number,
       inputFormatters: [
-        // Autoriser les chiffres et les espaces (pour les séparateurs)
         FilteringTextInputFormatter.allow(RegExp(r'[\d ]')),
       ],
       onChanged: (value) {
         _isEditing = true;
-
         String valeurAEnvoyer = value;
         if (widget.formatMilliers) {
-          // Enlever les séparateurs avant d'envoyer la valeur
           valeurAEnvoyer = _enleverSeparateurs(value);
         }
 
@@ -170,7 +165,6 @@ class _DynamicFormFieldState extends State<DynamicFormField> {
       onEditingComplete: () {
         _isEditing = false;
         if (widget.formatMilliers) {
-          // Reformater quand l'édition est terminée
           setState(() {
             _controller.text = _formatNombreAvecSeparateurs(_controller.text);
           });
@@ -179,7 +173,6 @@ class _DynamicFormFieldState extends State<DynamicFormField> {
       onTap: () {
         _isEditing = true;
         if (widget.formatMilliers) {
-          // Enlever les séparateurs pendant l'édition pour faciliter la saisie
           setState(() {
             _controller.text = _enleverSeparateurs(_controller.text);
           });
@@ -188,7 +181,9 @@ class _DynamicFormFieldState extends State<DynamicFormField> {
       style: GoogleFonts.poppins(
         fontSize: 14,
         fontWeight: FontWeight.w400,
-        color: AppColors.textPrimary,
+        color: widget.enabled 
+            ? AppColors.textPrimary 
+            : AppColors.textPrimary.withOpacity(0.5),
       ),
       decoration: InputDecoration(
         hintText: _getNumericHint(),
@@ -198,7 +193,9 @@ class _DynamicFormFieldState extends State<DynamicFormField> {
           color: AppColors.textSecondary,
         ),
         filled: true,
-        fillColor: AppColors.surfaceVariant,
+        fillColor: widget.enabled 
+            ? AppColors.surfaceVariant 
+            : AppColors.surfaceVariant.withOpacity(0.5),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(
@@ -238,7 +235,9 @@ class _DynamicFormFieldState extends State<DynamicFormField> {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: AppColors.surfaceVariant,
+        color: widget.enabled 
+            ? AppColors.surfaceVariant 
+            : AppColors.surfaceVariant.withOpacity(0.5),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: widget.errorText != null ? AppColors.error : AppColors.border,
@@ -253,17 +252,23 @@ class _DynamicFormFieldState extends State<DynamicFormField> {
             style: GoogleFonts.poppins(
               fontSize: 14,
               fontWeight: FontWeight.w400,
-              color: AppColors.textSecondary,
+              color: widget.enabled 
+                  ? AppColors.textSecondary 
+                  : AppColors.textSecondary.withOpacity(0.5),
             ),
           ),
           icon: Icon(
             Icons.keyboard_arrow_down_rounded,
-            color: AppColors.textSecondary,
+            color: widget.enabled 
+                ? AppColors.textSecondary 
+                : AppColors.textSecondary.withOpacity(0.5),
           ),
           style: GoogleFonts.poppins(
             fontSize: 14,
             fontWeight: FontWeight.w400,
-            color: AppColors.textPrimary,
+            color: widget.enabled 
+                ? AppColors.textPrimary 
+                : AppColors.textPrimary.withOpacity(0.5),
           ),
           dropdownColor: AppColors.white,
           items: widget.critere.valeursString.map((String valeurItem) {
@@ -288,18 +293,16 @@ class _DynamicFormFieldState extends State<DynamicFormField> {
               ),
             );
           }).toList(),
-          onChanged: (String? newValue) {
+          onChanged: widget.enabled ? (String? newValue) {
             widget.onChanged(newValue);
-          },
+          } : null,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         ),
       ),
     );
   }
 
-  // Méthode _isNumeric améliorée
   bool _isNumeric(String str) {
-    // Enlever les espaces existants avant de tester
     final cleanedStr = str.replaceAll(' ', '');
     final isNum = double.tryParse(cleanedStr) != null;
     return isNum;
@@ -321,13 +324,15 @@ class _DynamicFormFieldState extends State<DynamicFormField> {
           style: GoogleFonts.poppins(
             fontSize: 14,
             fontWeight: FontWeight.w400,
-            color: AppColors.textPrimary,
+            color: widget.enabled 
+                ? AppColors.textPrimary 
+                : AppColors.textPrimary.withOpacity(0.5),
           ),
         ),
         value: widget.valeur == true,
-        onChanged: (bool value) {
+        onChanged: widget.enabled ? (bool value) {
           widget.onChanged(value);
-        },
+        } : null,
         activeColor: AppColors.primary,
         inactiveThumbColor: AppColors.textSecondary,
         inactiveTrackColor: AppColors.border,
@@ -345,6 +350,30 @@ class _DynamicFormFieldState extends State<DynamicFormField> {
         fontWeight: FontWeight.w400,
         color: AppColors.error,
       ),
+    );
+  }
+
+  Widget _buildInfoText() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(
+          Icons.info_outline_rounded,
+          size: 14,
+          color: const Color.fromARGB(255, 248, 24, 24),
+        ),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(
+            widget.infoText!,
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              fontWeight: FontWeight.w400,
+              color: const Color.fromARGB(255, 248, 24, 24),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -385,7 +414,8 @@ class _DynamicFormFieldState extends State<DynamicFormField> {
 
   @override
   void dispose() {
-    _controller.dispose(); // Nettoyer le contrôleur
+    _controller.dispose();
     super.dispose();
   }
 }
+

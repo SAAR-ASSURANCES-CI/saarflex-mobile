@@ -166,7 +166,6 @@ class QuoteCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Informations du devis (simplifiées)
               _buildDetailSection('Informations du devis', Icons.info_outline, [
                 _buildDetailRow('Produit', quote.nomProduit),
                 _buildDetailRow(
@@ -403,3 +402,4 @@ class QuoteCard extends StatelessWidget {
     }
   }
 }
+

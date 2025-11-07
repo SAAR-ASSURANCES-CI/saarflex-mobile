@@ -2,14 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:saarflex_app/data/models/simulation_model.dart';
 import 'package:saarflex_app/data/models/critere_tarification_model.dart';
-import 'package:saarflex_app/data/services/simulation_service.dart';
-import 'package:saarflex_app/data/services/api_service.dart';
+import 'package:saarflex_app/data/repositories/simulation_repository.dart';
 import 'package:saarflex_app/core/utils/error_handler.dart';
-import 'package:saarflex_app/core/utils/logger.dart';
+import 'package:provider/provider.dart';
+import 'package:saarflex_app/presentation/features/auth/viewmodels/auth_viewmodel.dart';
 
 class SimulationViewModel extends ChangeNotifier {
-  final SimulationService _simulationService = SimulationService();
-  final ApiService _apiService = ApiService();
+  final SimulationRepository _simulationRepository = SimulationRepository();
 
   bool _isLoadingCriteres = false;
   bool _isSimulating = false;
@@ -29,12 +28,14 @@ class SimulationViewModel extends ChangeNotifier {
   List<CritereTarification> _criteresProduit = [];
   final Map<String, dynamic> _criteresReponses = {};
   SimulationResponse? _dernierResultat;
+  List<CritereTarification>? _criteresProduitTriesCache;
+  DateTime? _criteresProduitTriesCacheTime;
 
   bool _assureEstSouscripteur = true;
   Map<String, dynamic>? _informationsAssure;
 
   String? _errorMessage;
-  final Map<String, String> _validationErrors = {};
+  Map<String, String> _validationErrors = {};
 
   bool get isLoadingCriteres => _isLoadingCriteres;
   bool get isSimulating => _isSimulating;
@@ -80,8 +81,15 @@ class SimulationViewModel extends ChangeNotifier {
   }
 
   List<CritereTarification> get criteresProduitTries {
+    if (_criteresProduitTriesCache != null && 
+        _criteresProduitTriesCacheTime != null &&
+        DateTime.now().difference(_criteresProduitTriesCacheTime!).inSeconds < 5) {
+      return _criteresProduitTriesCache!;
+    }
     final criteres = List<CritereTarification>.from(_criteresProduit);
     criteres.sort((a, b) => a.ordre.compareTo(b.ordre));
+    _criteresProduitTriesCache = criteres;
+    _criteresProduitTriesCacheTime = DateTime.now();
     return criteres;
   }
 
@@ -104,6 +112,10 @@ class SimulationViewModel extends ChangeNotifier {
     await chargerCriteresProduit();
   }
 
+  int _calculateAge(DateTime birthDate) {
+    return _simulationRepository.calculerAge(birthDate);
+  }
+
   Future<void> chargerCriteresProduit() async {
     if (_produitId == null) return;
 
@@ -111,11 +123,12 @@ class SimulationViewModel extends ChangeNotifier {
     _clearError();
 
     try {
-      _criteresProduit = await _simulationService.getCriteresProduit(
+      _criteresProduit = await _simulationRepository.getCriteresProduit(
         _produitId!,
         page: 1,
         limit: 100,
       );
+      _criteresProduitTriesCache = null;
 
       for (final critere in _criteresProduit) {
         if (critere.type == TypeCritere.booleen) {
@@ -125,17 +138,11 @@ class SimulationViewModel extends ChangeNotifier {
           _criteresReponses[critere.nom] = null;
         }
       }
-    } catch (e, stackTrace) {
-      AppLogger.errorWithStack(
-        '''\n================= VIEWMODEL - CHARGER CRITERES ===============
-PRODUIT_ID : $_produitId
-MESSAGE    : Erreur lors du chargement des critères
-DETAILS    : $e
-TYPE       : ${e.runtimeType}
----------------------------------------------------------------''',
-        e,
-        stackTrace,
-      );
+
+      if (_isSaarNansou()) {
+        _calcAutoDuree();
+      }
+    } catch (e) {
       _setError('Erreur lors du chargement des critères: $e');
     } finally {
       _setLoadingCriteres(false);
@@ -160,101 +167,33 @@ TYPE       : ${e.runtimeType}
       orElse: () => throw Exception('Critère $nomCritere non trouvé'),
     );
 
-    if (critere.type == TypeCritere.numerique && valeur != null) {
-      String valeurString = valeur.toString();
-
-      if (_critereNecessiteFormatage(critere)) {
-        valeurString = valeurString.replaceAll(RegExp(r'[^\d]'), '');
-      }
-
-      final numericValue = num.tryParse(valeurString);
-      if (numericValue == null) {
-        _validationErrors[nomCritere] = 'Veuillez entrer un nombre valide';
-        return;
-      }
-      _criteresReponses[nomCritere] = numericValue;
-    }
-
-    if (critere.obligatoire &&
-        (valeur == null || valeur.toString().trim().isEmpty)) {
-      _validationErrors[nomCritere] = 'Ce champ est obligatoire';
-      return;
-    }
-
-    switch (critere.type) {
-      case TypeCritere.numerique:
-        if (valeur != null && valeur.toString().isNotEmpty) {
-          final doubleValue = _criteresReponses[nomCritere] is num
-              ? _criteresReponses[nomCritere].toDouble()
-              : double.tryParse(
-                  valeur.toString().replaceAll(RegExp(r'[^\d]'), ''),
-                );
-
-          if (doubleValue == null) {
-            _validationErrors[nomCritere] = 'Veuillez saisir un nombre valide';
-          } else {
-            for (final valeurCritere in critere.valeurs) {
-              if (valeurCritere.valeurMin != null &&
-                  doubleValue < valeurCritere.valeurMin!) {
-                _validationErrors[nomCritere] =
-                    'Valeur minimum: ${valeurCritere.valeurMin}';
-                return;
-              }
-              if (valeurCritere.valeurMax != null &&
-                  doubleValue > valeurCritere.valeurMax!) {
-                _validationErrors[nomCritere] =
-                    'Valeur maximum: ${valeurCritere.valeurMax}';
-                return;
-              }
-            }
+    final error = _simulationRepository.validateCritere(critere, valeur);
+    if (error != null) {
+      _validationErrors[nomCritere] = error;
+    } else {
+      _validationErrors.remove(nomCritere);
+      
+      if (critere.type == TypeCritere.numerique && valeur != null) {
+        String valeurString = valeur.toString();
+        if (_simulationRepository.critereNecessiteFormatage(critere)) {
+          valeurString = valeurString.replaceAll(RegExp(r'[^\d]'), '');
+          final numericValue = num.tryParse(valeurString);
+          if (numericValue != null) {
+            _criteresReponses[nomCritere] = numericValue;
           }
         }
-        break;
-
-      case TypeCritere.categoriel:
-        if (valeur != null && critere.hasValeurs) {
-          if (!critere.valeursString.contains(valeur.toString())) {
-            _validationErrors[nomCritere] = 'Valeur non autorisée';
-          }
-        }
-        break;
-
-      case TypeCritere.booleen:
-        break;
-    }
-  }
-
-  bool _critereNecessiteFormatage(CritereTarification critere) {
-    const champsAvecSeparateurs = [
-      'capital',
-      'capital_assure',
-      'montant',
-      'prime',
-      'franchise',
-      'plafond',
-      'souscription',
-      'assurance',
-    ];
-
-    final nomCritereLower = critere.nom.toLowerCase();
-
-    for (final motCle in champsAvecSeparateurs) {
-      final contains = nomCritereLower.contains(motCle);
-      if (contains) {
-        return true;
       }
     }
-
-    return false;
   }
 
   void validateForm() {
     _validationErrors.clear();
-
-    for (final critere in _criteresProduit) {
-      final valeur = _criteresReponses[critere.nom];
-      _validateCritere(critere.nom, valeur);
-    }
+    _validationErrors.addAll(
+      _simulationRepository.validateAllCriteres(
+        _criteresReponses,
+        _criteresProduit,
+      ),
+    );
 
     notifyListeners();
   }
@@ -274,67 +213,23 @@ TYPE       : ${e.runtimeType}
     Map<String, dynamic>? informationsAssureConverties;
 
     try {
-      criteresNettoyes = Map<String, dynamic>.from(_criteresReponses);
+      criteresNettoyes = _simulationRepository.nettoyerCriteres(
+        _criteresReponses,
+        _criteresProduit,
+      );
 
-      for (final critere in _criteresProduit) {
-        if (critere.type == TypeCritere.numerique &&
-            _critereNecessiteFormatage(critere) &&
-            criteresNettoyes[critere.nom] is String) {
-          final valeurNettoyee = criteresNettoyes[critere.nom]
-              .toString()
-              .replaceAll(RegExp(r'[^\d]'), '');
+      informationsAssureConverties =
+          _simulationRepository.nettoyerInformationsAssure(
+        _informationsAssure,
+      );
 
-          criteresNettoyes[critere.nom] = num.tryParse(valeurNettoyee) ?? 0;
-        }
-      }
-
-      if (_informationsAssure != null) {
-        informationsAssureConverties = Map<String, dynamic>.from(
-          _informationsAssure!,
-        );
-
-        if (informationsAssureConverties.containsKey('date_naissance')) {
-          final dateNaissance = informationsAssureConverties['date_naissance'];
-          if (dateNaissance is DateTime) {
-            final day = dateNaissance.day.toString().padLeft(2, '0');
-            final month = dateNaissance.month.toString().padLeft(2, '0');
-            informationsAssureConverties['date_naissance'] =
-                '$day-$month-${dateNaissance.year}';
-          }
-        }
-      }
-
-      AppLogger.debug('''\n================= VIEWMODEL - SIMULATION ===================
-PRODUIT_ID              : $_produitId
-ASSURE_EST_SOUSCRIPTEUR  : $_assureEstSouscripteur
-CRITERES_COUNT           : ${criteresNettoyes.length}
-CRITERES                 : ${criteresNettoyes.toString()}
-CRITERES_KEYS            : ${criteresNettoyes.keys.join(', ')}
-HAS_INFORMATIONS_ASSURE  : ${informationsAssureConverties != null}
----------------------------------------------------------------''');
-
-      _dernierResultat = await _simulationService.simulerDevisSimplifie(
+      _dernierResultat = await _simulationRepository.simulerDevisSimplifie(
         produitId: _produitId!,
         criteres: criteresNettoyes,
         assureEstSouscripteur: _assureEstSouscripteur,
         informationsAssure: informationsAssureConverties,
       );
-
-      AppLogger.info('Simulation réussie pour produit $_produitId');
-    } catch (e, stackTrace) {
-      AppLogger.errorWithStack(
-        '''\n================= VIEWMODEL - SIMULATION ERROR ============
-PRODUIT_ID              : $_produitId
-ASSURE_EST_SOUSCRIPTEUR  : $_assureEstSouscripteur
-CRITERES                 : ${criteresNettoyes.toString()}
-INFORMATIONS_ASSURE      : ${informationsAssureConverties?.toString() ?? 'null'}
-MESSAGE                  : Erreur lors de la simulation
-DETAILS                  : $e
-TYPE                     : ${e.runtimeType}
----------------------------------------------------------------''',
-        e,
-        stackTrace,
-      );
+    } catch (e) {
       _setError(e.toString());
     } finally {
       _setSimulating(false);
@@ -358,27 +253,9 @@ TYPE                     : ${e.runtimeType}
         notes: notes,
       );
 
-      AppLogger.debug('''\n================= VIEWMODEL - SAUVEGARDE DEVIS ============
-DEVIS_ID        : $devisId
-NOM_PERSONNALISE : $nomPersonnalise
-HAS_NOTES        : ${notes != null}
----------------------------------------------------------------''');
-
-      await _simulationService.sauvegarderDevis(request);
+      await _simulationRepository.sauvegarderDevis(request);
       _saveError = null;
-      AppLogger.info('Devis sauvegardé avec succès: $devisId');
-    } catch (error, stackTrace) {
-      AppLogger.errorWithStack(
-        '''\n================= VIEWMODEL - SAUVEGARDE ERROR ============
-DEVIS_ID        : $devisId
-NOM_PERSONNALISE : $nomPersonnalise
-MESSAGE          : Erreur lors de la sauvegarde
-DETAILS          : $error
-TYPE             : ${error.runtimeType}
----------------------------------------------------------------''',
-        error,
-        stackTrace,
-      );
+    } catch (error) {
       _saveError = 'Erreur lors de la sauvegarde: $error';
     } finally {
       _isSaving = false;
@@ -400,6 +277,7 @@ TYPE             : ${error.runtimeType}
     _dernierResultat = null;
     _assureEstSouscripteur = true;
     _informationsAssure = null;
+    _criteresProduitTriesCache = null;
     _clearError();
     _clearImageData();
     notifyListeners();
@@ -552,7 +430,7 @@ TYPE             : ${error.runtimeType}
 
     for (int attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        final result = await _apiService.uploadAssureImages(
+        final result = await _simulationRepository.uploadAssureImages(
           devisId: devisId,
           rectoPath: _tempRectoImage!.path,
           versoPath: _tempVersoImage!.path,
@@ -582,7 +460,69 @@ TYPE             : ${error.runtimeType}
 
   void updateInformationsAssure(Map<String, dynamic> informations) {
     _informationsAssure = informations;
+    if (_isSaarNansou() && _criteresProduit.isNotEmpty) {
+      _calcAutoDuree();
+    }
     notifyListeners();
+  }
+
+  void calcDureeFromProfile(BuildContext context) {
+    calcAutoDureeWithContext(context);
+  }
+
+  bool _isSaarNansou() {
+    return _simulationRepository.isSaarNansou(_produitId);
+  }
+
+  void _calcAutoDuree([BuildContext? context]) {
+    DateTime? birthDate = _getBirthDate();
+    if (birthDate == null && context != null && _assureEstSouscripteur) {
+      final authProvider = context.read<AuthViewModel>();
+      final user = authProvider.currentUser;
+      if (user?.birthDate != null) {
+        birthDate = user!.birthDate;
+        _informationsAssure ??= {};
+        _informationsAssure!['date_naissance'] = birthDate;
+      }
+    }
+    if (birthDate == null) return;
+    final age = _calculateAge(birthDate);
+    final duree = _calcDuree(age);
+    if (duree != null) {
+      _setDuree(duree);
+    }
+  }
+
+  void calcAutoDureeWithContext(BuildContext context) {
+    if (!_isSaarNansou() || _criteresProduit.isEmpty) return;
+    _calcAutoDuree(context);
+    notifyListeners();
+  }
+
+  DateTime? _getBirthDate() {
+    final dateNaissance = _informationsAssure?['date_naissance'];
+    return _simulationRepository.parseBirthDate(dateNaissance);
+  }
+
+  int? _calcDuree(int age) {
+    return _simulationRepository.calculerDureeAuto(age);
+  }
+
+  void _setDuree(int duree) {
+    final critereDuree = _criteresProduit.firstWhere(
+      (critere) {
+        final nomLower = critere.nom.toLowerCase();
+        return nomLower.contains('durée') || 
+               nomLower.contains('duree') || 
+               nomLower.contains('cotisation');
+      },
+      orElse: () => throw Exception('Critère Durée Cotisation non trouvé'),
+    );
+
+    final dureeString = duree.toString();
+    if (critereDuree.valeursString.contains(dureeString)) {
+      updateCritereReponse(critereDuree.nom, dureeString);
+    }
   }
 
   void clearTempImagesAfterSave() {
