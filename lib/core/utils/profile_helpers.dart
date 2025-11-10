@@ -2,13 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:saarflex_app/core/constants/colors.dart';
 
 class ProfileHelpers {
-  /// Formate une date au format DD/MM/YYYY
+
   static String? formatDate(DateTime? date) {
     if (date == null) return null;
     return "${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}";
   }
 
-  /// Obtient le label pour le type de pièce d'identité
   static String getTypePieceIdentiteLabel(String? type) {
     switch (type?.toLowerCase()) {
       case 'cni':
@@ -24,7 +23,6 @@ class ProfileHelpers {
     }
   }
 
-  /// Détermine la couleur selon l'état d'expiration d'une date
   static Color? getExpirationDateColor(String value) {
     if (value == "Non renseignée") return null;
 
@@ -47,17 +45,15 @@ class ProfileHelpers {
         }
       }
     } catch (e) {
-      // En cas d'erreur de parsing, retourner null pour utiliser la couleur par défaut
+
     }
     return null;
   }
 
-  /// Construit l'URL complète d'une image
   static String buildImageUrl(String imageUrl, String baseUrl) {
     return imageUrl.startsWith('http') ? imageUrl : '$baseUrl/$imageUrl';
   }
 
-  /// Vérifie si une image est valide
   static bool isValidImage(String? imageUrl) {
     return imageUrl != null &&
         imageUrl.isNotEmpty &&

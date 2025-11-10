@@ -48,12 +48,10 @@ class ResultActionButtons extends StatelessWidget {
     );
   }
 
-  /// Détermine si le bouton de sauvegarde doit être affiché
   bool _shouldShowSaveButton() {
     return resultat.statut != StatutDevis.sauvegarde;
   }
 
-  /// Bouton de sauvegarde
   Widget _buildSaveButton(BuildContext context) {
     final isAlreadySaved = resultat.statut == StatutDevis.sauvegarde;
     final isSaving = viewModel.isSaving;
@@ -88,7 +86,6 @@ class ResultActionButtons extends StatelessWidget {
     );
   }
 
-  /// Bouton de souscription
   Widget _buildSubscribeButton() {
     return ElevatedButton(
       onPressed: onSubscribe,

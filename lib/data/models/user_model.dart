@@ -96,7 +96,7 @@ class User {
           DateTime parsedDate = formatter.parse(dateStr);
           return parsedDate;
         }
-        // ignore: empty_catches
+
       } catch (e2) {}
 
       return null;

@@ -27,7 +27,6 @@ class ImageService {
     try {
       String finalImagePath = imagePath;
 
-      // Conversion HEIC → JPEG si nécessaire
       if (imagePath.toLowerCase().endsWith('.heic')) {
         try {
           final File heicFile = File(imagePath);
@@ -45,11 +44,10 @@ class ImageService {
             finalImagePath = jpegPath;
           }
         } catch (e) {
-          // Continuer avec le fichier original
+
         }
       }
 
-      // Validation de l'image
       final validationError = await ImageValidator.getValidationError(
         finalImagePath,
       );

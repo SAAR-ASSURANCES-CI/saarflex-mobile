@@ -10,7 +10,7 @@ class ResultAssureInfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Vérifier si l'assuré n'est pas le souscripteur ET si les informations existent
+
     if (resultat.assureEstSouscripteur || resultat.informationsAssure == null) {
       return const SizedBox.shrink(); // Ne rien afficher
     }
@@ -125,7 +125,6 @@ class ResultAssureInfoCard extends StatelessWidget {
     );
   }
 
-  /// Helper pour afficher une ligne d'information avec icône
   Widget _buildInfoRow(String label, String value, IconData icon) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,

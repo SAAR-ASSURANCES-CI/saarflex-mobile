@@ -2,7 +2,7 @@ import 'package:saarflex_app/core/constants/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:saarflex_app/presentation/features/dashboard/screens/dashboard_screen.dart';
+import 'package:saarflex_app/presentation/features/auth/screens/login_screen.dart';
 import 'package:saarflex_app/presentation/features/auth/viewmodels/auth_viewmodel.dart';
 import 'package:saarflex_app/core/utils/error_handler.dart';
 
@@ -491,15 +491,15 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
         ErrorHandler.showSuccessSnackBar(
           context,
           'Mot de passe mis à jour avec succès !',
-        );
+        ); 
 
         Future.delayed(const Duration(seconds: 1), () {
           if (mounted) {
             Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (_) => const DashboardScreen()),
-              (route) => false,
-            );
+  context,
+  MaterialPageRoute(builder: (_) => const LoginScreen()),
+  (route) => false,
+);
           }
         });
       } else if (mounted) {

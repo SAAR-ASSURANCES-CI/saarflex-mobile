@@ -3,11 +3,10 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:saarflex_app/data/models/simulation_model.dart';
 import 'package:saarflex_app/data/models/critere_tarification_model.dart';
-import 'package:saarflex_app/core/utils/api_config.dart';
+import 'package:saarflex_app/core/constants/api_constants.dart';
 import 'package:saarflex_app/core/utils/storage_helper.dart';
 
 class SimulationService {
-  static const String _basePath = '/simulation-devis-simplifie';
 
   Future<SimulationResponse> simulerDevisSimplifie({
     required String produitId,
@@ -15,9 +14,12 @@ class SimulationService {
     required bool assureEstSouscripteur,
     Map<String, dynamic>? informationsAssure,
   }) async {
+    Uri? url;
+    Map<String, dynamic>? payload;
+    
     try {
       final token = await StorageHelper.getToken();
-      final url = Uri.parse('${ApiConfig.baseUrl}/simulation-devis-simplifie');
+      url = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.simulationBasePath}');
 
       final headers = {
         'Content-Type': 'application/json',
@@ -25,10 +27,10 @@ class SimulationService {
         if (token != null) 'Authorization': 'Bearer $token',
       };
 
-      final payload = {
+      payload = {
         'produit_id': produitId,
         'assure_est_souscripteur': assureEstSouscripteur,
-        'criteres_utilisateur': _normaliserCriteres(criteres),
+        'criteres_utilisateur': criteres,
       };
 
       if (!assureEstSouscripteur && informationsAssure != null) {
@@ -45,10 +47,11 @@ class SimulationService {
         final responseData = json.decode(response.body);
         return SimulationResponse.fromJson(responseData);
       } else {
-        final errorData = json.decode(response.body);
+        final errorData = _tryDecode(response.body);
         final errorMessage =
-            errorData['message'] ??
-            'Erreur de simulation (${response.statusCode})';
+            (errorData is Map && errorData['message'] != null)
+                ? errorData['message']
+                : 'Erreur de simulation (${response.statusCode})';
         throw Exception(errorMessage);
       }
     } catch (e) {
@@ -56,38 +59,12 @@ class SimulationService {
     }
   }
 
-  Map<String, dynamic> _normaliserCriteres(
-    Map<String, dynamic> criteresOriginaux,
-  ) {
-    final Map<String, dynamic> criteresNormalises = {};
-
-    for (final entry in criteresOriginaux.entries) {
-      final String key = entry.key;
-      final dynamic value = entry.value;
-
-      String cleNormalisee = key;
-
-      if (key.toLowerCase().contains('capital')) {
-        cleNormalisee = 'capital';
-      } else if (key.toLowerCase().contains('durée') ||
-          key.toLowerCase().contains('duree')) {
-        cleNormalisee = 'Durée de cotisation';
-      }
-
-      dynamic valeurNormalisee = value;
-
-      if (value is num) {
-        valeurNormalisee = value.toString();
-      } else if (value is String) {
-        if (key.toLowerCase().contains('capital')) {
-          valeurNormalisee = value.replaceAll(' ', '');
-        }
-      }
-
-      criteresNormalises[cleNormalisee] = valeurNormalisee;
+  dynamic _tryDecode(String body) {
+    try {
+      return json.decode(body);
+    } catch (_) {
+      return body;
     }
-
-    return criteresNormalises;
   }
 
   Future<List<CritereTarification>> getCriteresProduit(
@@ -97,7 +74,7 @@ class SimulationService {
   }) async {
     try {
       final token = await StorageHelper.getToken();
-      final url = Uri.parse('${ApiConfig.baseUrl}/produits/$produitId/criteres')
+      final url = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.productsBasePath}/$produitId${ApiConstants.productCriteres}')
           .replace(
             queryParameters: {
               'page': page.toString(),
@@ -132,7 +109,7 @@ class SimulationService {
     try {
       final token = await StorageHelper.getToken();
       final url = Uri.parse(
-        '${ApiConfig.baseUrl}/grilles-tarifaires/produit/$produitId',
+        '${ApiConstants.baseUrl}${ApiConstants.grillesTarifaires}/produit/$produitId',
       );
 
       final headers = {
@@ -174,7 +151,7 @@ class SimulationService {
         throw Exception('Authentification requise');
       }
 
-      final url = '${ApiConfig.baseUrl}/devis-sauvegardes';
+      final url = '${ApiConstants.baseUrl}${ApiConstants.savedQuotes}';
 
       final response = await http.post(
         Uri.parse(url),
@@ -207,7 +184,7 @@ class SimulationService {
 
       final response = await http.get(
         Uri.parse(
-          '${ApiConfig.baseUrl}$_basePath/mes-devis?page=$page&limit=$limit',
+          '${ApiConstants.baseUrl}${ApiConstants.simulationBasePath}/mes-devis?page=$page&limit=$limit',
         ),
         headers: {
           'Content-Type': 'application/json',
@@ -242,7 +219,7 @@ class SimulationService {
       }
 
       final response = await http.delete(
-        Uri.parse('${ApiConfig.baseUrl}$_basePath/mes-devis/$devisId'),
+        Uri.parse('${ApiConstants.baseUrl}${ApiConstants.simulationBasePath}/mes-devis/$devisId'),
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -276,5 +253,200 @@ class SimulationService {
       return 'Une erreur est survenue';
     }
     return 'Une erreur inattendue est survenue';
+  }
+
+  bool critereNecessiteFormatage(CritereTarification critere) {
+    const champsAvecSeparateurs = [
+      'capital',
+      'capital_assure',
+      'montant',
+      'prime',
+      'franchise',
+      'plafond',
+      'souscription',
+      'assurance',
+    ];
+
+    final nomCritereLower = critere.nom.toLowerCase();
+
+    for (final motCle in champsAvecSeparateurs) {
+      if (nomCritereLower.contains(motCle)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  Map<String, dynamic> nettoyerCriteres(
+    Map<String, dynamic> criteres,
+    List<CritereTarification> criteresProduit,
+  ) {
+    final criteresNettoyes = <String, dynamic>{};
+
+    for (final critere in criteresProduit) {
+      final valeur = criteres[critere.nom];
+      if (valeur == null) continue;
+
+      if (critere.type == TypeCritere.numerique &&
+          critereNecessiteFormatage(critere) &&
+          valeur is String) {
+        final valeurNettoyee = valeur.toString().replaceAll(RegExp(r'[^\d]'), '');
+        criteresNettoyes[critere.nom] = num.tryParse(valeurNettoyee) ?? 0;
+      } else {
+        criteresNettoyes[critere.nom] = valeur;
+      }
+    }
+
+    return criteresNettoyes;
+  }
+
+  String? validateCritere(
+    CritereTarification critere,
+    dynamic valeur,
+  ) {
+    if (critere.obligatoire &&
+        (valeur == null || valeur.toString().trim().isEmpty)) {
+      return 'Ce champ est obligatoire';
+    }
+
+    switch (critere.type) {
+      case TypeCritere.numerique:
+        if (valeur != null && valeur.toString().isNotEmpty) {
+          String valeurString = valeur.toString();
+
+          if (critereNecessiteFormatage(critere)) {
+            valeurString = valeurString.replaceAll(RegExp(r'[^\d]'), '');
+          }
+
+          final numericValue = num.tryParse(valeurString);
+          if (numericValue == null) {
+            return 'Veuillez entrer un nombre valide';
+          }
+
+          for (final valeurCritere in critere.valeurs) {
+            if (valeurCritere.valeurMin != null &&
+                numericValue.toDouble() < valeurCritere.valeurMin!) {
+              return 'Valeur minimum: ${valeurCritere.valeurMin}';
+            }
+            if (valeurCritere.valeurMax != null &&
+                numericValue.toDouble() > valeurCritere.valeurMax!) {
+              return 'Valeur maximum: ${valeurCritere.valeurMax}';
+            }
+          }
+        }
+        break;
+
+      case TypeCritere.categoriel:
+        if (valeur != null && critere.hasValeurs) {
+          if (!critere.valeursString.contains(valeur.toString())) {
+            return 'Valeur non autorisée';
+          }
+        }
+        break;
+
+      case TypeCritere.booleen:
+        break;
+    }
+
+    return null;
+  }
+
+  Map<String, String> validateAllCriteres(
+    Map<String, dynamic> criteresReponses,
+    List<CritereTarification> criteresProduit,
+  ) {
+    final errors = <String, String>{};
+
+    for (final critere in criteresProduit) {
+      final valeur = criteresReponses[critere.nom];
+      final error = validateCritere(critere, valeur);
+      if (error != null) {
+        errors[critere.nom] = error;
+      }
+    }
+
+    return errors;
+  }
+
+  bool isSaarNansou(String? produitId) {
+    const saarNansouId = '5a024ee8-6e8c-4cce-88a4-00b998248604';
+    return produitId == saarNansouId;
+  }
+
+  int? calculerDureeAuto(int age) {
+    if (age >= 40 && age <= 68) return 10;
+    if (age >= 69 && age <= 71) return 5;
+    if (age >= 72 && age <= 75) return 2;
+    return null;
+  }
+
+  int calculerAge(DateTime birthDate) {
+    final now = DateTime.now();
+    int age = now.year - birthDate.year;
+    if (now.month < birthDate.month ||
+        (now.month == birthDate.month && now.day < birthDate.day)) {
+      age--;
+    }
+    return age;
+  }
+
+  DateTime? parseBirthDate(dynamic dateNaissance) {
+    if (dateNaissance == null) return null;
+
+    if (dateNaissance is DateTime) {
+      return dateNaissance;
+    }
+
+    if (dateNaissance is String) {
+      DateTime? birthDate = DateTime.tryParse(dateNaissance);
+      if (birthDate != null) return birthDate;
+
+      final parts = dateNaissance.split('-');
+      if (parts.length == 3) {
+        try {
+          final day = int.parse(parts[0]);
+          final month = int.parse(parts[1]);
+          final year = int.parse(parts[2]);
+          return DateTime(year, month, day);
+        } catch (e) {
+          return null;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  String? formatBirthDateForApi(DateTime? birthDate) {
+    if (birthDate == null) return null;
+
+    final day = birthDate.day.toString().padLeft(2, '0');
+    final month = birthDate.month.toString().padLeft(2, '0');
+    return '$day-$month-${birthDate.year}';
+  }
+
+  Map<String, dynamic>? nettoyerInformationsAssure(
+    Map<String, dynamic>? informationsAssure,
+  ) {
+    if (informationsAssure == null) return null;
+
+    final informationsNettoyees = Map<String, dynamic>.from(informationsAssure);
+
+    if (informationsNettoyees.containsKey('date_naissance')) {
+      final dateNaissance = informationsNettoyees['date_naissance'];
+      if (dateNaissance is DateTime) {
+        informationsNettoyees['date_naissance'] =
+            formatBirthDateForApi(dateNaissance);
+      } else if (dateNaissance is String) {
+        final parsed = parseBirthDate(dateNaissance);
+        if (parsed != null) {
+          informationsNettoyees['date_naissance'] =
+              formatBirthDateForApi(parsed);
+        }
+      }
+    }
+
+    return informationsNettoyees;
   }
 }

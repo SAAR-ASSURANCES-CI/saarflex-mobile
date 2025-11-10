@@ -30,7 +30,7 @@ class LoadingScreen extends StatelessWidget {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(24),
                     child: Image.asset(
-                      'lib/assets/images/welcome_img.png',
+                      'lib/assets/welcome_img.png',
                       height: 120,
                       semanticLabel: "Logo SAAR Assurance",
                     ),
@@ -161,3 +161,4 @@ class LoadingScreen extends StatelessWidget {
     );
   }
 }
+

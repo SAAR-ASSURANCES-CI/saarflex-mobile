@@ -198,7 +198,7 @@ class SimulationResponse {
             : null,
       );
     } catch (e) {
-      // Logging sera ajouté via le système de logging
+
       rethrow;
     }
   }
@@ -246,17 +246,61 @@ class SimulationResponse {
     }
   }
 
+
+  static String? _findCritereValue(
+    Map<String, dynamic>? criteres,
+    List<String> nomsPossibles,
+  ) {
+    if (criteres == null) return null;
+
+    for (final nom in nomsPossibles) {
+      if (criteres.containsKey(nom)) {
+        return criteres[nom]?.toString();
+      }
+    }
+
+    final criteresLower = criteres.map((k, v) => MapEntry(k.toLowerCase(), v));
+    for (final nom in nomsPossibles) {
+      final nomLower = nom.toLowerCase();
+      if (criteresLower.containsKey(nomLower)) {
+        return criteresLower[nomLower]?.toString();
+      }
+    }
+
+    for (final entry in criteres.entries) {
+      final keyLower = entry.key.toLowerCase();
+      for (final nom in nomsPossibles) {
+        final nomLower = nom.toLowerCase();
+        if (keyLower.contains(nomLower) || nomLower.contains(keyLower)) {
+          return entry.value?.toString();
+        }
+      }
+    }
+    
+    return null;
+  }
+
   static DetailsCalcul _createDefaultDetailsCalcul(
     Map<String, dynamic> json,
     String periodicitePrime,
   ) {
-    final capital =
-        json['criteres_utilisateur']?['capital']?.toString() ?? 'N/A';
-    final duree =
-        json['criteres_utilisateur']?['Durée de cotisation']?.toString() ??
-        'N/A';
-    final age =
-        json['criteres_utilisateur']?['Age Assuré']?.toString() ?? 'N/A';
+    final criteresUtilisateur = json['criteres_utilisateur'] as Map<String, dynamic>?;
+
+    final capital = _findCritereValue(
+      criteresUtilisateur,
+      ['Capital Assuré', 'capital', 'Capital', 'capital assuré', 'Capital assuré'],
+    ) ?? 'N/A';
+
+    final duree = _findCritereValue(
+      criteresUtilisateur,
+      ['Durée Cotisation', 'Durée de cotisation', 'duree', 'Durée', 'durée cotisation', 'Durée cotisation'],
+    ) ?? 'N/A';
+
+    final age = _findCritereValue(
+      criteresUtilisateur,
+      ['Age Assuré', 'age', 'Age', 'âge assuré', 'Age assuré', 'age assuré'],
+    ) ?? 'N/A';
+    
     final prime = _parseDouble(json['prime_calculee']);
     final periodiciteFormatee = _getPeriodiciteFormatee(periodicitePrime);
 

@@ -90,7 +90,6 @@ class SimulationErrorWidget extends StatelessWidget {
   }
 }
 
-/// Widget d'erreur compact
 class SimulationErrorCompactWidget extends StatelessWidget {
   final String message;
   final VoidCallback? onRetry;

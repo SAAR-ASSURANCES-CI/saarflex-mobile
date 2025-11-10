@@ -12,37 +12,29 @@ class ValidationService {
     'assurance',
   ];
 
-  /// Valide un critère selon son type et ses contraintes
   static String? validateCritere(CritereTarification critere, dynamic valeur) {
-    // Validation des champs obligatoires
     if (critere.obligatoire && _isEmpty(valeur)) {
       return 'Ce champ est obligatoire';
     }
 
-    // Si le champ est vide et non obligatoire, pas d'erreur
     if (_isEmpty(valeur)) {
       return null;
     }
-
-    // Validation selon le type de critère
     switch (critere.type) {
       case TypeCritere.numerique:
         return _validateNumericCritere(critere, valeur);
       case TypeCritere.categoriel:
         return _validateCategoricalCritere(critere, valeur);
       case TypeCritere.booleen:
-        return null; // Les booléens n'ont pas besoin de validation spéciale
+        return null;
     }
   }
 
-  /// Valide un critère numérique
   static String? _validateNumericCritere(
     CritereTarification critere,
     dynamic valeur,
   ) {
     String valeurString = valeur.toString();
-
-    // Nettoyer les séparateurs si nécessaire
     if (_critereNecessiteFormatage(critere)) {
       valeurString = valeurString.replaceAll(RegExp(r'[^\d]'), '');
     }
@@ -52,11 +44,9 @@ class ValidationService {
       return 'Veuillez saisir un nombre valide';
     }
 
-    // Vérifier les contraintes min/max
     return _validateNumericConstraints(critere, numericValue);
   }
 
-  /// Valide les contraintes numériques (min/max)
   static String? _validateNumericConstraints(
     CritereTarification critere,
     num valeur,
@@ -74,7 +64,6 @@ class ValidationService {
     return null;
   }
 
-  /// Valide un critère catégoriel
   static String? _validateCategoricalCritere(
     CritereTarification critere,
     dynamic valeur,
@@ -91,7 +80,6 @@ class ValidationService {
     return null;
   }
 
-  /// Nettoie une valeur numérique en supprimant les séparateurs
   static num? cleanNumericValue(CritereTarification critere, dynamic valeur) {
     if (valeur == null) return null;
 
@@ -104,7 +92,6 @@ class ValidationService {
     return num.tryParse(valeurString);
   }
 
-  /// Détermine si un critère nécessite un formatage spécial
   static bool _critereNecessiteFormatage(CritereTarification critere) {
     final nomCritereLower = critere.nom.toLowerCase();
 
@@ -113,14 +100,12 @@ class ValidationService {
     );
   }
 
-  /// Vérifie si une valeur est vide
   static bool _isEmpty(dynamic valeur) {
     if (valeur == null) return true;
     if (valeur is String) return valeur.trim().isEmpty;
     return false;
   }
 
-  /// Valide un formulaire complet
   static Map<String, String> validateForm(
     List<CritereTarification> criteres,
     Map<String, dynamic> reponses,
@@ -139,7 +124,6 @@ class ValidationService {
     return errors;
   }
 
-  /// Vérifie si un formulaire est valide
   static bool isFormValid(
     List<CritereTarification> criteres,
     Map<String, dynamic> reponses,

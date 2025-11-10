@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:saarflex_app/data/models/user_model.dart';
-import 'package:saarflex_app/data/services/profile_service.dart';
-import 'package:saarflex_app/data/services/image_upload_service.dart';
+import 'package:saarflex_app/data/repositories/profile_repository.dart';
+import 'package:saarflex_app/data/services/file_upload_service.dart';
 import 'package:saarflex_app/core/utils/error_handler.dart';
 
-/// ViewModel de profil - États UI uniquement
-/// Responsabilité : Gestion des états UI et orchestration des services
+
 class ProfileViewModel with ChangeNotifier {
-  // Services - Logique métier déléguée
-  final ProfileService _profileService = ProfileService();
-  final ImageUploadService _imageUploadService = ImageUploadService();
+
+  final ProfileRepository _profileRepository = ProfileRepository();
+  final FileUploadService _fileUploadService = FileUploadService();
 
   bool _isLoading = false;
   String? _errorMessage;
@@ -17,14 +16,13 @@ class ProfileViewModel with ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
-  /// Récupération du profil utilisateur
-  /// Délégation au service
+
   Future<User?> refreshUserProfile() async {
     _setLoading(true);
     _clearError();
 
     try {
-      final user = await _profileService.getUserProfile();
+      final user = await _profileRepository.getUserProfile();
       _setLoading(false);
       return user;
     } catch (e) {
@@ -34,14 +32,13 @@ class ProfileViewModel with ChangeNotifier {
     }
   }
 
-  /// Mise à jour d'un champ spécifique
-  /// Délégation au service
+
   Future<bool> updateSpecificField(String field, dynamic value) async {
     _setLoading(true);
     _clearError();
 
     try {
-      await _profileService.updateProfileField(field, value);
+      await _profileRepository.updateProfileField(field, value);
       _setLoading(false);
       return true;
     } catch (e) {
@@ -51,14 +48,13 @@ class ProfileViewModel with ChangeNotifier {
     }
   }
 
-  /// Upload d'un avatar
-  /// Délégation au service
+
   Future<bool> uploadAvatar(String imagePath) async {
     _setLoading(true);
     _clearError();
 
     try {
-      await _imageUploadService.uploadAvatar(imagePath);
+      await _fileUploadService.uploadAvatar(imagePath);
       _setLoading(false);
       return true;
     } catch (e) {
@@ -68,14 +64,13 @@ class ProfileViewModel with ChangeNotifier {
     }
   }
 
-  /// Mise à jour complète du profil
-  /// Délégation au service
+
   Future<bool> updateProfile(Map<String, dynamic> profileData) async {
     _setLoading(true);
     _clearError();
 
     try {
-      await _profileService.updateProfile(profileData);
+      await _profileRepository.updateProfile(profileData);
       _setLoading(false);
       return true;
     } catch (e) {
@@ -85,8 +80,7 @@ class ProfileViewModel with ChangeNotifier {
     }
   }
 
-  /// Upload d'un document d'identité
-  /// Délégation au service
+
   Future<bool> uploadIdentityDocument(
     String imagePath,
     String documentType,
@@ -95,7 +89,10 @@ class ProfileViewModel with ChangeNotifier {
     _clearError();
 
     try {
-      await _imageUploadService.uploadIdentityDocument(imagePath, documentType);
+      await _fileUploadService.uploadIdentityDocumentFromPath(
+        imagePath,
+        documentType,
+      );
       _setLoading(false);
       return true;
     } catch (e) {
@@ -105,20 +102,17 @@ class ProfileViewModel with ChangeNotifier {
     }
   }
 
-  /// Validation des données du profil
-  /// Délégation au service
+
   Map<String, String> validateProfileData(Map<String, dynamic> data) {
-    return _profileService.validateProfileData(data);
+    return _profileRepository.validateProfileData(data);
   }
 
-  /// Vérification de la complétude du profil
-  /// Délégation au service
+
   bool isProfileComplete(User user) {
-    return _profileService.isProfileComplete(user);
+    return _profileRepository.isProfileComplete(user);
   }
 
-  /// Nettoyage des données utilisateur
-  /// Logique UI uniquement
+
   void clearUserData() {
     _clearError();
     notifyListeners();

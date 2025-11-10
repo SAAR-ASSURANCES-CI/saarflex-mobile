@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:saarflex_app/core/constants/colors.dart';
 
-/// Design System centralisé pour éviter la duplication
 class DesignSystem {
-  // Styles de texte réutilisables
   static TextStyle get heading1 => GoogleFonts.poppins(
     fontSize: 20,
     fontWeight: FontWeight.w600,
@@ -41,7 +39,6 @@ class DesignSystem {
     color: AppColors.error,
   );
 
-  // Décorations de conteneurs réutilisables
   static BoxDecoration get cardDecoration => BoxDecoration(
     color: AppColors.white,
     borderRadius: BorderRadius.circular(16),
@@ -78,7 +75,6 @@ class DesignSystem {
     border: Border.all(color: AppColors.error.withOpacity(0.3)),
   );
 
-  // Styles de boutons réutilisables
   static ButtonStyle get primaryButton => ElevatedButton.styleFrom(
     backgroundColor: AppColors.primary,
     foregroundColor: AppColors.white,
@@ -93,7 +89,6 @@ class DesignSystem {
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
   );
 
-  // Styles de champs de formulaire réutilisables
   static InputDecoration get textFieldDecoration => InputDecoration(
     filled: true,
     fillColor: AppColors.surface,
@@ -112,16 +107,15 @@ class DesignSystem {
     contentPadding: const EdgeInsets.all(16),
   );
 
-  // Espacements réutilisables
   static const double spacingXS = 4;
   static const double spacingS = 8;
   static const double spacingM = 16;
   static const double spacingL = 24;
   static const double spacingXL = 32;
 
-  // Rayons de bordure réutilisables
   static const double radiusS = 8;
   static const double radiusM = 12;
   static const double radiusL = 16;
   static const double radiusXL = 20;
 }
+

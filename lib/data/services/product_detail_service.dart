@@ -1,19 +1,15 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
-import 'package:saarflex_app/core/utils/api_config.dart';
+import 'package:saarflex_app/core/constants/api_constants.dart';
 import 'package:saarflex_app/core/utils/storage_helper.dart';
 import 'package:saarflex_app/data/models/product_model.dart';
 
-/// Service pour récupérer les détails d'un produit spécifique
 class ProductDetailService {
-  static const String _basePath = '/produits';
-
-  /// Récupère les détails d'un produit par son ID
   Future<Product?> getProductById(String productId) async {
     try {
       final token = await StorageHelper.getToken();
-      final url = Uri.parse('${ApiConfig.baseUrl}$_basePath/$productId');
+      final url = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.productsBasePath}/$productId');
 
       final headers = {
         'Content-Type': 'application/json',
@@ -27,7 +23,7 @@ class ProductDetailService {
         final responseData = json.decode(response.body);
         return Product.fromJson(responseData);
       } else if (response.statusCode == 404) {
-        return null; // Produit non trouvé
+        return null;
       } else {
         throw Exception('Erreur API: ${response.statusCode}');
       }
@@ -40,11 +36,10 @@ class ProductDetailService {
     }
   }
 
-  /// Récupère les détails d'un produit par son nom
   Future<Product?> getProductByName(String productName) async {
     try {
       final token = await StorageHelper.getToken();
-      final url = Uri.parse('${ApiConfig.baseUrl}$_basePath?nom=$productName');
+      final url = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.productsBasePath}?nom=$productName');
 
       final headers = {
         'Content-Type': 'application/json',
@@ -59,7 +54,7 @@ class ProductDetailService {
         if (responseData is List && responseData.isNotEmpty) {
           return Product.fromJson(responseData.first);
         }
-        return null; // Aucun produit trouvé
+        return null;
       } else {
         throw Exception('Erreur API: ${response.statusCode}');
       }
@@ -72,11 +67,10 @@ class ProductDetailService {
     }
   }
 
-  /// Récupère les détails d'un produit par son type
   Future<List<Product>> getProductsByType(String productType) async {
     try {
       final token = await StorageHelper.getToken();
-      final url = Uri.parse('${ApiConfig.baseUrl}$_basePath?type=$productType');
+      final url = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.productsBasePath}?type=$productType');
 
       final headers = {
         'Content-Type': 'application/json',

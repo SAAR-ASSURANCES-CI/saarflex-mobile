@@ -24,7 +24,6 @@ class _ResultSaveSectionState extends State<ResultSaveSection> {
   final TextEditingController _nomController = TextEditingController();
   final TextEditingController _notesController = TextEditingController();
 
-  // Getters publics pour accéder aux contrôleurs
   TextEditingController get nomController => _nomController;
   TextEditingController get notesController => _notesController;
 
@@ -44,7 +43,6 @@ class _ResultSaveSectionState extends State<ResultSaveSection> {
     return _buildSaveForm();
   }
 
-  /// Widget pour afficher que le devis est déjà sauvegardé
   Widget _buildAlreadySavedCard() {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -72,7 +70,6 @@ class _ResultSaveSectionState extends State<ResultSaveSection> {
     );
   }
 
-  /// Widget pour le formulaire de sauvegarde
   Widget _buildSaveForm() {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -101,7 +98,6 @@ class _ResultSaveSectionState extends State<ResultSaveSection> {
           ),
           const SizedBox(height: 16),
 
-          // Message d'avertissement si simulation pour une autre personne
           if (!widget.resultat.assureEstSouscripteur &&
               widget.resultat.informationsAssure != null) ...[
             _buildAssureWarning(),
@@ -117,7 +113,6 @@ class _ResultSaveSectionState extends State<ResultSaveSection> {
     );
   }
 
-  /// Champ pour le nom du devis
   Widget _buildNomField() {
     final hasError =
         widget.viewModel.getValidationError('nom_personnalise') != null;
@@ -168,7 +163,6 @@ class _ResultSaveSectionState extends State<ResultSaveSection> {
     );
   }
 
-  /// Champ pour les notes
   Widget _buildNotesField() {
     return TextFormField(
       controller: _notesController,
@@ -189,7 +183,6 @@ class _ResultSaveSectionState extends State<ResultSaveSection> {
     );
   }
 
-  /// Widget pour afficher les erreurs de validation
   Widget _buildValidationErrors() {
     return Container(
       padding: const EdgeInsets.all(12),
@@ -217,7 +210,6 @@ class _ResultSaveSectionState extends State<ResultSaveSection> {
     );
   }
 
-  /// Widget d'avertissement pour les simulations pour une autre personne
   Widget _buildAssureWarning() {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -245,13 +237,12 @@ class _ResultSaveSectionState extends State<ResultSaveSection> {
     );
   }
 
-  /// Méthode pour déclencher la sauvegarde
   void triggerSave() {
-    // Vérifier que le nom du devis est renseigné
+
     final nomDevis = _nomController.text.trim();
 
     if (nomDevis.isEmpty) {
-      // Définir l'erreur de validation
+
       widget.viewModel.setValidationError(
         'nom_personnalise',
         'Le nom du devis est obligatoire',
@@ -259,7 +250,6 @@ class _ResultSaveSectionState extends State<ResultSaveSection> {
       return; // Empêcher l'ouverture du popup
     }
 
-    // Ouvrir le popup seulement si le nom est renseigné
     ResultSaveConfirmationDialog.show(
       context: context,
       nomDevis: nomDevis,
@@ -267,11 +257,11 @@ class _ResultSaveSectionState extends State<ResultSaveSection> {
       resultat: widget.resultat,
       viewModel: widget.viewModel,
       onNewSimulation: () {
-        // Redirection vers nouvelle simulation
+
         Navigator.pushReplacementNamed(context, '/simulation');
       },
       onViewQuotes: () {
-        // Navigation vers contrats
+
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(

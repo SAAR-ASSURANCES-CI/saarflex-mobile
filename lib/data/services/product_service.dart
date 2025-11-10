@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:saarflex_app/core/constants/api_constants.dart';
 import 'package:saarflex_app/data/models/critere_tarification_model.dart';
-import 'package:saarflex_app/core/utils/api_config.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import 'package:saarflex_app/data/models/product_model.dart';
@@ -132,7 +131,7 @@ class ProductService {
   Future<List<CritereTarification>> getProductCriteres(String productId) async {
     try {
       final response = await http.get(
-        Uri.parse('${ApiConfig.baseUrl}/produits/$productId/criteres'),
+        Uri.parse('${ApiConstants.baseUrl}${ApiConstants.productsBasePath}/$productId${ApiConstants.productCriteres}'),
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -160,7 +159,7 @@ class ProductService {
     try {
       final response = await http.get(
         Uri.parse(
-          '${ApiConfig.baseUrl}/produits/$productId/grilles-tarifaires',
+          '${ApiConstants.baseUrl}${ApiConstants.productsBasePath}/$productId/${ApiConstants.grillesTarifaires}',
         ),
         headers: {
           'Content-Type': 'application/json',

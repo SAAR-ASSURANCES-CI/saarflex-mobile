@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:saarflex_app/data/models/souscription_model.dart';
 import 'package:saarflex_app/data/models/beneficiaire_model.dart';
-import 'package:saarflex_app/data/services/souscription_service.dart';
+import 'package:saarflex_app/data/repositories/souscription_repository.dart';
 
 class SouscriptionViewModel extends ChangeNotifier {
-  final souscriptionService _souscriptionService = souscriptionService();
+  final SouscriptionRepository _souscriptionRepository =
+      SouscriptionRepository();
 
   bool _isLoading = false;
   bool _isSubscribing = false;
@@ -23,6 +24,7 @@ class SouscriptionViewModel extends ChangeNotifier {
   bool get hasError => _error != null;
   Map<String, String> get fieldErrors => Map.unmodifiable(_fieldErrors);
   SouscriptionResponse? get souscriptionResponse => _souscriptionResponse;
+  String? get paymentUrl => _souscriptionResponse?.paymentUrl;
 
   String? get devisId => _devisId;
   MethodePaiement? get selectedMethodePaiement => _selectedMethodePaiement;
@@ -136,13 +138,13 @@ class SouscriptionViewModel extends ChangeNotifier {
       final request = SouscriptionRequest(
         devisId: _devisId!,
         methodePaiement: _selectedMethodePaiement!.apiValue,
-        numeroTelephone: _souscriptionService.formatPhoneNumber(
+        numeroTelephone: _souscriptionRepository.formatPhoneNumber(
           _numeroTelephone,
         ),
         beneficiaires: _beneficiaires,
       );
 
-      _souscriptionResponse = await _souscriptionService.souscrire(request);
+      _souscriptionResponse = await _souscriptionRepository.souscrire(request);
       _clearError();
       return true;
     } catch (e) {
@@ -160,7 +162,8 @@ class SouscriptionViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final souscriptions = await _souscriptionService.getMesSouscriptions();
+      final souscriptions =
+          await _souscriptionRepository.getMesSouscriptions();
       _clearError();
       return souscriptions;
     } catch (e) {
@@ -178,7 +181,7 @@ class SouscriptionViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _souscriptionService.annulerSouscription(id);
+      await _souscriptionRepository.annulerSouscription(id);
       _clearError();
       return true;
     } catch (e) {

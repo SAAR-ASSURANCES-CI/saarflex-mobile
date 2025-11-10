@@ -51,7 +51,6 @@ class Beneficiaire {
     );
   }
 
-  // Validation
   bool get isValid {
     return nomComplet.trim().isNotEmpty &&
         nomComplet.length <= 255 &&
@@ -106,7 +105,6 @@ class Beneficiaire {
   }
 }
 
-// Classe pour gérer une liste de bénéficiaires
 class BeneficiairesList {
   final List<Beneficiaire> _beneficiaires = [];
 
@@ -177,7 +175,6 @@ class BeneficiairesList {
     _beneficiaires.sort((a, b) => a.ordre.compareTo(b.ordre));
   }
 
-  // Méthodes utilitaires pour les ordres disponibles
   List<int> get availableOrdres {
     final usedOrdres = _beneficiaires.map((b) => b.ordre).toSet();
     return [1, 2, 3].where((ordre) => !usedOrdres.contains(ordre)).toList();

@@ -1,56 +1,18 @@
-import 'package:flutter/foundation.dart';
-
-/// Système de logging optimisé pour la production
 class AppLogger {
-  /// Log de niveau debug (développement uniquement)
-  static void debug(String message) {
-    if (kDebugMode) {
-      print('🐛 DEBUG: $message');
-    }
+  static void debug(String message) {}
+
+  static void info(String message) {}
+
+  static void error(String message, [dynamic error]) {}
+
+  static void errorWithStack(String message, dynamic error, [StackTrace? stackTrace]) {
   }
 
-  /// Log de niveau info
-  static void info(String message) {
-    if (kDebugMode) {
-      print('ℹ️ INFO: $message');
-    }
-  }
+  static void api(String message) {}
 
-  /// Log de niveau error
-  static void error(String message, [dynamic error]) {
-    if (kDebugMode) {
-      print('❌ ERROR: $message');
-      if (error != null) {
-        print('❌ ERROR DETAILS: $error');
-      }
-    }
-  }
+  static void auth(String message) {}
 
-  /// Log pour les opérations API
-  static void api(String message) {
-    if (kDebugMode) {
-      print('🌐 API: $message');
-    }
-  }
+  static void performance(String message) {}
 
-  /// Log pour les opérations d'authentification
-  static void auth(String message) {
-    if (kDebugMode) {
-      print('🔐 AUTH: $message');
-    }
-  }
-
-  /// Log pour les performances (développement uniquement)
-  static void performance(String message) {
-    if (kDebugMode) {
-      print('⚡ PERF: $message');
-    }
-  }
-
-  /// Log pour la navigation
-  static void navigation(String message) {
-    if (kDebugMode) {
-      print('🧭 NAV: $message');
-    }
-  }
+  static void navigation(String message) {}
 }

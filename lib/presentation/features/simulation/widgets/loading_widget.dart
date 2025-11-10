@@ -62,7 +62,6 @@ class SimulationLoadingWidget extends StatelessWidget {
   }
 }
 
-/// Widget de chargement compact
 class SimulationLoadingCompactWidget extends StatelessWidget {
   final String message;
   final double size;

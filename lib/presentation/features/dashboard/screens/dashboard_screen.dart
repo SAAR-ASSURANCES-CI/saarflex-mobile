@@ -19,6 +19,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<AuthViewModel>().ensureUserProfileLoaded();
+      }
+    });
   }
 
   @override
@@ -331,7 +336,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
       );
     } catch (e) {
-      // Fallback en cas d'erreur de navigation
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Erreur de navigation: $e'),

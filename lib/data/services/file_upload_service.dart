@@ -3,86 +3,63 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:path/path.dart' as path;
+import 'package:image_picker/image_picker.dart';
 import 'package:saarflex_app/core/constants/api_constants.dart';
-import 'package:saarflex_app/core/utils/logger.dart';
+import 'package:saarflex_app/core/utils/storage_helper.dart';
 
-/// Service d'upload de fichiers - Logique métier pour les uploads
-/// Responsabilité : Gestion des uploads de fichiers (images, documents)
 class FileUploadService {
-  /// Upload d'un document d'identité
-  /// Upload un fichier image (recto ou verso) pour l'identité
   Future<String> uploadIdentityDocument({
     required File imageFile,
     required String type,
     required String authToken,
   }) async {
     try {
-      AppLogger.info('📤 Upload document identité: $type');
-
-      // Validation du fichier
       _validateImageFile(imageFile);
 
-      // Création de la requête
       final request = await _createUploadRequest(
         imageFile: imageFile,
         type: type,
         authToken: authToken,
       );
 
-      // Envoi de la requête
       final response = await _sendUploadRequest(request);
 
-      // Extraction de l'URL
       final imageUrl = await _extractImageUrl(response);
 
-      AppLogger.info('✅ Document uploadé: $imageUrl');
       return imageUrl;
     } catch (e) {
-      AppLogger.error('❌ Erreur upload document: $e');
       rethrow;
     }
   }
 
-  /// Upload de deux images (recto et verso)
-  /// Upload simultané de deux fichiers images
   Future<Map<String, String>> uploadBothImages({
     required String rectoPath,
     required String versoPath,
     required String authToken,
   }) async {
     try {
-      AppLogger.info('📤 Upload images recto/verso');
-
       final rectoFile = File(rectoPath);
       final versoFile = File(versoPath);
 
-      // Validation des fichiers
       _validateImageFile(rectoFile);
       _validateImageFile(versoFile);
 
-      // Création de la requête multipart
       final request = await _createMultiUploadRequest(
         rectoFile: rectoFile,
         versoFile: versoFile,
         authToken: authToken,
       );
 
-      // Envoi de la requête
       final response = await _sendUploadRequest(request);
 
-      // Extraction des URLs
       final urls = await _extractImageUrls(response);
 
-      AppLogger.info('✅ Images uploadées: ${urls.keys.join(', ')}');
       return urls;
     } catch (e) {
-      AppLogger.error('❌ Erreur upload images: $e');
       rethrow;
     }
   }
 
-  /// Upload d'images pour un devis spécifique
-  /// Upload d'images liées à un devis d'assurance
   Future<Map<String, String>> uploadAssureImages({
     required String devisId,
     required String rectoPath,
@@ -90,16 +67,12 @@ class FileUploadService {
     required String authToken,
   }) async {
     try {
-      AppLogger.info('📤 Upload images devis: $devisId');
-
       final rectoFile = File(rectoPath);
       final versoFile = File(versoPath);
 
-      // Validation des fichiers
       _validateImageFile(rectoFile);
       _validateImageFile(versoFile);
 
-      // Création de la requête pour devis
       final request = await _createDevisUploadRequest(
         devisId: devisId,
         rectoFile: rectoFile,
@@ -107,29 +80,23 @@ class FileUploadService {
         authToken: authToken,
       );
 
-      // Envoi de la requête
       final response = await _sendUploadRequest(request);
 
-      // Extraction des URLs
       final urls = await _extractImageUrls(response);
 
-      AppLogger.info('✅ Images devis uploadées: ${urls.keys.join(', ')}');
       return urls;
     } catch (e) {
-      AppLogger.error('❌ Erreur upload images devis: $e');
       rethrow;
     }
   }
 
-  /// Validation d'un fichier image
-  /// Vérifie que le fichier est valide pour l'upload
   void _validateImageFile(File imageFile) {
     if (!imageFile.existsSync()) {
       throw Exception('Fichier introuvable: ${imageFile.path}');
     }
 
     final fileSize = imageFile.lengthSync();
-    const maxSize = 10 * 1024 * 1024; // 10MB
+    const maxSize = 10 * 1024 * 1024;
 
     if (fileSize > maxSize) {
       throw Exception(
@@ -145,8 +112,6 @@ class FileUploadService {
     }
   }
 
-  /// Création d'une requête d'upload simple
-  /// Crée une requête multipart pour un seul fichier
   Future<http.MultipartRequest> _createUploadRequest({
     required File imageFile,
     required String type,
@@ -157,13 +122,11 @@ class FileUploadService {
       Uri.parse('${ApiConstants.baseUrl}${ApiConstants.uploadDocument}'),
     );
 
-    // Headers
     request.headers.addAll({
       'Authorization': 'Bearer $authToken',
       'Accept': 'application/json',
     });
 
-    // Ajout du fichier
     request.files.add(
       await http.MultipartFile.fromPath(
         'file',
@@ -173,14 +136,11 @@ class FileUploadService {
       ),
     );
 
-    // Paramètres
     request.fields['type'] = type;
 
     return request;
   }
 
-  /// Création d'une requête d'upload multiple
-  /// Crée une requête multipart pour deux fichiers
   Future<http.MultipartRequest> _createMultiUploadRequest({
     required File rectoFile,
     required File versoFile,
@@ -191,13 +151,11 @@ class FileUploadService {
       Uri.parse('${ApiConstants.baseUrl}${ApiConstants.uploadImages}'),
     );
 
-    // Headers
     request.headers.addAll({
       'Authorization': 'Bearer $authToken',
       'Accept': 'application/json',
     });
 
-    // Ajout des fichiers
     request.files.add(
       await http.MultipartFile.fromPath(
         'files',
@@ -219,8 +177,6 @@ class FileUploadService {
     return request;
   }
 
-  /// Création d'une requête d'upload pour devis
-  /// Crée une requête multipart pour les images de devis
   Future<http.MultipartRequest> _createDevisUploadRequest({
     required String devisId,
     required File rectoFile,
@@ -230,17 +186,15 @@ class FileUploadService {
     final request = http.MultipartRequest(
       'POST',
       Uri.parse(
-        '${ApiConstants.baseUrl}/profiles/devis/$devisId/upload/assure-images',
+        '${ApiConstants.baseUrl}${ApiConstants.uploadAssureImages}/$devisId/upload/assure-images',
       ),
     );
 
-    // Headers
     request.headers.addAll({
       'Authorization': 'Bearer $authToken',
       'Accept': 'application/json',
     });
 
-    // Ajout des fichiers
     request.files.add(
       await http.MultipartFile.fromPath(
         'files',
@@ -262,8 +216,6 @@ class FileUploadService {
     return request;
   }
 
-  /// Envoi d'une requête d'upload
-  /// Envoie la requête et retourne la réponse
   Future<http.StreamedResponse> _sendUploadRequest(
     http.MultipartRequest request,
   ) async {
@@ -280,8 +232,6 @@ class FileUploadService {
     return streamedResponse;
   }
 
-  /// Extraction de l'URL d'image d'une réponse
-  /// Extrait l'URL de l'image depuis la réponse serveur
   Future<String> _extractImageUrl(http.StreamedResponse response) async {
     final responseBody = await response.stream.bytesToString();
     final responseData = json.decode(responseBody);
@@ -295,8 +245,6 @@ class FileUploadService {
     return imageUrl;
   }
 
-  /// Extraction des URLs d'images d'une réponse
-  /// Extrait les URLs des images depuis la réponse serveur
   Future<Map<String, String>> _extractImageUrls(
     http.StreamedResponse response,
   ) async {
@@ -311,5 +259,79 @@ class FileUploadService {
     }
 
     return {'recto_path': rectoPath, 'verso_path': versoPath};
+  }
+
+  Future<String> uploadAvatar(String imagePath) async {
+    try {
+      final token = await StorageHelper.getToken();
+      if (token == null) {
+        throw Exception('Authentification requise');
+      }
+
+      final imageFile = File(imagePath);
+      _validateImageFile(imageFile);
+
+      final request = http.MultipartRequest(
+        'POST',
+        Uri.parse('${ApiConstants.baseUrl}${ApiConstants.uploadBasePath}/avatar'),
+      );
+
+      request.headers.addAll({
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+      });
+
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'avatar',
+          imagePath,
+          filename: path.basename(imagePath),
+        ),
+      );
+
+      final response = await _sendUploadRequest(request);
+      final imageUrl = await _extractImageUrl(response);
+
+      return imageUrl;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<String> uploadIdentityDocumentFromPath(
+    String imagePath,
+    String documentType,
+  ) async {
+    try {
+      final token = await StorageHelper.getToken();
+      if (token == null) {
+        throw Exception('Authentification requise');
+      }
+
+      final imageFile = File(imagePath);
+      return await uploadIdentityDocument(
+        imageFile: imageFile,
+        type: documentType,
+        authToken: token,
+      );
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> validateXFile(XFile xFile) async {
+    final fileSize = await xFile.length();
+    if (fileSize > ApiConstants.maxFileSizeBytes) {
+      throw Exception(
+        'Le fichier est trop volumineux. Taille maximum: ${ApiConstants.maxFileSizeBytes ~/ (1024 * 1024)}MB',
+      );
+    }
+
+    final extension = path.extension(xFile.path).toLowerCase();
+    if (!ApiConstants.allowedImageExtensions.contains(extension)) {
+      throw Exception(
+        'Format de fichier non supporté. Formats autorisés: ${ApiConstants.allowedImageExtensions.join(', ')}',
+      );
+    }
   }
 }

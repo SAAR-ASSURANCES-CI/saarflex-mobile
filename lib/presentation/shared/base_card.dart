@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:saarflex_app/core/design/design_system.dart';
+import 'package:saarflex_app/core/constants/design_system.dart';
 
-/// Widget de carte de base réutilisable
 class BaseCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry? padding;
@@ -31,7 +30,6 @@ class BaseCard extends StatelessWidget {
   }
 }
 
-/// Widget de carte avec gradient primaire
 class PrimaryCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry? padding;
@@ -48,7 +46,6 @@ class PrimaryCard extends StatelessWidget {
   }
 }
 
-/// Widget de carte d'erreur
 class ErrorCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry? padding;
@@ -64,3 +61,4 @@ class ErrorCard extends StatelessWidget {
     );
   }
 }
+

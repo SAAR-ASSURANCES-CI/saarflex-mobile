@@ -13,7 +13,6 @@ class ProfileValidationController {
   }) {
     Map<String, String?> errors = {};
 
-    // Validation du nom
     if (firstName.trim() != originalData['nom']) {
       final nameError = ErrorHandler.validateName(firstName);
       if (nameError != null) {
@@ -21,7 +20,6 @@ class ProfileValidationController {
       }
     }
 
-    // Validation de l'email
     if (email.trim() != originalData['email']) {
       final emailError = ErrorHandler.validateEmail(email);
       if (emailError != null) {
@@ -29,7 +27,6 @@ class ProfileValidationController {
       }
     }
 
-    // Validation du téléphone
     if (phone.trim() != originalData['telephone']) {
       final phoneError = ErrorHandler.validatePhone(phone);
       if (phoneError != null) {
@@ -37,14 +34,12 @@ class ProfileValidationController {
       }
     }
 
-    // Validation du sexe
     if (selectedGender != originalData['sexe']) {
       if (selectedGender == null) {
         errors['sexe'] = 'Veuillez sélectionner votre sexe';
       }
     }
 
-    // Validation du type de pièce d'identité
     if (selectedIdType != originalData['type_piece_identite']) {
       if (selectedIdType == null) {
         errors['type_piece_identite'] =
@@ -52,7 +47,6 @@ class ProfileValidationController {
       }
     }
 
-    // Validation de la date de naissance
     if (!_areDatesEqual(selectedBirthDate, originalData['date_naissance'])) {
       if (selectedBirthDate != null) {
         final now = DateTime.now();
@@ -67,7 +61,6 @@ class ProfileValidationController {
       }
     }
 
-    // Validation de la date d'expiration
     if (!_areDatesEqual(
       selectedExpirationDate,
       originalData['date_expiration_piece_identite'],
