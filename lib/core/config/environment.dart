@@ -21,7 +21,7 @@ class EnvironmentConfig {
       case Environment.dev:
         return const String.fromEnvironment(
           'DEV_API_URL',
-          defaultValue: 'https://d0ffd7861caa.ngrok-free.app',
+          defaultValue: 'https://api-saarflex.saarassurancesci.com',
         );
       case Environment.staging:
         return const String.fromEnvironment(

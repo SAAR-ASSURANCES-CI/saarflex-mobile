@@ -32,9 +32,13 @@ class SouscriptionViewModel extends ChangeNotifier {
   List<Beneficiaire> get beneficiaires => List.unmodifiable(_beneficiaires);
 
   bool get isFormValid {
+    final phoneValid = _selectedMethodePaiement == MethodePaiement.mobileMoney
+        ? _numeroTelephone.trim().isNotEmpty && _isValidPhone(_numeroTelephone)
+        : true; // Pour wallet, le téléphone n'est pas requis
+    
     return _devisId != null &&
         _selectedMethodePaiement != null &&
-        _numeroTelephone.trim().isNotEmpty &&
+        phoneValid &&
         _beneficiaires.isNotEmpty &&
         _beneficiaires.every((b) => b.isValid);
   }
@@ -99,13 +103,16 @@ class SouscriptionViewModel extends ChangeNotifier {
       isValid = false;
     }
 
-    if (_numeroTelephone.trim().isEmpty) {
-      _fieldErrors['numero_telephone'] =
-          'Le numéro de téléphone est obligatoire';
-      isValid = false;
-    } else if (!_isValidPhone(_numeroTelephone)) {
-      _fieldErrors['numero_telephone'] = 'Numéro de téléphone invalide';
-      isValid = false;
+    // Numéro de téléphone requis seulement pour mobile_money
+    if (_selectedMethodePaiement == MethodePaiement.mobileMoney) {
+      if (_numeroTelephone.trim().isEmpty) {
+        _fieldErrors['numero_telephone'] =
+            'Le numéro de téléphone est obligatoire pour Mobile Money';
+        isValid = false;
+      } else if (!_isValidPhone(_numeroTelephone)) {
+        _fieldErrors['numero_telephone'] = 'Numéro de téléphone invalide';
+        isValid = false;
+      }
     }
 
     if (_beneficiaires.isEmpty) {
@@ -138,9 +145,9 @@ class SouscriptionViewModel extends ChangeNotifier {
       final request = SouscriptionRequest(
         devisId: _devisId!,
         methodePaiement: _selectedMethodePaiement!.apiValue,
-        numeroTelephone: _souscriptionRepository.formatPhoneNumber(
-          _numeroTelephone,
-        ),
+        numeroTelephone: _selectedMethodePaiement == MethodePaiement.mobileMoney
+            ? _souscriptionRepository.formatPhoneNumber(_numeroTelephone)
+            : null,
         beneficiaires: _beneficiaires,
       );
 

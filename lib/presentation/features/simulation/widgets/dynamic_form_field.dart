@@ -247,14 +247,20 @@ class _DynamicFormFieldState extends State<DynamicFormField> {
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: widget.valeur?.toString(),
-          hint: Text(
-            'Sélectionnez ${widget.critere.nom.toLowerCase()}',
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              fontWeight: FontWeight.w400,
-              color: widget.enabled 
-                  ? AppColors.textSecondary 
-                  : AppColors.textSecondary.withOpacity(0.5),
+          isExpanded: true,  // Ajoutez cette ligne
+          hint: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 0),
+            child: Text(
+              'Sélectionnez ${widget.critere.nom.toLowerCase()}',
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w400,
+                color: widget.enabled 
+                    ? AppColors.textSecondary 
+                    : AppColors.textSecondary.withOpacity(0.5),
+              ),
+              overflow: TextOverflow.ellipsis,  // Ajoutez cette ligne
+              maxLines: 1,  // Ajoutez cette ligne
             ),
           ),
           icon: Icon(

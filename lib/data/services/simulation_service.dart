@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer' as developer;
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:saarflex_app/data/models/simulation_model.dart';
@@ -37,11 +38,15 @@ class SimulationService {
         payload['informations_assure'] = informationsAssure;
       }
 
+      _logSimulationRequest(url, headers, payload);
+
       final response = await http.post(
         url,
         headers: headers,
         body: json.encode(payload),
       );
+
+      _logSimulationResponse(response);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final responseData = json.decode(response.body);
@@ -54,7 +59,8 @@ class SimulationService {
                 : 'Erreur de simulation (${response.statusCode})';
         throw Exception(errorMessage);
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      _logSimulationError(e, stackTrace, url, payload);
       throw Exception(_getUserFriendlyError(e));
     }
   }
@@ -448,5 +454,43 @@ class SimulationService {
     }
 
     return informationsNettoyees;
+  }
+
+  void _logSimulationRequest(
+    Uri url,
+    Map<String, String> headers,
+    Map<String, dynamic>? payload,
+  ) {
+    // TODO: Retirer les logs quand le diagnostic est terminé.
+    final sanitizedHeaders = Map<String, String>.from(headers);
+    sanitizedHeaders.remove('Authorization');
+
+    developer.log(
+      'Simulation request\nURL: $url\nHeaders: $sanitizedHeaders\nPayload: ${json.encode(payload)}',
+      name: 'SimulationService',
+    );
+  }
+
+  void _logSimulationResponse(http.Response response) {
+    // TODO: Retirer les logs quand le diagnostic est terminé.
+    developer.log(
+      'Simulation response\nStatus: ${response.statusCode}\nBody: ${response.body}',
+      name: 'SimulationService',
+    );
+  }
+
+  void _logSimulationError(
+    Object error,
+    StackTrace stackTrace,
+    Uri? url,
+    Map<String, dynamic>? payload,
+  ) {
+    // TODO: Retirer les logs quand le diagnostic est terminé.
+    developer.log(
+      'Simulation error for $url\nPayload: ${json.encode(payload)}',
+      name: 'SimulationService',
+      error: error,
+      stackTrace: stackTrace,
+    );
   }
 }

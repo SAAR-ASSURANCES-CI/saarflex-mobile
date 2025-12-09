@@ -3,25 +3,31 @@ import 'package:saarflex_app/data/models/beneficiaire_model.dart';
 class SouscriptionRequest {
   final String devisId;
   final String methodePaiement;
-  final String numeroTelephone;
+  final String? numeroTelephone;
   final List<Beneficiaire> beneficiaires;
   final String currency;
 
   SouscriptionRequest({
     required this.devisId,
     required this.methodePaiement,
-    required this.numeroTelephone,
+    this.numeroTelephone,
     required this.beneficiaires,
     this.currency = 'XOF',
   });
 
   Map<String, dynamic> toJson() {
-    return {
+    final json = {
       'methode_paiement': methodePaiement,
-      'numero_telephone': numeroTelephone,
       'currency': currency,
       'beneficiaires': beneficiaires.map((b) => b.toJson()).toList(),
     };
+    
+    // Ajouter numero_telephone seulement s'il est fourni
+    if (numeroTelephone != null && numeroTelephone!.trim().isNotEmpty) {
+      json['numero_telephone'] = numeroTelephone!;
+    }
+    
+    return json;
   }
 }
 
