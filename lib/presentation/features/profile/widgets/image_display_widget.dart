@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:saarflex_app/core/constants/colors.dart';
 import 'package:saarflex_app/core/constants/api_constants.dart';
 import 'package:saarflex_app/core/utils/profile_helpers.dart';
-import 'package:saarflex_app/presentation/features/profile/widgets/image_viewer_dialog.dart';
 
 class ImageDisplayWidget extends StatelessWidget {
   final String label;
@@ -29,75 +28,41 @@ class ImageDisplayWidget extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildImageHeader(context, fullImageUrl),
+          _buildImageHeader(),
           const SizedBox(height: 8),
-          _buildImageContainer(context, fullImageUrl, hasValidImage),
+          _buildImageContainer(fullImageUrl, hasValidImage),
         ],
       ),
     );
   }
 
-  Widget _buildImageHeader(BuildContext context, String fullImageUrl) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Expanded(
-          child: Text(
-            label,
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: AppColors.textSecondary,
-            ),
-          ),
-        ),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              onPressed: () => _showImageDialog(context, fullImageUrl),
-              icon: const Icon(
-                Icons.visibility,
-                size: 20,
-                color: AppColors.primary,
-              ),
-              tooltip: 'Voir en grand',
-            ),
-            IconButton(
-              onPressed: onEdit,
-              icon: const Icon(
-                Icons.edit,
-                size: 20,
-                color: AppColors.secondary,
-              ),
-              tooltip: 'Modifier',
-            ),
-          ],
-        ),
-      ],
+  Widget _buildImageHeader() {
+    return Text(
+      label,
+      style: GoogleFonts.poppins(
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
+        color: AppColors.textSecondary,
+      ),
     );
   }
 
   Widget _buildImageContainer(
-    BuildContext context,
     String fullImageUrl,
     bool hasValidImage,
   ) {
-    return GestureDetector(
-      onTap: () => _showImageDialog(context, fullImageUrl),
-      child: Container(
-        height: 150,
-        width: double.infinity,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.border),
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: hasValidImage
-              ? _buildNetworkImage(fullImageUrl)
-              : _buildPlaceholder(),
-        ),
+    return Container(
+      height: 150,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: hasValidImage
+            ? _buildNetworkImage(fullImageUrl)
+            : _buildPlaceholder(),
       ),
     );
   }
@@ -150,12 +115,4 @@ class ImageDisplayWidget extends StatelessWidget {
     );
   }
 
-  void _showImageDialog(BuildContext context, String imageUrl) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return ImageViewerDialog(imageUrl: imageUrl, label: label);
-      },
-    );
-  }
 }

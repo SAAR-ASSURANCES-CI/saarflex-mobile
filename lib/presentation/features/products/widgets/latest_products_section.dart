@@ -78,8 +78,23 @@ class _LatestProductsSectionState extends State<LatestProductsSection> {
       return const SizedBox.shrink();
     }
 
+    final screenWidth = MediaQuery.of(context).size.width;
+    final textScaleFactor = MediaQuery.of(context).textScaleFactor;
+    final topMargin = screenWidth < 360 ? 16.0 : 20.0;
+    final horizontalPadding = screenWidth < 360 ? 16.0 : 20.0;
+    final topPadding = screenWidth < 360 ? 4.0 : 5.0;
+    final titleFontSize = (20.0 / textScaleFactor).clamp(18.0, 22.0);
+    final spacing1 = screenWidth < 360 ? 8.0 : 10.0;
+    final cardHeight = screenWidth < 360 ? 140.0 : screenWidth < 600 ? 150.0 : 160.0;
+    final spacing2 = screenWidth < 360 ? 12.0 : 16.0;
+    final spacing3 = screenWidth < 360 ? 16.0 : 20.0;
+    final indicatorSpacing = screenWidth < 360 ? 2.5 : 3.0;
+    final indicatorWidth = screenWidth < 360 ? 18.0 : 20.0;
+    final indicatorHeight = screenWidth < 360 ? 6.0 : 8.0;
+    final indicatorInactiveWidth = screenWidth < 360 ? 6.0 : 8.0;
+
     return Container(
-      margin: const EdgeInsets.only(top: 20),
+      margin: EdgeInsets.only(top: topMargin),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
@@ -91,24 +106,26 @@ class _LatestProductsSectionState extends State<LatestProductsSection> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 5, 20, 0),
+            padding: EdgeInsets.fromLTRB(horizontalPadding, topPadding, horizontalPadding, 0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'Derniers produits ajoutés',
                   style: GoogleFonts.poppins(
-                    fontSize: 20,
+                    fontSize: titleFontSize,
                     fontWeight: FontWeight.w700,
                     color: const Color.fromARGB(255, 0, 0, 0),
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: spacing1),
           SizedBox(
-            height: 160,
+            height: cardHeight,
             child: NotificationListener<ScrollNotification>(
               onNotification: (scrollNotification) {
                 if (scrollNotification is ScrollStartNotification) {
@@ -130,12 +147,14 @@ class _LatestProductsSectionState extends State<LatestProductsSection> {
                   final productIndex = index % widget.latestProducts.length;
                   return _buildHorizontalProductCard(
                     widget.latestProducts[productIndex],
+                    screenWidth,
+                    textScaleFactor,
                   );
                 },
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: spacing2),
           if (widget.latestProducts.length > 1)
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -143,9 +162,9 @@ class _LatestProductsSectionState extends State<LatestProductsSection> {
                 widget.latestProducts.length,
                 (index) => AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
-                  margin: const EdgeInsets.symmetric(horizontal: 3),
-                  width: _currentPage == index ? 20 : 8,
-                  height: 8,
+                  margin: EdgeInsets.symmetric(horizontal: indicatorSpacing),
+                  width: _currentPage == index ? indicatorWidth : indicatorInactiveWidth,
+                  height: indicatorHeight,
                   decoration: BoxDecoration(
                     gradient: _currentPage == index
                         ? LinearGradient(
@@ -161,15 +180,28 @@ class _LatestProductsSectionState extends State<LatestProductsSection> {
                 ),
               ),
             ),
-          const SizedBox(height: 20),
+          SizedBox(height: spacing3),
         ],
       ),
     );
   }
 
-  Widget _buildHorizontalProductCard(Product product) {
+  Widget _buildHorizontalProductCard(
+    Product product,
+    double screenWidth,
+    double textScaleFactor,
+  ) {
+    final margin = screenWidth < 360 ? 6.0 : 8.0;
+    final padding = screenWidth < 360 ? 12.0 : 16.0;
+    final nameFontSize = (16.0 / textScaleFactor).clamp(14.0, 18.0);
+    final descFontSize = (12.0 / textScaleFactor).clamp(10.0, 14.0);
+    final spacing1 = screenWidth < 360 ? 6.0 : 8.0;
+    final spacing2 = screenWidth < 360 ? 10.0 : 12.0;
+    final iconPadding = screenWidth < 360 ? 10.0 : 12.0;
+    final iconSize = screenWidth < 360 ? 14.0 : 16.0;
+    
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 8),
+      margin: EdgeInsets.symmetric(horizontal: margin),
       child: Card(
         elevation: 4,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -177,7 +209,7 @@ class _LatestProductsSectionState extends State<LatestProductsSection> {
           borderRadius: BorderRadius.circular(16),
           onTap: () => widget.onProductTap(product),
           child: Container(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(padding),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
               gradient: LinearGradient(
@@ -199,18 +231,18 @@ class _LatestProductsSectionState extends State<LatestProductsSection> {
                       Text(
                         product.nom,
                         style: GoogleFonts.poppins(
-                          fontSize: 16,
+                          fontSize: nameFontSize,
                           fontWeight: FontWeight.w600,
                           color: AppColors.textPrimary,
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 8),
+                      SizedBox(height: spacing1),
                       Text(
                         product.description,
                         style: GoogleFonts.poppins(
-                          fontSize: 12,
+                          fontSize: descFontSize,
                           color: AppColors.textSecondary,
                         ),
                         maxLines: 3,
@@ -219,9 +251,9 @@ class _LatestProductsSectionState extends State<LatestProductsSection> {
                     ],
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: spacing2),
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: EdgeInsets.all(iconPadding),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
@@ -240,7 +272,7 @@ class _LatestProductsSectionState extends State<LatestProductsSection> {
                   child: Icon(
                     Icons.arrow_forward_ios_rounded,
                     color: AppColors.primary,
-                    size: 16,
+                    size: iconSize,
                   ),
                 ),
               ],

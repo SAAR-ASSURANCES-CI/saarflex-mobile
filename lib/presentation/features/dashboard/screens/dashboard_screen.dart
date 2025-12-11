@@ -53,6 +53,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildContent(BuildContext context, AuthViewModel authProvider) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final horizontalPadding = screenWidth < 360
+        ? 16.0
+        : screenWidth < 600
+            ? 24.0
+            : (screenWidth * 0.08).clamp(24.0, 48.0);
+    final verticalPadding = screenWidth < 360 ? 16.0 : 24.0;
+
     return Expanded(
       child: Container(
         decoration: BoxDecoration(
@@ -63,15 +71,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ),
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.symmetric(
+            horizontal: horizontalPadding,
+            vertical: verticalPadding,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 15),
+              SizedBox(height: screenWidth < 360 ? 10 : 15),
               _buildWelcomeSection(authProvider),
-              const SizedBox(height: 32),
+              SizedBox(height: screenWidth < 360 ? 24 : 32),
               _buildStatsCards(),
-              const SizedBox(height: 32),
+              SizedBox(height: screenWidth < 360 ? 24 : 32),
               _buildQuickActionsSection(context),
               const SizedBox(height: 24),
             ],
@@ -109,26 +120,53 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildStatsCards() {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildStatCard(
-            "Contrats Actifs",
-            "0",
-            Icons.description_rounded,
-            AppColors.success,
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: _buildStatCard(
-            "Sinistres",
-            "1",
-            Icons.report_problem_rounded,
-            AppColors.warning,
-          ),
-        ),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isNarrow = constraints.maxWidth < 360;
+        final spacing = isNarrow ? 12.0 : 16.0;
+
+        if (isNarrow) {
+          return Column(
+            children: [
+              _buildStatCard(
+                "Contrats Actifs",
+                "0",
+                Icons.description_rounded,
+                AppColors.success,
+              ),
+              SizedBox(height: spacing),
+              _buildStatCard(
+                "Sinistres",
+                "1",
+                Icons.report_problem_rounded,
+                AppColors.warning,
+              ),
+            ],
+          );
+        }
+
+        return Row(
+          children: [
+            Expanded(
+              child: _buildStatCard(
+                "Contrats Actifs",
+                "0",
+                Icons.description_rounded,
+                AppColors.success,
+              ),
+            ),
+            SizedBox(width: spacing),
+            Expanded(
+              child: _buildStatCard(
+                "Sinistres",
+                "1",
+                Icons.report_problem_rounded,
+                AppColors.warning,
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -200,39 +238,53 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        GridView.count(
-          crossAxisCount: 2,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
-          childAspectRatio: 1.1,
-          children: [
-            _buildActionCard(
-              "Offres Assurance",
-              Icons.shopping_bag_rounded,
-              AppColors.primary,
-              () => _navigateToProducts(),
-            ),
-            _buildActionCard(
-              "Mes Contrats",
-              Icons.description_rounded,
-              AppColors.accent,
-              () => _navigateToContracts(),
-            ),
-            _buildActionCard(
-              "Sinistres",
-              Icons.report_problem_rounded,
-              AppColors.warning,
-              () => _showComingSoon(context),
-            ),
-            _buildActionCard(
-              "Support",
-              Icons.support_agent_rounded,
-              AppColors.success,
-              () => _showComingSoon(context),
-            ),
-          ],
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final width = constraints.maxWidth;
+            final crossAxisCount = width >= 900
+                ? 4
+                : width >= 680
+                    ? 3
+                    : 2;
+            final spacing = width < 360 ? 12.0 : 16.0;
+            final itemWidth = (width - (crossAxisCount - 1) * spacing) / crossAxisCount;
+            final childAspectRatio = width < 360 ? 0.95 : (itemWidth / (itemWidth + 20));
+
+            return GridView.count(
+              crossAxisCount: crossAxisCount,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisSpacing: spacing,
+              mainAxisSpacing: spacing,
+              childAspectRatio: childAspectRatio,
+              children: [
+                _buildActionCard(
+                  "Offres Assurance",
+                  Icons.shopping_bag_rounded,
+                  AppColors.primary,
+                  () => _navigateToProducts(),
+                ),
+                _buildActionCard(
+                  "Mes Contrats",
+                  Icons.description_rounded,
+                  AppColors.accent,
+                  () => _navigateToContracts(),
+                ),
+                _buildActionCard(
+                  "Sinistres",
+                  Icons.report_problem_rounded,
+                  AppColors.warning,
+                  () => _showComingSoon(context),
+                ),
+                _buildActionCard(
+                  "Support",
+                  Icons.support_agent_rounded,
+                  AppColors.success,
+                  () => _showComingSoon(context),
+                ),
+              ],
+            );
+          },
         ),
       ],
     );

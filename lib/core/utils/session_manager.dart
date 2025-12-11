@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:saarflex_app/data/services/auth_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -24,7 +25,10 @@ class SessionManager {
 
   void initialize() {
     if (_hasBeenInitialized) {
-      onAppReload();
+      // Ne pas déconnecter en mode debug (hot reload)
+      if (!kDebugMode) {
+        onAppReload();
+      }
     }
     _hasBeenInitialized = true;
     _setupAppLifecycleListener();
@@ -57,6 +61,10 @@ class SessionManager {
   }
 
   void onAppReload() {
+    // Ne pas déconnecter en mode debug (hot reload)
+    if (kDebugMode) {
+      return;
+    }
     _logoutUser('Application rechargée', LogoutType.reload);
   }
 

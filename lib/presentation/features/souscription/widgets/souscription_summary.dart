@@ -9,22 +9,33 @@ class souscriptionSummary extends StatelessWidget {
   final SimulationResponse? simulationResult;
   final SavedQuote? savedQuote;
   final String source;
+  final double screenWidth;
+  final double textScaleFactor;
 
   const souscriptionSummary({
     super.key,
     this.simulationResult,
     this.savedQuote,
     required this.source,
+    required this.screenWidth,
+    required this.textScaleFactor,
   });
 
   @override
   Widget build(BuildContext context) {
+    final padding = screenWidth < 360 ? 16.0 : 20.0;
+    final titleFontSize = (18.0 / textScaleFactor).clamp(16.0, 20.0);
+    final spacing = screenWidth < 360 ? 12.0 : 16.0;
+    
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(padding),
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.primary, width: 2),
+        border: Border.all(
+          color: AppColors.primary,
+          width: screenWidth < 360 ? 1.5 : 2,
+        ),
         boxShadow: [
           BoxShadow(
             color: AppColors.primary.withOpacity(0.1),
@@ -39,12 +50,12 @@ class souscriptionSummary extends StatelessWidget {
           Text(
             'Récapitulatif',
             style: GoogleFonts.poppins(
-              fontSize: 18,
+              fontSize: titleFontSize,
               fontWeight: FontWeight.w700,
               color: AppColors.primary,
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: spacing),
           _buildSummaryContent(),
         ],
       ),
@@ -100,29 +111,38 @@ class souscriptionSummary extends StatelessWidget {
   }
 
   Widget _buildSummaryRow(String label, String value) {
+    final labelWidth = screenWidth < 360 ? 70.0 : 80.0;
+    final labelFontSize = (14.0 / textScaleFactor).clamp(12.0, 16.0);
+    final valueFontSize = (16.0 / textScaleFactor).clamp(14.0, 18.0);
+    final bottomPadding = screenWidth < 360 ? 10.0 : 12.0;
+    
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: EdgeInsets.only(bottom: bottomPadding),
       child: Row(
         children: [
           SizedBox(
-            width: 80,
+            width: labelWidth,
             child: Text(
               label,
               style: GoogleFonts.poppins(
-                fontSize: 14,
+                fontSize: labelFontSize,
                 fontWeight: FontWeight.w500,
                 color: AppColors.textSecondary,
               ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
           Expanded(
             child: Text(
               value,
               style: GoogleFonts.poppins(
-                fontSize: 16,
+                fontSize: valueFontSize,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textPrimary,
               ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],

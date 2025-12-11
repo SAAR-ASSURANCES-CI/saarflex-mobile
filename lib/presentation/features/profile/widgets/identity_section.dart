@@ -16,6 +16,8 @@ class IdentitySection extends StatelessWidget {
   final Function(DateTime?) onExpirationDateChanged;
   final Function() onDropdownChanged;
   final Function() onDateChanged;
+  final double screenWidth;
+  final double textScaleFactor;
 
   const IdentitySection({
     super.key,
@@ -29,13 +31,19 @@ class IdentitySection extends StatelessWidget {
     required this.onExpirationDateChanged,
     required this.onDropdownChanged,
     required this.onDateChanged,
+    required this.screenWidth,
+    required this.textScaleFactor,
   });
 
   @override
   Widget build(BuildContext context) {
+    final fieldSpacing = screenWidth < 360 ? 16.0 : 20.0;
+    
     return _buildFormSection(
       title: "Pièce d'identité",
       icon: Icons.badge_rounded,
+      screenWidth: screenWidth,
+      textScaleFactor: textScaleFactor,
       children: [
         DropdownFieldWidget(
           value: selectedIdType,
@@ -49,16 +57,20 @@ class IdentitySection extends StatelessWidget {
           },
           originalData: originalData,
           originalKey: 'type_piece_identite',
+          screenWidth: screenWidth,
+          textScaleFactor: textScaleFactor,
         ),
-        const SizedBox(height: 20),
+        SizedBox(height: fieldSpacing),
         FormFieldWidget(
           controller: idNumberController,
           label: 'Numéro de pièce',
           isRequired: true,
           originalData: originalData,
           originalKey: 'numero_piece_identite',
+          screenWidth: screenWidth,
+          textScaleFactor: textScaleFactor,
         ),
-        const SizedBox(height: 20),
+        SizedBox(height: fieldSpacing),
         DateFieldWidget(
           selectedDate: selectedExpirationDate,
           label: 'Date d\'expiration de la pièce',
@@ -71,6 +83,8 @@ class IdentitySection extends StatelessWidget {
           isExpirationDate: true,
           originalData: originalData,
           originalKey: 'date_expiration_piece_identite',
+          screenWidth: screenWidth,
+          textScaleFactor: textScaleFactor,
         ),
       ],
     );
@@ -80,32 +94,44 @@ class IdentitySection extends StatelessWidget {
     required String title,
     required IconData icon,
     required List<Widget> children,
+    required double screenWidth,
+    required double textScaleFactor,
   }) {
+    final iconSize = screenWidth < 360 ? 18.0 : 20.0;
+    final iconPadding = screenWidth < 360 ? 6.0 : 8.0;
+    final iconSpacing = screenWidth < 360 ? 10.0 : 12.0;
+    final titleFontSize = (18.0 / textScaleFactor).clamp(16.0, 20.0);
+    final sectionSpacing = screenWidth < 360 ? 16.0 : 20.0;
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
+              padding: EdgeInsets.all(iconPadding),
               decoration: BoxDecoration(
                 color: AppColors.primary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(icon, color: AppColors.primary, size: 20),
+              child: Icon(icon, color: AppColors.primary, size: iconSize),
             ),
-            const SizedBox(width: 12),
-            Text(
-              title,
-              style: GoogleFonts.poppins(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
+            SizedBox(width: iconSpacing),
+            Expanded(
+              child: Text(
+                title,
+                style: GoogleFonts.poppins(
+                  fontSize: titleFontSize,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],
         ),
-        const SizedBox(height: 20),
+        SizedBox(height: sectionSpacing),
         ...children,
       ],
     );

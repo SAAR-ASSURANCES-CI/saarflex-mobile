@@ -106,6 +106,7 @@ class _SimulationScreenState extends State<SimulationScreen> {
       builder: (context, simulationProvider, child) {
         return Scaffold(
           backgroundColor: AppColors.background,
+          resizeToAvoidBottomInset: true,
           appBar: SimulationAppBar(produit: widget.produit),
           body: simulationProvider.isLoadingCriteres
               ? const SimulationLoadingState()
@@ -124,24 +125,51 @@ class _SimulationScreenState extends State<SimulationScreen> {
   }
 
   Widget _buildFormContent(SimulationViewModel provider) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final textScaleFactor = MediaQuery.of(context).textScaleFactor;
+    
+    // Padding adaptatif
+    final horizontalPadding = screenWidth < 360 
+        ? 16.0 
+        : screenWidth < 600 
+            ? 24.0 
+            : (screenWidth * 0.08).clamp(24.0, 48.0);
+    final verticalPadding = screenHeight < 600 ? 16.0 : 24.0;
+    
+    // Padding bas dynamique pour éviter que le contenu soit caché par le bouton
+    // Hauteur approximative du bouton + padding = ~100px, mais on calcule dynamiquement
+    // Pas de padding supplémentaire quand le clavier est ouvert
+    // Flutter gère automatiquement le scroll avec resizeToAvoidBottomInset
+    final bottomPadding = 120.0; // Espace pour le bouton + marge
+    
+    // Espacements adaptatifs
+    final headerSpacing = screenHeight < 600 ? 24.0 : 32.0;
+    final titleSpacing = screenHeight < 600 ? 20.0 : 24.0;
+    final errorSpacing = screenHeight < 600 ? 12.0 : 16.0;
+    
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.only(
+        left: horizontalPadding,
+        right: horizontalPadding,
+        top: verticalPadding,
+        bottom: bottomPadding,
+      ),
       child: Form(
         key: _formKey,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SimulationProductHeader(produit: widget.produit),
-            const SizedBox(height: 32),
+            SizedBox(height: headerSpacing),
             const SimulationFormTitle(),
-            const SizedBox(height: 24),
+            SizedBox(height: titleSpacing),
             ..._buildFormFields(provider),
 
             if (provider.hasError) ...[
-              const SizedBox(height: 16),
-              _buildFormError(provider.errorMessage!),
+              SizedBox(height: errorSpacing),
+              _buildFormError(provider.errorMessage!, screenWidth, textScaleFactor),
             ],
-            const SizedBox(height: 100),
           ],
         ),
       ),
@@ -178,9 +206,14 @@ class _SimulationScreenState extends State<SimulationScreen> {
     }).toList();
   }
 
-  Widget _buildFormError(String error) {
+  Widget _buildFormError(String error, double screenWidth, double textScaleFactor) {
+    final padding = screenWidth < 360 ? 12.0 : 16.0;
+    final iconSize = screenWidth < 360 ? 18.0 : 20.0;
+    final fontSize = (14.0 / textScaleFactor).clamp(12.0, 16.0);
+    final iconSpacing = screenWidth < 360 ? 10.0 : 12.0;
+    
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(padding),
       decoration: BoxDecoration(
         color: AppColors.error.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
@@ -188,13 +221,17 @@ class _SimulationScreenState extends State<SimulationScreen> {
       ),
       child: Row(
         children: [
-          Icon(Icons.error_outline_rounded, color: AppColors.error, size: 20),
-          const SizedBox(width: 12),
+          Icon(
+            Icons.error_outline_rounded, 
+            color: AppColors.error, 
+            size: iconSize,
+          ),
+          SizedBox(width: iconSpacing),
           Expanded(
             child: Text(
               error,
-              style: const TextStyle(
-                fontSize: 14,
+              style: TextStyle(
+                fontSize: fontSize,
                 fontWeight: FontWeight.w500,
                 color: AppColors.error,
               ),

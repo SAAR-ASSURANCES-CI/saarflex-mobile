@@ -57,22 +57,48 @@ class _InfoAssureScreenState extends State<InfoAssureScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    
+    // Padding adaptatif
+    final horizontalPadding = screenWidth < 360 
+        ? 16.0 
+        : screenWidth < 600 
+            ? 24.0 
+            : (screenWidth * 0.08).clamp(24.0, 48.0);
+    final verticalPadding = screenHeight < 600 ? 16.0 : 24.0;
+    // Padding bas : pas de padding supplémentaire quand le clavier est ouvert
+    // Flutter gère automatiquement le scroll avec resizeToAvoidBottomInset
+    final bottomPadding = 24.0;
+    
+    // Espacements adaptatifs
+    final topSpacing = screenHeight < 600 ? 10.0 : 16.0;
+    final headerSpacing = screenHeight < 600 ? 24.0 : 32.0;
+    final sectionSpacing = screenHeight < 600 ? 24.0 : 32.0;
+    final bottomSpacing = screenHeight < 600 ? 24.0 : 32.0;
+    
     return Scaffold(
       backgroundColor: AppColors.background,
+      resizeToAvoidBottomInset: true,
       appBar: const InfoAssureAppBar(),
       body: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.only(
+          left: horizontalPadding,
+          right: horizontalPadding,
+          top: verticalPadding,
+          bottom: bottomPadding,
+        ),
         child: Form(
           key: _formKey,
           autovalidateMode: _autovalidateMode,
           child: SingleChildScrollView(
             child: Column(
               children: [
-                const SizedBox(height: 16),
+                SizedBox(height: topSpacing),
                 InfoAssureHeader(produit: widget.produit),
-                const SizedBox(height: 32),
-                _buildFormFields(),
-                const SizedBox(height: 32),
+                SizedBox(height: headerSpacing),
+                _buildFormFields(screenHeight),
+                SizedBox(height: sectionSpacing),
                 Consumer<SimulationViewModel>(
                   builder: (context, simulationViewModel, child) {
                     return IdentityImagesSection(
@@ -88,9 +114,9 @@ class _InfoAssureScreenState extends State<InfoAssureScreen> {
                     );
                   },
                 ),
-                const SizedBox(height: 32),
+                SizedBox(height: sectionSpacing),
                 ContinueButton(isEnabled: _isFormValid, onPressed: _continue),
-                const SizedBox(height: 32),
+                SizedBox(height: bottomSpacing),
               ],
             ),
           ),
@@ -99,7 +125,9 @@ class _InfoAssureScreenState extends State<InfoAssureScreen> {
     );
   }
 
-  Widget _buildFormFields() {
+  Widget _buildFormFields(double screenHeight) {
+    final fieldSpacing = screenHeight < 600 ? 16.0 : 20.0;
+    
     return Column(
       children: [
         CustomTextField(
@@ -110,7 +138,7 @@ class _InfoAssureScreenState extends State<InfoAssureScreen> {
           validator: _validateRequired,
           onChanged: (value) => _updateFormData('nom_complet', value),
         ),
-        const SizedBox(height: 20),
+        SizedBox(height: fieldSpacing),
         CustomDateField(
           fieldName: 'date_naissance',
           label: 'Date de naissance',
@@ -118,7 +146,7 @@ class _InfoAssureScreenState extends State<InfoAssureScreen> {
           validator: _validateRequired,
           onChanged: (date) => _updateFormData('date_naissance', date),
         ),
-        const SizedBox(height: 20),
+        SizedBox(height: fieldSpacing),
         CustomDropdownField(
           fieldName: 'type_piece_identite',
           label: 'Type de pièce',
@@ -127,7 +155,7 @@ class _InfoAssureScreenState extends State<InfoAssureScreen> {
           validator: _validateRequired,
           onChanged: (value) => _updateFormData('type_piece_identite', value),
         ),
-        const SizedBox(height: 20),
+        SizedBox(height: fieldSpacing),
         CustomTextField(
           fieldName: 'numero_piece_identite',
           label: 'Numéro de pièce',
@@ -136,7 +164,7 @@ class _InfoAssureScreenState extends State<InfoAssureScreen> {
           validator: _validateRequired,
           onChanged: (value) => _updateFormData('numero_piece_identite', value),
         ),
-        const SizedBox(height: 20),
+        SizedBox(height: fieldSpacing),
         CustomTextField(
           fieldName: 'telephone',
           label: 'Téléphone',
@@ -146,7 +174,7 @@ class _InfoAssureScreenState extends State<InfoAssureScreen> {
           validator: _validateRequired,
           onChanged: (value) => _updateFormData('telephone', value),
         ),
-        const SizedBox(height: 20),
+        SizedBox(height: fieldSpacing),
         CustomTextField(
           fieldName: 'adresse',
           label: 'Adresse',
@@ -155,7 +183,7 @@ class _InfoAssureScreenState extends State<InfoAssureScreen> {
           validator: _validateRequired,
           onChanged: (value) => _updateFormData('adresse', value),
         ),
-        const SizedBox(height: 20),
+        SizedBox(height: fieldSpacing),
         CustomTextField(
           fieldName: 'email',
           label: 'Email',

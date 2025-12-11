@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:saarflex_app/core/utils/session_manager.dart';
@@ -69,7 +70,10 @@ class _AppLifecycleWrapperState extends State<AppLifecycleWrapper>
   @override
   void reassemble() {
     super.reassemble();
-    _sessionManager.onAppReload();
+    // Ne pas déconnecter lors du hot reload en mode debug
+    if (!kDebugMode) {
+      _sessionManager.onAppReload();
+    }
   }
 
   @override

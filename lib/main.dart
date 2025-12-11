@@ -83,7 +83,7 @@ class Saarflex extends StatelessWidget {
 
           theme: ThemeData(
             primarySwatch: Colors.blue,
-            primaryColor: AppColors.primary,
+            primaryColor: AppColors.primary, 
             fontFamily: GoogleFonts.poppins().fontFamily,
             colorScheme: ColorScheme.light(
               primary: AppColors.primary,

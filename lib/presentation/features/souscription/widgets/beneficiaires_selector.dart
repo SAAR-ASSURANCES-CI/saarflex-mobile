@@ -10,11 +10,15 @@ class BeneficiairesSelector extends StatefulWidget {
   final String? errorText;
   final int maxBeneficiaires;
   final bool necessiteBeneficiaires;
+  final double screenWidth;
+  final double textScaleFactor;
 
   const BeneficiairesSelector({
     super.key,
     required this.beneficiaires,
     required this.onBeneficiairesChanged,
+    required this.screenWidth,
+    required this.textScaleFactor,
     this.hasError = false,
     this.errorText,
     this.maxBeneficiaires = 3,
@@ -49,31 +53,46 @@ class _BeneficiairesSelectorState extends State<BeneficiairesSelector> {
 
   @override
   Widget build(BuildContext context) {
+    final titleFontSize = (16.0 / widget.textScaleFactor).clamp(14.0, 18.0);
+    final descriptionFontSize = (14.0 / widget.textScaleFactor).clamp(12.0, 16.0);
+    final badgeFontSize = (12.0 / widget.textScaleFactor).clamp(10.0, 14.0);
+    final errorFontSize = (12.0 / widget.textScaleFactor).clamp(10.0, 14.0);
+    final spacing1 = widget.screenWidth < 360 ? 6.0 : 8.0;
+    final spacing2 = widget.screenWidth < 360 ? 12.0 : 16.0;
+    final spacing3 = widget.screenWidth < 360 ? 6.0 : 8.0;
+    final badgePaddingH = widget.screenWidth < 360 ? 6.0 : 8.0;
+    final badgePaddingV = widget.screenWidth < 360 ? 3.0 : 4.0;
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Bénéficiaires',
           style: GoogleFonts.poppins(
-            fontSize: 16,
+            fontSize: titleFontSize,
             fontWeight: FontWeight.w600,
             color: AppColors.textPrimary,
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: spacing1),
         Row(
           children: [
             Expanded(
               child: Text(
                 'Ajoutez ou modifiez les informations des bénéficiaires',
                 style: GoogleFonts.poppins(
-                  fontSize: 14,
+                  fontSize: descriptionFontSize,
                   color: AppColors.textSecondary,
                 ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: EdgeInsets.symmetric(
+                horizontal: badgePaddingH,
+                vertical: badgePaddingV,
+              ),
               decoration: BoxDecoration(
                 color: widget.beneficiaires.length >= widget.maxBeneficiaires
                     ? AppColors.error.withOpacity(0.1)
@@ -89,7 +108,7 @@ class _BeneficiairesSelectorState extends State<BeneficiairesSelector> {
               child: Text(
                 '${widget.beneficiaires.length}/${widget.maxBeneficiaires}',
                 style: GoogleFonts.poppins(
-                  fontSize: 12,
+                  fontSize: badgeFontSize,
                   fontWeight: FontWeight.w600,
                   color: widget.beneficiaires.length >= widget.maxBeneficiaires
                       ? AppColors.error
@@ -99,7 +118,7 @@ class _BeneficiairesSelectorState extends State<BeneficiairesSelector> {
             ),
           ],
         ),
-        const SizedBox(height: 16),
+        SizedBox(height: spacing2),
 
         ...widget.beneficiaires.asMap().entries.map((entry) {
           final index = entry.key;
@@ -113,10 +132,15 @@ class _BeneficiairesSelectorState extends State<BeneficiairesSelector> {
           _buildLimitReachedMessage(),
 
         if (widget.hasError && widget.errorText != null) ...[
-          const SizedBox(height: 8),
+          SizedBox(height: spacing3),
           Text(
             widget.errorText!,
-            style: GoogleFonts.poppins(fontSize: 12, color: AppColors.error),
+            style: GoogleFonts.poppins(
+              fontSize: errorFontSize,
+              color: AppColors.error,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ],
@@ -124,9 +148,19 @@ class _BeneficiairesSelectorState extends State<BeneficiairesSelector> {
   }
 
   Widget _buildBeneficiaireCard(Beneficiaire beneficiaire, int index) {
+    final cardMargin = widget.screenWidth < 360 ? 10.0 : 12.0;
+    final cardPadding = widget.screenWidth < 360 ? 12.0 : 16.0;
+    final badgeSize = widget.screenWidth < 360 ? 28.0 : 32.0;
+    final badgeFontSize = (14.0 / widget.textScaleFactor).clamp(12.0, 16.0);
+    final nameFontSize = (16.0 / widget.textScaleFactor).clamp(14.0, 18.0);
+    final linkFontSize = (14.0 / widget.textScaleFactor).clamp(12.0, 16.0);
+    final spacing1 = widget.screenWidth < 360 ? 12.0 : 16.0;
+    final spacing2 = widget.screenWidth < 360 ? 3.0 : 4.0;
+    final iconSize = widget.screenWidth < 360 ? 18.0 : 20.0;
+    
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
+      margin: EdgeInsets.only(bottom: cardMargin),
+      padding: EdgeInsets.all(cardPadding),
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(12),
@@ -142,24 +176,24 @@ class _BeneficiairesSelectorState extends State<BeneficiairesSelector> {
       child: Row(
         children: [
           Container(
-            width: 32,
-            height: 32,
+            width: badgeSize,
+            height: badgeSize,
             decoration: BoxDecoration(
               color: AppColors.primary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(badgeSize / 2),
             ),
             child: Center(
               child: Text(
                 beneficiaire.ordre.toString(),
                 style: GoogleFonts.poppins(
-                  fontSize: 14,
+                  fontSize: badgeFontSize,
                   fontWeight: FontWeight.w600,
                   color: AppColors.primary,
                 ),
               ),
             ),
           ),
-          const SizedBox(width: 16),
+          SizedBox(width: spacing1),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -167,18 +201,22 @@ class _BeneficiairesSelectorState extends State<BeneficiairesSelector> {
                 Text(
                   beneficiaire.nomComplet,
                   style: GoogleFonts.poppins(
-                    fontSize: 16,
+                    fontSize: nameFontSize,
                     fontWeight: FontWeight.w600,
                     color: AppColors.textPrimary,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: spacing2),
                 Text(
                   beneficiaire.lienSouscripteur,
                   style: GoogleFonts.poppins(
-                    fontSize: 14,
+                    fontSize: linkFontSize,
                     color: AppColors.textSecondary,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
@@ -188,19 +226,23 @@ class _BeneficiairesSelectorState extends State<BeneficiairesSelector> {
             children: [
               IconButton(
                 onPressed: () => _editBeneficiaire(index),
-                icon: const Icon(
+                icon: Icon(
                   Icons.edit,
                   color: AppColors.primary,
-                  size: 20,
+                  size: iconSize,
                 ),
+                padding: EdgeInsets.all(widget.screenWidth < 360 ? 6.0 : 8.0),
+                constraints: const BoxConstraints(),
               ),
               IconButton(
                 onPressed: () => _removeBeneficiaire(index),
-                icon: const Icon(
+                icon: Icon(
                   Icons.delete,
                   color: AppColors.error,
-                  size: 20,
+                  size: iconSize,
                 ),
+                padding: EdgeInsets.all(widget.screenWidth < 360 ? 6.0 : 8.0),
+                constraints: const BoxConstraints(),
               ),
             ],
           ),
@@ -219,6 +261,16 @@ class _BeneficiairesSelectorState extends State<BeneficiairesSelector> {
   }
 
   void _showEditDialog(int index) {
+    final dialogPadding = widget.screenWidth < 360 ? 16.0 : 24.0;
+    final iconSize = widget.screenWidth < 360 ? 20.0 : 24.0;
+    final iconPadding = widget.screenWidth < 360 ? 10.0 : 12.0;
+    final titleFontSize = (20.0 / widget.textScaleFactor).clamp(18.0, 22.0);
+    final buttonFontSize = (16.0 / widget.textScaleFactor).clamp(14.0, 18.0);
+    final spacing1 = widget.screenWidth < 360 ? 12.0 : 16.0;
+    final spacing2 = widget.screenWidth < 360 ? 20.0 : 24.0;
+    final buttonSpacing = widget.screenWidth < 360 ? 12.0 : 16.0;
+    final buttonPadding = widget.screenWidth < 360 ? 14.0 : 16.0;
+    
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -226,7 +278,7 @@ class _BeneficiairesSelectorState extends State<BeneficiairesSelector> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         elevation: 10,
         child: Container(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(dialogPadding),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
             color: AppColors.white,
@@ -238,42 +290,47 @@ class _BeneficiairesSelectorState extends State<BeneficiairesSelector> {
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(12),
+                    padding: EdgeInsets.all(iconPadding),
                     decoration: BoxDecoration(
                       color: AppColors.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.edit,
                       color: AppColors.primary,
-                      size: 24,
+                      size: iconSize,
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  SizedBox(width: spacing1),
                   Expanded(
                     child: Text(
                       'Modifier le bénéficiaire',
                       style: GoogleFonts.poppins(
-                        fontSize: 20,
+                        fontSize: titleFontSize,
                         fontWeight: FontWeight.w700,
                         color: AppColors.textPrimary,
                       ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                   IconButton(
                     onPressed: () => Navigator.pop(context),
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.close,
                       color: AppColors.textSecondary,
+                      size: iconSize,
                     ),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: spacing2),
 
               _buildBeneficiaireForm(),
 
-              const SizedBox(height: 24),
+              SizedBox(height: spacing2),
 
               Row(
                 children: [
@@ -285,19 +342,19 @@ class _BeneficiairesSelectorState extends State<BeneficiairesSelector> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        padding: EdgeInsets.symmetric(vertical: buttonPadding),
                       ),
                       child: Text(
                         'Annuler',
                         style: GoogleFonts.poppins(
-                          fontSize: 16,
+                          fontSize: buttonFontSize,
                           fontWeight: FontWeight.w600,
                           color: AppColors.textSecondary,
                         ),
                       ),
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  SizedBox(width: buttonSpacing),
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () => _updateBeneficiaire(index),
@@ -307,13 +364,13 @@ class _BeneficiairesSelectorState extends State<BeneficiairesSelector> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        padding: EdgeInsets.symmetric(vertical: buttonPadding),
                         elevation: 0,
                       ),
                       child: Text(
                         'Modifier',
                         style: GoogleFonts.poppins(
-                          fontSize: 16,
+                          fontSize: buttonFontSize,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -329,9 +386,18 @@ class _BeneficiairesSelectorState extends State<BeneficiairesSelector> {
   }
 
   Widget _buildAddBeneficiaireForm() {
+    final marginTop = widget.screenWidth < 360 ? 12.0 : 16.0;
+    final padding = widget.screenWidth < 360 ? 12.0 : 16.0;
+    final iconSize = widget.screenWidth < 360 ? 18.0 : 20.0;
+    final titleFontSize = (16.0 / widget.textScaleFactor).clamp(14.0, 18.0);
+    final buttonFontSize = (16.0 / widget.textScaleFactor).clamp(14.0, 18.0);
+    final spacing1 = widget.screenWidth < 360 ? 6.0 : 8.0;
+    final spacing2 = widget.screenWidth < 360 ? 12.0 : 16.0;
+    final buttonPadding = widget.screenWidth < 360 ? 14.0 : 16.0;
+    
     return Container(
-      margin: const EdgeInsets.only(top: 16),
-      padding: const EdgeInsets.all(16),
+      margin: EdgeInsets.only(top: marginTop),
+      padding: EdgeInsets.all(padding),
       decoration: BoxDecoration(
         color: AppColors.background,
         borderRadius: BorderRadius.circular(12),
@@ -342,21 +408,25 @@ class _BeneficiairesSelectorState extends State<BeneficiairesSelector> {
         children: [
           Row(
             children: [
-              Icon(Icons.person_add, color: AppColors.primary, size: 20),
-              const SizedBox(width: 8),
-              Text(
-                'Ajouter un bénéficiaire',
-                style: GoogleFonts.poppins(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
+              Icon(Icons.person_add, color: AppColors.primary, size: iconSize),
+              SizedBox(width: spacing1),
+              Expanded(
+                child: Text(
+                  'Ajouter un bénéficiaire',
+                  style: GoogleFonts.poppins(
+                    fontSize: titleFontSize,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: spacing2),
           _buildBeneficiaireForm(),
-          const SizedBox(height: 16),
+          SizedBox(height: spacing2),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
@@ -364,9 +434,12 @@ class _BeneficiairesSelectorState extends State<BeneficiairesSelector> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: AppColors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
+                padding: EdgeInsets.symmetric(vertical: buttonPadding),
               ),
-              child: const Text('Ajouter'),
+              child: Text(
+                'Ajouter',
+                style: GoogleFonts.poppins(fontSize: buttonFontSize),
+              ),
             ),
           ),
         ],
@@ -375,12 +448,20 @@ class _BeneficiairesSelectorState extends State<BeneficiairesSelector> {
   }
 
   Widget _buildBeneficiaireForm() {
+    final inputFontSize = (16.0 / widget.textScaleFactor).clamp(14.0, 18.0);
+    final labelFontSize = (14.0 / widget.textScaleFactor).clamp(12.0, 16.0);
+    final hintFontSize = (14.0 / widget.textScaleFactor).clamp(12.0, 16.0);
+    final iconSize = widget.screenWidth < 360 ? 20.0 : 24.0;
+    final horizontalPadding = widget.screenWidth < 360 ? 12.0 : 16.0;
+    final verticalPadding = widget.screenWidth < 360 ? 14.0 : 16.0;
+    final spacing = widget.screenWidth < 360 ? 16.0 : 20.0;
+    
     return Column(
       children: [
         TextFormField(
           controller: _nomController,
           style: GoogleFonts.poppins(
-            fontSize: 16,
+            fontSize: inputFontSize,
             fontWeight: FontWeight.w500,
             color: AppColors.textPrimary,
           ),
@@ -388,14 +469,14 @@ class _BeneficiairesSelectorState extends State<BeneficiairesSelector> {
             labelText: 'Nom complet',
             hintText: 'Ex: Marie Dupont',
             hintStyle: GoogleFonts.poppins(
-              fontSize: 14,
+              fontSize: hintFontSize,
               color: AppColors.textSecondary.withOpacity(0.7),
             ),
             labelStyle: GoogleFonts.poppins(
-              fontSize: 14,
+              fontSize: labelFontSize,
               color: AppColors.textSecondary,
             ),
-            prefixIcon: const Icon(Icons.person, color: AppColors.primary),
+            prefixIcon: Icon(Icons.person, color: AppColors.primary, size: iconSize),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(color: AppColors.border),
@@ -410,32 +491,33 @@ class _BeneficiairesSelectorState extends State<BeneficiairesSelector> {
             ),
             filled: true,
             fillColor: AppColors.white,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 16,
+            contentPadding: EdgeInsets.symmetric(
+              horizontal: horizontalPadding,
+              vertical: verticalPadding,
             ),
           ),
         ),
-        const SizedBox(height: 20),
+        SizedBox(height: spacing),
 
         DropdownButtonFormField<String>(
           value: _liensDisponibles.contains(_selectedLien)
               ? _selectedLien
               : null,
           style: GoogleFonts.poppins(
-            fontSize: 16,
+            fontSize: inputFontSize,
             fontWeight: FontWeight.w500,
             color: AppColors.textPrimary,
           ),
           decoration: InputDecoration(
             labelText: 'Lien avec le souscripteur',
             labelStyle: GoogleFonts.poppins(
-              fontSize: 14,
+              fontSize: labelFontSize,
               color: AppColors.textSecondary,
             ),
-            prefixIcon: const Icon(
+            prefixIcon: Icon(
               Icons.family_restroom,
               color: AppColors.primary,
+              size: iconSize,
             ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -451,9 +533,9 @@ class _BeneficiairesSelectorState extends State<BeneficiairesSelector> {
             ),
             filled: true,
             fillColor: AppColors.white,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 16,
+            contentPadding: EdgeInsets.symmetric(
+              horizontal: horizontalPadding,
+              vertical: verticalPadding,
             ),
           ),
           items: [
@@ -463,7 +545,7 @@ class _BeneficiairesSelectorState extends State<BeneficiairesSelector> {
                 child: Text(
                   lien,
                   style: GoogleFonts.poppins(
-                    fontSize: 16,
+                    fontSize: inputFontSize,
                     fontWeight: FontWeight.w500,
                     color: AppColors.textPrimary,
                   ),
@@ -478,7 +560,7 @@ class _BeneficiairesSelectorState extends State<BeneficiairesSelector> {
                 child: Text(
                   _selectedLien!,
                   style: GoogleFonts.poppins(
-                    fontSize: 16,
+                    fontSize: inputFontSize,
                     fontWeight: FontWeight.w500,
                     color: AppColors.textPrimary,
                   ),
@@ -493,11 +575,11 @@ class _BeneficiairesSelectorState extends State<BeneficiairesSelector> {
         ),
 
         if (_selectedLien == 'Autre') ...[
-          const SizedBox(height: 20),
+          SizedBox(height: spacing),
           TextFormField(
             controller: _lienController,
             style: GoogleFonts.poppins(
-              fontSize: 16,
+              fontSize: inputFontSize,
               fontWeight: FontWeight.w500,
               color: AppColors.textPrimary,
             ),
@@ -505,14 +587,14 @@ class _BeneficiairesSelectorState extends State<BeneficiairesSelector> {
               labelText: 'Précisez le lien',
               hintText: 'Ex: Cousin, Ami, etc.',
               hintStyle: GoogleFonts.poppins(
-                fontSize: 14,
+                fontSize: hintFontSize,
                 color: AppColors.textSecondary.withOpacity(0.7),
               ),
               labelStyle: GoogleFonts.poppins(
-                fontSize: 14,
+                fontSize: labelFontSize,
                 color: AppColors.textSecondary,
               ),
-              prefixIcon: const Icon(Icons.edit, color: AppColors.primary),
+              prefixIcon: Icon(Icons.edit, color: AppColors.primary, size: iconSize),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide(color: AppColors.border),
@@ -530,9 +612,9 @@ class _BeneficiairesSelectorState extends State<BeneficiairesSelector> {
               ),
               filled: true,
               fillColor: AppColors.white,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 16,
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: horizontalPadding,
+                vertical: verticalPadding,
               ),
             ),
           ),
@@ -703,9 +785,15 @@ class _BeneficiairesSelectorState extends State<BeneficiairesSelector> {
   }
 
   Widget _buildLimitReachedMessage() {
+    final marginTop = widget.screenWidth < 360 ? 12.0 : 16.0;
+    final padding = widget.screenWidth < 360 ? 12.0 : 16.0;
+    final iconSize = widget.screenWidth < 360 ? 18.0 : 20.0;
+    final fontSize = (14.0 / widget.textScaleFactor).clamp(12.0, 16.0);
+    final spacing = widget.screenWidth < 360 ? 10.0 : 12.0;
+    
     return Container(
-      margin: const EdgeInsets.only(top: 16),
-      padding: const EdgeInsets.all(16),
+      margin: EdgeInsets.only(top: marginTop),
+      padding: EdgeInsets.all(padding),
       decoration: BoxDecoration(
         color: AppColors.background,
         borderRadius: BorderRadius.circular(12),
@@ -713,15 +801,17 @@ class _BeneficiairesSelectorState extends State<BeneficiairesSelector> {
       ),
       child: Row(
         children: [
-          Icon(Icons.info_outline, color: AppColors.primary, size: 20),
-          const SizedBox(width: 12),
+          Icon(Icons.info_outline, color: AppColors.primary, size: iconSize),
+          SizedBox(width: spacing),
           Expanded(
             child: Text(
               'Limite de ${widget.maxBeneficiaires} bénéficiaire(s) atteinte. Vous pouvez modifier ou supprimer les bénéficiaires existants.',
               style: GoogleFonts.poppins(
-                fontSize: 14,
+                fontSize: fontSize,
                 color: AppColors.textSecondary,
               ),
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],

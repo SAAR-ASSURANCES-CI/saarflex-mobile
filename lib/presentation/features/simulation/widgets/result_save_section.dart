@@ -9,11 +9,15 @@ import 'package:saarflex_app/presentation/features/simulation/viewmodels/simulat
 class ResultSaveSection extends StatefulWidget {
   final SimulationResponse resultat;
   final SimulationResultViewModel viewModel;
+  final double screenWidth;
+  final double textScaleFactor;
 
   const ResultSaveSection({
     super.key,
     required this.resultat,
     required this.viewModel,
+    required this.screenWidth,
+    required this.textScaleFactor,
   });
 
   @override
@@ -44,8 +48,13 @@ class _ResultSaveSectionState extends State<ResultSaveSection> {
   }
 
   Widget _buildAlreadySavedCard() {
+    final padding = widget.screenWidth < 360 ? 16.0 : 20.0;
+    final iconSize = widget.screenWidth < 360 ? 20.0 : 24.0;
+    final fontSize = (14.0 / widget.textScaleFactor).clamp(12.0, 16.0);
+    final spacing = widget.screenWidth < 360 ? 10.0 : 12.0;
+    
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(padding),
       decoration: BoxDecoration(
         color: AppColors.success.withOpacity(0.1),
         borderRadius: BorderRadius.circular(16),
@@ -53,16 +62,18 @@ class _ResultSaveSectionState extends State<ResultSaveSection> {
       ),
       child: Row(
         children: [
-          Icon(Icons.check_circle, color: AppColors.success, size: 24),
-          const SizedBox(width: 12),
+          Icon(Icons.check_circle, color: AppColors.success, size: iconSize),
+          SizedBox(width: spacing),
           Expanded(
             child: Text(
               'Ce devis a déjà été sauvegardé dans vos contrats',
               style: GoogleFonts.poppins(
-                fontSize: 14,
+                fontSize: fontSize,
                 color: AppColors.success,
                 fontWeight: FontWeight.w500,
               ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
@@ -71,8 +82,12 @@ class _ResultSaveSectionState extends State<ResultSaveSection> {
   }
 
   Widget _buildSaveForm() {
+    final padding = widget.screenWidth < 360 ? 16.0 : 20.0;
+    final titleFontSize = (16.0 / widget.textScaleFactor).clamp(14.0, 18.0);
+    final spacing = widget.screenWidth < 360 ? 12.0 : 16.0;
+    
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(padding),
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(16),
@@ -91,21 +106,21 @@ class _ResultSaveSectionState extends State<ResultSaveSection> {
           Text(
             'Sauvegarder ce devis',
             style: GoogleFonts.poppins(
-              fontSize: 16,
+              fontSize: titleFontSize,
               fontWeight: FontWeight.w600,
               color: AppColors.textPrimary,
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: spacing),
 
           if (!widget.resultat.assureEstSouscripteur &&
               widget.resultat.informationsAssure != null) ...[
             _buildAssureWarning(),
-            const SizedBox(height: 16),
+            SizedBox(height: spacing),
           ],
 
           _buildNomField(),
-          const SizedBox(height: 16),
+          SizedBox(height: spacing),
           _buildNotesField(),
         
         ],
@@ -116,23 +131,27 @@ class _ResultSaveSectionState extends State<ResultSaveSection> {
   Widget _buildNomField() {
     final hasError =
         widget.viewModel.getValidationError('nom_personnalise') != null;
+    final fontSize = (16.0 / widget.textScaleFactor).clamp(14.0, 18.0);
+    final horizontalPadding = widget.screenWidth < 360 ? 12.0 : 16.0;
+    final verticalPadding = widget.screenWidth < 360 ? 14.0 : 16.0;
 
     return TextFormField(
       controller: _nomController,
+      style: GoogleFonts.poppins(fontSize: fontSize),
       decoration: InputDecoration(
         label: RichText(
           text: TextSpan(
             text: 'Nom du devis ',
             style: GoogleFonts.poppins(
               color: AppColors.textPrimary,
-              fontSize: 16,
+              fontSize: fontSize,
             ),
             children: [
               TextSpan(
                 text: '*',
                 style: GoogleFonts.poppins(
                   color: Colors.red,
-                  fontSize: 16,
+                  fontSize: fontSize,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -140,6 +159,7 @@ class _ResultSaveSectionState extends State<ResultSaveSection> {
           ),
         ),
         hintText: 'Ex: Devis voiture familiale',
+        hintStyle: GoogleFonts.poppins(fontSize: fontSize),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(
@@ -159,17 +179,29 @@ class _ResultSaveSectionState extends State<ResultSaveSection> {
           ),
         ),
         errorText: widget.viewModel.getValidationError('nom_personnalise'),
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: horizontalPadding,
+          vertical: verticalPadding,
+        ),
       ),
     );
   }
 
   Widget _buildNotesField() {
+    final fontSize = (16.0 / widget.textScaleFactor).clamp(14.0, 18.0);
+    final labelFontSize = (16.0 / widget.textScaleFactor).clamp(14.0, 18.0);
+    final horizontalPadding = widget.screenWidth < 360 ? 12.0 : 16.0;
+    final verticalPadding = widget.screenWidth < 360 ? 14.0 : 16.0;
+
     return TextFormField(
       controller: _notesController,
       maxLines: 3,
+      style: GoogleFonts.poppins(fontSize: fontSize),
       decoration: InputDecoration(
         labelText: 'Notes personnelles (optionnel)',
+        labelStyle: GoogleFonts.poppins(fontSize: labelFontSize),
         hintText: 'Ajoutez vos commentaires...',
+        hintStyle: GoogleFonts.poppins(fontSize: fontSize),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -178,6 +210,10 @@ class _ResultSaveSectionState extends State<ResultSaveSection> {
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: AppColors.primary),
+        ),
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: horizontalPadding,
+          vertical: verticalPadding,
         ),
       ),
     );
@@ -211,8 +247,13 @@ class _ResultSaveSectionState extends State<ResultSaveSection> {
   }
 
   Widget _buildAssureWarning() {
+    final padding = widget.screenWidth < 360 ? 12.0 : 16.0;
+    final iconSize = widget.screenWidth < 360 ? 18.0 : 20.0;
+    final fontSize = (13.0 / widget.textScaleFactor).clamp(11.0, 15.0);
+    final spacing = widget.screenWidth < 360 ? 10.0 : 12.0;
+    
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(padding),
       decoration: BoxDecoration(
         color: AppColors.warning.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
@@ -220,16 +261,18 @@ class _ResultSaveSectionState extends State<ResultSaveSection> {
       ),
       child: Row(
         children: [
-          Icon(Icons.info_outline, color: AppColors.warning, size: 20),
-          const SizedBox(width: 12),
+          Icon(Icons.info_outline, color: AppColors.warning, size: iconSize),
+          SizedBox(width: spacing),
           Expanded(
             child: Text(
               'Vous simulez pour une autre personne. Vérifiez les informations de l\'assuré ci-dessus avant de sauvegarder.',
               style: GoogleFonts.poppins(
-                fontSize: 13,
+                fontSize: fontSize,
                 fontWeight: FontWeight.w500,
                 color: AppColors.warning,
               ),
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],

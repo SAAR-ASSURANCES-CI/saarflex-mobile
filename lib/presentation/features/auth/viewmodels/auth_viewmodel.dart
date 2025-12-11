@@ -47,9 +47,13 @@ class AuthViewModel extends ChangeNotifier {
     final existingTimestamp = prefs.getString(_initTimestampKey);
     final currentTimestamp = DateTime.now().toIso8601String();
     
+    // Ne pas forcer la déconnexion en mode debug (hot reload)
     if (_hasInitialized && existingTimestamp != null) {
-      await _forceLogoutForReload();
-      return;
+      if (!kDebugMode) {
+        await _forceLogoutForReload();
+        return;
+      }
+      // En mode debug, on continue normalement sans déconnecter
     }
     
     await prefs.setString(_initTimestampKey, currentTimestamp);

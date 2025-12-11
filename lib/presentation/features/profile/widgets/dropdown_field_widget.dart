@@ -11,6 +11,8 @@ class DropdownFieldWidget extends StatelessWidget {
   final String hintText;
   final Map<String, dynamic> originalData;
   final String originalKey;
+  final double screenWidth;
+  final double textScaleFactor;
 
   const DropdownFieldWidget({
     super.key,
@@ -20,6 +22,8 @@ class DropdownFieldWidget extends StatelessWidget {
     required this.onChanged,
     required this.originalData,
     required this.originalKey,
+    required this.screenWidth,
+    required this.textScaleFactor,
     this.isRequired = false,
     this.hintText = 'Sélectionner',
   });
@@ -28,6 +32,13 @@ class DropdownFieldWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     bool isModified = value != originalData[originalKey];
 
+    final labelFontSize = (14.0 / textScaleFactor).clamp(12.0, 16.0);
+    final modifiedFontSize = (12.0 / textScaleFactor).clamp(10.0, 14.0);
+    final textFontSize = (16.0 / textScaleFactor).clamp(14.0, 18.0);
+    final labelSpacing = screenWidth < 360 ? 6.0 : 8.0;
+    final horizontalPadding = screenWidth < 360 ? 12.0 : 16.0;
+    final verticalPadding = screenWidth < 360 ? 14.0 : 16.0;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -35,7 +46,7 @@ class DropdownFieldWidget extends StatelessWidget {
           text: TextSpan(
             text: label,
             style: GoogleFonts.poppins(
-              fontSize: 14,
+              fontSize: labelFontSize,
               fontWeight: FontWeight.w500,
               color: AppColors.textPrimary,
             ),
@@ -49,7 +60,7 @@ class DropdownFieldWidget extends StatelessWidget {
                 TextSpan(
                   text: ' (modifié)',
                   style: GoogleFonts.poppins(
-                    fontSize: 12,
+                    fontSize: modifiedFontSize,
                     color: AppColors.primary,
                     fontWeight: FontWeight.w500,
                   ),
@@ -57,10 +68,10 @@ class DropdownFieldWidget extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: labelSpacing),
         DropdownButtonFormField<String>(
           value: value,
-          items: _buildDropdownItems(items, hintText),
+          items: _buildDropdownItems(items, hintText, textFontSize),
           onChanged: onChanged,
           decoration: InputDecoration(
             filled: true,
@@ -81,13 +92,13 @@ class DropdownFieldWidget extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(color: AppColors.primary, width: 2),
             ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 16,
+            contentPadding: EdgeInsets.symmetric(
+              horizontal: horizontalPadding,
+              vertical: verticalPadding,
             ),
           ),
           style: GoogleFonts.poppins(
-            fontSize: 16,
+            fontSize: textFontSize,
             fontWeight: FontWeight.w500,
             color: AppColors.textPrimary,
           ),
@@ -99,6 +110,7 @@ class DropdownFieldWidget extends StatelessWidget {
   List<DropdownMenuItem<String>> _buildDropdownItems(
     List<String> items,
     String hintText,
+    double fontSize,
   ) {
     return [
       DropdownMenuItem<String>(
@@ -106,7 +118,7 @@ class DropdownFieldWidget extends StatelessWidget {
         child: Text(
           hintText,
           style: GoogleFonts.poppins(
-            fontSize: 16,
+            fontSize: fontSize,
             color: AppColors.textSecondary.withOpacity(0.6),
           ),
         ),
@@ -117,7 +129,7 @@ class DropdownFieldWidget extends StatelessWidget {
           child: Text(
             item,
             style: GoogleFonts.poppins(
-              fontSize: 16,
+              fontSize: fontSize,
               fontWeight: FontWeight.w500,
               color: AppColors.textPrimary,
             ),

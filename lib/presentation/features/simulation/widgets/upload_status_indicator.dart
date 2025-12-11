@@ -6,11 +6,15 @@ class UploadStatusIndicator extends StatelessWidget {
   final bool isUploading;
   final bool hasUploadedImages;
   final VoidCallback? onRetry;
+  final double screenWidth;
+  final double textScaleFactor;
 
   const UploadStatusIndicator({
     super.key,
     required this.isUploading,
     required this.hasUploadedImages,
+    required this.screenWidth,
+    required this.textScaleFactor,
     this.onRetry,
   });
 
@@ -20,9 +24,17 @@ class UploadStatusIndicator extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
+    final margin = screenWidth < 360 ? 6.0 : 8.0;
+    final horizontalPadding = screenWidth < 360 ? 10.0 : 12.0;
+    final verticalPadding = screenWidth < 360 ? 6.0 : 8.0;
+    final spacing = screenWidth < 360 ? 6.0 : 8.0;
+
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      margin: EdgeInsets.symmetric(vertical: margin),
+      padding: EdgeInsets.symmetric(
+        horizontal: horizontalPadding,
+        vertical: verticalPadding,
+      ),
       decoration: BoxDecoration(
         color: _getBackgroundColor(),
         borderRadius: BorderRadius.circular(8),
@@ -32,10 +44,10 @@ class UploadStatusIndicator extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           _buildIcon(),
-          const SizedBox(width: 8),
-          _buildText(),
+          SizedBox(width: spacing),
+          Flexible(child: _buildText()),
           if (onRetry != null && !isUploading && !hasUploadedImages) ...[
-            const SizedBox(width: 8),
+            SizedBox(width: spacing),
             _buildRetryButton(),
           ],
         ],
@@ -44,20 +56,22 @@ class UploadStatusIndicator extends StatelessWidget {
   }
 
   Widget _buildIcon() {
+    final iconSize = screenWidth < 360 ? 14.0 : 16.0;
+    
     if (isUploading) {
       return SizedBox(
-        width: 16,
-        height: 16,
+        width: iconSize,
+        height: iconSize,
         child: CircularProgressIndicator(
           strokeWidth: 2,
           valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
         ),
       );
     } else if (hasUploadedImages) {
-      return Icon(Icons.check_circle, size: 16, color: AppColors.success);
+      return Icon(Icons.check_circle, size: iconSize, color: AppColors.success);
     }
 
-    return Icon(Icons.error, size: 16, color: AppColors.error);
+    return Icon(Icons.error, size: iconSize, color: AppColors.error);
   }
 
   Widget _buildText() {
@@ -75,21 +89,32 @@ class UploadStatusIndicator extends StatelessWidget {
       textColor = AppColors.error;
     }
 
+    final fontSize = (12.0 / textScaleFactor).clamp(10.0, 14.0);
+
     return Text(
       text,
       style: GoogleFonts.poppins(
-        fontSize: 12,
+        fontSize: fontSize,
         fontWeight: FontWeight.w500,
         color: textColor,
       ),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
     );
   }
 
   Widget _buildRetryButton() {
+    final paddingH = screenWidth < 360 ? 6.0 : 8.0;
+    final paddingV = screenWidth < 360 ? 3.0 : 4.0;
+    final fontSize = (10.0 / textScaleFactor).clamp(9.0, 12.0);
+
     return GestureDetector(
       onTap: onRetry,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        padding: EdgeInsets.symmetric(
+          horizontal: paddingH,
+          vertical: paddingV,
+        ),
         decoration: BoxDecoration(
           color: AppColors.primary.withOpacity(0.1),
           borderRadius: BorderRadius.circular(4),
@@ -97,10 +122,12 @@ class UploadStatusIndicator extends StatelessWidget {
         child: Text(
           'Réessayer',
           style: GoogleFonts.poppins(
-            fontSize: 10,
+            fontSize: fontSize,
             fontWeight: FontWeight.w500,
             color: AppColors.primary,
           ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
       ),
     );
