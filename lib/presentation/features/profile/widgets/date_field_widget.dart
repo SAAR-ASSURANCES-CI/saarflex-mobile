@@ -12,6 +12,8 @@ class DateFieldWidget extends StatelessWidget {
   final Map<String, dynamic> originalData;
   final String originalKey;
   final Function()? onChanged;
+  final double screenWidth;
+  final double textScaleFactor;
 
   const DateFieldWidget({
     super.key,
@@ -20,6 +22,8 @@ class DateFieldWidget extends StatelessWidget {
     required this.onDateSelected,
     required this.originalData,
     required this.originalKey,
+    required this.screenWidth,
+    required this.textScaleFactor,
     this.isRequired = false,
     this.hasError = false,
     this.isExpirationDate = false,
@@ -31,6 +35,15 @@ class DateFieldWidget extends StatelessWidget {
     DateTime? originalDate = originalData[originalKey];
     bool isModified = !_areDatesEqual(selectedDate, originalDate);
 
+    final labelFontSize = (14.0 / textScaleFactor).clamp(12.0, 16.0);
+    final modifiedFontSize = (12.0 / textScaleFactor).clamp(10.0, 14.0);
+    final textFontSize = (16.0 / textScaleFactor).clamp(14.0, 18.0);
+    final labelSpacing = screenWidth < 360 ? 6.0 : 8.0;
+    final horizontalPadding = screenWidth < 360 ? 12.0 : 16.0;
+    final verticalPadding = screenWidth < 360 ? 14.0 : 16.0;
+    final iconSize = screenWidth < 360 ? 18.0 : 20.0;
+    final iconSpacing = screenWidth < 360 ? 10.0 : 12.0;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -38,7 +51,7 @@ class DateFieldWidget extends StatelessWidget {
           text: TextSpan(
             text: label,
             style: GoogleFonts.poppins(
-              fontSize: 14,
+              fontSize: labelFontSize,
               fontWeight: FontWeight.w500,
               color: AppColors.textPrimary,
             ),
@@ -52,7 +65,7 @@ class DateFieldWidget extends StatelessWidget {
                 TextSpan(
                   text: ' (modifié)',
                   style: GoogleFonts.poppins(
-                    fontSize: 12,
+                    fontSize: modifiedFontSize,
                     color: AppColors.primary,
                     fontWeight: FontWeight.w500,
                   ),
@@ -60,7 +73,7 @@ class DateFieldWidget extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: labelSpacing),
         InkWell(
           onTap: () => _selectDate(
             context,
@@ -70,7 +83,10 @@ class DateFieldWidget extends StatelessWidget {
           ),
           child: Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            padding: EdgeInsets.symmetric(
+              horizontal: horizontalPadding,
+              vertical: verticalPadding,
+            ),
             decoration: BoxDecoration(
               color: AppColors.surfaceVariant,
               borderRadius: BorderRadius.circular(12),
@@ -87,21 +103,23 @@ class DateFieldWidget extends StatelessWidget {
                 Icon(
                   Icons.calendar_today_rounded,
                   color: hasError ? AppColors.error : AppColors.primary,
-                  size: 20,
+                  size: iconSize,
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: iconSpacing),
                 Expanded(
                   child: Text(
                     selectedDate != null
                         ? _formatDate(selectedDate!)
                         : 'Sélectionner $label',
                     style: GoogleFonts.poppins(
-                      fontSize: 16,
+                      fontSize: textFontSize,
                       fontWeight: FontWeight.w500,
                       color: selectedDate != null
                           ? AppColors.textPrimary
                           : AppColors.textSecondary.withOpacity(0.6),
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],

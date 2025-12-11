@@ -5,8 +5,15 @@ import 'package:saarflex_app/data/models/simulation_model.dart';
 
 class ResultAssureInfoCard extends StatelessWidget {
   final SimulationResponse resultat;
+  final double screenWidth;
+  final double textScaleFactor;
 
-  const ResultAssureInfoCard({super.key, required this.resultat});
+  const ResultAssureInfoCard({
+    super.key,
+    required this.resultat,
+    required this.screenWidth,
+    required this.textScaleFactor,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -17,13 +24,25 @@ class ResultAssureInfoCard extends StatelessWidget {
 
     final informations = resultat.informationsAssure!;
 
+    final padding = screenWidth < 360 ? 16.0 : 20.0;
+    final marginBottom = screenWidth < 360 ? 20.0 : 24.0;
+    final iconSize = screenWidth < 360 ? 18.0 : 20.0;
+    final iconPadding = screenWidth < 360 ? 6.0 : 8.0;
+    final titleFontSize = (16.0 / textScaleFactor).clamp(14.0, 18.0);
+    final subtitleFontSize = (12.0 / textScaleFactor).clamp(10.0, 14.0);
+    final spacing1 = screenWidth < 360 ? 10.0 : 12.0;
+    final spacing2 = screenWidth < 360 ? 10.0 : 12.0;
+    
     return Container(
-      padding: const EdgeInsets.all(20),
-      margin: const EdgeInsets.only(bottom: 24),
+      padding: EdgeInsets.all(padding),
+      margin: EdgeInsets.only(bottom: marginBottom),
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.primary.withOpacity(0.2), width: 1),
+        border: Border.all(
+          color: AppColors.primary.withOpacity(0.2),
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
@@ -39,7 +58,7 @@ class ResultAssureInfoCard extends StatelessWidget {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: EdgeInsets.all(iconPadding),
                 decoration: BoxDecoration(
                   color: AppColors.primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
@@ -47,10 +66,10 @@ class ResultAssureInfoCard extends StatelessWidget {
                 child: Icon(
                   Icons.person_outline_rounded,
                   color: AppColors.primary,
-                  size: 20,
+                  size: iconSize,
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: spacing1),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -58,62 +77,66 @@ class ResultAssureInfoCard extends StatelessWidget {
                     Text(
                       'Informations de l\'assuré',
                       style: GoogleFonts.poppins(
-                        fontSize: 16,
+                        fontSize: titleFontSize,
                         fontWeight: FontWeight.w600,
                         color: AppColors.textPrimary,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                     Text(
                       'Récapitulatif avant sauvegarde',
                       style: GoogleFonts.poppins(
-                        fontSize: 12,
+                        fontSize: subtitleFontSize,
                         fontWeight: FontWeight.w400,
                         color: AppColors.textSecondary,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: spacing2),
           _buildInfoRow(
             'Nom complet',
             informations['nom_complet']?.toString() ?? '',
             Icons.person,
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: spacing2),
           _buildInfoRow(
             'Date de naissance',
             informations['date_naissance']?.toString() ?? '',
             Icons.cake,
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: spacing2),
           _buildInfoRow(
             'Type de pièce',
             informations['type_piece_identite']?.toString() ?? '',
             Icons.badge,
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: spacing2),
           _buildInfoRow(
             'Numéro de pièce',
             informations['numero_piece_identite']?.toString() ?? '',
             Icons.credit_card,
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: spacing2),
           _buildInfoRow(
             'Téléphone',
             informations['telephone']?.toString() ?? '',
             Icons.phone,
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: spacing2),
           _buildInfoRow(
             'Adresse',
             informations['adresse']?.toString() ?? '',
             Icons.location_on,
           ),
           if (informations['email'] != null) ...[
-            const SizedBox(height: 12),
+            SizedBox(height: spacing2),
             _buildInfoRow(
               'Email',
               informations['email']!.toString(),
@@ -126,32 +149,41 @@ class ResultAssureInfoCard extends StatelessWidget {
   }
 
   Widget _buildInfoRow(String label, String value, IconData icon) {
+    final iconSize = screenWidth < 360 ? 14.0 : 16.0;
+    final fontSize = (14.0 / textScaleFactor).clamp(12.0, 16.0);
+    final spacing1 = screenWidth < 360 ? 6.0 : 8.0;
+    final spacing2 = screenWidth < 360 ? 6.0 : 8.0;
+    
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 16, color: AppColors.textSecondary),
-        const SizedBox(width: 8),
+        Icon(icon, size: iconSize, color: AppColors.textSecondary),
+        SizedBox(width: spacing1),
         Expanded(
           flex: 2,
           child: Text(
             '$label :',
             style: GoogleFonts.poppins(
-              fontSize: 14,
+              fontSize: fontSize,
               fontWeight: FontWeight.w500,
               color: AppColors.textSecondary,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
-        const SizedBox(width: 8),
+        SizedBox(width: spacing2),
         Expanded(
           flex: 3,
           child: Text(
             value.isNotEmpty ? value : 'Non renseigné',
             style: GoogleFonts.poppins(
-              fontSize: 14,
+              fontSize: fontSize,
               fontWeight: FontWeight.w400,
               color: AppColors.textPrimary,
             ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],

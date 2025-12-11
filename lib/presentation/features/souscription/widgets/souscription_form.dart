@@ -10,11 +10,15 @@ class souscriptionForm extends StatelessWidget {
   final String? errorText;
   final String? userPhone;
   final MethodePaiement? selectedPaymentMethod;
+  final double screenWidth;
+  final double textScaleFactor;
 
   const souscriptionForm({
     super.key,
     required this.phoneNumber,
     required this.onPhoneChanged,
+    required this.screenWidth,
+    required this.textScaleFactor,
     this.hasError = false,
     this.errorText,
     this.userPhone,
@@ -23,26 +27,41 @@ class souscriptionForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final titleFontSize = (16.0 / textScaleFactor).clamp(14.0, 18.0);
+    final descriptionFontSize = (14.0 / textScaleFactor).clamp(12.0, 16.0);
+    final inputFontSize = (16.0 / textScaleFactor).clamp(14.0, 18.0);
+    final errorFontSize = (12.0 / textScaleFactor).clamp(10.0, 14.0);
+    final spacing1 = screenWidth < 360 ? 6.0 : 8.0;
+    final spacing2 = screenWidth < 360 ? 10.0 : 12.0;
+    final spacing3 = screenWidth < 360 ? 6.0 : 8.0;
+    final iconSize = screenWidth < 360 ? 18.0 : 20.0;
+    final iconPadding = screenWidth < 360 ? 6.0 : 8.0;
+    final iconMargin = screenWidth < 360 ? 10.0 : 12.0;
+    final horizontalPadding = screenWidth < 360 ? 16.0 : 20.0;
+    final verticalPadding = screenWidth < 360 ? 16.0 : 18.0;
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Numéro de téléphone',
           style: GoogleFonts.poppins(
-            fontSize: 16,
+            fontSize: titleFontSize,
             fontWeight: FontWeight.w600,
             color: AppColors.textPrimary,
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: spacing1),
         Text(
           _getPhoneDescription(),
           style: GoogleFonts.poppins(
-            fontSize: 14,
+            fontSize: descriptionFontSize,
             color: AppColors.textSecondary,
           ),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: spacing2),
         Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
@@ -59,27 +78,27 @@ class souscriptionForm extends StatelessWidget {
             onChanged: onPhoneChanged,
             keyboardType: TextInputType.phone,
             style: GoogleFonts.poppins(
-              fontSize: 16,
+              fontSize: inputFontSize,
               fontWeight: FontWeight.w500,
               color: AppColors.textPrimary,
             ),
             decoration: InputDecoration(
               hintText: _getPhonePlaceholder(),
               hintStyle: GoogleFonts.poppins(
-                fontSize: 16,
+                fontSize: inputFontSize,
                 color: AppColors.textSecondary.withOpacity(0.7),
               ),
               prefixIcon: Container(
-                margin: const EdgeInsets.all(12),
-                padding: const EdgeInsets.all(8),
+                margin: EdgeInsets.all(iconMargin),
+                padding: EdgeInsets.all(iconPadding),
                 decoration: BoxDecoration(
                   color: AppColors.primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.phone_android,
                   color: AppColors.primary,
-                  size: 20,
+                  size: iconSize,
                 ),
               ),
               border: OutlineInputBorder(
@@ -112,18 +131,23 @@ class souscriptionForm extends StatelessWidget {
               fillColor: hasError
                   ? AppColors.error.withOpacity(0.05)
                   : AppColors.white,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 20,
-                vertical: 18,
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: horizontalPadding,
+                vertical: verticalPadding,
               ),
             ),
           ),
         ),
         if (hasError && errorText != null) ...[
-          const SizedBox(height: 8),
+          SizedBox(height: spacing3),
           Text(
             errorText!,
-            style: GoogleFonts.poppins(fontSize: 12, color: AppColors.error),
+            style: GoogleFonts.poppins(
+              fontSize: errorFontSize,
+              color: AppColors.error,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ],

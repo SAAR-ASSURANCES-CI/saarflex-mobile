@@ -107,44 +107,63 @@ class _souscriptionScreenState extends State<souscriptionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final textScaleFactor = MediaQuery.of(context).textScaleFactor;
+    
     return ChangeNotifierProvider.value(
       value: _souscriptionViewModel,
       child: Scaffold(
         backgroundColor: AppColors.background,
-        appBar: _buildAppBar(),
+        resizeToAvoidBottomInset: true,
+        appBar: _buildAppBar(screenWidth, textScaleFactor),
         body: Consumer2<SouscriptionViewModel, AuthViewModel>(
           builder: (context, souscriptionProvider, authProvider, child) {
             if (souscriptionProvider.isLoading) {
-              return _buildLoadingState();
+              return _buildLoadingState(screenWidth, textScaleFactor);
             }
 
             if (souscriptionProvider.hasError) {
-              return _buildErrorState(souscriptionProvider.error!);
+              return _buildErrorState(
+                souscriptionProvider.error!,
+                screenWidth,
+                textScaleFactor,
+              );
             }
 
             if (souscriptionProvider.souscriptionResponse != null) {
-              return _buildSuccessState();
+              return _buildSuccessState(screenWidth, textScaleFactor);
             }
 
-            return _buildsouscriptionForm(authProvider.currentUser);
+            return _buildsouscriptionForm(
+              authProvider.currentUser,
+              screenWidth,
+              textScaleFactor,
+            );
           },
         ),
       ),
     );
   }
 
-  PreferredSizeWidget _buildAppBar() {
+  PreferredSizeWidget _buildAppBar(double screenWidth, double textScaleFactor) {
+    final titleFontSize = (18.0 / textScaleFactor).clamp(16.0, 20.0);
+    final iconSize = screenWidth < 360 ? 20 : 24;
+    
     return AppBar(
       backgroundColor: AppColors.white,
       elevation: 0,
       leading: IconButton(
-        icon: Icon(Icons.arrow_back_ios, color: AppColors.primary),
+        icon: Icon(
+          Icons.arrow_back_ios,
+          color: AppColors.primary,
+          size: iconSize.toDouble(),
+        ),
         onPressed: () => Navigator.pop(context),
       ),
       title: Text(
         'Souscription',
         style: GoogleFonts.poppins(
-          fontSize: 18,
+          fontSize: titleFontSize,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
         ),
@@ -153,58 +172,87 @@ class _souscriptionScreenState extends State<souscriptionScreen> {
     );
   }
 
-  Widget _buildLoadingState() {
-    return const Center(
+  Widget _buildLoadingState(double screenWidth, double textScaleFactor) {
+    final fontSize = (16.0 / textScaleFactor).clamp(14.0, 18.0);
+    final spacing = screenWidth < 360 ? 12.0 : 16.0;
+    
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircularProgressIndicator(
+          const CircularProgressIndicator(
             valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
           ),
-          SizedBox(height: 16),
+          SizedBox(height: spacing),
           Text(
             'Chargement...',
-            style: TextStyle(color: AppColors.textSecondary),
+            style: TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: fontSize,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildErrorState(String error) {
+  Widget _buildErrorState(
+    String error,
+    double screenWidth,
+    double textScaleFactor,
+  ) {
+    final padding = screenWidth < 360 ? 16.0 : 24.0;
+    final iconSize = screenWidth < 360 ? 48.0 : 64.0;
+    final titleFontSize = (20.0 / textScaleFactor).clamp(18.0, 22.0);
+    final errorFontSize = (14.0 / textScaleFactor).clamp(12.0, 16.0);
+    final buttonFontSize = (16.0 / textScaleFactor).clamp(14.0, 18.0);
+    final spacing1 = screenWidth < 360 ? 12.0 : 16.0;
+    final spacing2 = screenWidth < 360 ? 6.0 : 8.0;
+    final spacing3 = screenWidth < 360 ? 20.0 : 24.0;
+    
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.all(padding),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline, size: 64, color: AppColors.error),
-            const SizedBox(height: 16),
+            Icon(Icons.error_outline, size: iconSize, color: AppColors.error),
+            SizedBox(height: spacing1),
             Text(
               'Erreur',
               style: GoogleFonts.poppins(
-                fontSize: 20,
+                fontSize: titleFontSize,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textPrimary,
               ),
+              textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: spacing2),
             Text(
               error,
               textAlign: TextAlign.center,
               style: GoogleFonts.poppins(
-                fontSize: 14,
+                fontSize: errorFontSize,
                 color: AppColors.textSecondary,
               ),
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: spacing3),
             ElevatedButton(
               onPressed: () => Navigator.pop(context),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: AppColors.white,
+                padding: EdgeInsets.symmetric(
+                  horizontal: screenWidth < 360 ? 20.0 : 24.0,
+                  vertical: screenWidth < 360 ? 12.0 : 14.0,
+                ),
               ),
-              child: const Text('Retour'),
+              child: Text(
+                'Retour',
+                style: GoogleFonts.poppins(fontSize: buttonFontSize),
+              ),
             ),
           ],
         ),
@@ -212,50 +260,74 @@ class _souscriptionScreenState extends State<souscriptionScreen> {
     );
   }
 
-  Widget _buildSuccessState() {
+  Widget _buildSuccessState(double screenWidth, double textScaleFactor) {
+    final padding = screenWidth < 360 ? 16.0 : 24.0;
+    final iconSize = screenWidth < 360 ? 48.0 : 64.0;
+    final titleFontSize = (20.0 / textScaleFactor).clamp(18.0, 22.0);
+    final messageFontSize = (14.0 / textScaleFactor).clamp(12.0, 16.0);
+    final buttonFontSize = (16.0 / textScaleFactor).clamp(14.0, 18.0);
+    final spacing1 = screenWidth < 360 ? 12.0 : 16.0;
+    final spacing2 = screenWidth < 360 ? 6.0 : 8.0;
+    final spacing3 = screenWidth < 360 ? 20.0 : 24.0;
+    
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.all(padding),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               Icons.check_circle_outline,
-              size: 64,
+              size: iconSize,
               color: AppColors.success,
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: spacing1),
             Text(
               'Souscription réussie !',
               style: GoogleFonts.poppins(
-                fontSize: 20,
+                fontSize: titleFontSize,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textPrimary,
               ),
+              textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: spacing2),
             Text(
               'Votre souscription a été enregistrée avec succès.',
               textAlign: TextAlign.center,
               style: GoogleFonts.poppins(
-                fontSize: 14,
+                fontSize: messageFontSize,
                 color: AppColors.textSecondary,
               ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushNamedAndRemoveUntil(
-                  context,
-                  '/dashboard',
-                  (route) => false,
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: AppColors.white,
+            SizedBox(height: spacing3),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.pushNamedAndRemoveUntil(
+                    context,
+                    '/dashboard',
+                    (route) => false,
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: AppColors.white,
+                  padding: EdgeInsets.symmetric(
+                    vertical: screenWidth < 360 ? 14.0 : 16.0,
+                  ),
+                ),
+                child: Text(
+                  'Retour au tableau de bord',
+                  style: GoogleFonts.poppins(fontSize: buttonFontSize),
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-              child: const Text('Retour au tableau de bord'),
             ),
           ],
         ),
@@ -263,9 +335,28 @@ class _souscriptionScreenState extends State<souscriptionScreen> {
     );
   }
 
-  Widget _buildsouscriptionForm(User? user) {
+  Widget _buildsouscriptionForm(
+    User? user,
+    double screenWidth,
+    double textScaleFactor,
+  ) {
+    final viewInsets = MediaQuery.of(context).viewInsets;
+    final horizontalPadding = screenWidth < 360 
+        ? 16.0 
+        : screenWidth < 600 
+            ? 20.0 
+            : (screenWidth * 0.08).clamp(20.0, 48.0);
+    final verticalPadding = screenWidth < 360 ? 16.0 : 20.0;
+    final sectionSpacing = screenWidth < 360 ? 24.0 : 32.0;
+    final buttonSpacing = screenWidth < 360 ? 36.0 : 48.0;
+    
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.only(
+        left: horizontalPadding,
+        right: horizontalPadding,
+        top: verticalPadding,
+        bottom: verticalPadding + viewInsets.bottom,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -273,12 +364,14 @@ class _souscriptionScreenState extends State<souscriptionScreen> {
             simulationResult: widget.simulationResult,
             savedQuote: widget.savedQuote,
             source: widget.source,
+            screenWidth: screenWidth,
+            textScaleFactor: textScaleFactor,
           ),
 
-          const SizedBox(height: 32),
+          SizedBox(height: sectionSpacing),
 
           if (_isLoadingProduct)
-            _buildLoadingProductInfo()
+            _buildLoadingProductInfo(screenWidth, textScaleFactor)
           else
             BeneficiairesSelector(
               beneficiaires: _souscriptionViewModel.beneficiaires,
@@ -287,18 +380,22 @@ class _souscriptionScreenState extends State<souscriptionScreen> {
               },
               maxBeneficiaires: _getMaxBeneficiaires(),
               necessiteBeneficiaires: _getNecessiteBeneficiaires(),
+              screenWidth: screenWidth,
+              textScaleFactor: textScaleFactor,
             ),
 
-          const SizedBox(height: 32),
+          SizedBox(height: sectionSpacing),
 
           PaymentMethodSelector(
             selectedMethod: _souscriptionViewModel.selectedMethodePaiement,
             onMethodSelected: _souscriptionViewModel.setMethodePaiement,
             hasError: _souscriptionViewModel.hasFieldError('methode_paiement'),
             errorText: _souscriptionViewModel.getFieldError('methode_paiement'),
+            screenWidth: screenWidth,
+            textScaleFactor: textScaleFactor,
           ),
 
-          const SizedBox(height: 32),
+          SizedBox(height: sectionSpacing),
 
           Consumer<SouscriptionViewModel>(
             builder: (context, provider, child) {
@@ -308,24 +405,30 @@ class _souscriptionScreenState extends State<souscriptionScreen> {
                 hasError: provider.hasFieldError('numero_telephone'),
                 errorText: provider.getFieldError('numero_telephone'),
                 selectedPaymentMethod: provider.selectedMethodePaiement,
+                screenWidth: screenWidth,
+                textScaleFactor: textScaleFactor,
               );
             },
           ),
 
-          const SizedBox(height: 48),
+          SizedBox(height: buttonSpacing),
 
-          _buildSubscribeButton(),
+          _buildSubscribeButton(screenWidth, textScaleFactor),
         ],
       ),
     );
   }
 
-  Widget _buildSubscribeButton() {
+  Widget _buildSubscribeButton(double screenWidth, double textScaleFactor) {
+    final buttonHeight = screenWidth < 360 ? 48.0 : 50.0;
+    final fontSize = (16.0 / textScaleFactor).clamp(14.0, 18.0);
+    final iconSize = screenWidth < 360 ? 18.0 : 20.0;
+    
     return Consumer<SouscriptionViewModel>(
       builder: (context, provider, child) {
         return SizedBox(
           width: double.infinity,
-          height: 50,
+          height: buttonHeight,
           child: ElevatedButton(
             onPressed:
                 provider.isSubscribing == true ||
@@ -341,10 +444,10 @@ class _souscriptionScreenState extends State<souscriptionScreen> {
               ),
             ),
             child: provider.isSubscribing == true
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
+                ? SizedBox(
+                    width: iconSize,
+                    height: iconSize,
+                    child: const CircularProgressIndicator(
                       valueColor: AlwaysStoppedAnimation<Color>(
                         AppColors.white,
                       ),
@@ -354,7 +457,7 @@ class _souscriptionScreenState extends State<souscriptionScreen> {
                 : Text(
                     'Souscrire',
                     style: GoogleFonts.poppins(
-                      fontSize: 16,
+                      fontSize: fontSize,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -530,9 +633,14 @@ class _souscriptionScreenState extends State<souscriptionScreen> {
     return true;
   }
 
-  Widget _buildLoadingProductInfo() {
+  Widget _buildLoadingProductInfo(double screenWidth, double textScaleFactor) {
+    final padding = screenWidth < 360 ? 12.0 : 16.0;
+    final iconSize = screenWidth < 360 ? 18.0 : 20.0;
+    final fontSize = (14.0 / textScaleFactor).clamp(12.0, 16.0);
+    final spacing = screenWidth < 360 ? 10.0 : 12.0;
+    
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(padding),
       decoration: BoxDecoration(
         color: AppColors.background,
         borderRadius: BorderRadius.circular(12),
@@ -541,21 +649,23 @@ class _souscriptionScreenState extends State<souscriptionScreen> {
       child: Row(
         children: [
           SizedBox(
-            width: 20,
-            height: 20,
+            width: iconSize,
+            height: iconSize,
             child: CircularProgressIndicator(
               strokeWidth: 2,
               valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
             ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: spacing),
           Expanded(
             child: Text(
               'Chargement de la configuration du produit...',
               style: GoogleFonts.poppins(
-                fontSize: 14,
+                fontSize: fontSize,
                 color: AppColors.textSecondary,
               ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],

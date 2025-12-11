@@ -50,17 +50,22 @@ class _EditProfileScreenRefactoredState
       value: _formController,
       child: Scaffold(
         backgroundColor: AppColors.background,
+        resizeToAvoidBottomInset: true,
         appBar: AppBar(
           backgroundColor: AppColors.primary,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white),
+            icon: Icon(
+              Icons.arrow_back_ios_rounded, 
+              color: Colors.white,
+              size: MediaQuery.of(context).size.width < 360 ? 20 : 24,
+            ),
             onPressed: () => Navigator.pop(context),
           ),
-          title: const Text(
+          title: Text(
             "Édition du profil",
             style: TextStyle(
-              fontSize: 20,
+              fontSize: (20.0 / MediaQuery.of(context).textScaleFactor).clamp(18.0, 22.0),
               fontWeight: FontWeight.w600,
               color: Colors.white,
             ),
@@ -69,13 +74,38 @@ class _EditProfileScreenRefactoredState
         ),
         body: Consumer<ProfileFormController>(
           builder: (context, formController, child) {
+            final screenWidth = MediaQuery.of(context).size.width;
+            final screenHeight = MediaQuery.of(context).size.height;
+            final textScaleFactor = MediaQuery.of(context).textScaleFactor;
+            final viewInsets = MediaQuery.of(context).viewInsets;
+            
+            // Padding adaptatif
+            final horizontalPadding = screenWidth < 360 
+                ? 16.0 
+                : screenWidth < 600 
+                    ? 20.0 
+                    : (screenWidth * 0.08).clamp(20.0, 48.0);
+            final verticalPadding = screenHeight < 600 ? 16.0 : 20.0;
+            
+            // Espacements adaptatifs
+            final headerSpacing = screenHeight < 600 ? 32.0 : 40.0;
+            final sectionSpacing = screenHeight < 600 ? 24.0 : 32.0;
+            final errorSpacing = screenHeight < 600 ? 16.0 : 20.0;
+            final buttonSpacing = screenHeight < 600 ? 32.0 : 40.0;
+            final bottomSpacing = screenHeight < 600 ? 16.0 : 20.0;
+            
             return SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
+              padding: EdgeInsets.only(
+                left: horizontalPadding,
+                right: horizontalPadding,
+                top: verticalPadding,
+                bottom: bottomSpacing + viewInsets.bottom,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildProfileHeader(),
-                  const SizedBox(height: 40),
+                  _buildProfileHeader(screenWidth, textScaleFactor),
+                  SizedBox(height: headerSpacing),
 
                   if (formController.fieldErrors.isNotEmpty) ...[
                     ErrorHandler.buildErrorList(
@@ -84,7 +114,7 @@ class _EditProfileScreenRefactoredState
                           .cast<String>()
                           .toList(),
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: errorSpacing),
                   ],
 
                   PersonalSection(
@@ -101,8 +131,10 @@ class _EditProfileScreenRefactoredState
                     onBirthDateChanged: formController.updateBirthDate,
                     onDropdownChanged: () => formController.checkForChanges(),
                     onDateChanged: () => formController.checkForChanges(),
+                    screenWidth: screenWidth,
+                    textScaleFactor: textScaleFactor,
                   ),
-                  const SizedBox(height: 32),
+                  SizedBox(height: sectionSpacing),
 
                   ContactSection(
                     emailController: formController.emailController,
@@ -110,8 +142,10 @@ class _EditProfileScreenRefactoredState
                     addressController: formController.addressController,
                     fieldErrors: formController.fieldErrors,
                     originalData: formController.originalData,
+                    screenWidth: screenWidth,
+                    textScaleFactor: textScaleFactor,
                   ),
-                  const SizedBox(height: 32),
+                  SizedBox(height: sectionSpacing),
 
                   IdentitySection(
                     idNumberController: formController.idNumberController,
@@ -126,8 +160,10 @@ class _EditProfileScreenRefactoredState
                         formController.updateExpirationDate,
                     onDropdownChanged: () => formController.checkForChanges(),
                     onDateChanged: () => formController.checkForChanges(),
+                    screenWidth: screenWidth,
+                    textScaleFactor: textScaleFactor,
                   ),
-                  const SizedBox(height: 32),
+                  SizedBox(height: sectionSpacing),
 
                   IdentityImagesSection(
                     currentIdentityType: formController.getBackendIdentityType(
@@ -147,11 +183,13 @@ class _EditProfileScreenRefactoredState
                     versoImage: formController.versoImage,
                     onPickImage: (isRecto) =>
                         formController.pickImage(isRecto, context),
+                    screenWidth: screenWidth,
+                    textScaleFactor: textScaleFactor,
                   ),
-                  const SizedBox(height: 40),
+                  SizedBox(height: buttonSpacing),
 
-                  _buildSaveButton(formController),
-                  const SizedBox(height: 20),
+                  _buildSaveButton(formController, screenWidth, screenHeight, textScaleFactor),
+                  SizedBox(height: bottomSpacing),
                 ],
               ),
             );
@@ -161,12 +199,22 @@ class _EditProfileScreenRefactoredState
     );
   }
 
-  Widget _buildProfileHeader() {
+  Widget _buildProfileHeader(double screenWidth, double textScaleFactor) {
     final user = context.read<AuthViewModel>().currentUser;
+    
+    final padding = screenWidth < 360 ? 16.0 : screenWidth < 600 ? 20.0 : 24.0;
+    final avatarSize = screenWidth < 360 ? 70.0 : screenWidth < 600 ? 80.0 : 90.0;
+    final iconSize = screenWidth < 360 ? 35.0 : screenWidth < 600 ? 40.0 : 45.0;
+    final cameraIconSize = screenWidth < 360 ? 24.0 : 28.0;
+    final cameraIconInnerSize = screenWidth < 360 ? 14.0 : 16.0;
+    final titleFontSize = (16.0 / textScaleFactor).clamp(14.0, 18.0);
+    final subtitleFontSize = (14.0 / textScaleFactor).clamp(12.0, 16.0);
+    final titleSpacing = screenWidth < 360 ? 12.0 : 16.0;
+    final subtitleSpacing = screenWidth < 360 ? 3.0 : 4.0;
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(padding),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(20),
@@ -184,8 +232,8 @@ class _EditProfileScreenRefactoredState
           Stack(
             children: [
               Container(
-                width: 90,
-                height: 90,
+                width: avatarSize,
+                height: avatarSize,
                 decoration: BoxDecoration(
                   color: AppColors.primary,
                   shape: BoxShape.circle,
@@ -200,7 +248,7 @@ class _EditProfileScreenRefactoredState
                 ),
                 child: user?.avatarUrl != null
                     ? ClipRRect(
-                        borderRadius: BorderRadius.circular(45),
+                        borderRadius: BorderRadius.circular(avatarSize / 2),
                         child: Image.network(
                           user!.avatarUrl!,
                           fit: BoxFit.cover,
@@ -208,7 +256,7 @@ class _EditProfileScreenRefactoredState
                             return Icon(
                               Icons.person_rounded,
                               color: AppColors.white,
-                              size: 45,
+                              size: iconSize,
                             );
                           },
                         ),
@@ -216,55 +264,74 @@ class _EditProfileScreenRefactoredState
                     : Icon(
                         Icons.person_rounded,
                         color: AppColors.white,
-                        size: 45,
+                        size: iconSize,
                       ),
               ),
               Positioned(
                 bottom: 0,
                 right: 0,
                 child: Container(
-                  width: 28,
-                  height: 28,
+                  width: cameraIconSize,
+                  height: cameraIconSize,
                   decoration: BoxDecoration(
                     color: AppColors.secondary,
                     shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.white, width: 2),
+                    border: Border.all(
+                      color: AppColors.white, 
+                      width: screenWidth < 360 ? 1.5 : 2,
+                    ),
                   ),
                   child: Icon(
                     Icons.camera_alt_rounded,
                     color: AppColors.white,
-                    size: 16,
+                    size: cameraIconInnerSize,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: titleSpacing),
           Text(
             "Modifiez vos informations",
             style: GoogleFonts.poppins(
-              fontSize: 16,
+              fontSize: titleFontSize,
               fontWeight: FontWeight.w600,
               color: AppColors.textPrimary,
             ),
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: subtitleSpacing),
           Text(
             "Vous pouvez modifier un ou plusieurs champs",
             style: GoogleFonts.poppins(
-              fontSize: 14,
+              fontSize: subtitleFontSize,
               fontWeight: FontWeight.w400,
               color: AppColors.textSecondary,
             ),
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildSaveButton(ProfileFormController formController) {
+  Widget _buildSaveButton(
+    ProfileFormController formController,
+    double screenWidth,
+    double screenHeight,
+    double textScaleFactor,
+  ) {
     final bool isEnabled =
         formController.hasChanges && !formController.isLoading;
+    
+    final verticalPadding = screenHeight < 600 ? 16.0 : 18.0;
+    final fontSize = (16.0 / textScaleFactor).clamp(14.0, 18.0);
+    final iconSize = screenWidth < 360 ? 18.0 : 20.0;
+    final iconSpacing = screenWidth < 360 ? 10.0 : 12.0;
 
     return SizedBox(
       width: double.infinity,
@@ -277,7 +344,7 @@ class _EditProfileScreenRefactoredState
           foregroundColor: isEnabled
               ? AppColors.white
               : AppColors.textSecondary,
-          padding: const EdgeInsets.symmetric(vertical: 18),
+          padding: EdgeInsets.symmetric(vertical: verticalPadding),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -288,8 +355,8 @@ class _EditProfileScreenRefactoredState
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   SizedBox(
-                    width: 20,
-                    height: 20,
+                    width: iconSize,
+                    height: iconSize,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
                       valueColor: AlwaysStoppedAnimation<Color>(
@@ -297,12 +364,16 @@ class _EditProfileScreenRefactoredState
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Text(
-                    "Enregistrement...",
-                    style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                  SizedBox(width: iconSpacing),
+                  Flexible(
+                    child: Text(
+                      "Enregistrement...",
+                      style: GoogleFonts.poppins(
+                        fontSize: fontSize,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
@@ -312,9 +383,12 @@ class _EditProfileScreenRefactoredState
                     ? "Enregistrer les modifications"
                     : "Aucune modification",
                 style: GoogleFonts.poppins(
-                  fontSize: 16,
+                  fontSize: fontSize,
                   fontWeight: FontWeight.w600,
                 ),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
       ),
     );

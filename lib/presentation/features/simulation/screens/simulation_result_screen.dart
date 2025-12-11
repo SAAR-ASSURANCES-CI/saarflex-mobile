@@ -55,32 +55,77 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider.value(
       value: _resultViewModel,
-      child: Scaffold(
-        backgroundColor: AppColors.background,
-        appBar: _buildAppBar(),
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            children: [
-              const ResultSuccessHeader(),
-              const SizedBox(height: 32),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final screenWidth = MediaQuery.of(context).size.width;
+          final screenHeight = MediaQuery.of(context).size.height;
+          final textScaleFactor = MediaQuery.of(context).textScaleFactor;
+          final viewInsets = MediaQuery.of(context).viewInsets;
+          
+          // Padding adaptatif
+          final horizontalPadding = screenWidth < 360 
+              ? 16.0 
+              : screenWidth < 600 
+                  ? 20.0 
+                  : (screenWidth * 0.08).clamp(20.0, 48.0);
+          final verticalPadding = screenHeight < 600 ? 16.0 : 20.0;
+          
+          // Espacements adaptatifs
+          final headerSpacing = screenHeight < 600 ? 24.0 : 32.0;
+          final cardSpacing = screenHeight < 600 ? 20.0 : 24.0;
+          final saveSpacing = screenHeight < 600 ? 12.0 : 16.0;
+          final bottomSpacing = screenHeight < 600 ? 60.0 : 80.0;
+          
+          return Scaffold(
+            backgroundColor: AppColors.background,
+            resizeToAvoidBottomInset: true,
+            appBar: _buildAppBar(screenWidth, textScaleFactor),
+            body: SingleChildScrollView(
+              padding: EdgeInsets.only(
+                left: horizontalPadding,
+                right: horizontalPadding,
+                top: verticalPadding,
+                bottom: bottomSpacing + viewInsets.bottom,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+              ResultSuccessHeader(
+                screenWidth: screenWidth,
+                textScaleFactor: textScaleFactor,
+              ),
+              SizedBox(height: headerSpacing),
 
               ResultProductInfo(
                 produit: widget.produit,
                 resultat: widget.resultat,
+                screenWidth: screenWidth,
+                textScaleFactor: textScaleFactor,
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: cardSpacing),
 
               if (!widget.resultat.assureEstSouscripteur &&
                   widget.resultat.informationsAssure != null) ...[
-                ResultAssureInfoCard(resultat: widget.resultat),
-                const SizedBox(height: 24),
+                ResultAssureInfoCard(
+                  resultat: widget.resultat,
+                  screenWidth: screenWidth,
+                  textScaleFactor: textScaleFactor,
+                ),
+                SizedBox(height: cardSpacing),
               ],
 
-              ResultMainCard(resultat: widget.resultat),
-              const SizedBox(height: 24),
-              ResultDetailsCard(resultat: widget.resultat),
-              const SizedBox(height: 24),
+              ResultMainCard(
+                resultat: widget.resultat,
+                screenWidth: screenWidth,
+                textScaleFactor: textScaleFactor,
+              ),
+              SizedBox(height: cardSpacing),
+              ResultDetailsCard(
+                resultat: widget.resultat,
+                screenWidth: screenWidth,
+                textScaleFactor: textScaleFactor,
+              ),
+              SizedBox(height: cardSpacing),
 
               Consumer<AuthViewModel>(
                 builder: (context, authProvider, child) {
@@ -96,6 +141,8 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
                                   simulationViewModel.hasUploadedImages,
                               onRetry: () =>
                                   _retryImageUpload(simulationViewModel),
+                              screenWidth: screenWidth,
+                              textScaleFactor: textScaleFactor,
                             );
                           },
                         ),
@@ -108,8 +155,8 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
                                     content: Row(
                                       children: [
                                         SizedBox(
-                                          width: 16,
-                                          height: 16,
+                                          width: screenWidth < 360 ? 14.0 : 16.0,
+                                          height: screenWidth < 360 ? 14.0 : 16.0,
                                           child: CircularProgressIndicator(
                                             strokeWidth: 2,
                                             valueColor:
@@ -118,8 +165,17 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
                                                 ),
                                           ),
                                         ),
-                                        const SizedBox(width: 12),
-                                        Text('Upload des images en cours...'),
+                                        SizedBox(width: screenWidth < 360 ? 10.0 : 12.0),
+                                        Flexible(
+                                          child: Text(
+                                            'Upload des images en cours...',
+                                            style: GoogleFonts.poppins(
+                                              fontSize: (14.0 / textScaleFactor).clamp(12.0, 16.0),
+                                            ),
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
                                       ],
                                     ),
                                     backgroundColor: AppColors.primary,
@@ -136,10 +192,19 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
                                         Icon(
                                           Icons.check_circle,
                                           color: Colors.white,
-                                          size: 16,
+                                          size: screenWidth < 360 ? 14.0 : 16.0,
                                         ),
-                                        const SizedBox(width: 12),
-                                        Text('Images uploadées avec succès !'),
+                                        SizedBox(width: screenWidth < 360 ? 10.0 : 12.0),
+                                        Flexible(
+                                          child: Text(
+                                            'Images uploadées avec succès !',
+                                            style: GoogleFonts.poppins(
+                                              fontSize: (14.0 / textScaleFactor).clamp(12.0, 16.0),
+                                            ),
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
                                       ],
                                     ),
                                     backgroundColor: AppColors.success,
@@ -151,11 +216,13 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
                             return const SizedBox.shrink();
                           },
                         ),
-                        const SizedBox(height: 16),
+                        SizedBox(height: saveSpacing),
                         ResultSaveSection(
                           key: _saveSectionKey,
                           resultat: widget.resultat,
                           viewModel: _resultViewModel,
+                          screenWidth: screenWidth,
+                          textScaleFactor: textScaleFactor,
                         ),
                       ],
                     );
@@ -163,31 +230,42 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
                   return const SizedBox.shrink();
                 },
               ),
-              const SizedBox(height: 80),
-            ],
-          ),
-        ),
-        bottomNavigationBar:
-            Consumer2<SimulationResultViewModel, AuthViewModel>(
-              builder: (context, resultViewModel, authProvider, child) {
-                return ResultActionButtons(
-                  resultat: widget.resultat,
-                  viewModel: resultViewModel,
-                  onSave: _showSaveConfirmationDialog,
-                  onSubscribe: _procederSouscription,
-                );
-              },
+                  SizedBox(height: bottomSpacing),
+                ],
+              ),
             ),
+            bottomNavigationBar:
+                Consumer2<SimulationResultViewModel, AuthViewModel>(
+                  builder: (context, resultViewModel, authProvider, child) {
+                    return ResultActionButtons(
+                      resultat: widget.resultat,
+                      viewModel: resultViewModel,
+                      onSave: _showSaveConfirmationDialog,
+                      onSubscribe: _procederSouscription,
+                      screenWidth: screenWidth,
+                      textScaleFactor: textScaleFactor,
+                    );
+                  },
+                ),
+          );
+        },
       ),
     );
   }
 
-  PreferredSizeWidget _buildAppBar() {
+  PreferredSizeWidget _buildAppBar(double screenWidth, double textScaleFactor) {
+    final titleFontSize = (18.0 / textScaleFactor).clamp(16.0, 20.0);
+    final iconSize = screenWidth < 360 ? 20 : 24;
+    
     return AppBar(
       backgroundColor: AppColors.white,
       elevation: 0,
       leading: IconButton(
-        icon: Icon(Icons.close_rounded, color: AppColors.primary),
+        icon: Icon(
+          Icons.close_rounded,
+          color: AppColors.primary,
+          size: iconSize.toDouble(),
+        ),
         onPressed: () {
           Navigator.pushNamedAndRemoveUntil(
             context,
@@ -199,7 +277,7 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
       title: Text(
         'Résultat de simulation',
         style: GoogleFonts.poppins(
-          fontSize: 18,
+          fontSize: titleFontSize,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
         ),

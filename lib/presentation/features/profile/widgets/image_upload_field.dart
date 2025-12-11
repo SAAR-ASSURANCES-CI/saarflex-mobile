@@ -11,6 +11,8 @@ class ImageUploadField extends StatelessWidget {
   final bool isUploading;
   final VoidCallback onTap;
   final XFile? selectedImage;
+  final double screenWidth;
+  final double textScaleFactor;
 
   const ImageUploadField({
     super.key,
@@ -20,12 +22,22 @@ class ImageUploadField extends StatelessWidget {
     required this.isUploading,
     required this.onTap,
     required this.selectedImage,
+    required this.screenWidth,
+    required this.textScaleFactor,
   });
 
   @override
   Widget build(BuildContext context) {
     final hasExistingImage = imageUrl != null && imageUrl!.isNotEmpty;
     final hasNewImage = selectedImage != null;
+
+    final labelFontSize = (14.0 / textScaleFactor).clamp(12.0, 16.0);
+    final newImageFontSize = (12.0 / textScaleFactor).clamp(10.0, 14.0);
+    final placeholderFontSize = (14.0 / textScaleFactor).clamp(12.0, 16.0);
+    final labelSpacing = screenWidth < 360 ? 6.0 : 8.0;
+    final imageHeight = screenWidth < 360 ? 120.0 : 150.0;
+    final iconSize = screenWidth < 360 ? 32.0 : 40.0;
+    final iconSpacing = screenWidth < 360 ? 6.0 : 8.0;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -35,7 +47,7 @@ class ImageUploadField extends StatelessWidget {
             Text(
               label,
               style: GoogleFonts.poppins(
-                fontSize: 14,
+                fontSize: labelFontSize,
                 fontWeight: FontWeight.w500,
                 color: AppColors.textPrimary,
               ),
@@ -44,18 +56,18 @@ class ImageUploadField extends StatelessWidget {
               Text(
                 ' *',
                 style: GoogleFonts.poppins(
-                  fontSize: 14,
+                  fontSize: labelFontSize,
                   fontWeight: FontWeight.w500,
                   color: Colors.red,
                 ),
               ),
           ],
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: labelSpacing),
         InkWell(
           onTap: isUploading ? null : onTap,
           child: Container(
-            height: 150,
+            height: imageHeight,
             width: double.infinity,
             decoration: BoxDecoration(
               color: AppColors.surfaceVariant,
@@ -99,19 +111,29 @@ class ImageUploadField extends StatelessWidget {
                               );
                             },
                             errorBuilder: (context, error, stackTrace) {
-                              return _buildPlaceholderContent(label);
+                              return _buildPlaceholderContent(
+                                label,
+                                iconSize,
+                                placeholderFontSize,
+                                iconSpacing,
+                              );
                             },
                           ),
                   )
-                : _buildPlaceholderContent(label),
+                : _buildPlaceholderContent(
+                    label,
+                    iconSize,
+                    placeholderFontSize,
+                    iconSpacing,
+                  ),
           ),
         ),
         if (hasNewImage) ...[
-          const SizedBox(height: 8),
+          SizedBox(height: iconSpacing),
           Text(
             'Nouvelle image sélectionnée',
             style: GoogleFonts.poppins(
-              fontSize: 12,
+              fontSize: newImageFontSize,
               color: AppColors.primary,
               fontWeight: FontWeight.w500,
             ),
@@ -121,7 +143,12 @@ class ImageUploadField extends StatelessWidget {
     );
   }
 
-  Widget _buildPlaceholderContent(String label) {
+  Widget _buildPlaceholderContent(
+    String label,
+    double iconSize,
+    double fontSize,
+    double spacing,
+  ) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -129,15 +156,18 @@ class ImageUploadField extends StatelessWidget {
           Icon(
             Icons.add_photo_alternate_rounded,
             color: AppColors.textSecondary.withOpacity(0.5),
-            size: 40,
+            size: iconSize,
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: spacing),
           Text(
             'Ajouter $label',
             style: GoogleFonts.poppins(
               color: AppColors.textSecondary.withOpacity(0.7),
-              fontSize: 14,
+              fontSize: fontSize,
             ),
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),

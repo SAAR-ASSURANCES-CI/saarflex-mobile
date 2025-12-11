@@ -10,7 +10,14 @@ import 'package:saarflex_app/presentation/shared/empty_state_widget.dart';
 import 'package:saarflex_app/presentation/features/souscription/screens/souscription_screen.dart';
 
 class SavedQuotesTab extends StatefulWidget {
-  const SavedQuotesTab({super.key});
+  final double screenWidth;
+  final double textScaleFactor;
+
+  const SavedQuotesTab({
+    super.key,
+    required this.screenWidth,
+    required this.textScaleFactor,
+  });
 
   @override
   State<SavedQuotesTab> createState() => _SavedQuotesTabState();
@@ -91,17 +98,23 @@ class _SavedQuotesTabState extends State<SavedQuotesTab> {
   }
 
   Widget _buildLoadingState() {
-    return const Center(
+    final fontSize = (16.0 / widget.textScaleFactor).clamp(14.0, 18.0);
+    final spacing = widget.screenWidth < 360 ? 12.0 : 16.0;
+    
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircularProgressIndicator(
+          const CircularProgressIndicator(
             valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
           ),
-          SizedBox(height: 16),
+          SizedBox(height: spacing),
           Text(
             'Chargement de vos devis...',
-            style: TextStyle(color: AppColors.textSecondary, fontSize: 16),
+            style: TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: fontSize,
+            ),
           ),
         ],
       ),
@@ -109,32 +122,44 @@ class _SavedQuotesTabState extends State<SavedQuotesTab> {
   }
 
   Widget _buildErrorState(String error) {
+    final padding = widget.screenWidth < 360 ? 16.0 : 24.0;
+    final iconSize = widget.screenWidth < 360 ? 48.0 : 64.0;
+    final titleFontSize = (18.0 / widget.textScaleFactor).clamp(16.0, 20.0);
+    final errorFontSize = (14.0 / widget.textScaleFactor).clamp(12.0, 16.0);
+    final buttonFontSize = (16.0 / widget.textScaleFactor).clamp(14.0, 18.0);
+    final spacing1 = widget.screenWidth < 360 ? 12.0 : 16.0;
+    final spacing2 = widget.screenWidth < 360 ? 6.0 : 8.0;
+    final spacing3 = widget.screenWidth < 360 ? 20.0 : 24.0;
+    
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.all(padding),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline, size: 64, color: AppColors.error),
-            const SizedBox(height: 16),
+            Icon(Icons.error_outline, size: iconSize, color: AppColors.error),
+            SizedBox(height: spacing1),
             Text(
               'Erreur de chargement',
               style: GoogleFonts.poppins(
-                fontSize: 18,
+                fontSize: titleFontSize,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textPrimary,
               ),
+              textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: spacing2),
             Text(
               error,
               textAlign: TextAlign.center,
               style: GoogleFonts.poppins(
-                fontSize: 14,
+                fontSize: errorFontSize,
                 color: AppColors.textSecondary,
               ),
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: spacing3),
             ElevatedButton.icon(
               onPressed: () {
                 Provider.of<ContractViewModel>(
@@ -142,8 +167,14 @@ class _SavedQuotesTabState extends State<SavedQuotesTab> {
                   listen: false,
                 ).loadSavedQuotes(forceRefresh: true);
               },
-              icon: const Icon(Icons.refresh),
-              label: const Text('Réessayer'),
+              icon: Icon(
+                Icons.refresh,
+                size: widget.screenWidth < 360 ? 18 : 20,
+              ),
+              label: Text(
+                'Réessayer',
+                style: GoogleFonts.poppins(fontSize: buttonFontSize),
+              ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: AppColors.white,
@@ -170,15 +201,18 @@ class _SavedQuotesTabState extends State<SavedQuotesTab> {
   }
 
   Widget _buildQuotesList(ContractViewModel contractProvider) {
+    final padding = widget.screenWidth < 360 ? 12.0 : 16.0;
+    final cardSpacing = widget.screenWidth < 360 ? 12.0 : 16.0;
+    
     return ListView.builder(
       controller: _scrollController,
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(padding),
       itemCount: contractProvider.savedQuotes.length + (_isLoadingMore ? 1 : 0),
       itemBuilder: (context, index) {
         if (index >= contractProvider.savedQuotes.length) {
-          return const Padding(
-            padding: EdgeInsets.all(16),
-            child: Center(
+          return Padding(
+            padding: EdgeInsets.all(padding),
+            child: const Center(
               child: CircularProgressIndicator(
                 valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
               ),
@@ -188,12 +222,14 @@ class _SavedQuotesTabState extends State<SavedQuotesTab> {
 
         final quote = contractProvider.savedQuotes[index];
         return Padding(
-          padding: const EdgeInsets.only(bottom: 16),
+          padding: EdgeInsets.only(bottom: cardSpacing),
           child: QuoteCard(
             quote: quote,
             onTap: () => _showQuoteDetails(quote),
             onDelete: () => _deleteQuote(quote),
             onSubscribe: () => _subscribeQuote(quote),
+            screenWidth: widget.screenWidth,
+            textScaleFactor: widget.textScaleFactor,
           ),
         );
       },
@@ -210,8 +246,20 @@ class _SavedQuotesTabState extends State<SavedQuotesTab> {
   }
 
   Widget _buildQuoteDetailsModal(SavedQuote quote) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final modalHeight = screenHeight < 600 
+        ? screenHeight * 0.9 
+        : screenHeight * 0.8;
+    final padding = widget.screenWidth < 360 ? 16.0 : 24.0;
+    final titleFontSize = (24.0 / widget.textScaleFactor).clamp(20.0, 28.0);
+    final subtitleFontSize = (16.0 / widget.textScaleFactor).clamp(14.0, 18.0);
+    final buttonFontSize = (16.0 / widget.textScaleFactor).clamp(14.0, 18.0);
+    final buttonIconSize = widget.screenWidth < 360 ? 18.0 : 20.0;
+    final buttonSpacing = widget.screenWidth < 360 ? 12.0 : 16.0;
+    final buttonPadding = widget.screenWidth < 360 ? 16.0 : 24.0;
+    
     return Container(
-      height: MediaQuery.of(context).size.height * 0.8,
+      height: modalHeight,
       decoration: const BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.only(
@@ -224,7 +272,7 @@ class _SavedQuotesTabState extends State<SavedQuotesTab> {
           Container(
             width: 40,
             height: 4,
-            margin: const EdgeInsets.symmetric(vertical: 12),
+            margin: EdgeInsets.symmetric(vertical: widget.screenWidth < 360 ? 10.0 : 12.0),
             decoration: BoxDecoration(
               color: AppColors.textSecondary,
               borderRadius: BorderRadius.circular(2),
@@ -232,27 +280,31 @@ class _SavedQuotesTabState extends State<SavedQuotesTab> {
           ),
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
+              padding: EdgeInsets.all(padding),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     quote.nomPersonnalise ?? quote.nomProduit,
                     style: GoogleFonts.poppins(
-                      fontSize: 24,
+                      fontSize: titleFontSize,
                       fontWeight: FontWeight.w700,
                       color: AppColors.textPrimary,
                     ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: widget.screenWidth < 360 ? 6.0 : 8.0),
                   Text(
                     quote.typeProduit,
                     style: GoogleFonts.poppins(
-                      fontSize: 16,
+                      fontSize: subtitleFontSize,
                       color: AppColors.textSecondary,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: widget.screenWidth < 360 ? 20.0 : 24.0),
                   _buildDetailRow(
                     'Prime calculée',
                     FormatHelper.formatMontant(quote.primeCalculee),
@@ -273,9 +325,9 @@ class _SavedQuotesTabState extends State<SavedQuotesTab> {
                   ),
 
                   if (quote.informationsAssure != null) ...[
-                    const SizedBox(height: 24),
+                    SizedBox(height: widget.screenWidth < 360 ? 20.0 : 24.0),
                     _buildSectionTitle('Informations de l\'assuré'),
-                    const SizedBox(height: 16),
+                    SizedBox(height: widget.screenWidth < 360 ? 12.0 : 16.0),
                     _buildAssureInfo(
                       quote.informationsAssure!,
                       quote.beneficiaires,
@@ -286,7 +338,7 @@ class _SavedQuotesTabState extends State<SavedQuotesTab> {
             ),
           ),
           Container(
-            padding: const EdgeInsets.all(24),
+            padding: EdgeInsets.all(buttonPadding),
             decoration: BoxDecoration(
               color: AppColors.white,
               boxShadow: [
@@ -306,26 +358,38 @@ class _SavedQuotesTabState extends State<SavedQuotesTab> {
                       Navigator.pop(context);
                       _deleteQuote(quote);
                     },
-                    icon: const Icon(Icons.delete_outline),
-                    label: const Text('Supprimer'),
+                    icon: Icon(Icons.delete_outline, size: buttonIconSize),
+                    label: Text(
+                      'Supprimer',
+                      style: GoogleFonts.poppins(fontSize: buttonFontSize),
+                    ),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.error,
                       side: const BorderSide(color: AppColors.error),
+                      padding: EdgeInsets.symmetric(
+                        vertical: widget.screenWidth < 360 ? 12.0 : 14.0,
+                      ),
                     ),
                   ),
                 ),
-                const SizedBox(width: 16),
+                SizedBox(width: buttonSpacing),
                 Expanded(
                   child: ElevatedButton.icon(
                     onPressed: () {
                       Navigator.pop(context);
                       _subscribeQuote(quote);
                     },
-                    icon: const Icon(Icons.check),
-                    label: const Text('Souscrire'),
+                    icon: Icon(Icons.check, size: buttonIconSize),
+                    label: Text(
+                      'Souscrire',
+                      style: GoogleFonts.poppins(fontSize: buttonFontSize),
+                    ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       foregroundColor: AppColors.white,
+                      padding: EdgeInsets.symmetric(
+                        vertical: widget.screenWidth < 360 ? 12.0 : 14.0,
+                      ),
                     ),
                   ),
                 ),
@@ -338,30 +402,38 @@ class _SavedQuotesTabState extends State<SavedQuotesTab> {
   }
 
   Widget _buildDetailRow(String label, String value) {
+    final labelWidth = widget.screenWidth < 360 ? 100.0 : 120.0;
+    final fontSize = (14.0 / widget.textScaleFactor).clamp(12.0, 16.0);
+    final bottomPadding = widget.screenWidth < 360 ? 10.0 : 12.0;
+    
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: EdgeInsets.only(bottom: bottomPadding),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 120,
+            width: labelWidth,
             child: Text(
               label,
               style: GoogleFonts.poppins(
-                fontSize: 14,
+                fontSize: fontSize,
                 fontWeight: FontWeight.w500,
                 color: AppColors.textSecondary,
               ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
           Expanded(
             child: Text(
               value,
               style: GoogleFonts.poppins(
-                fontSize: 14,
+                fontSize: fontSize,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textPrimary,
               ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
@@ -451,16 +523,24 @@ class _SavedQuotesTabState extends State<SavedQuotesTab> {
   }
 
   Widget _buildSectionTitle(String title) {
+    final iconSize = widget.screenWidth < 360 ? 18.0 : 20.0;
+    final fontSize = (16.0 / widget.textScaleFactor).clamp(14.0, 18.0);
+    final spacing = widget.screenWidth < 360 ? 6.0 : 8.0;
+    
     return Row(
       children: [
-        Icon(Icons.person_outline_rounded, color: AppColors.primary, size: 20),
-        const SizedBox(width: 8),
-        Text(
-          title,
-          style: GoogleFonts.poppins(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
+        Icon(Icons.person_outline_rounded, color: AppColors.primary, size: iconSize),
+        SizedBox(width: spacing),
+        Expanded(
+          child: Text(
+            title,
+            style: GoogleFonts.poppins(
+              fontSize: fontSize,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
@@ -499,36 +579,48 @@ class _SavedQuotesTabState extends State<SavedQuotesTab> {
         if ((beneficiaires != null && beneficiaires.isNotEmpty) ||
             (informations['nombre_beneficiaires'] != null &&
                 informations['nombre_beneficiaires'] > 0)) ...[
-          const SizedBox(height: 20),
+          SizedBox(height: widget.screenWidth < 360 ? 16.0 : 20.0),
           Row(
             children: [
               Icon(
                 Icons.people_outline_rounded,
                 color: AppColors.primary,
-                size: 16,
+                size: widget.screenWidth < 360 ? 14.0 : 16.0,
               ),
-              const SizedBox(width: 8),
-              Text(
-                'Bénéficiaires',
-                style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
+              SizedBox(width: widget.screenWidth < 360 ? 6.0 : 8.0),
+              Expanded(
+                child: Text(
+                  'Bénéficiaires',
+                  style: GoogleFonts.poppins(
+                    fontSize: (14.0 / widget.textScaleFactor).clamp(12.0, 16.0),
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: widget.screenWidth < 360 ? 10.0 : 12.0),
           if (beneficiaires != null && beneficiaires.isNotEmpty) ...[
             ...beneficiaires.asMap().entries.map((entry) {
               final index = entry.key;
               final beneficiaire = entry.value;
+              final containerPadding = widget.screenWidth < 360 ? 10.0 : 12.0;
+              final badgeSize = widget.screenWidth < 360 ? 20.0 : 24.0;
+              final badgeFontSize = (12.0 / widget.textScaleFactor).clamp(10.0, 14.0);
+              final nameFontSize = (14.0 / widget.textScaleFactor).clamp(12.0, 16.0);
+              final linkFontSize = (12.0 / widget.textScaleFactor).clamp(10.0, 14.0);
+              final spacing1 = widget.screenWidth < 360 ? 10.0 : 12.0;
+              final spacing2 = widget.screenWidth < 360 ? 2.0 : 2.0;
+              final marginBottom = widget.screenWidth < 360 ? 6.0 : 8.0;
 
               return Container(
                 margin: EdgeInsets.only(
-                  bottom: index < beneficiaires.length - 1 ? 8 : 0,
+                  bottom: index < beneficiaires.length - 1 ? marginBottom : 0,
                 ),
-                padding: const EdgeInsets.all(12),
+                padding: EdgeInsets.all(containerPadding),
                 decoration: BoxDecoration(
                   color: AppColors.background,
                   borderRadius: BorderRadius.circular(8),
@@ -537,24 +629,24 @@ class _SavedQuotesTabState extends State<SavedQuotesTab> {
                 child: Row(
                   children: [
                     Container(
-                      width: 24,
-                      height: 24,
+                      width: badgeSize,
+                      height: badgeSize,
                       decoration: BoxDecoration(
                         color: AppColors.primary.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(badgeSize / 2),
                       ),
                       child: Center(
                         child: Text(
                           '${index + 1}',
                           style: GoogleFonts.poppins(
-                            fontSize: 12,
+                            fontSize: badgeFontSize,
                             fontWeight: FontWeight.w600,
                             color: AppColors.primary,
                           ),
                         ),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    SizedBox(width: spacing1),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -563,20 +655,24 @@ class _SavedQuotesTabState extends State<SavedQuotesTab> {
                             beneficiaire['nom_complet']?.toString() ??
                                 'Nom non renseigné',
                             style: GoogleFonts.poppins(
-                              fontSize: 14,
+                              fontSize: nameFontSize,
                               fontWeight: FontWeight.w600,
                               color: AppColors.textPrimary,
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          const SizedBox(height: 2),
+                          SizedBox(height: spacing2),
                           Text(
                             beneficiaire['lien_souscripteur']?.toString() ??
                                 'Lien non renseigné',
                             style: GoogleFonts.poppins(
-                              fontSize: 12,
+                              fontSize: linkFontSize,
                               fontWeight: FontWeight.w400,
                               color: AppColors.textSecondary,
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ),
@@ -587,7 +683,7 @@ class _SavedQuotesTabState extends State<SavedQuotesTab> {
             }).toList(),
           ] else ...[
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: EdgeInsets.all(widget.screenWidth < 360 ? 10.0 : 12.0),
               decoration: BoxDecoration(
                 color: AppColors.background,
                 borderRadius: BorderRadius.circular(8),
@@ -595,16 +691,22 @@ class _SavedQuotesTabState extends State<SavedQuotesTab> {
               ),
               child: Row(
                 children: [
-                  Icon(Icons.info_outline, color: AppColors.primary, size: 20),
-                  const SizedBox(width: 12),
+                  Icon(
+                    Icons.info_outline,
+                    color: AppColors.primary,
+                    size: widget.screenWidth < 360 ? 18.0 : 20.0,
+                  ),
+                  SizedBox(width: widget.screenWidth < 360 ? 10.0 : 12.0),
                   Expanded(
                     child: Text(
                       '${informations['nombre_beneficiaires'] ?? 0} bénéficiaire(s) configuré(s)',
                       style: GoogleFonts.poppins(
-                        fontSize: 14,
+                        fontSize: (14.0 / widget.textScaleFactor).clamp(12.0, 16.0),
                         fontWeight: FontWeight.w500,
                         color: AppColors.textSecondary,
                       ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],

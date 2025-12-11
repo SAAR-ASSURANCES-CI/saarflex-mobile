@@ -19,6 +19,8 @@ class PersonalSection extends StatelessWidget {
   final Function(DateTime?) onBirthDateChanged;
   final Function() onDropdownChanged;
   final Function() onDateChanged;
+  final double screenWidth;
+  final double textScaleFactor;
 
   const PersonalSection({
     super.key,
@@ -35,13 +37,19 @@ class PersonalSection extends StatelessWidget {
     required this.onBirthDateChanged,
     required this.onDropdownChanged,
     required this.onDateChanged,
+    required this.screenWidth,
+    required this.textScaleFactor,
   });
 
   @override
   Widget build(BuildContext context) {
+    final fieldSpacing = screenWidth < 360 ? 16.0 : 20.0;
+    
     return _buildFormSection(
       title: "Informations personnelles",
       icon: Icons.person_rounded,
+      screenWidth: screenWidth,
+      textScaleFactor: textScaleFactor,
       children: [
         FormFieldWidget(
           controller: firstNameController,
@@ -50,8 +58,10 @@ class PersonalSection extends StatelessWidget {
           hasError: fieldErrors.containsKey('nom'),
           originalData: originalData,
           originalKey: 'nom',
+          screenWidth: screenWidth,
+          textScaleFactor: textScaleFactor,
         ),
-        const SizedBox(height: 20),
+        SizedBox(height: fieldSpacing),
         DropdownFieldWidget(
           value: selectedGender,
           items: genderOptions,
@@ -64,8 +74,10 @@ class PersonalSection extends StatelessWidget {
           },
           originalData: originalData,
           originalKey: 'sexe',
+          screenWidth: screenWidth,
+          textScaleFactor: textScaleFactor,
         ),
-        const SizedBox(height: 20),
+        SizedBox(height: fieldSpacing),
         DateFieldWidget(
           selectedDate: selectedBirthDate,
           label: 'Date de naissance',
@@ -77,30 +89,38 @@ class PersonalSection extends StatelessWidget {
           isRequired: false,
           originalData: originalData,
           originalKey: 'date_naissance',
+          screenWidth: screenWidth,
+          textScaleFactor: textScaleFactor,
         ),
-        const SizedBox(height: 20),
+        SizedBox(height: fieldSpacing),
         FormFieldWidget(
           controller: birthPlaceController,
           label: 'Lieu de naissance',
           isRequired: true,
           originalData: originalData,
           originalKey: 'lieu_naissance',
+          screenWidth: screenWidth,
+          textScaleFactor: textScaleFactor,
         ),
-        const SizedBox(height: 20),
+        SizedBox(height: fieldSpacing),
         FormFieldWidget(
           controller: nationalityController,
           label: 'Nationalité',
           isRequired: true,
           originalData: originalData,
           originalKey: 'nationalite',
+          screenWidth: screenWidth,
+          textScaleFactor: textScaleFactor,
         ),
-        const SizedBox(height: 20),
+        SizedBox(height: fieldSpacing),
         FormFieldWidget(
           controller: professionController,
           label: 'Profession',
           isRequired: true,
           originalData: originalData,
           originalKey: 'profession',
+          screenWidth: screenWidth,
+          textScaleFactor: textScaleFactor,
         ),
       ],
     );
@@ -110,32 +130,44 @@ class PersonalSection extends StatelessWidget {
     required String title,
     required IconData icon,
     required List<Widget> children,
+    required double screenWidth,
+    required double textScaleFactor,
   }) {
+    final iconSize = screenWidth < 360 ? 18.0 : 20.0;
+    final iconPadding = screenWidth < 360 ? 6.0 : 8.0;
+    final iconSpacing = screenWidth < 360 ? 10.0 : 12.0;
+    final titleFontSize = (18.0 / textScaleFactor).clamp(16.0, 20.0);
+    final sectionSpacing = screenWidth < 360 ? 16.0 : 20.0;
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
+              padding: EdgeInsets.all(iconPadding),
               decoration: BoxDecoration(
                 color: AppColors.primary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(icon, color: AppColors.primary, size: 20),
+              child: Icon(icon, color: AppColors.primary, size: iconSize),
             ),
-            const SizedBox(width: 12),
-            Text(
-              title,
-              style: GoogleFonts.poppins(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
+            SizedBox(width: iconSpacing),
+            Expanded(
+              child: Text(
+                title,
+                style: GoogleFonts.poppins(
+                  fontSize: titleFontSize,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],
         ),
-        const SizedBox(height: 20),
+        SizedBox(height: sectionSpacing),
         ...children,
       ],
     );

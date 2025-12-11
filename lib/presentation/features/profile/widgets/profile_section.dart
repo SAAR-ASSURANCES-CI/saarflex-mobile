@@ -6,16 +6,22 @@ class ProfileSection extends StatelessWidget {
   final String title;
   final IconData icon;
   final List<Widget> children;
+  final double screenWidth;
+  final double textScaleFactor;
 
   const ProfileSection({
     super.key,
     required this.title,
     required this.icon,
     required this.children,
+    required this.screenWidth,
+    required this.textScaleFactor,
   });
 
   @override
   Widget build(BuildContext context) {
+    final padding = screenWidth < 360 ? 16.0 : 20.0;
+    
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -34,10 +40,10 @@ class ProfileSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionHeader(),
+          _buildSectionHeader(padding),
           const Divider(height: 1),
           Padding(
-            padding: const EdgeInsets.all(20),
+            padding: EdgeInsets.all(padding),
             child: Column(children: children),
           ),
         ],
@@ -45,26 +51,35 @@ class ProfileSection extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionHeader() {
+  Widget _buildSectionHeader(double padding) {
+    final iconSize = screenWidth < 360 ? 18.0 : 20.0;
+    final iconPadding = screenWidth < 360 ? 8.0 : 10.0;
+    final fontSize = (18.0 / textScaleFactor).clamp(16.0, 20.0);
+    final iconSpacing = screenWidth < 360 ? 10.0 : 12.0;
+    
     return Padding(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(padding),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: EdgeInsets.all(iconPadding),
             decoration: BoxDecoration(
               color: AppColors.primary.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(icon, color: AppColors.primary, size: 20),
+            child: Icon(icon, color: AppColors.primary, size: iconSize),
           ),
-          const SizedBox(width: 12),
-          Text(
-            title,
-            style: GoogleFonts.poppins(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
+          SizedBox(width: iconSpacing),
+          Expanded(
+            child: Text(
+              title,
+              style: GoogleFonts.poppins(
+                fontSize: fontSize,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],

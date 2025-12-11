@@ -10,8 +10,18 @@ class ProductDescriptionSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final textScaleFactor = MediaQuery.of(context).textScaleFactor;
+    
+    // Padding adaptatif
+    final padding = screenWidth < 360 ? 16.0 : 20.0;
+    
+    // Tailles de police adaptatives
+    final titleFontSize = (18.0 / textScaleFactor).clamp(16.0, 20.0);
+    final descriptionFontSize = (14.0 / textScaleFactor).clamp(12.0, 16.0);
+    
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(padding),
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(16),
@@ -30,18 +40,18 @@ class ProductDescriptionSection extends StatelessWidget {
           Text(
             'Description',
             style: GoogleFonts.poppins(
-              fontSize: 18,
+              fontSize: titleFontSize,
               fontWeight: FontWeight.w600,
               color: AppColors.textPrimary,
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: screenWidth < 360 ? 12 : 16),
           Text(
             product.description.isNotEmpty
                 ? product.description
                 : 'Protection complète et personnalisée selon vos besoins.',
             style: GoogleFonts.poppins(
-              fontSize: 14,
+              fontSize: descriptionFontSize,
               fontWeight: FontWeight.w400,
               color: AppColors.textSecondary,
               height: 1.5,

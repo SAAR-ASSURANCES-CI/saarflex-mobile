@@ -207,41 +207,70 @@ class _SignupScreenState extends State<SignupScreen> {
   Widget build(BuildContext context) {
     return Consumer<AuthViewModel>(
       builder: (context, authProvider, child) {
+        final screenWidth = MediaQuery.of(context).size.width;
+        final screenHeight = MediaQuery.of(context).size.height;
+        final viewInsets = MediaQuery.of(context).viewInsets;
+        final textScaleFactor = MediaQuery.of(context).textScaleFactor;
+        
+        // Padding adaptatif
+        final horizontalPadding = screenWidth < 360 
+            ? 16.0 
+            : screenWidth < 600 
+                ? 24.0 
+                : (screenWidth * 0.08).clamp(24.0, 48.0);
+        final verticalPadding = screenHeight < 600 ? 16.0 : 24.0;
+        final bottomPadding = viewInsets.bottom > 0 
+            ? viewInsets.bottom + 16.0 
+            : 24.0;
+        
+        // Espacements adaptatifs
+        final topSpacing = screenHeight < 600 ? 10.0 : 20.0;
+        final headerSpacing = screenHeight < 600 ? 24.0 : 40.0;
+        final fieldSpacing = screenHeight < 600 ? 16.0 : 20.0;
+        final checkboxSpacing = screenHeight < 600 ? 20.0 : 24.0;
+        final buttonTopSpacing = screenHeight < 600 ? 32.0 : 40.0;
+        
         return Scaffold(
           backgroundColor: AppColors.background,
-          appBar: _buildAppBar(),
+          resizeToAvoidBottomInset: true,
+          appBar: _buildAppBar(textScaleFactor, screenWidth),
           body: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+            padding: EdgeInsets.only(
+              left: horizontalPadding,
+              right: horizontalPadding,
+              top: verticalPadding,
+              bottom: bottomPadding,
+            ),
             child: Form(
               key: _formKey,
               autovalidateMode: _autovalidateMode,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 20),
-                  _buildHeader(),
-                  const SizedBox(height: 40),
+                  SizedBox(height: topSpacing),
+                  _buildHeader(screenWidth, screenHeight, textScaleFactor),
+                  SizedBox(height: headerSpacing),
 
                   if (_generalError != null) ...[
                     ErrorHandler.buildAutoDisappearingErrorContainer(
                       _generalError!,
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: fieldSpacing),
                   ],
 
-                  _buildNameField(),
-                  const SizedBox(height: 20),
-                  _buildEmailField(),
-                  const SizedBox(height: 20),
-                  _buildPhoneField(),
-                  const SizedBox(height: 20),
-                  _buildPasswordField(),
-                  const SizedBox(height: 20),
-                  _buildConfirmPasswordField(),
-                  const SizedBox(height: 24),
-                  _buildTermsCheckbox(),
-                  const SizedBox(height: 40),
-                  _buildCreateAccountButton(authProvider),
+                  _buildNameField(textScaleFactor, screenWidth),
+                  SizedBox(height: fieldSpacing),
+                  _buildEmailField(textScaleFactor, screenWidth),
+                  SizedBox(height: fieldSpacing),
+                  _buildPhoneField(textScaleFactor, screenWidth),
+                  SizedBox(height: fieldSpacing),
+                  _buildPasswordField(textScaleFactor, screenWidth),
+                  SizedBox(height: fieldSpacing),
+                  _buildConfirmPasswordField(textScaleFactor, screenWidth),
+                  SizedBox(height: checkboxSpacing),
+                  _buildTermsCheckbox(screenWidth, textScaleFactor),
+                  SizedBox(height: buttonTopSpacing),
+                  _buildCreateAccountButton(authProvider, textScaleFactor, screenWidth),
                 ],
               ),
             ),
@@ -251,18 +280,24 @@ class _SignupScreenState extends State<SignupScreen> {
     );
   }
 
-  PreferredSizeWidget _buildAppBar() {
+  PreferredSizeWidget _buildAppBar(double textScaleFactor, double screenWidth) {
+    final fontSize = (20.0 / textScaleFactor).clamp(18.0, 22.0);
+    
     return AppBar(
       backgroundColor: Colors.transparent,
       elevation: 0,
       leading: IconButton(
-        icon: Icon(Icons.arrow_back, color: AppColors.primary),
+        icon: Icon(
+          Icons.arrow_back, 
+          color: AppColors.primary,
+          size: screenWidth < 360 ? 22 : 24,
+        ),
         onPressed: () => Navigator.pop(context),
       ),
       title: Text(
         "Créer un compte",
         style: GoogleFonts.poppins(
-          fontSize: 20,
+          fontSize: fontSize,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
         ),
@@ -270,35 +305,46 @@ class _SignupScreenState extends State<SignupScreen> {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(double screenWidth, double screenHeight, double textScaleFactor) {
+    final iconSize = screenWidth < 360 ? 50.0 : 60.0;
+    final iconInnerSize = screenWidth < 360 ? 24.0 : 28.0;
+    final titleFontSize = (28.0 / textScaleFactor).clamp(24.0, 32.0);
+    final subtitleFontSize = (16.0 / textScaleFactor).clamp(14.0, 18.0);
+    final iconSpacing = screenHeight < 600 ? 16.0 : 24.0;
+    final titleSpacing = screenHeight < 600 ? 6.0 : 8.0;
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Center(
           child: Container(
-            width: 60,
-            height: 60,
+            width: iconSize,
+            height: iconSize,
             decoration: BoxDecoration(
               color: AppColors.primary,
               borderRadius: BorderRadius.circular(16),
             ),
-            child: Icon(Icons.person_add, color: AppColors.white, size: 28),
+            child: Icon(
+              Icons.person_add, 
+              color: AppColors.white, 
+              size: iconInnerSize,
+            ),
           ),
         ),
-        const SizedBox(height: 24),
+        SizedBox(height: iconSpacing),
         Text(
           "Rejoignez SAAR",
           style: GoogleFonts.poppins(
-            fontSize: 28,
+            fontSize: titleFontSize,
             fontWeight: FontWeight.w700,
             color: AppColors.textPrimary,
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: titleSpacing),
         Text(
           "Créez votre compte et découvrez nos services",
           style: GoogleFonts.poppins(
-            fontSize: 16,
+            fontSize: subtitleFontSize,
             color: AppColors.textSecondary,
           ),
         ),
@@ -306,7 +352,7 @@ class _SignupScreenState extends State<SignupScreen> {
     );
   }
 
-  Widget _buildNameField() {
+  Widget _buildNameField(double textScaleFactor, double screenWidth) {
     return _buildFormField(
       controller: _nameController,
       focusNode: _nameFocus,
@@ -316,10 +362,12 @@ class _SignupScreenState extends State<SignupScreen> {
       error: _nameError,
       textInputAction: TextInputAction.next,
       onFieldSubmitted: (_) => _emailFocus.requestFocus(),
+      textScaleFactor: textScaleFactor,
+      screenWidth: screenWidth,
     );
   }
 
-  Widget _buildEmailField() {
+  Widget _buildEmailField(double textScaleFactor, double screenWidth) {
     return _buildFormField(
       controller: _emailController,
       focusNode: _emailFocus,
@@ -330,10 +378,12 @@ class _SignupScreenState extends State<SignupScreen> {
       keyboardType: TextInputType.emailAddress,
       textInputAction: TextInputAction.next,
       onFieldSubmitted: (_) => _phoneFocus.requestFocus(),
+      textScaleFactor: textScaleFactor,
+      screenWidth: screenWidth,
     );
   }
 
-  Widget _buildPhoneField() {
+  Widget _buildPhoneField(double textScaleFactor, double screenWidth) {
     return _buildFormField(
       controller: _phoneController,
       focusNode: _phoneFocus,
@@ -344,10 +394,14 @@ class _SignupScreenState extends State<SignupScreen> {
       keyboardType: TextInputType.phone,
       textInputAction: TextInputAction.next,
       onFieldSubmitted: (_) => _passwordFocus.requestFocus(),
+      textScaleFactor: textScaleFactor,
+      screenWidth: screenWidth,
     );
   }
 
-  Widget _buildPasswordField() {
+  Widget _buildPasswordField(double textScaleFactor, double screenWidth) {
+    final errorSpacing = screenWidth < 360 ? 6.0 : 8.0;
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -364,6 +418,7 @@ class _SignupScreenState extends State<SignupScreen> {
             icon: Icon(
               _obscurePassword ? Icons.visibility_off : Icons.visibility,
               color: AppColors.textSecondary,
+              size: screenWidth < 360 ? 20 : 24,
             ),
             onPressed: () {
               setState(() {
@@ -371,16 +426,18 @@ class _SignupScreenState extends State<SignupScreen> {
               });
             },
           ),
+          textScaleFactor: textScaleFactor,
+          screenWidth: screenWidth,
         ),
         if (_passwordErrors.isNotEmpty) ...[
-          const SizedBox(height: 8),
+          SizedBox(height: errorSpacing),
           ErrorHandler.buildErrorList(_passwordErrors),
         ],
       ],
     );
   }
 
-  Widget _buildConfirmPasswordField() {
+  Widget _buildConfirmPasswordField(double textScaleFactor, double screenWidth) {
     return _buildFormField(
       controller: _confirmPasswordController,
       focusNode: _confirmPasswordFocus,
@@ -394,6 +451,7 @@ class _SignupScreenState extends State<SignupScreen> {
         icon: Icon(
           _obscureConfirmPassword ? Icons.visibility_off : Icons.visibility,
           color: AppColors.textSecondary,
+          size: screenWidth < 360 ? 20 : 24,
         ),
         onPressed: () {
           setState(() {
@@ -401,6 +459,8 @@ class _SignupScreenState extends State<SignupScreen> {
           });
         },
       ),
+      textScaleFactor: textScaleFactor,
+      screenWidth: screenWidth,
     );
   }
 
@@ -410,6 +470,8 @@ class _SignupScreenState extends State<SignupScreen> {
     required String label,
     required String hintText,
     required IconData icon,
+    required double textScaleFactor,
+    required double screenWidth,
     String? error,
     bool obscureText = false,
     TextInputType? keyboardType,
@@ -417,18 +479,26 @@ class _SignupScreenState extends State<SignupScreen> {
     Widget? suffixIcon,
     Function(String)? onFieldSubmitted,
   }) {
+    final labelFontSize = (16.0 / textScaleFactor).clamp(14.0, 18.0);
+    final fieldFontSize = (16.0 / textScaleFactor).clamp(14.0, 18.0);
+    final errorFontSize = (12.0 / textScaleFactor).clamp(10.0, 14.0);
+    final contentPadding = screenWidth < 360 ? 14.0 : 16.0;
+    final labelSpacing = screenWidth < 360 ? 6.0 : 8.0;
+    final errorSpacing = screenWidth < 360 ? 6.0 : 8.0;
+    final iconSize = screenWidth < 360 ? 20.0 : 24.0;
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
           style: GoogleFonts.poppins(
-            fontSize: 16,
+            fontSize: labelFontSize,
             fontWeight: FontWeight.w600,
             color: AppColors.textPrimary,
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: labelSpacing),
         TextFormField(
           controller: controller,
           focusNode: focusNode,
@@ -437,13 +507,16 @@ class _SignupScreenState extends State<SignupScreen> {
           textInputAction: textInputAction,
           onFieldSubmitted: onFieldSubmitted,
           style: GoogleFonts.poppins(
-            fontSize: 16,
+            fontSize: fieldFontSize,
             color: AppColors.textPrimary,
           ),
           decoration: InputDecoration(
             hintText: hintText,
-            hintStyle: GoogleFonts.poppins(color: AppColors.textHint),
-            prefixIcon: Icon(icon, color: AppColors.primary),
+            hintStyle: GoogleFonts.poppins(
+              color: AppColors.textHint,
+              fontSize: fieldFontSize,
+            ),
+            prefixIcon: Icon(icon, color: AppColors.primary, size: iconSize),
             suffixIcon: suffixIcon,
             filled: true,
             fillColor: AppColors.surface,
@@ -470,21 +543,25 @@ class _SignupScreenState extends State<SignupScreen> {
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(color: AppColors.error),
             ),
-            contentPadding: const EdgeInsets.all(16),
+            contentPadding: EdgeInsets.all(contentPadding),
           ),
         ),
         if (error != null) ...[
-          const SizedBox(height: 8),
+          SizedBox(height: errorSpacing),
           Row(
             children: [
-              Icon(Icons.error_outline, color: AppColors.error, size: 16),
-              const SizedBox(width: 8),
+              Icon(
+                Icons.error_outline, 
+                color: AppColors.error, 
+                size: screenWidth < 360 ? 14 : 16,
+              ),
+              SizedBox(width: screenWidth < 360 ? 6 : 8),
               Expanded(
                 child: Text(
                   error,
                   style: GoogleFonts.poppins(
                     color: AppColors.error,
-                    fontSize: 12,
+                    fontSize: errorFontSize,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -496,25 +573,39 @@ class _SignupScreenState extends State<SignupScreen> {
     );
   }
 
-  Widget _buildTermsCheckbox() {
+  Widget _buildTermsCheckbox(double screenWidth, double textScaleFactor) {
+    final checkboxSize = screenWidth < 360 ? 18.0 : 20.0;
+    final labelFontSize = (14.0 / textScaleFactor).clamp(12.0, 16.0);
+    
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Checkbox(
-          value: _acceptTerms,
-          onChanged: (value) {
-            setState(() {
-              _acceptTerms = value ?? false;
-              _updateFormValidity();
-            });
-          },
-          activeColor: AppColors.primary,
+        SizedBox(
+          width: checkboxSize,
+          height: checkboxSize,
+          child: Checkbox(
+            value: _acceptTerms,
+            onChanged: (value) {
+              setState(() {
+                _acceptTerms = value ?? false;
+                _updateFormValidity();
+              });
+            },
+            activeColor: AppColors.primary,
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
         ),
+        SizedBox(width: screenWidth < 360 ? 6.0 : 8.0),
         Expanded(
-          child: Text(
-            "J'accepte les conditions générales d'utilisation",
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              color: AppColors.textSecondary,
+          child: Padding(
+            padding: EdgeInsets.only(top: screenWidth < 360 ? 2.0 : 0.0),
+            child: Text(
+              "J'accepte les conditions générales d'utilisation",
+              style: GoogleFonts.poppins(
+                fontSize: labelFontSize,
+                color: AppColors.textSecondary,
+                height: 1.4,
+              ),
             ),
           ),
         ),
@@ -522,10 +613,13 @@ class _SignupScreenState extends State<SignupScreen> {
     );
   }
 
-  Widget _buildCreateAccountButton(AuthViewModel authProvider) {
+  Widget _buildCreateAccountButton(AuthViewModel authProvider, double textScaleFactor, double screenWidth) {
+    final buttonHeight = screenWidth < 360 ? 48.0 : 50.0;
+    final buttonFontSize = (16.0 / textScaleFactor).clamp(14.0, 18.0);
+    
     return SizedBox(
       width: double.infinity,
-      height: 50,
+      height: buttonHeight,
       child: ElevatedButton(
         onPressed: authProvider.isLoading || !_isFormValid
             ? null
@@ -552,7 +646,7 @@ class _SignupScreenState extends State<SignupScreen> {
             : Text(
                 "Créer mon compte",
                 style: GoogleFonts.poppins(
-                  fontSize: 16,
+                  fontSize: buttonFontSize,
                   fontWeight: FontWeight.w600,
                 ),
               ),

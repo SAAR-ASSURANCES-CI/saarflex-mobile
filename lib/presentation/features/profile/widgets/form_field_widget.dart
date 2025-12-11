@@ -12,6 +12,8 @@ class FormFieldWidget extends StatelessWidget {
   final Map<String, dynamic> originalData;
   final String originalKey;
   final Function()? onChanged;
+  final double screenWidth;
+  final double textScaleFactor;
 
   const FormFieldWidget({
     super.key,
@@ -19,6 +21,8 @@ class FormFieldWidget extends StatelessWidget {
     required this.label,
     required this.originalData,
     required this.originalKey,
+    required this.screenWidth,
+    required this.textScaleFactor,
     this.isRequired = false,
     this.keyboardType,
     this.maxLines = 1,
@@ -32,6 +36,14 @@ class FormFieldWidget extends StatelessWidget {
         originalKey.isNotEmpty &&
         controller.text.trim() != originalData[originalKey];
 
+    final labelFontSize = (14.0 / textScaleFactor).clamp(12.0, 16.0);
+    final modifiedFontSize = (12.0 / textScaleFactor).clamp(10.0, 14.0);
+    final inputFontSize = (16.0 / textScaleFactor).clamp(14.0, 18.0);
+    final hintFontSize = (16.0 / textScaleFactor).clamp(14.0, 18.0);
+    final labelSpacing = screenWidth < 360 ? 6.0 : 8.0;
+    final horizontalPadding = screenWidth < 360 ? 12.0 : 16.0;
+    final verticalPadding = screenWidth < 360 ? 14.0 : 16.0;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -39,7 +51,7 @@ class FormFieldWidget extends StatelessWidget {
           text: TextSpan(
             text: label,
             style: GoogleFonts.poppins(
-              fontSize: 14,
+              fontSize: labelFontSize,
               fontWeight: FontWeight.w500,
               color: AppColors.textPrimary,
             ),
@@ -53,7 +65,7 @@ class FormFieldWidget extends StatelessWidget {
                 TextSpan(
                   text: ' (modifié)',
                   style: GoogleFonts.poppins(
-                    fontSize: 12,
+                    fontSize: modifiedFontSize,
                     color: AppColors.primary,
                     fontWeight: FontWeight.w500,
                   ),
@@ -61,7 +73,7 @@ class FormFieldWidget extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: labelSpacing),
         TextFormField(
           controller: controller,
           keyboardType: keyboardType,
@@ -70,7 +82,7 @@ class FormFieldWidget extends StatelessWidget {
             onChanged?.call();
           },
           style: GoogleFonts.poppins(
-            fontSize: 16,
+            fontSize: inputFontSize,
             fontWeight: FontWeight.w500,
             color: AppColors.textPrimary,
           ),
@@ -79,6 +91,7 @@ class FormFieldWidget extends StatelessWidget {
             hintStyle: GoogleFonts.poppins(
               color: AppColors.textSecondary.withOpacity(0.6),
               fontWeight: FontWeight.w400,
+              fontSize: hintFontSize,
             ),
             filled: true,
             fillColor: AppColors.surfaceVariant,
@@ -111,9 +124,9 @@ class FormFieldWidget extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(color: AppColors.error, width: 2),
             ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 16,
+            contentPadding: EdgeInsets.symmetric(
+              horizontal: horizontalPadding,
+              vertical: verticalPadding,
             ),
           ),
         ),

@@ -18,9 +18,16 @@ class ContinueButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final textScaleFactor = MediaQuery.of(context).textScaleFactor;
+    
+    // Tailles adaptatives
+    final buttonHeight = screenWidth < 360 ? 48.0 : 50.0;
+    final fontSize = (16.0 / textScaleFactor).clamp(14.0, 18.0);
+    
     return Container(
       width: double.infinity,
-      height: 50,
+      height: buttonHeight,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
         boxShadow: isEnabled
@@ -58,7 +65,7 @@ class ContinueButton extends StatelessWidget {
             : Text(
                 text,
                 style: GoogleFonts.poppins(
-                  fontSize: 16,
+                  fontSize: fontSize,
                   fontWeight: FontWeight.w600,
                 ),
               ),

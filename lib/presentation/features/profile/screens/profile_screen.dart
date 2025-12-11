@@ -83,6 +83,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Consumer<AuthViewModel>(
       builder: (context, authProvider, child) {
         final user = authProvider.currentUser;
+        final screenWidth = MediaQuery.of(context).size.width;
+        final screenHeight = MediaQuery.of(context).size.height;
+        final textScaleFactor = MediaQuery.of(context).textScaleFactor;
+        
+        // Padding adaptatif
+        final horizontalPadding = screenWidth < 360 
+            ? 16.0 
+            : screenWidth < 600 
+                ? 20.0 
+                : (screenWidth * 0.08).clamp(20.0, 48.0);
+        final verticalPadding = screenHeight < 600 ? 16.0 : 20.0;
+        
+        // Espacements adaptatifs
+        final headerSpacing = screenHeight < 600 ? 24.0 : 32.0;
+        final buttonSpacing = screenHeight < 600 ? 20.0 : 24.0;
+        final sectionSpacing = screenHeight < 600 ? 16.0 : 20.0;
+        final actionsSpacing = screenHeight < 600 ? 24.0 : 32.0;
+        final bottomSpacing = screenHeight < 600 ? 16.0 : 20.0;
+        
+        // Taille de police AppBar adaptative
+        final appBarFontSize = (20.0 / textScaleFactor).clamp(18.0, 22.0);
 
         return Scaffold(
           backgroundColor: AppColors.background,
@@ -93,13 +114,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
               icon: Icon(
                 Icons.arrow_back_ios_rounded,
                 color: AppColors.textPrimary,
+                size: screenWidth < 360 ? 22 : 24,
               ),
               onPressed: () => Navigator.pop(context),
             ),
             title: Text(
               "Mon Profil",
               style: GoogleFonts.poppins(
-                fontSize: 20,
+                fontSize: appBarFontSize,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textPrimary,
               ),
@@ -107,21 +129,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
             centerTitle: true,
           ),
           body: SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
+            padding: EdgeInsets.symmetric(
+              horizontal: horizontalPadding,
+              vertical: verticalPadding,
+            ),
             child: Column(
               children: [
-                ProfileHeader(user: user),
-                const SizedBox(height: 32),
-                _buildEditButton(),
-                const SizedBox(height: 24),
-                _buildPersonalInfoSection(user),
-                const SizedBox(height: 20),
-                _buildIdentitySection(user),
-                const SizedBox(height: 20),
-                _buildIdentityImagesSection(user),
-                const SizedBox(height: 32),
-                _buildActionButtons(),
-                const SizedBox(height: 20),
+                ProfileHeader(user: user, screenWidth: screenWidth, textScaleFactor: textScaleFactor),
+                SizedBox(height: headerSpacing),
+                _buildEditButton(screenWidth, textScaleFactor),
+                SizedBox(height: buttonSpacing),
+                _buildPersonalInfoSection(user, screenWidth, textScaleFactor),
+                SizedBox(height: sectionSpacing),
+                _buildIdentitySection(user, screenWidth, textScaleFactor),
+                SizedBox(height: sectionSpacing),
+                _buildIdentityImagesSection(user, screenWidth, textScaleFactor),
+                SizedBox(height: actionsSpacing),
+                _buildActionButtons(screenWidth, textScaleFactor),
+                SizedBox(height: bottomSpacing),
               ],
             ),
           ),
@@ -130,15 +155,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildIdentityImagesSection(User? user) {
-
+  Widget _buildIdentityImagesSection(User? user, double screenWidth, double textScaleFactor) {
     final rectoLabel = ImageLabels.getRectoLabel(user?.identityType);
     final versoLabel = ImageLabels.getVersoLabel(user?.identityType);
     final sectionTitle = ImageLabels.getUploadTitle(user?.identityType);
+    final imageSpacing = screenWidth < 360 ? 10.0 : 12.0;
 
     return ProfileSection(
       title: sectionTitle,
       icon: Icons.photo_library_rounded,
+      screenWidth: screenWidth,
+      textScaleFactor: textScaleFactor,
       children: [
         if (user?.frontDocumentPath != null &&
             user!.frontDocumentPath!.isNotEmpty)
@@ -152,9 +179,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
             label: rectoLabel,
             value: "Non téléchargé",
             isWarning: true,
+            screenWidth: screenWidth,
+            textScaleFactor: textScaleFactor,
           ),
 
-        const SizedBox(height: 12),
+        SizedBox(height: imageSpacing),
 
         if (user?.backDocumentPath != null &&
             user!.backDocumentPath!.isNotEmpty)
@@ -168,6 +197,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             label: versoLabel,
             value: "Non téléchargé",
             isWarning: true,
+            screenWidth: screenWidth,
+            textScaleFactor: textScaleFactor,
           ),
       ],
     );
@@ -180,7 +211,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildEditButton() {
+  Widget _buildEditButton(double screenWidth, double textScaleFactor) {
     return ProfileActionButton(
       text: "Modifier mon profil",
       icon: Icons.edit_rounded,
@@ -188,57 +219,94 @@ class _ProfileScreenState extends State<ProfileScreen> {
       backgroundColor: AppColors.primary,
       foregroundColor: AppColors.white,
       borderColor: AppColors.primary,
+      screenWidth: screenWidth,
+      textScaleFactor: textScaleFactor,
     );
   }
 
-  Widget _buildPersonalInfoSection(User? user) {
+  Widget _buildPersonalInfoSection(User? user, double screenWidth, double textScaleFactor) {
     return ProfileSection(
       title: "Informations personnelles",
       icon: Icons.person_rounded,
+      screenWidth: screenWidth,
+      textScaleFactor: textScaleFactor,
       children: [
-        ProfileInfoRow(label: "Nom", value: user?.nom ?? "Non renseigné"),
-        ProfileInfoRow(label: "Email", value: user?.email ?? "Non renseigné"),
+        ProfileInfoRow(
+          label: "Nom", 
+          value: user?.nom ?? "Non renseigné",
+          screenWidth: screenWidth,
+          textScaleFactor: textScaleFactor,
+        ),
+        ProfileInfoRow(
+          label: "Email", 
+          value: user?.email ?? "Non renseigné",
+          screenWidth: screenWidth,
+          textScaleFactor: textScaleFactor,
+        ),
         ProfileInfoRow(
           label: "Téléphone",
           value: user?.telephone ?? "Non renseigné",
+          screenWidth: screenWidth,
+          textScaleFactor: textScaleFactor,
         ),
-        ProfileInfoRow(label: "Sexe", value: user?.gender ?? "Non renseigné"),
+        ProfileInfoRow(
+          label: "Sexe", 
+          value: user?.gender ?? "Non renseigné",
+          screenWidth: screenWidth,
+          textScaleFactor: textScaleFactor,
+        ),
         ProfileInfoRow(
           label: "Date de naissance",
           value: ProfileHelpers.formatDate(user?.birthDate) ?? "Non renseignée",
+          screenWidth: screenWidth,
+          textScaleFactor: textScaleFactor,
         ),
         ProfileInfoRow(
           label: "Lieu de naissance",
           value: user?.birthPlace ?? "Non renseigné",
+          screenWidth: screenWidth,
+          textScaleFactor: textScaleFactor,
         ),
         ProfileInfoRow(
           label: "Nationalité",
           value: user?.nationality ?? "Non renseignée",
+          screenWidth: screenWidth,
+          textScaleFactor: textScaleFactor,
         ),
         ProfileInfoRow(
           label: "Profession",
           value: user?.profession ?? "Non renseignée",
+          screenWidth: screenWidth,
+          textScaleFactor: textScaleFactor,
         ),
         ProfileInfoRow(
           label: "Adresse",
           value: user?.address ?? "Non renseignée",
+          screenWidth: screenWidth,
+          textScaleFactor: textScaleFactor,
         ),
       ],
     );
   }
 
-  Widget _buildIdentitySection(User? user) {
+  Widget _buildIdentitySection(User? user, double screenWidth, double textScaleFactor) {
     return ProfileSection(
       title: "Informations d'identité",
       icon: Icons.badge_rounded,
+      screenWidth: screenWidth,
+      textScaleFactor: textScaleFactor,
       children: [
         ProfileInfoRow(
           label: "Type de pièce",
           value: ProfileHelpers.getTypePieceIdentiteLabel(user?.identityType),
+          screenWidth: screenWidth,
+          textScaleFactor: textScaleFactor,
         ),
         ProfileInfoRow(
           label: "Numéro de pièce",
           value: user?.identityNumber ?? "Non renseigné",
+          screenWidth: screenWidth,
+          textScaleFactor: textScaleFactor,
         ),
         ProfileInfoRow(
           label: "Date d'expiration",
@@ -246,12 +314,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ProfileHelpers.formatDate(user?.identityExpirationDate) ??
               "Non renseignée",
           isExpirationDate: true,
+          screenWidth: screenWidth,
+          textScaleFactor: textScaleFactor,
         ),
       ],
     );
   }
 
-  Widget _buildActionButtons() {
+  Widget _buildActionButtons(double screenWidth, double textScaleFactor) {
+    final buttonSpacing = screenWidth < 360 ? 10.0 : 12.0;
+    
     return Column(
       children: [
         ProfileActionButton(
@@ -262,8 +334,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
           foregroundColor: AppColors.warning,
           borderColor: AppColors.warning,
           isOutlined: true,
+          screenWidth: screenWidth,
+          textScaleFactor: textScaleFactor,
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: buttonSpacing),
         ProfileActionButton(
           text: "Se déconnecter",
           icon: Icons.logout_rounded,
@@ -272,6 +346,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           foregroundColor: AppColors.error,
           borderColor: AppColors.error,
           isOutlined: true,
+          screenWidth: screenWidth,
+          textScaleFactor: textScaleFactor,
         ),
       ],
     );

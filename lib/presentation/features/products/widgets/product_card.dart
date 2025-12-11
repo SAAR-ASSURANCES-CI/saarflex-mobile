@@ -27,8 +27,17 @@ class ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final textScaleFactor = MediaQuery.of(context).textScaleFactor;
+    final defaultMargin = EdgeInsets.symmetric(
+      horizontal: screenWidth < 360 ? 12.0 : 16.0,
+      vertical: screenWidth < 360 ? 6.0 : 8.0,
+    );
+    final defaultPadding = screenWidth < 360 ? 12.0 : 16.0;
+    final spacing = screenWidth < 360 ? 10.0 : 12.0;
+    
     return Container(
-      margin: margin ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: margin ?? defaultMargin,
       child: Card(
         elevation: 2,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -36,16 +45,16 @@ class ProductCard extends StatelessWidget {
           onTap: onTap,
           borderRadius: BorderRadius.circular(12),
           child: Container(
-            padding: padding ?? const EdgeInsets.all(16),
+            padding: padding ?? EdgeInsets.all(defaultPadding),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildHeader(),
-                const SizedBox(height: 12),
-                _buildContent(),
+                _buildHeader(screenWidth, textScaleFactor),
+                SizedBox(height: spacing),
+                _buildContent(screenWidth, textScaleFactor),
                 if (showStatus || showBranch || showCreatedAt) ...[
-                  const SizedBox(height: 12),
-                  _buildFooter(),
+                  SizedBox(height: spacing),
+                  _buildFooter(screenWidth, textScaleFactor),
                 ],
               ],
             ),
@@ -55,11 +64,21 @@ class ProductCard extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(double screenWidth, double textScaleFactor) {
+    final iconPadding = screenWidth < 360 ? 6.0 : 8.0;
+    final iconSize = screenWidth < 360 ? 20.0 : 24.0;
+    final nameFontSize = (16.0 / textScaleFactor).clamp(14.0, 18.0);
+    final typeFontSize = (12.0 / textScaleFactor).clamp(10.0, 14.0);
+    final statusFontSize = (10.0 / textScaleFactor).clamp(9.0, 12.0);
+    final spacing1 = screenWidth < 360 ? 10.0 : 12.0;
+    final spacing2 = screenWidth < 360 ? 3.0 : 4.0;
+    final statusPaddingH = screenWidth < 360 ? 6.0 : 8.0;
+    final statusPaddingV = screenWidth < 360 ? 3.0 : 4.0;
+    
     return Row(
       children: [
         Container(
-          padding: const EdgeInsets.all(8),
+          padding: EdgeInsets.all(iconPadding),
           decoration: BoxDecoration(
             color: product.displayColor.withOpacity(0.1),
             borderRadius: BorderRadius.circular(8),
@@ -67,10 +86,10 @@ class ProductCard extends StatelessWidget {
           child: Icon(
             product.displayIcon,
             color: product.displayColor,
-            size: 24,
+            size: iconSize,
           ),
         ),
-        const SizedBox(width: 12),
+        SizedBox(width: spacing1),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -78,7 +97,7 @@ class ProductCard extends StatelessWidget {
               Text(
                 ProductFormatters.formatProductName(product.nom),
                 style: GoogleFonts.poppins(
-                  fontSize: 16,
+                  fontSize: nameFontSize,
                   fontWeight: FontWeight.w600,
                   color: Colors.grey[800],
                 ),
@@ -86,14 +105,16 @@ class ProductCard extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
               if (showType) ...[
-                const SizedBox(height: 4),
+                SizedBox(height: spacing2),
                 Text(
                   ProductFormatters.formatProductTypeShort(product.type),
                   style: GoogleFonts.poppins(
-                    fontSize: 12,
+                    fontSize: typeFontSize,
                     fontWeight: FontWeight.w500,
                     color: product.displayColor,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ],
@@ -101,7 +122,10 @@ class ProductCard extends StatelessWidget {
         ),
         if (showStatus)
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            padding: EdgeInsets.symmetric(
+              horizontal: statusPaddingH,
+              vertical: statusPaddingV,
+            ),
             decoration: BoxDecoration(
               color: product.isActive ? Colors.green[100] : Colors.red[100],
               borderRadius: BorderRadius.circular(12),
@@ -109,21 +133,25 @@ class ProductCard extends StatelessWidget {
             child: Text(
               ProductFormatters.formatProductStatus(product.statut),
               style: GoogleFonts.poppins(
-                fontSize: 10,
+                fontSize: statusFontSize,
                 fontWeight: FontWeight.w500,
                 color: product.isActive ? Colors.green[700] : Colors.red[700],
               ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
       ],
     );
   }
 
-  Widget _buildContent() {
+  Widget _buildContent(double screenWidth, double textScaleFactor) {
+    final fontSize = (14.0 / textScaleFactor).clamp(12.0, 16.0);
+    
     return Text(
       ProductFormatters.formatProductDescription(product.description),
       style: GoogleFonts.poppins(
-        fontSize: 14,
+        fontSize: fontSize,
         color: Colors.grey[600],
         height: 1.4,
       ),
@@ -132,28 +160,42 @@ class ProductCard extends StatelessWidget {
     );
   }
 
-  Widget _buildFooter() {
+  Widget _buildFooter(double screenWidth, double textScaleFactor) {
+    final iconSize = screenWidth < 360 ? 12.0 : 14.0;
+    final fontSize = (12.0 / textScaleFactor).clamp(10.0, 14.0);
+    final spacing1 = screenWidth < 360 ? 3.0 : 4.0;
+    final spacing2 = screenWidth < 360 ? 12.0 : 16.0;
+    final dividerHeight = screenWidth < 360 ? 10.0 : 12.0;
+    
     return Row(
       children: [
         if (showBranch) ...[
-          Icon(Icons.business, size: 14, color: Colors.grey[500]),
-          const SizedBox(width: 4),
-          Text(
-            ProductFormatters.formatProductBranch(product.branche),
-            style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[500]),
+          Icon(Icons.business, size: iconSize, color: Colors.grey[500]),
+          SizedBox(width: spacing1),
+          Flexible(
+            child: Text(
+              ProductFormatters.formatProductBranch(product.branche),
+              style: GoogleFonts.poppins(fontSize: fontSize, color: Colors.grey[500]),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         ],
         if (showBranch && showCreatedAt) ...[
-          const SizedBox(width: 16),
-          Container(width: 1, height: 12, color: Colors.grey[300]),
-          const SizedBox(width: 16),
+          SizedBox(width: spacing2),
+          Container(width: 1, height: dividerHeight, color: Colors.grey[300]),
+          SizedBox(width: spacing2),
         ],
         if (showCreatedAt) ...[
-          Icon(Icons.access_time, size: 14, color: Colors.grey[500]),
-          const SizedBox(width: 4),
-          Text(
-            ProductFormatters.formatProductCreatedAt(product.createdAt),
-            style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[500]),
+          Icon(Icons.access_time, size: iconSize, color: Colors.grey[500]),
+          SizedBox(width: spacing1),
+          Flexible(
+            child: Text(
+              ProductFormatters.formatProductCreatedAt(product.createdAt),
+              style: GoogleFonts.poppins(fontSize: fontSize, color: Colors.grey[500]),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         ],
       ],
@@ -175,8 +217,23 @@ class ProductCardCompact extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final textScaleFactor = MediaQuery.of(context).textScaleFactor;
+    final defaultMargin = EdgeInsets.symmetric(
+      horizontal: screenWidth < 360 ? 12.0 : 16.0,
+      vertical: screenWidth < 360 ? 3.0 : 4.0,
+    );
+    final padding = screenWidth < 360 ? 10.0 : 12.0;
+    final iconPadding = screenWidth < 360 ? 5.0 : 6.0;
+    final iconSize = screenWidth < 360 ? 18.0 : 20.0;
+    final nameFontSize = (14.0 / textScaleFactor).clamp(12.0, 16.0);
+    final typeFontSize = (12.0 / textScaleFactor).clamp(10.0, 14.0);
+    final spacing1 = screenWidth < 360 ? 10.0 : 12.0;
+    final spacing2 = screenWidth < 360 ? 2.0 : 2.0;
+    final arrowSize = screenWidth < 360 ? 14.0 : 16.0;
+    
     return Container(
-      margin: margin ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      margin: margin ?? defaultMargin,
       child: Card(
         elevation: 1,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -184,11 +241,11 @@ class ProductCardCompact extends StatelessWidget {
           onTap: onTap,
           borderRadius: BorderRadius.circular(8),
           child: Padding(
-            padding: const EdgeInsets.all(12),
+            padding: EdgeInsets.all(padding),
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(6),
+                  padding: EdgeInsets.all(iconPadding),
                   decoration: BoxDecoration(
                     color: product.displayColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(6),
@@ -196,10 +253,10 @@ class ProductCardCompact extends StatelessWidget {
                   child: Icon(
                     product.displayIcon,
                     color: product.displayColor,
-                    size: 20,
+                    size: iconSize,
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: spacing1),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -207,27 +264,29 @@ class ProductCardCompact extends StatelessWidget {
                       Text(
                         ProductFormatters.formatProductName(product.nom),
                         style: GoogleFonts.poppins(
-                          fontSize: 14,
+                          fontSize: nameFontSize,
                           fontWeight: FontWeight.w600,
                           color: Colors.grey[800],
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 2),
+                      SizedBox(height: spacing2),
                       Text(
                         ProductFormatters.formatProductTypeShort(product.type),
                         style: GoogleFonts.poppins(
-                          fontSize: 12,
+                          fontSize: typeFontSize,
                           color: product.displayColor,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
                 ),
                 Icon(
                   Icons.arrow_forward_ios,
-                  size: 16,
+                  size: arrowSize,
                   color: Colors.grey[400],
                 ),
               ],

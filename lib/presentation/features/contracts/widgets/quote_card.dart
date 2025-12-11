@@ -10,6 +10,8 @@ class QuoteCard extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onDelete;
   final VoidCallback onSubscribe;
+  final double screenWidth;
+  final double textScaleFactor;
 
   const QuoteCard({
     super.key,
@@ -17,10 +19,15 @@ class QuoteCard extends StatelessWidget {
     required this.onTap,
     required this.onDelete,
     required this.onSubscribe,
+    required this.screenWidth,
+    required this.textScaleFactor,
   });
 
   @override
   Widget build(BuildContext context) {
+    final cardPadding = screenWidth < 360 ? 16.0 : 20.0;
+    final spacing = screenWidth < 360 ? 12.0 : 16.0;
+    
     return Container(
       decoration: BoxDecoration(
         color: AppColors.white,
@@ -40,14 +47,14 @@ class QuoteCard extends StatelessWidget {
           onTap: () => _showQuoteDetails(context),
           borderRadius: BorderRadius.circular(12),
           child: Padding(
-            padding: const EdgeInsets.all(20),
+            padding: EdgeInsets.all(cardPadding),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildHeader(),
-                const SizedBox(height: 16),
+                SizedBox(height: spacing),
                 _buildInfoRow(),
-                const SizedBox(height: 16),
+                SizedBox(height: spacing),
                 _buildActions(),
               ],
             ),
@@ -58,17 +65,27 @@ class QuoteCard extends StatelessWidget {
   }
 
   Widget _buildHeader() {
+    final iconSize = screenWidth < 360 ? 20.0 : 24.0;
+    final iconPadding = screenWidth < 360 ? 6.0 : 8.0;
+    final titleFontSize = (16.0 / textScaleFactor).clamp(14.0, 18.0);
+    final subtitleFontSize = (14.0 / textScaleFactor).clamp(12.0, 16.0);
+    final statusFontSize = (12.0 / textScaleFactor).clamp(10.0, 14.0);
+    final spacing1 = screenWidth < 360 ? 10.0 : 12.0;
+    final spacing2 = screenWidth < 360 ? 3.0 : 4.0;
+    final statusPaddingH = screenWidth < 360 ? 10.0 : 12.0;
+    final statusPaddingV = screenWidth < 360 ? 5.0 : 6.0;
+    
     return Row(
       children: [
         Container(
-          padding: const EdgeInsets.all(8),
+          padding: EdgeInsets.all(iconPadding),
           decoration: BoxDecoration(
             color: AppColors.primary.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(Icons.description, color: AppColors.primary, size: 24),
+          child: Icon(Icons.description, color: AppColors.primary, size: iconSize),
         ),
-        const SizedBox(width: 12),
+        SizedBox(width: spacing1),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -76,26 +93,31 @@ class QuoteCard extends StatelessWidget {
               Text(
                 quote.nomPersonnalise ?? quote.nomProduit,
                 style: GoogleFonts.poppins(
-                  fontSize: 16,
+                  fontSize: titleFontSize,
                   fontWeight: FontWeight.w600,
                   color: AppColors.textPrimary,
                 ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(height: 4),
+              SizedBox(height: spacing2),
               Text(
                 quote.typeProduit,
                 style: GoogleFonts.poppins(
-                  fontSize: 14,
+                  fontSize: subtitleFontSize,
                   color: AppColors.textSecondary,
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
         ),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          padding: EdgeInsets.symmetric(
+            horizontal: statusPaddingH,
+            vertical: statusPaddingV,
+          ),
           decoration: BoxDecoration(
             color: _getStatusColor().withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(20),
@@ -103,10 +125,12 @@ class QuoteCard extends StatelessWidget {
           child: Text(
             _getStatusText(),
             style: GoogleFonts.poppins(
-              fontSize: 12,
+              fontSize: statusFontSize,
               fontWeight: FontWeight.w500,
               color: _getStatusColor(),
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
@@ -114,6 +138,8 @@ class QuoteCard extends StatelessWidget {
   }
 
   Widget _buildInfoRow() {
+    final spacing = screenWidth < 360 ? 12.0 : 16.0;
+    
     return Row(
       children: [
         Expanded(
@@ -123,7 +149,7 @@ class QuoteCard extends StatelessWidget {
             Icons.payments,
           ),
         ),
-        const SizedBox(width: 16),
+        SizedBox(width: spacing),
         Expanded(
           child: _buildInfoItem(
             'Franchise',
@@ -315,60 +341,83 @@ class QuoteCard extends StatelessWidget {
   }
 
   Widget _buildInfoItem(String label, String value, IconData icon) {
+    final iconSize = screenWidth < 360 ? 14.0 : 16.0;
+    final labelFontSize = (12.0 / textScaleFactor).clamp(10.0, 14.0);
+    final valueFontSize = (14.0 / textScaleFactor).clamp(12.0, 16.0);
+    final iconSpacing = screenWidth < 360 ? 5.0 : 6.0;
+    final valueSpacing = screenWidth < 360 ? 3.0 : 4.0;
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            Icon(icon, size: 16, color: AppColors.textSecondary),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-                color: AppColors.textSecondary,
+            Icon(icon, size: iconSize, color: AppColors.textSecondary),
+            SizedBox(width: iconSpacing),
+            Flexible(
+              child: Text(
+                label,
+                style: GoogleFonts.poppins(
+                  fontSize: labelFontSize,
+                  color: AppColors.textSecondary,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],
         ),
-        const SizedBox(height: 4),
+        SizedBox(height: valueSpacing),
         Text(
           value,
           style: GoogleFonts.poppins(
-            fontSize: 14,
+            fontSize: valueFontSize,
             fontWeight: FontWeight.w600,
             color: AppColors.textPrimary,
           ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
       ],
     );
   }
 
   Widget _buildActions() {
+    final buttonIconSize = screenWidth < 360 ? 16.0 : 18.0;
+    final buttonFontSize = (14.0 / textScaleFactor).clamp(12.0, 16.0);
+    final buttonSpacing = screenWidth < 360 ? 10.0 : 12.0;
+    final buttonPadding = screenWidth < 360 ? 10.0 : 12.0;
+    
     return Row(
       children: [
         Expanded(
           child: OutlinedButton.icon(
             onPressed: onDelete,
-            icon: const Icon(Icons.delete_outline, size: 18),
-            label: const Text('Supprimer'),
+            icon: Icon(Icons.delete_outline, size: buttonIconSize),
+            label: Text(
+              'Supprimer',
+              style: GoogleFonts.poppins(fontSize: buttonFontSize),
+            ),
             style: OutlinedButton.styleFrom(
               foregroundColor: AppColors.error,
               side: const BorderSide(color: AppColors.error),
-              padding: const EdgeInsets.symmetric(vertical: 12),
+              padding: EdgeInsets.symmetric(vertical: buttonPadding),
             ),
           ),
         ),
-        const SizedBox(width: 12),
+        SizedBox(width: buttonSpacing),
         Expanded(
           child: ElevatedButton.icon(
             onPressed: onSubscribe,
-            icon: const Icon(Icons.check, size: 18),
-            label: const Text('Souscrire'),
+            icon: Icon(Icons.check, size: buttonIconSize),
+            label: Text(
+              'Souscrire',
+              style: GoogleFonts.poppins(fontSize: buttonFontSize),
+            ),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
               foregroundColor: AppColors.white,
-              padding: const EdgeInsets.symmetric(vertical: 12),
+              padding: EdgeInsets.symmetric(vertical: buttonPadding),
             ),
           ),
         ),

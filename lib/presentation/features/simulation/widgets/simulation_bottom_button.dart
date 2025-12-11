@@ -15,8 +15,23 @@ class SimulationBottomButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final viewInsets = MediaQuery.of(context).viewInsets;
+    final bottomPadding = viewInsets.bottom > 0 ? viewInsets.bottom : 0.0;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final textScaleFactor = MediaQuery.of(context).textScaleFactor;
+    
+    // Taille de police adaptative
+    final fontSize = (16.0 / textScaleFactor).clamp(14.0, 18.0);
+    final horizontalPadding = screenWidth < 360 ? 16.0 : 24.0;
+    final verticalPadding = screenWidth < 360 ? 16.0 : 24.0;
+    
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.only(
+        left: horizontalPadding,
+        right: horizontalPadding,
+        top: verticalPadding,
+        bottom: verticalPadding + bottomPadding,
+      ),
       decoration: BoxDecoration(
         color: AppColors.white,
         boxShadow: [
@@ -29,6 +44,7 @@ class SimulationBottomButton extends StatelessWidget {
         ],
       ),
       child: SafeArea(
+        top: false,
         child: ElevatedButton(
           onPressed: provider.canSimulate ? onSimulate : null,
           style: ElevatedButton.styleFrom(
@@ -37,7 +53,10 @@ class SimulationBottomButton extends StatelessWidget {
                 : AppColors.textSecondary,
             foregroundColor: AppColors.white,
             elevation: 0,
-            minimumSize: const Size(double.infinity, 50),
+            minimumSize: Size(
+              double.infinity,
+              screenWidth < 360 ? 48 : 50,
+            ),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
@@ -54,7 +73,7 @@ class SimulationBottomButton extends StatelessWidget {
               : Text(
                   'Obtenir mon devis',
                   style: GoogleFonts.poppins(
-                    fontSize: 16,
+                    fontSize: fontSize,
                     fontWeight: FontWeight.w600,
                   ),
                 ),

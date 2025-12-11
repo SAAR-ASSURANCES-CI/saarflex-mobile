@@ -9,6 +9,8 @@ class ResultActionButtons extends StatelessWidget {
   final SimulationResultViewModel viewModel;
   final VoidCallback onSave;
   final VoidCallback onSubscribe;
+  final double screenWidth;
+  final double textScaleFactor;
 
   const ResultActionButtons({
     super.key,
@@ -16,12 +18,17 @@ class ResultActionButtons extends StatelessWidget {
     required this.viewModel,
     required this.onSave,
     required this.onSubscribe,
+    required this.screenWidth,
+    required this.textScaleFactor,
   });
 
   @override
   Widget build(BuildContext context) {
+    final padding = screenWidth < 360 ? 16.0 : screenWidth < 600 ? 20.0 : 24.0;
+    final buttonSpacing = screenWidth < 360 ? 10.0 : 12.0;
+    
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(padding),
       decoration: BoxDecoration(
         color: AppColors.white,
         boxShadow: [
@@ -34,12 +41,13 @@ class ResultActionButtons extends StatelessWidget {
         ],
       ),
       child: SafeArea(
+        top: false,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             if (_shouldShowSaveButton()) ...[
               _buildSaveButton(context),
-              const SizedBox(height: 12),
+              SizedBox(height: buttonSpacing),
             ],
             _buildSubscribeButton(),
           ],
@@ -55,6 +63,9 @@ class ResultActionButtons extends StatelessWidget {
   Widget _buildSaveButton(BuildContext context) {
     final isAlreadySaved = resultat.statut == StatutDevis.sauvegarde;
     final isSaving = viewModel.isSaving;
+    final buttonHeight = screenWidth < 360 ? 48.0 : 50.0;
+    final fontSize = (16.0 / textScaleFactor).clamp(14.0, 18.0);
+    final iconSize = screenWidth < 360 ? 18.0 : 20.0;
 
     return ElevatedButton(
       onPressed: isSaving || isAlreadySaved ? null : onSave,
@@ -64,13 +75,13 @@ class ResultActionButtons extends StatelessWidget {
             : AppColors.secondary,
         foregroundColor: AppColors.white,
         elevation: 0,
-        minimumSize: const Size(double.infinity, 50),
+        minimumSize: Size(double.infinity, buttonHeight),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
       child: isSaving
           ? SizedBox(
-              width: 20,
-              height: 20,
+              width: iconSize,
+              height: iconSize,
               child: CircularProgressIndicator(
                 valueColor: AlwaysStoppedAnimation<Color>(AppColors.white),
                 strokeWidth: 2,
@@ -79,26 +90,38 @@ class ResultActionButtons extends StatelessWidget {
           : Text(
               isAlreadySaved ? 'Déjà sauvegardé' : 'Sauvegarder',
               style: GoogleFonts.poppins(
-                fontSize: 16,
+                fontSize: fontSize,
                 fontWeight: FontWeight.w600,
               ),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
     );
   }
 
   Widget _buildSubscribeButton() {
+    final buttonHeight = screenWidth < 360 ? 48.0 : 50.0;
+    final fontSize = (16.0 / textScaleFactor).clamp(14.0, 18.0);
+
     return ElevatedButton(
       onPressed: onSubscribe,
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.white,
         elevation: 0,
-        minimumSize: const Size(double.infinity, 50),
+        minimumSize: Size(double.infinity, buttonHeight),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
       child: Text(
         'Souscrire',
-        style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600),
+        style: GoogleFonts.poppins(
+          fontSize: fontSize,
+          fontWeight: FontWeight.w600,
+        ),
+        textAlign: TextAlign.center,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
       ),
     );
   }
