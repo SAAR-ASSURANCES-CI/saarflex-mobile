@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:developer' as developer;
 import 'dart:io';
@@ -6,6 +7,7 @@ import 'package:saarflex_app/data/models/simulation_model.dart';
 import 'package:saarflex_app/data/models/critere_tarification_model.dart';
 import 'package:saarflex_app/core/constants/api_constants.dart';
 import 'package:saarflex_app/core/utils/storage_helper.dart';
+import 'package:saarflex_app/data/services/api_service.dart';
 
 class SimulationService {
 
@@ -53,11 +55,11 @@ class SimulationService {
         return SimulationResponse.fromJson(responseData);
       } else {
         final errorData = _tryDecode(response.body);
-        final errorMessage =
-            (errorData is Map && errorData['message'] != null)
-                ? errorData['message']
-                : 'Erreur de simulation (${response.statusCode})';
-        throw Exception(errorMessage);
+        final errorMessage = (errorData is Map && errorData['message'] != null)
+            ? errorData['message'].toString()
+            : 'Erreur de simulation (${response.statusCode})';
+
+        throw ApiException(errorMessage, response.statusCode);
       }
     } catch (e, stackTrace) {
       _logSimulationError(e, stackTrace, url, payload);
@@ -245,20 +247,60 @@ class SimulationService {
   }
 
   String _getUserFriendlyError(dynamic error) {
+    // Connexion réseau absente ou instable
     if (error is SocketException) {
-      return 'Problème de connexion internet';
+      return 'Connexion impossible. Vérifiez votre connexion internet et réessayez.';
+    } else if (error is TimeoutException) {
+      return 'Connexion instable ou serveur lent. Réessayez dans un instant.';
     } else if (error is FormatException) {
-      return 'Erreur de format des données';
+      return 'Données reçues dans un format inattendu. Réessayez.';
     } else if (error is HttpException) {
-      return 'Erreur de communication avec le serveur';
+      return 'Erreur de communication avec le serveur. Réessayez.';
+    } else if (error is ApiException) {
+      final status = error.statusCode;
+      final message = error.message.toLowerCase();
+
+      if (status != null && status >= 500) {
+        return 'Service temporairement indisponible. Réessayez dans quelques instants.';
+      }
+
+      if (status == 404) {
+        if (message.contains('aucun tarif')) {
+          return 'Aucun tarif disponible pour ces paramètres. Ajustez vos choix (âge, capital, durée) puis réessayez.';
+        }
+        return 'Ressource non trouvée. Réessayez ou contactez le support.';
+      }
+
+      if (status == 400 || status == 422) {
+        return 'Données invalides. Vérifiez les champs et réessayez.';
+      }
+
+      if (status == 401) {
+        return 'Session expirée ou non authentifiée. Connectez-vous puis réessayez.';
+      }
+
+      if (status == 429) {
+        return 'Trop de demandes. Patientez puis réessayez.';
+      }
+
+      return error.message;
     } else if (error is String) {
       if (error.contains('400')) return 'Données invalides';
-      if (error.contains('401')) return 'Authentification requise';
-      if (error.contains('404')) return 'Ressource non trouvée';
-      if (error.contains('500')) return 'Erreur interne du serveur';
-      return 'Une erreur est survenue';
+      if (error.contains('401')) {
+        return 'Session expirée ou non authentifiée. Connectez-vous puis réessayez.';
+      }
+      if (error.contains('404')) {
+        if (error.toLowerCase().contains('aucun tarif')) {
+          return 'Aucun tarif disponible pour ces paramètres. Ajustez vos choix puis réessayez.';
+        }
+        return 'Ressource non trouvée';
+      }
+      if (error.contains('500')) {
+        return 'Service temporairement indisponible. Réessayez dans quelques instants.';
+      }
+      return 'Une erreur est survenue. Réessayez.';
     }
-    return 'Une erreur inattendue est survenue';
+    return 'Une erreur inattendue est survenue. Réessayez.';
   }
 
   bool critereNecessiteFormatage(CritereTarification critere) {
@@ -322,7 +364,12 @@ class SimulationService {
           String valeurString = valeur.toString();
 
           if (critereNecessiteFormatage(critere)) {
+            // Pour les champs avec formatage (capital, prime, etc.), on enlève tous les séparateurs
             valeurString = valeurString.replaceAll(RegExp(r'[^\d]'), '');
+          } else {
+            // Pour les autres critères numériques, on normalise la virgule en point
+            // pour accepter les deux formats (1.5 ou 1,5)
+            valeurString = valeurString.replaceAll(',', '.').replaceAll(' ', '');
           }
 
           final numericValue = num.tryParse(valeurString);
@@ -330,15 +377,27 @@ class SimulationService {
             return 'Veuillez entrer un nombre valide';
           }
 
+          num? minGlobal;
+          num? maxGlobal;
+
           for (final valeurCritere in critere.valeurs) {
-            if (valeurCritere.valeurMin != null &&
-                numericValue.toDouble() < valeurCritere.valeurMin!) {
-              return 'Valeur minimum: ${valeurCritere.valeurMin}';
+            if (valeurCritere.valeurMin != null) {
+              minGlobal = minGlobal == null
+                  ? valeurCritere.valeurMin
+                  : (valeurCritere.valeurMin! < minGlobal ? valeurCritere.valeurMin : minGlobal);
             }
-            if (valeurCritere.valeurMax != null &&
-                numericValue.toDouble() > valeurCritere.valeurMax!) {
-              return 'Valeur maximum: ${valeurCritere.valeurMax}';
+            if (valeurCritere.valeurMax != null) {
+              maxGlobal = maxGlobal == null
+                  ? valeurCritere.valeurMax
+                  : (valeurCritere.valeurMax! > maxGlobal ? valeurCritere.valeurMax : maxGlobal);
             }
+          }
+
+          if (minGlobal != null && numericValue.toDouble() < minGlobal) {
+            return 'Valeur minimum: $minGlobal';
+          }
+          if (maxGlobal != null && numericValue.toDouble() > maxGlobal) {
+            return 'Valeur maximum: $maxGlobal';
           }
         }
         break;

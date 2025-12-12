@@ -67,16 +67,27 @@ class _SimulationScreenState extends State<SimulationScreen> {
         produitId: widget.produit.id,
         assureEstSouscripteur: widget.assureEstSouscripteur,
         informationsAssure: widget.informationsAssure,
+        context: context,
+        produitNom: widget.produit.nom,
       );
+      
+      // Listener de fallback pour le calcul automatique si le calcul direct échoue
       if (_isSaarNansou(widget.produit.nom)) {
+        bool _hasCalculated = false;
         void checkAndCalculate() {
+          if (!mounted || _hasCalculated) return;
           if (!simulationProvider.isLoadingCriteres && 
               simulationProvider.criteresProduit.isNotEmpty) {
+            _hasCalculated = true;
             if (_calculationListener != null) {
               simulationProvider.removeListener(_calculationListener!);
               _calculationListener = null;
             }
-            simulationProvider.calcAutoDureeWithContext(context);
+            Future.delayed(const Duration(milliseconds: 100), () {
+              if (mounted) {
+                simulationProvider.calcAutoDureeWithContext(context);
+              }
+            });
           }
         }
         _calculationListener = checkAndCalculate;
@@ -272,23 +283,9 @@ class _SimulationScreenState extends State<SimulationScreen> {
             ),
           ),
         );
-      } else if (provider.hasError) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              provider.errorMessage ?? 'Erreur lors de la simulation',
-            ),
-            backgroundColor: Colors.red,
-          ),
-        );
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Une erreur inattendue s\'est produite: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      // L'erreur est déjà gérée par le ViewModel et affichée dans l'interface
     }
   }
 }
