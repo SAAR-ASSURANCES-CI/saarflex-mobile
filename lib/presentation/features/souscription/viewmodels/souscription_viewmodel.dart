@@ -32,15 +32,18 @@ class SouscriptionViewModel extends ChangeNotifier {
   List<Beneficiaire> get beneficiaires => List.unmodifiable(_beneficiaires);
 
   bool get isFormValid {
-    final phoneValid = _selectedMethodePaiement == MethodePaiement.mobileMoney
-        ? _numeroTelephone.trim().isNotEmpty && _isValidPhone(_numeroTelephone)
-        : true; // Pour wallet, le téléphone n'est pas requis
+    // Vérifier que le devis ID et la méthode de paiement sont sélectionnés
+    if (_devisId == null || _selectedMethodePaiement == null) {
+      return false;
+    }
     
-    return _devisId != null &&
-        _selectedMethodePaiement != null &&
-        phoneValid &&
-        _beneficiaires.isNotEmpty &&
-        _beneficiaires.every((b) => b.isValid);
+    // Le numéro de téléphone est obligatoire et doit être valide pour toutes les méthodes de paiement
+    final trimmedPhone = _numeroTelephone.trim();
+    if (trimmedPhone.isEmpty || !_isValidPhone(trimmedPhone)) {
+      return false;
+    }
+    
+    return true;
   }
 
   void initializesouscription({
@@ -93,7 +96,7 @@ class SouscriptionViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  bool validateForm() {
+  bool validateForm({bool necessiteBeneficiaires = true}) {
     _fieldErrors.clear();
     bool isValid = true;
 
@@ -103,27 +106,28 @@ class SouscriptionViewModel extends ChangeNotifier {
       isValid = false;
     }
 
-    // Numéro de téléphone requis seulement pour mobile_money
-    if (_selectedMethodePaiement == MethodePaiement.mobileMoney) {
-      if (_numeroTelephone.trim().isEmpty) {
-        _fieldErrors['numero_telephone'] =
-            'Le numéro de téléphone est obligatoire pour Mobile Money';
-        isValid = false;
-      } else if (!_isValidPhone(_numeroTelephone)) {
-        _fieldErrors['numero_telephone'] = 'Numéro de téléphone invalide';
-        isValid = false;
-      }
+    // Numéro de téléphone requis pour toutes les méthodes de paiement
+    if (_numeroTelephone.trim().isEmpty) {
+      _fieldErrors['numero_telephone'] =
+          'Le numéro de téléphone est obligatoire';
+      isValid = false;
+    } else if (!_isValidPhone(_numeroTelephone)) {
+      _fieldErrors['numero_telephone'] = 'Numéro de téléphone invalide';
+      isValid = false;
     }
 
-    if (_beneficiaires.isEmpty) {
-      _fieldErrors['beneficiaires'] = 'Au moins un bénéficiaire est requis';
-      isValid = false;
-    } else {
-      for (int i = 0; i < _beneficiaires.length; i++) {
-        final beneficiaire = _beneficiaires[i];
-        if (!beneficiaire.isValid) {
-          _fieldErrors['beneficiaire_$i'] = 'Bénéficiaire ${i + 1} invalide';
-          isValid = false;
+    // Vérifier les bénéficiaires seulement si nécessaires
+    if (necessiteBeneficiaires) {
+      if (_beneficiaires.isEmpty) {
+        _fieldErrors['beneficiaires'] = 'Au moins un bénéficiaire est requis';
+        isValid = false;
+      } else {
+        for (int i = 0; i < _beneficiaires.length; i++) {
+          final beneficiaire = _beneficiaires[i];
+          if (!beneficiaire.isValid) {
+            _fieldErrors['beneficiaire_$i'] = 'Bénéficiaire ${i + 1} invalide';
+            isValid = false;
+          }
         }
       }
     }
@@ -132,8 +136,8 @@ class SouscriptionViewModel extends ChangeNotifier {
     return isValid;
   }
 
-  Future<bool> souscrire() async {
-    if (!validateForm()) {
+  Future<bool> souscrire({bool necessiteBeneficiaires = true}) async {
+    if (!validateForm(necessiteBeneficiaires: necessiteBeneficiaires)) {
       return false;
     }
 

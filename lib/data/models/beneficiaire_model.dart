@@ -56,8 +56,7 @@ class Beneficiaire {
         nomComplet.length <= 255 &&
         lienSouscripteur.trim().isNotEmpty &&
         lienSouscripteur.length <= 100 &&
-        ordre >= 1 &&
-        ordre <= 3;
+        ordre >= 1;
   }
 
   List<String> get validationErrors {
@@ -75,10 +74,22 @@ class Beneficiaire {
       errors.add('Le lien ne peut pas dépasser 100 caractères');
     }
 
-    if (ordre < 1 || ordre > 3) {
-      errors.add('L\'ordre doit être entre 1 et 3');
+    if (ordre < 1) {
+      errors.add('L\'ordre doit être supérieur ou égal à 1');
     }
 
+    return errors;
+  }
+
+  bool isValidForMax(int maxBeneficiaires) {
+    return isValid && ordre <= maxBeneficiaires;
+  }
+
+  List<String> validationErrorsForMax(int maxBeneficiaires) {
+    final errors = validationErrors;
+    if (ordre > maxBeneficiaires) {
+      errors.add('L\'ordre doit être entre 1 et $maxBeneficiaires');
+    }
     return errors;
   }
 
@@ -107,16 +118,19 @@ class Beneficiaire {
 
 class BeneficiairesList {
   final List<Beneficiaire> _beneficiaires = [];
+  final int maxBeneficiaires;
+
+  BeneficiairesList({this.maxBeneficiaires = 3});
 
   List<Beneficiaire> get beneficiaires => List.unmodifiable(_beneficiaires);
 
   int get count => _beneficiaires.length;
   bool get isEmpty => _beneficiaires.isEmpty;
   bool get isNotEmpty => _beneficiaires.isNotEmpty;
-  bool get isFull => _beneficiaires.length >= 3;
+  bool get isFull => _beneficiaires.length >= maxBeneficiaires;
 
   void addBeneficiaire(Beneficiaire beneficiaire) {
-    if (_beneficiaires.length < 3) {
+    if (_beneficiaires.length < maxBeneficiaires) {
       _beneficiaires.add(beneficiaire);
       _sortByOrdre();
     }
@@ -145,20 +159,21 @@ class BeneficiairesList {
     _beneficiaires.clear();
   }
 
-  bool get isValid {
-    return _beneficiaires.every((b) => b.isValid) && _beneficiaires.length <= 3;
+  bool isValid() {
+    return _beneficiaires.every((b) => b.isValidForMax(maxBeneficiaires)) && 
+           _beneficiaires.length <= maxBeneficiaires;
   }
 
-  List<String> get validationErrors {
+  List<String> validationErrors() {
     final errors = <String>[];
 
-    if (_beneficiaires.length > 3) {
-      errors.add('Le nombre maximum de bénéficiaires est de 3');
+    if (_beneficiaires.length > maxBeneficiaires) {
+      errors.add('Le nombre maximum de bénéficiaires est de $maxBeneficiaires');
     }
 
     for (int i = 0; i < _beneficiaires.length; i++) {
       final beneficiaire = _beneficiaires[i];
-      final beneficiaireErrors = beneficiaire.validationErrors;
+      final beneficiaireErrors = beneficiaire.validationErrorsForMax(maxBeneficiaires);
       for (final error in beneficiaireErrors) {
         errors.add('Bénéficiaire ${i + 1}: $error');
       }
@@ -177,12 +192,14 @@ class BeneficiairesList {
 
   List<int> get availableOrdres {
     final usedOrdres = _beneficiaires.map((b) => b.ordre).toSet();
-    return [1, 2, 3].where((ordre) => !usedOrdres.contains(ordre)).toList();
+    return List.generate(maxBeneficiaires, (index) => index + 1)
+        .where((ordre) => !usedOrdres.contains(ordre))
+        .toList();
   }
 
   int get nextAvailableOrdre {
     final usedOrdres = _beneficiaires.map((b) => b.ordre).toSet();
-    for (int i = 1; i <= 3; i++) {
+    for (int i = 1; i <= maxBeneficiaires; i++) {
       if (!usedOrdres.contains(i)) {
         return i;
       }
