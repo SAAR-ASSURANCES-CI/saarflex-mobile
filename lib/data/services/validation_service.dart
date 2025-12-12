@@ -36,7 +36,12 @@ class ValidationService {
   ) {
     String valeurString = valeur.toString();
     if (_critereNecessiteFormatage(critere)) {
+      // Pour les champs avec formatage (capital, prime, etc.), on enlève tous les séparateurs
       valeurString = valeurString.replaceAll(RegExp(r'[^\d]'), '');
+    } else {
+      // Pour les autres critères numériques, on normalise la virgule en point
+      // pour accepter les deux formats (1.5 ou 1,5)
+      valeurString = valeurString.replaceAll(',', '.').replaceAll(' ', '');
     }
 
     final numericValue = num.tryParse(valeurString);
@@ -51,15 +56,27 @@ class ValidationService {
     CritereTarification critere,
     num valeur,
   ) {
+    num? minGlobal;
+    num? maxGlobal;
+
     for (final valeurCritere in critere.valeurs) {
-      if (valeurCritere.valeurMin != null &&
-          valeur < valeurCritere.valeurMin!) {
-        return 'Valeur minimum: ${valeurCritere.valeurMin}';
+      if (valeurCritere.valeurMin != null) {
+        minGlobal = minGlobal == null
+            ? valeurCritere.valeurMin
+            : (valeurCritere.valeurMin! < minGlobal ? valeurCritere.valeurMin : minGlobal);
       }
-      if (valeurCritere.valeurMax != null &&
-          valeur > valeurCritere.valeurMax!) {
-        return 'Valeur maximum: ${valeurCritere.valeurMax}';
+      if (valeurCritere.valeurMax != null) {
+        maxGlobal = maxGlobal == null
+            ? valeurCritere.valeurMax
+            : (valeurCritere.valeurMax! > maxGlobal ? valeurCritere.valeurMax : maxGlobal);
       }
+    }
+
+    if (minGlobal != null && valeur < minGlobal) {
+      return 'Valeur minimum: $minGlobal';
+    }
+    if (maxGlobal != null && valeur > maxGlobal) {
+      return 'Valeur maximum: $maxGlobal';
     }
     return null;
   }

@@ -144,9 +144,10 @@ class _DynamicFormFieldState extends State<DynamicFormField> {
     return TextFormField(
       controller: _controller,
       enabled: widget.enabled,
-      keyboardType: TextInputType.number,
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
       inputFormatters: [
-        FilteringTextInputFormatter.allow(RegExp(r'[\d ]')),
+        // Autorise chiffres + séparateurs décimaux usuels
+        FilteringTextInputFormatter.allow(RegExp(r'[0-9 ,\\.]')),
       ],
       onChanged: (value) {
         _isEditing = true;
@@ -155,11 +156,13 @@ class _DynamicFormFieldState extends State<DynamicFormField> {
           valeurAEnvoyer = _enleverSeparateurs(value);
         }
 
-        if (valeurAEnvoyer.isEmpty) {
+        final valeurNormalisee = _normalizeNumericInput(valeurAEnvoyer);
+
+        if (valeurNormalisee.isEmpty) {
           widget.onChanged(null);
         } else {
-          final doubleValue = double.tryParse(valeurAEnvoyer);
-          widget.onChanged(doubleValue ?? valeurAEnvoyer);
+          final doubleValue = double.tryParse(valeurNormalisee);
+          widget.onChanged(doubleValue ?? valeurNormalisee);
         }
       },
       onEditingComplete: () {
@@ -229,6 +232,24 @@ class _DynamicFormFieldState extends State<DynamicFormField> {
         ),
       ),
     );
+  }
+
+  // Normalise l'entrée numérique : supprime les espaces et remplace la virgule
+  // par un point pour accepter les deux séparateurs décimaux.
+  String _normalizeNumericInput(String valeur) {
+    return valeur
+        .replaceAll(' ', '')
+        .replaceAll(',', '.')
+        .trim();
+  }
+
+  String _formatNombre(double valeur) {
+    // Si c'est un nombre entier, on l'affiche sans décimales
+    if (valeur % 1 == 0) {
+      return valeur.toStringAsFixed(0);
+    }
+    // Sinon, on affiche le nombre tel quel (toString() gère déjà bien les décimales)
+    return valeur.toString();
   }
 
   Widget _buildDropdownField() {
@@ -385,13 +406,28 @@ class _DynamicFormFieldState extends State<DynamicFormField> {
 
   String _getNumericHint() {
     if (widget.critere.valeurs.isNotEmpty) {
-      final valeurCritere = widget.critere.valeurs.first;
-      if (valeurCritere.valeurMin != null && valeurCritere.valeurMax != null) {
-        return 'Entre ${valeurCritere.valeurMin} et ${valeurCritere.valeurMax}';
-      } else if (valeurCritere.valeurMin != null) {
-        return 'Minimum ${valeurCritere.valeurMin}';
-      } else if (valeurCritere.valeurMax != null) {
-        return 'Maximum ${valeurCritere.valeurMax}';
+      double? minGlobal;
+      double? maxGlobal;
+
+      for (final v in widget.critere.valeurs) {
+        if (v.valeurMin != null) {
+          minGlobal = minGlobal == null
+              ? v.valeurMin
+              : (v.valeurMin! < minGlobal ? v.valeurMin : minGlobal);
+        }
+        if (v.valeurMax != null) {
+          maxGlobal = maxGlobal == null
+              ? v.valeurMax
+              : (v.valeurMax! > maxGlobal ? v.valeurMax : maxGlobal);
+        }
+      }
+
+      if (minGlobal != null && maxGlobal != null) {
+        return 'Entre ${_formatNombre(minGlobal)} et ${_formatNombre(maxGlobal)}';
+      } else if (minGlobal != null) {
+        return 'Minimum ${_formatNombre(minGlobal)}';
+      } else if (maxGlobal != null) {
+        return 'Maximum ${_formatNombre(maxGlobal)}';
       }
     }
 
