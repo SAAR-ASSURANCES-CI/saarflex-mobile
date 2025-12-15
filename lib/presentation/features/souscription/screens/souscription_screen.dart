@@ -370,21 +370,22 @@ class _souscriptionScreenState extends State<souscriptionScreen> {
 
           SizedBox(height: sectionSpacing),
 
-          if (_isLoadingProduct)
-            _buildLoadingProductInfo(screenWidth, textScaleFactor)
-          else
-            BeneficiairesSelector(
-              beneficiaires: _souscriptionViewModel.beneficiaires,
-              onBeneficiairesChanged: (beneficiaires) {
-                _souscriptionViewModel.setBeneficiaires(beneficiaires);
-              },
-              maxBeneficiaires: _getMaxBeneficiaires(),
-              necessiteBeneficiaires: _getNecessiteBeneficiaires(),
-              screenWidth: screenWidth,
-              textScaleFactor: textScaleFactor,
-            ),
-
-          SizedBox(height: sectionSpacing),
+          if (_getNecessiteBeneficiaires()) ...[
+            if (_isLoadingProduct)
+              _buildLoadingProductInfo(screenWidth, textScaleFactor)
+            else
+              BeneficiairesSelector(
+                beneficiaires: _souscriptionViewModel.beneficiaires,
+                onBeneficiairesChanged: (beneficiaires) {
+                  _souscriptionViewModel.setBeneficiaires(beneficiaires);
+                },
+                maxBeneficiaires: _getMaxBeneficiaires(),
+                necessiteBeneficiaires: _getNecessiteBeneficiaires(),
+                screenWidth: screenWidth,
+                textScaleFactor: textScaleFactor,
+              ),
+            SizedBox(height: sectionSpacing),
+          ],
 
           PaymentMethodSelector(
             selectedMethod: _souscriptionViewModel.selectedMethodePaiement,
@@ -468,7 +469,9 @@ class _souscriptionScreenState extends State<souscriptionScreen> {
   }
 
   Future<void> _handlesouscription() async {
-    final success = await _souscriptionViewModel.souscrire();
+    final success = await _souscriptionViewModel.souscrire(
+      necessiteBeneficiaires: _getNecessiteBeneficiaires(),
+    );
 
     if (!mounted) return;
 
@@ -562,74 +565,52 @@ class _souscriptionScreenState extends State<souscriptionScreen> {
   }
 
   int _getMaxBeneficiaires() {
-    if (widget.product != null) {
-      return widget.product!.maxBeneficiaires > 0
-          ? widget.product!.maxBeneficiaires
-          : _getDefaultMaxBeneficiaires();
+    // Priorité 1: Produit passé en paramètre
+    if (widget.product != null && widget.product!.maxBeneficiaires > 0) {
+      return widget.product!.maxBeneficiaires;
     }
 
-    if (_loadedProduct != null) {
-      return _loadedProduct!.maxBeneficiaires > 0
-          ? _loadedProduct!.maxBeneficiaires
-          : _getDefaultMaxBeneficiaires();
+    // Priorité 2: Produit chargé dynamiquement
+    if (_loadedProduct != null && _loadedProduct!.maxBeneficiaires > 0) {
+      return _loadedProduct!.maxBeneficiaires;
     }
 
-    return _getFallbackMaxBeneficiaires();
+    // Fallback: Estimation basée sur les bénéficiaires existants
+    if (widget.source == 'simulation' && widget.simulationResult != null) {
+      final existingCount = widget.simulationResult!.beneficiaires.length;
+      if (existingCount > 0) {
+        return existingCount + 2;
+      }
+    } else if (widget.source == 'saved_quote' && widget.savedQuote != null) {
+      final existingCount = widget.savedQuote!.beneficiaires?.length ?? 0;
+      if (existingCount > 0) {
+        return existingCount + 2;
+      }
+    }
+
+    // Valeur par défaut minimale
+    return 3;
   }
 
   bool _getNecessiteBeneficiaires() {
+    // Priorité 1: Produit passé en paramètre
     if (widget.product != null) {
       return widget.product!.necessiteBeneficiaires;
     }
 
+    // Priorité 2: Produit chargé dynamiquement
     if (_loadedProduct != null) {
       return _loadedProduct!.necessiteBeneficiaires;
     }
 
-    return _getFallbackNecessiteBeneficiaires();
-  }
-
-  int _getDefaultMaxBeneficiaires() {
+    // Fallback: Si des bénéficiaires existent déjà, c'est probablement requis
     if (widget.source == 'simulation' && widget.simulationResult != null) {
-      final typeProduit = widget.simulationResult!.typeProduit.toLowerCase();
-      if (typeProduit == 'vie') {
-        return 5;
-      } else {
-        return 3;
-      }
-    }
-    return 3;
-  }
-
-  int _getFallbackMaxBeneficiaires() {
-    if (widget.source == 'simulation' && widget.simulationResult != null) {
-      final typeProduit = widget.simulationResult!.typeProduit.toLowerCase();
-      if (typeProduit == 'vie') {
-        return 5;
-      } else {
-        return 3;
-      }
-    } else if (widget.source == 'saved_quote' && widget.savedQuote != null) {
-      final typeProduit = widget.savedQuote!.typeProduit.toLowerCase();
-      if (typeProduit == 'vie') {
-        return 5;
-      } else {
-        return 3;
-      }
-    }
-    return 3;
-  }
-
-  bool _getFallbackNecessiteBeneficiaires() {
-    if (widget.source == 'simulation' && widget.simulationResult != null) {
-      final typeProduit = widget.simulationResult!.typeProduit.toLowerCase();
-      if (typeProduit == 'vie') return true;
       return widget.simulationResult!.beneficiaires.isNotEmpty;
     } else if (widget.source == 'saved_quote' && widget.savedQuote != null) {
-      final typeProduit = widget.savedQuote!.typeProduit.toLowerCase();
-      if (typeProduit == 'vie') return true;
       return widget.savedQuote!.beneficiaires?.isNotEmpty ?? false;
     }
+
+    // Par défaut, on assume que les bénéficiaires sont requis pour éviter les erreurs
     return true;
   }
 

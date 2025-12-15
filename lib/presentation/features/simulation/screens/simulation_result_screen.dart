@@ -122,6 +122,7 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
               SizedBox(height: cardSpacing),
               ResultDetailsCard(
                 resultat: widget.resultat,
+                produit: widget.produit,
                 screenWidth: screenWidth,
                 textScaleFactor: textScaleFactor,
               ),
@@ -328,34 +329,6 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
   }
 
   void _procederSouscription() {
-    final saveSectionState = _saveSectionKey.currentState;
-    if (saveSectionState == null) return;
-
-    final typedState = saveSectionState as dynamic;
-    final nomDevis = typedState.nomController.text.trim();
-    if (nomDevis.isEmpty) {
-      _resultViewModel.setValidationError(
-        'nom_personnalise',
-        'Le nom du devis est obligatoire',
-      );
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Veuillez saisir un nom pour votre devis',
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          backgroundColor: AppColors.error,
-          duration: const Duration(seconds: 3),
-        ),
-      );
-
-      return;
-    }
-
     Navigator.push(
       context,
       MaterialPageRoute(
