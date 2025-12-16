@@ -1,5 +1,5 @@
-import 'package:saarflex_app/data/services/auth_service.dart';
-import 'package:saarflex_app/data/services/api_service.dart';
+import 'package:saarciflex_app/data/services/auth_service.dart';
+import 'package:saarciflex_app/data/services/api_service.dart';
 
 class AuthRepository {
   final AuthService _authService;

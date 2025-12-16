@@ -1,4 +1,4 @@
-import 'package:saarflex_app/core/config/environment.dart';
+import 'package:saarciflex_app/core/config/environment.dart';
 
 class ApiConstants {
   static Environment get environment => EnvironmentConfig.current;

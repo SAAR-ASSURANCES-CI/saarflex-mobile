@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:saarflex_app/core/constants/colors.dart';
-import 'package:saarflex_app/data/models/product_model.dart';
-import 'package:saarflex_app/presentation/features/simulation/screens/simulation_screen.dart';
-import 'package:saarflex_app/presentation/features/simulation/widgets/info_assure_app_bar.dart';
-import 'package:saarflex_app/presentation/features/simulation/widgets/info_assure_header.dart';
-import 'package:saarflex_app/presentation/features/simulation/widgets/custom_text_field.dart';
-import 'package:saarflex_app/presentation/features/simulation/widgets/custom_date_field.dart';
-import 'package:saarflex_app/presentation/features/simulation/widgets/custom_dropdown_field.dart';
-import 'package:saarflex_app/presentation/features/simulation/widgets/identity_images_section.dart';
-import 'package:saarflex_app/presentation/features/simulation/widgets/continue_button.dart';
-import 'package:saarflex_app/presentation/features/simulation/viewmodels/simulation_viewmodel.dart';
+import 'package:saarciflex_app/core/constants/colors.dart';
+import 'package:saarciflex_app/data/models/product_model.dart';
+import 'package:saarciflex_app/presentation/features/simulation/screens/simulation_screen.dart';
+import 'package:saarciflex_app/presentation/features/simulation/widgets/info_assure_app_bar.dart';
+import 'package:saarciflex_app/presentation/features/simulation/widgets/info_assure_header.dart';
+import 'package:saarciflex_app/presentation/features/simulation/widgets/custom_text_field.dart';
+import 'package:saarciflex_app/presentation/features/simulation/widgets/custom_date_field.dart';
+import 'package:saarciflex_app/presentation/features/simulation/widgets/custom_dropdown_field.dart';
+import 'package:saarciflex_app/presentation/features/simulation/widgets/identity_images_section.dart';
+import 'package:saarciflex_app/presentation/features/simulation/widgets/continue_button.dart';
+import 'package:saarciflex_app/presentation/features/simulation/viewmodels/simulation_viewmodel.dart';
 
 class InfoAssureScreen extends StatefulWidget {
   final Product produit;

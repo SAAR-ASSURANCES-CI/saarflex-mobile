@@ -3,11 +3,11 @@ import 'dart:convert';
 import 'dart:developer' as developer;
 import 'dart:io';
 import 'package:http/http.dart' as http;
-import 'package:saarflex_app/data/models/simulation_model.dart';
-import 'package:saarflex_app/data/models/critere_tarification_model.dart';
-import 'package:saarflex_app/core/constants/api_constants.dart';
-import 'package:saarflex_app/core/utils/storage_helper.dart';
-import 'package:saarflex_app/data/services/api_service.dart';
+import 'package:saarciflex_app/data/models/simulation_model.dart';
+import 'package:saarciflex_app/data/models/critere_tarification_model.dart';
+import 'package:saarciflex_app/core/constants/api_constants.dart';
+import 'package:saarciflex_app/core/utils/storage_helper.dart';
+import 'package:saarciflex_app/data/services/api_service.dart';
 
 class SimulationService {
 

@@ -1,5 +1,5 @@
-import 'package:saarflex_app/data/services/api_service.dart';
-import 'package:saarflex_app/data/models/user_model.dart';
+import 'package:saarciflex_app/data/services/api_service.dart';
+import 'package:saarciflex_app/data/models/user_model.dart';
 
 class UserService {
   final ApiService _apiService = ApiService();

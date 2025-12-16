@@ -1,12 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:saarflex_app/data/models/simulation_model.dart';
-import 'package:saarflex_app/data/models/critere_tarification_model.dart';
-import 'package:saarflex_app/data/repositories/simulation_repository.dart';
-import 'package:saarflex_app/core/utils/error_handler.dart';
+import 'package:saarciflex_app/data/models/simulation_model.dart';
+import 'package:saarciflex_app/data/models/critere_tarification_model.dart';
+import 'package:saarciflex_app/data/repositories/simulation_repository.dart';
+import 'package:saarciflex_app/core/utils/error_handler.dart';
 import 'package:provider/provider.dart';
-import 'package:saarflex_app/presentation/features/auth/viewmodels/auth_viewmodel.dart';
+import 'package:saarciflex_app/presentation/features/auth/viewmodels/auth_viewmodel.dart';
 
 class SimulationViewModel extends ChangeNotifier {
   final SimulationRepository _simulationRepository = SimulationRepository();

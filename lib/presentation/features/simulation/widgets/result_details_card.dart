@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:saarflex_app/core/constants/colors.dart';
-import 'package:saarflex_app/core/utils/format_helper.dart';
-import 'package:saarflex_app/data/models/simulation_model.dart';
-import 'package:saarflex_app/data/models/critere_tarification_model.dart';
-import 'package:saarflex_app/data/models/product_model.dart';
-import 'package:saarflex_app/data/services/product_service.dart';
+import 'package:saarciflex_app/core/constants/colors.dart';
+import 'package:saarciflex_app/core/utils/format_helper.dart';
+import 'package:saarciflex_app/data/models/simulation_model.dart';
+import 'package:saarciflex_app/data/models/critere_tarification_model.dart';
+import 'package:saarciflex_app/data/models/product_model.dart';
+import 'package:saarciflex_app/data/services/product_service.dart';
 
 class ResultDetailsCard extends StatefulWidget {
   final SimulationResponse resultat;

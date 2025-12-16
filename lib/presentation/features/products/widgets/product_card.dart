@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:saarflex_app/data/models/product_model.dart';
-import 'package:saarflex_app/core/utils/product_formatters.dart';
+import 'package:saarciflex_app/data/models/product_model.dart';
+import 'package:saarciflex_app/core/utils/product_formatters.dart';
 
 class ProductCard extends StatelessWidget {
   final Product product;

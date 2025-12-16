@@ -1,16 +1,16 @@
-import 'package:saarflex_app/core/constants/colors.dart';
+import 'package:saarciflex_app/core/constants/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:saarflex_app/data/models/critere_tarification_model.dart';
-import 'package:saarflex_app/presentation/features/simulation/viewmodels/simulation_viewmodel.dart';
-import 'package:saarflex_app/data/models/product_model.dart';
-import 'package:saarflex_app/presentation/features/simulation/widgets/dynamic_form_field.dart';
-import 'package:saarflex_app/presentation/features/simulation/widgets/simulation_app_bar.dart';
-import 'package:saarflex_app/presentation/features/simulation/widgets/simulation_loading_state.dart';
-import 'package:saarflex_app/presentation/features/simulation/widgets/simulation_error_state.dart';
-import 'package:saarflex_app/presentation/features/simulation/widgets/simulation_product_header.dart';
-import 'package:saarflex_app/presentation/features/simulation/widgets/simulation_form_title.dart';
-import 'package:saarflex_app/presentation/features/simulation/widgets/simulation_bottom_button.dart';
+import 'package:saarciflex_app/data/models/critere_tarification_model.dart';
+import 'package:saarciflex_app/presentation/features/simulation/viewmodels/simulation_viewmodel.dart';
+import 'package:saarciflex_app/data/models/product_model.dart';
+import 'package:saarciflex_app/presentation/features/simulation/widgets/dynamic_form_field.dart';
+import 'package:saarciflex_app/presentation/features/simulation/widgets/simulation_app_bar.dart';
+import 'package:saarciflex_app/presentation/features/simulation/widgets/simulation_loading_state.dart';
+import 'package:saarciflex_app/presentation/features/simulation/widgets/simulation_error_state.dart';
+import 'package:saarciflex_app/presentation/features/simulation/widgets/simulation_product_header.dart';
+import 'package:saarciflex_app/presentation/features/simulation/widgets/simulation_form_title.dart';
+import 'package:saarciflex_app/presentation/features/simulation/widgets/simulation_bottom_button.dart';
 import 'simulation_result_screen.dart';
 
 class SimulationScreen extends StatefulWidget {

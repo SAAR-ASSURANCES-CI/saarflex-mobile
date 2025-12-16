@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:saarflex_app/presentation/features/auth/viewmodels/auth_viewmodel.dart';
-import 'package:saarflex_app/presentation/features/simulation/screens/simulation_screen.dart';
-import 'package:saarflex_app/presentation/features/products/widgets/assure_selector_popup.dart';
-import 'package:saarflex_app/data/models/product_model.dart';
-import 'package:saarflex_app/presentation/features/products/viewmodels/product_viewmodel.dart';
-import 'package:saarflex_app/presentation/features/simulation/screens/info_assure_screen.dart';
-import 'package:saarflex_app/core/utils/image_labels.dart';
-import 'package:saarflex_app/presentation/features/products/widgets/product_detail_loading_state.dart';
-import 'package:saarflex_app/presentation/features/products/widgets/product_detail_error_state.dart';
-import 'package:saarflex_app/presentation/features/products/widgets/product_detail_header.dart';
-import 'package:saarflex_app/presentation/features/products/widgets/product_description_section.dart';
-import 'package:saarflex_app/presentation/features/products/widgets/product_simulation_section.dart';
-import 'package:saarflex_app/presentation/features/products/widgets/product_simulation_button.dart';
-import 'package:saarflex_app/presentation/features/products/widgets/photo_required_dialog.dart';
-import 'package:saarflex_app/presentation/features/profile/screens/edit_profile_screen.dart';
+import 'package:saarciflex_app/presentation/features/auth/viewmodels/auth_viewmodel.dart';
+import 'package:saarciflex_app/presentation/features/simulation/screens/simulation_screen.dart';
+import 'package:saarciflex_app/presentation/features/products/widgets/assure_selector_popup.dart';
+import 'package:saarciflex_app/data/models/product_model.dart';
+import 'package:saarciflex_app/presentation/features/products/viewmodels/product_viewmodel.dart';
+import 'package:saarciflex_app/presentation/features/simulation/screens/info_assure_screen.dart';
+import 'package:saarciflex_app/core/utils/image_labels.dart';
+import 'package:saarciflex_app/presentation/features/products/widgets/product_detail_loading_state.dart';
+import 'package:saarciflex_app/presentation/features/products/widgets/product_detail_error_state.dart';
+import 'package:saarciflex_app/presentation/features/products/widgets/product_detail_header.dart';
+import 'package:saarciflex_app/presentation/features/products/widgets/product_description_section.dart';
+import 'package:saarciflex_app/presentation/features/products/widgets/product_simulation_section.dart';
+import 'package:saarciflex_app/presentation/features/products/widgets/product_simulation_button.dart';
+import 'package:saarciflex_app/presentation/features/products/widgets/photo_required_dialog.dart';
+import 'package:saarciflex_app/presentation/features/profile/screens/edit_profile_screen.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final String productId;

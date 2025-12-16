@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:saarflex_app/core/constants/api_constants.dart';
+import 'package:saarciflex_app/core/constants/api_constants.dart';
 
 class ImageValidator {
   static Future<bool> validateImage(String imagePath) async {

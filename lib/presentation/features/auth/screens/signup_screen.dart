@@ -1,10 +1,10 @@
-import 'package:saarflex_app/core/constants/colors.dart';
+import 'package:saarciflex_app/core/constants/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:saarflex_app/presentation/features/auth/viewmodels/auth_viewmodel.dart';
-import 'package:saarflex_app/core/utils/error_handler.dart';
-import 'package:saarflex_app/core/utils/validation_cache.dart';
+import 'package:saarciflex_app/presentation/features/auth/viewmodels/auth_viewmodel.dart';
+import 'package:saarciflex_app/core/utils/error_handler.dart';
+import 'package:saarciflex_app/core/utils/validation_cache.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});

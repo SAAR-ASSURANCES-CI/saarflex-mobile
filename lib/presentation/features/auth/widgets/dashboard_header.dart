@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:saarflex_app/data/models/user_model.dart';
-import 'package:saarflex_app/core/constants/colors.dart';
+import 'package:saarciflex_app/data/models/user_model.dart';
+import 'package:saarciflex_app/core/constants/colors.dart';
 
 class DashboardHeader extends StatelessWidget {
   final User? user;
@@ -35,7 +35,7 @@ class DashboardHeader extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  "SaarFlex",
+                  "Saarciflex",
                   style: GoogleFonts.poppins(
                     fontSize: 24,
                     fontWeight: FontWeight.w700,

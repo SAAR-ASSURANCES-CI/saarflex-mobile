@@ -2,11 +2,11 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:saarflex_app/data/repositories/auth_repository.dart';
-import 'package:saarflex_app/data/repositories/profile_repository.dart';
-import 'package:saarflex_app/data/services/file_upload_service.dart';
-import 'package:saarflex_app/data/models/user_model.dart';
-import 'package:saarflex_app/core/utils/error_handler.dart';
+import 'package:saarciflex_app/data/repositories/auth_repository.dart';
+import 'package:saarciflex_app/data/repositories/profile_repository.dart';
+import 'package:saarciflex_app/data/services/file_upload_service.dart';
+import 'package:saarciflex_app/data/models/user_model.dart';
+import 'package:saarciflex_app/core/utils/error_handler.dart';
 
 class AuthViewModel extends ChangeNotifier {
   final AuthRepository _authRepository = AuthRepository();

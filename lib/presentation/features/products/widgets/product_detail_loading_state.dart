@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:saarflex_app/core/constants/colors.dart';
-import 'package:saarflex_app/presentation/features/products/widgets/product_detail_app_bar.dart';
+import 'package:saarciflex_app/core/constants/colors.dart';
+import 'package:saarciflex_app/presentation/features/products/widgets/product_detail_app_bar.dart';
 
 class ProductDetailLoadingState extends StatelessWidget {
   const ProductDetailLoadingState({super.key});

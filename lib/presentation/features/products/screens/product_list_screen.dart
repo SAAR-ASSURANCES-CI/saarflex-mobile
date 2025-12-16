@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:saarflex_app/data/models/product_model.dart';
-import 'package:saarflex_app/presentation/features/products/viewmodels/product_viewmodel.dart';
-import 'package:saarflex_app/presentation/features/products/widgets/product_list_app_bar.dart';
-import 'package:saarflex_app/presentation/features/products/widgets/latest_products_section.dart';
-import 'package:saarflex_app/presentation/features/products/widgets/all_products_list.dart';
-import 'package:saarflex_app/presentation/features/products/widgets/product_list_loading_state.dart';
-import 'package:saarflex_app/presentation/features/products/widgets/product_list_error_state.dart';
-import 'package:saarflex_app/presentation/features/products/widgets/product_list_empty_state.dart';
+import 'package:saarciflex_app/data/models/product_model.dart';
+import 'package:saarciflex_app/presentation/features/products/viewmodels/product_viewmodel.dart';
+import 'package:saarciflex_app/presentation/features/products/widgets/product_list_app_bar.dart';
+import 'package:saarciflex_app/presentation/features/products/widgets/latest_products_section.dart';
+import 'package:saarciflex_app/presentation/features/products/widgets/all_products_list.dart';
+import 'package:saarciflex_app/presentation/features/products/widgets/product_list_loading_state.dart';
+import 'package:saarciflex_app/presentation/features/products/widgets/product_list_error_state.dart';
+import 'package:saarciflex_app/presentation/features/products/widgets/product_list_empty_state.dart';
 import 'product_detail_screen.dart';
 
 class ProductListScreen extends StatefulWidget {

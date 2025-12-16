@@ -1,5 +1,5 @@
-import 'package:saarflex_app/data/models/souscription_model.dart';
-import 'package:saarflex_app/data/services/souscription_service.dart';
+import 'package:saarciflex_app/data/models/souscription_model.dart';
+import 'package:saarciflex_app/data/services/souscription_service.dart';
 
 class SouscriptionRepository {
   final souscriptionService _souscriptionService;

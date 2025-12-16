@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:saarflex_app/core/utils/format_helper.dart';
+import 'package:saarciflex_app/core/utils/format_helper.dart';
 
 class SimulationRequest {
   final String produitId;

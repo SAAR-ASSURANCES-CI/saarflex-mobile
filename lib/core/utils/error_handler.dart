@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:saarflex_app/data/services/api_service.dart';
+import 'package:saarciflex_app/data/services/api_service.dart';
 
 class ErrorHandler {
   static String handleAuthError(dynamic error) {

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:saarflex_app/core/constants/colors.dart';
-import 'package:saarflex_app/presentation/features/simulation/viewmodels/simulation_viewmodel.dart';
-import 'package:saarflex_app/presentation/features/auth/viewmodels/auth_viewmodel.dart';
+import 'package:saarciflex_app/core/constants/colors.dart';
+import 'package:saarciflex_app/presentation/features/simulation/viewmodels/simulation_viewmodel.dart';
+import 'package:saarciflex_app/presentation/features/auth/viewmodels/auth_viewmodel.dart';
 
 class ResultBottomButtons extends StatelessWidget {
   final SimulationViewModel simulationProvider;

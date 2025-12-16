@@ -4,8 +4,8 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:path/path.dart' as path;
 import 'package:image_picker/image_picker.dart';
-import 'package:saarflex_app/core/constants/api_constants.dart';
-import 'package:saarflex_app/core/utils/storage_helper.dart';
+import 'package:saarciflex_app/core/constants/api_constants.dart';
+import 'package:saarciflex_app/core/utils/storage_helper.dart';
 
 class FileUploadService {
   Future<String> uploadIdentityDocument({

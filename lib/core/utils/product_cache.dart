@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:saarflex_app/data/models/product_model.dart';
+import 'package:saarciflex_app/data/models/product_model.dart';
 
 class ProductCache {
   static const String _productsKey = 'cached_products';

@@ -1,10 +1,10 @@
-import 'package:saarflex_app/core/constants/colors.dart';
+import 'package:saarciflex_app/core/constants/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:saarflex_app/core/utils/session_manager.dart';
-import 'package:saarflex_app/presentation/shared/app_lifecycle_wrapper.dart';
+import 'package:saarciflex_app/core/utils/session_manager.dart';
+import 'package:saarciflex_app/presentation/shared/app_lifecycle_wrapper.dart';
 import 'presentation/features/auth/viewmodels/auth_viewmodel.dart';
 import 'presentation/features/profile/viewmodels/profile_viewmodel.dart';
 import 'presentation/features/products/viewmodels/product_viewmodel.dart';
@@ -31,13 +31,13 @@ void main() async {
     GoogleFonts.poppins(),
   ]);
   
-  runApp(const Saarflex());
+  runApp(const Saarciflex());
 }
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
-class Saarflex extends StatelessWidget {
-  const Saarflex({super.key});
+class Saarciflex extends StatelessWidget {
+  const Saarciflex({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -115,7 +115,7 @@ class Saarflex extends StatelessWidget {
       ),
     );
   }
-}
+} 
 
 class AuthenticationWrapper extends StatefulWidget {
   const AuthenticationWrapper({super.key});

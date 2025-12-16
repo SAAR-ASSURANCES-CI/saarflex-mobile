@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:saarflex_app/core/constants/design_system.dart';
+import 'package:saarciflex_app/core/constants/design_system.dart';
 
 class BaseCard extends StatelessWidget {
   final Widget child;

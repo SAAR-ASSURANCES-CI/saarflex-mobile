@@ -1,4 +1,4 @@
-import 'package:saarflex_app/data/models/beneficiaire_model.dart';
+import 'package:saarciflex_app/data/models/beneficiaire_model.dart';
 
 class SouscriptionRequest {
   final String devisId;

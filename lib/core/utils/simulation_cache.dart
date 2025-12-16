@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:saarflex_app/data/models/critere_tarification_model.dart';
+import 'package:saarciflex_app/data/models/critere_tarification_model.dart';
 
 class SimulationCache {
   static const String _criteresKey = 'simulation_criteres';

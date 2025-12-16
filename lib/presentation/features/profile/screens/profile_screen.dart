@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:saarflex_app/presentation/features/profile/screens/edit_profile_screen.dart';
-import 'package:saarflex_app/presentation/features/auth/viewmodels/auth_viewmodel.dart';
-import 'package:saarflex_app/presentation/features/auth/screens/otp_verification_screen.dart';
-import 'package:saarflex_app/presentation/features/profile/widgets/form_helpers.dart';
-import 'package:saarflex_app/core/utils/profile_helpers.dart';
-import 'package:saarflex_app/presentation/features/profile/widgets/profile_section.dart';
-import 'package:saarflex_app/presentation/features/profile/widgets/profile_info_row.dart';
-import 'package:saarflex_app/presentation/features/profile/widgets/profile_header.dart';
-import 'package:saarflex_app/presentation/features/profile/widgets/profile_action_button.dart';
-import 'package:saarflex_app/presentation/features/profile/widgets/image_display_widget.dart';
-import 'package:saarflex_app/data/models/user_model.dart';
-import 'package:saarflex_app/core/constants/colors.dart';
-import 'package:saarflex_app/core/utils/image_labels.dart';
+import 'package:saarciflex_app/presentation/features/profile/screens/edit_profile_screen.dart';
+import 'package:saarciflex_app/presentation/features/auth/viewmodels/auth_viewmodel.dart';
+import 'package:saarciflex_app/presentation/features/auth/screens/otp_verification_screen.dart';
+import 'package:saarciflex_app/presentation/features/profile/widgets/form_helpers.dart';
+import 'package:saarciflex_app/core/utils/profile_helpers.dart';
+import 'package:saarciflex_app/presentation/features/profile/widgets/profile_section.dart';
+import 'package:saarciflex_app/presentation/features/profile/widgets/profile_info_row.dart';
+import 'package:saarciflex_app/presentation/features/profile/widgets/profile_header.dart';
+import 'package:saarciflex_app/presentation/features/profile/widgets/profile_action_button.dart';
+import 'package:saarciflex_app/presentation/features/profile/widgets/image_display_widget.dart';
+import 'package:saarciflex_app/data/models/user_model.dart';
+import 'package:saarciflex_app/core/constants/colors.dart';
+import 'package:saarciflex_app/core/utils/image_labels.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});

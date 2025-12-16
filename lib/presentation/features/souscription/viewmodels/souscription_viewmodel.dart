@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:saarflex_app/data/models/souscription_model.dart';
-import 'package:saarflex_app/data/models/beneficiaire_model.dart';
-import 'package:saarflex_app/data/repositories/souscription_repository.dart';
+import 'package:saarciflex_app/data/models/souscription_model.dart';
+import 'package:saarciflex_app/data/models/beneficiaire_model.dart';
+import 'package:saarciflex_app/data/repositories/souscription_repository.dart';
 
 class SouscriptionViewModel extends ChangeNotifier {
   final SouscriptionRepository _souscriptionRepository =

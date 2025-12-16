@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:saarflex_app/core/constants/colors.dart';
+import 'package:saarciflex_app/core/constants/colors.dart';
 
 class ProfileHelpers {
 
