@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
-import 'package:saarflex_app/core/constants/api_constants.dart';
-import 'package:saarflex_app/core/utils/storage_helper.dart';
-import 'package:saarflex_app/data/models/product_model.dart';
+import 'package:saarciflex_app/core/constants/api_constants.dart';
+import 'package:saarciflex_app/core/utils/storage_helper.dart';
+import 'package:saarciflex_app/data/models/product_model.dart';
 
 class ProductDetailService {
   Future<Product?> getProductById(String productId) async {

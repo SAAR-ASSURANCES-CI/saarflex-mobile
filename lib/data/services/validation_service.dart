@@ -1,4 +1,4 @@
-import 'package:saarflex_app/data/models/critere_tarification_model.dart';
+import 'package:saarciflex_app/data/models/critere_tarification_model.dart';
 
 class ValidationService {
   static const List<String> _fieldsWithSeparators = [

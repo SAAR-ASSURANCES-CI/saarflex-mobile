@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:saarflex_app/core/constants/colors.dart';
-import 'package:saarflex_app/core/constants/api_constants.dart';
-import 'package:saarflex_app/core/utils/profile_helpers.dart';
+import 'package:saarciflex_app/core/constants/colors.dart';
+import 'package:saarciflex_app/core/constants/api_constants.dart';
+import 'package:saarciflex_app/core/utils/profile_helpers.dart';
 
 class ImageDisplayWidget extends StatelessWidget {
   final String label;

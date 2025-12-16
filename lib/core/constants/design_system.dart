@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:saarflex_app/core/constants/colors.dart';
+import 'package:saarciflex_app/core/constants/colors.dart';
 
 class DesignSystem {
   static TextStyle get heading1 => GoogleFonts.poppins(

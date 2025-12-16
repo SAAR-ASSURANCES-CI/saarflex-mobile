@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:saarflex_app/data/models/product_model.dart';
-import 'package:saarflex_app/data/repositories/product_repository.dart';
-import 'package:saarflex_app/core/utils/product_cache.dart';
-import 'package:saarflex_app/core/utils/product_validators.dart';
-import 'package:saarflex_app/core/utils/product_formatters.dart';
-import 'package:saarflex_app/core/utils/product_error_handler.dart';
+import 'package:saarciflex_app/data/models/product_model.dart';
+import 'package:saarciflex_app/data/repositories/product_repository.dart';
+import 'package:saarciflex_app/core/utils/product_cache.dart';
+import 'package:saarciflex_app/core/utils/product_validators.dart';
+import 'package:saarciflex_app/core/utils/product_formatters.dart';
+import 'package:saarciflex_app/core/utils/product_error_handler.dart';
 
 class ProductDetailViewModel extends ChangeNotifier {
   final ProductRepository _productRepository;

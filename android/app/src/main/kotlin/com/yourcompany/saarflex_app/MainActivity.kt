@@ -1,4 +1,4 @@
-package com.yourcompany.saarflex_app
+package com.yourcompany.saarciflex_app
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -1,11 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
-import 'package:saarflex_app/core/constants/api_constants.dart';
-import 'package:saarflex_app/data/models/critere_tarification_model.dart';
+import 'package:saarciflex_app/core/constants/api_constants.dart';
+import 'package:saarciflex_app/data/models/critere_tarification_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
-import 'package:saarflex_app/data/models/product_model.dart';
+import 'package:saarciflex_app/data/models/product_model.dart';
 
 class ProductService {
   static final ProductService _instance = ProductService._internal();

@@ -1,8 +1,8 @@
-import 'package:saarflex_app/data/models/user_model.dart';
-import 'package:saarflex_app/data/services/user_service.dart';
-import 'package:saarflex_app/data/services/profile_service.dart';
-import 'package:saarflex_app/data/services/file_upload_service.dart';
-import 'package:saarflex_app/core/utils/storage_helper.dart';
+import 'package:saarciflex_app/data/models/user_model.dart';
+import 'package:saarciflex_app/data/services/user_service.dart';
+import 'package:saarciflex_app/data/services/profile_service.dart';
+import 'package:saarciflex_app/data/services/file_upload_service.dart';
+import 'package:saarciflex_app/core/utils/storage_helper.dart';
 
 class ProfileRepository {
   final UserService _userService;

@@ -1,12 +1,12 @@
-import 'package:saarflex_app/core/constants/colors.dart';
+import 'package:saarciflex_app/core/constants/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:saarflex_app/presentation/features/profile/screens/profile_screen.dart';
-import 'package:saarflex_app/presentation/features/auth/widgets/dashboard_header.dart';
-import 'package:saarflex_app/presentation/features/products/screens/product_list_screen.dart';
-import 'package:saarflex_app/presentation/features/contracts/screens/contracts_screen.dart';
-import 'package:saarflex_app/presentation/features/auth/viewmodels/auth_viewmodel.dart';
+import 'package:saarciflex_app/presentation/features/profile/screens/profile_screen.dart';
+import 'package:saarciflex_app/presentation/features/auth/widgets/dashboard_header.dart';
+import 'package:saarciflex_app/presentation/features/products/screens/product_list_screen.dart';
+import 'package:saarciflex_app/presentation/features/contracts/screens/contracts_screen.dart';
+import 'package:saarciflex_app/presentation/features/auth/viewmodels/auth_viewmodel.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});

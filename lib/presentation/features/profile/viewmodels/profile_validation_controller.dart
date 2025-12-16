@@ -1,4 +1,4 @@
-import 'package:saarflex_app/core/utils/error_handler.dart';
+import 'package:saarciflex_app/core/utils/error_handler.dart';
 
 class ProfileValidationController {
   static Map<String, String?> validateChangedFields({

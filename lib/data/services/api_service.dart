@@ -5,8 +5,8 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
-import 'package:saarflex_app/data/models/user_model.dart';
-import 'package:saarflex_app/core/constants/api_constants.dart';
+import 'package:saarciflex_app/data/models/user_model.dart';
+import 'package:saarciflex_app/core/constants/api_constants.dart';
 
 class ApiService {
   static final ApiService _instance = ApiService._internal();

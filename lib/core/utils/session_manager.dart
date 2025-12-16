@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:saarflex_app/data/services/auth_service.dart';
+import 'package:saarciflex_app/data/services/auth_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 enum LogoutType {

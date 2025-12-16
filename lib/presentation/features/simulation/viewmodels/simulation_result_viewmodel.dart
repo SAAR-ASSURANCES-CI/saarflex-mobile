@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:saarflex_app/data/models/simulation_model.dart';
-import 'package:saarflex_app/data/repositories/simulation_repository.dart';
-import 'package:saarflex_app/core/utils/simulation_validators.dart';
+import 'package:saarciflex_app/data/models/simulation_model.dart';
+import 'package:saarciflex_app/data/repositories/simulation_repository.dart';
+import 'package:saarciflex_app/core/utils/simulation_validators.dart';
 
 class SimulationResultViewModel extends ChangeNotifier {
   final SimulationRepository _simulationRepository;

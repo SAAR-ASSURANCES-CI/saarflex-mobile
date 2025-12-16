@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:saarflex_app/data/models/critere_tarification_model.dart';
-import 'package:saarflex_app/core/utils/simulation_cache.dart';
+import 'package:saarciflex_app/data/models/critere_tarification_model.dart';
+import 'package:saarciflex_app/core/utils/simulation_cache.dart';
 
 class SimulationFormViewModel extends ChangeNotifier {
   final Map<String, dynamic> _criteresReponses = {};

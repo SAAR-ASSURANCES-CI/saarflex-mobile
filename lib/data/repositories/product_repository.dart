@@ -1,5 +1,5 @@
-import 'package:saarflex_app/data/models/product_model.dart';
-import 'package:saarflex_app/data/services/product_service.dart';
+import 'package:saarciflex_app/data/models/product_model.dart';
+import 'package:saarciflex_app/data/services/product_service.dart';
 
 class ProductRepository {
   final ProductService _productService;

@@ -1,9 +1,9 @@
-# 🏗️ Architecture Flutter - Saarflex Mobile
+# 🏗️ Architecture Flutter - Saarciflex Mobile
 
 ## 🧠 LOGIQUE ARCHITECTURALE DE L'APPLICATION
 
 ### 🎯 Principe Fondamental
-L'architecture de Saarflex Mobile suit le **principe de séparation des responsabilités** avec une approche **feature-based** qui garantit :
+L'architecture de Saarciflex Mobile suit le **principe de séparation des responsabilités** avec une approche **feature-based** qui garantit :
 - **Maintenabilité** : Chaque composant a une responsabilité unique
 - **Évolutivité** : Ajout de nouvelles fonctionnalités sans impact
 - **Testabilité** : Isolation des composants pour des tests ciblés
@@ -266,9 +266,9 @@ import 'package:provider/provider.dart';
 import 'package:http/http.dart';
 
 // 3. Imports internes (par ordre alphabétique)
-import 'package:saarflex_app/core/constants/colors.dart';
-import 'package:saarflex_app/data/models/user_model.dart';
-import 'package:saarflex_app/presentation/features/auth/viewmodels/auth_viewmodel.dart';
+import 'package:saarciflex_app/core/constants/colors.dart';
+import 'package:saarciflex_app/data/models/user_model.dart';
+import 'package:saarciflex_app/presentation/features/auth/viewmodels/auth_viewmodel.dart';
 ```
 
 ### 2. Structure d'un ViewModel

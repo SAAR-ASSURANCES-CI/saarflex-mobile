@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:saarflex_app/core/utils/error_handler.dart';
+import 'package:saarciflex_app/core/utils/error_handler.dart';
 
 class ProductErrorHandler {
   static String handleProductError(dynamic error) {

@@ -1,4 +1,4 @@
-import 'package:saarflex_app/data/models/product_model.dart';
+import 'package:saarciflex_app/data/models/product_model.dart';
 
 class ValidationResult {
   final bool isValid;

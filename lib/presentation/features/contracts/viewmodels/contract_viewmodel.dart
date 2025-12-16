@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:saarflex_app/data/models/saved_quote_model.dart';
-import 'package:saarflex_app/data/models/contract_model.dart';
-import 'package:saarflex_app/data/repositories/contract_repository.dart';
+import 'package:saarciflex_app/data/models/saved_quote_model.dart';
+import 'package:saarciflex_app/data/models/contract_model.dart';
+import 'package:saarciflex_app/data/repositories/contract_repository.dart';
 
 class ContractViewModel extends ChangeNotifier {
   final ContractRepository _contractRepository = ContractRepository();

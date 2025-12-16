@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:saarflex_app/core/utils/session_manager.dart';
-import 'package:saarflex_app/main.dart';
-import 'package:saarflex_app/presentation/features/auth/viewmodels/auth_viewmodel.dart';
+import 'package:saarciflex_app/core/utils/session_manager.dart';
+import 'package:saarciflex_app/main.dart';
+import 'package:saarciflex_app/presentation/features/auth/viewmodels/auth_viewmodel.dart';
 
 class AppLifecycleWrapper extends StatefulWidget {
   final Widget child;

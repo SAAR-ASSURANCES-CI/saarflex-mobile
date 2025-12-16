@@ -1,4 +1,4 @@
-import 'package:saarflex_app/data/models/simulation_model.dart';
+import 'package:saarciflex_app/data/models/simulation_model.dart';
 
 class SimulationFormatters {
   static String formatCalculationText(String text) {

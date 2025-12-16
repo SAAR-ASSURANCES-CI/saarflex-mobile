@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:saarflex_app/core/constants/colors.dart';
-import 'package:saarflex_app/data/models/product_model.dart';
-import 'package:saarflex_app/presentation/features/auth/viewmodels/auth_viewmodel.dart';
-import 'package:saarflex_app/presentation/features/simulation/screens/simulation_screen.dart';
-import 'package:saarflex_app/core/utils/error_handler.dart';
-import 'package:saarflex_app/presentation/features/profile/viewmodels/profile_form_controller.dart';
-import 'package:saarflex_app/presentation/features/profile/widgets/personal_section.dart';
-import 'package:saarflex_app/presentation/features/profile/widgets/contact_section.dart';
-import 'package:saarflex_app/presentation/features/profile/widgets/identity_section.dart';
-import 'package:saarflex_app/presentation/features/profile/widgets/identity_images_section.dart';
+import 'package:saarciflex_app/core/constants/colors.dart';
+import 'package:saarciflex_app/data/models/product_model.dart';
+import 'package:saarciflex_app/presentation/features/auth/viewmodels/auth_viewmodel.dart';
+import 'package:saarciflex_app/presentation/features/simulation/screens/simulation_screen.dart';
+import 'package:saarciflex_app/core/utils/error_handler.dart';
+import 'package:saarciflex_app/presentation/features/profile/viewmodels/profile_form_controller.dart';
+import 'package:saarciflex_app/presentation/features/profile/widgets/personal_section.dart';
+import 'package:saarciflex_app/presentation/features/profile/widgets/contact_section.dart';
+import 'package:saarciflex_app/presentation/features/profile/widgets/identity_section.dart';
+import 'package:saarciflex_app/presentation/features/profile/widgets/identity_images_section.dart';
 
 class EditProfileScreenRefactored extends StatefulWidget {
   final VoidCallback? onProfileCompleted;

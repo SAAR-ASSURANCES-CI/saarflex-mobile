@@ -1,6 +1,6 @@
 {
-    "name": "saarflex_app",
-    "short_name": "saarflex_app",
+    "name": "Saarciflex",
+    "short_name": "Saarciflex",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
