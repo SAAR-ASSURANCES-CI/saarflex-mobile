@@ -129,7 +129,7 @@ class _AuthenticationWrapperState extends State<AuthenticationWrapper> {
 
   @override
   void initState() {
-    super.initState();
+    super.initState();  
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         context.read<AuthViewModel>().initializeAuth();

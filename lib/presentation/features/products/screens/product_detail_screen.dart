@@ -6,6 +6,7 @@ import 'package:saarciflex_app/presentation/features/products/widgets/assure_sel
 import 'package:saarciflex_app/data/models/product_model.dart';
 import 'package:saarciflex_app/presentation/features/products/viewmodels/product_viewmodel.dart';
 import 'package:saarciflex_app/presentation/features/simulation/screens/info_assure_screen.dart';
+import 'package:saarciflex_app/presentation/features/simulation/screens/info_vehicule_screen.dart';
 import 'package:saarciflex_app/core/utils/image_labels.dart';
 import 'package:saarciflex_app/presentation/features/products/widgets/product_detail_loading_state.dart';
 import 'package:saarciflex_app/presentation/features/products/widgets/product_detail_error_state.dart';
@@ -27,7 +28,7 @@ class ProductDetailScreen extends StatefulWidget {
 
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
   bool _hasRequiredPhotos(AuthViewModel authProvider) {
-    final user = authProvider.currentUser;
+final user = authProvider.currentUser;
     if (user == null) return false;
 
     final hasRectoPhoto =
@@ -36,6 +37,37 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         user.backDocumentPath != null && user.backDocumentPath!.isNotEmpty;
 
     return hasRectoPhoto && hasVersoPhoto;
+  }
+
+  void _navigateToNextScreen(
+    BuildContext context,
+    Product product,
+    bool assureEstSouscripteur,
+    Map<String, dynamic>? informationsAssure,
+  ) {
+    if (product.necessiteInformationsVehicule) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => InfoVehiculeScreen(
+            produit: product,
+            assureEstSouscripteur: assureEstSouscripteur,
+            informationsAssure: informationsAssure,
+          ),
+        ),
+      );
+    } else {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => SimulationScreen(
+            produit: product,
+            assureEstSouscripteur: assureEstSouscripteur,
+            informationsAssure: informationsAssure,
+          ),
+        ),
+      );
+    }
   }
 
   @override
@@ -184,15 +216,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           await authProvider.loadUserProfile();
 
           if (authProvider.currentUser?.isProfileComplete == true && mounted) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => SimulationScreen(
-                  produit: product,
-                  assureEstSouscripteur: true,
-                ),
-              ),
-            );
+            _navigateToNextScreen(context, product, true, null);
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -226,13 +250,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           return;
         }
 
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) =>
-                SimulationScreen(produit: product, assureEstSouscripteur: true),
-          ),
-        );
+        _navigateToNextScreen(context, product, true, null);
       } else {
         Navigator.push(
           context,

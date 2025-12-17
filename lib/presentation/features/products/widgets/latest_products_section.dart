@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:saarciflex_app/core/constants/colors.dart';
 import 'package:saarciflex_app/data/models/product_model.dart';
+import 'package:saarciflex_app/core/utils/product_formatters.dart';
 
 class LatestProductsSection extends StatefulWidget {
   final List<Product> latestProducts;
@@ -227,28 +228,30 @@ class _LatestProductsSectionState extends State<LatestProductsSection> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        product.nom,
-                        style: GoogleFonts.poppins(
-                          fontSize: nameFontSize,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+                  children: [
+                    Text(
+                      ProductFormatters.formatProductName(product.nom),
+                      style: GoogleFonts.poppins(
+                        fontSize: nameFontSize,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
                       ),
-                      SizedBox(height: spacing1),
-                      Text(
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    SizedBox(height: spacing1),
+                    Text(
+                      ProductFormatters.formatProductDescription(
                         product.description,
-                        style: GoogleFonts.poppins(
-                          fontSize: descFontSize,
-                          color: AppColors.textSecondary,
-                        ),
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
                       ),
-                    ],
+                      style: GoogleFonts.poppins(
+                        fontSize: descFontSize,
+                        color: AppColors.textSecondary,
+                      ),
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                   ),
                 ),
                 SizedBox(width: spacing2),
