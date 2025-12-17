@@ -66,6 +66,25 @@ class ProductService {
   }
 
   Future<Product?> getProductById(String id) async {
+    // Essayer d'abord l'endpoint individuel qui peut avoir plus de détails
+    try {
+      final url = Uri.parse('$baseUrl/produits/$id');
+      final response = await http.get(
+        url,
+        headers: await _authHeaders,
+      );
+
+      if (response.statusCode == 200) {
+        final jsonData = json.decode(response.body);
+        return Product.fromJson(jsonData);
+      } else if (response.statusCode == 404) {
+        return null;
+      }
+    } catch (e) {
+      // Fallback vers la liste si l'endpoint individuel échoue
+    }
+    
+    // Fallback: chercher dans la liste si l'endpoint individuel échoue
     final products = await fetchProductsFromApi();
     try {
       return products.firstWhere((product) => product.id == id);

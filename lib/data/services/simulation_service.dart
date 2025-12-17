@@ -16,6 +16,7 @@ class SimulationService {
     required Map<String, dynamic> criteres,
     required bool assureEstSouscripteur,
     Map<String, dynamic>? informationsAssure,
+    Map<String, dynamic>? informationsVehicule,
   }) async {
     Uri? url;
     Map<String, dynamic>? payload;
@@ -38,6 +39,10 @@ class SimulationService {
 
       if (!assureEstSouscripteur && informationsAssure != null) {
         payload['informations_assure'] = informationsAssure;
+      }
+
+      if (informationsVehicule != null && informationsVehicule.isNotEmpty) {
+        payload['informations_vehicule'] = informationsVehicule;
       }
 
       _logSimulationRequest(url, headers, payload);

@@ -54,6 +54,7 @@ class Product {
   final Map<String, dynamic>? branche;
   final bool necessiteBeneficiaires;
   final int maxBeneficiaires;
+  final bool necessiteInformationsVehicule;
 
   Product({
     required this.id,
@@ -68,6 +69,7 @@ class Product {
     this.branche,
     this.necessiteBeneficiaires = false,
     this.maxBeneficiaires = 0,
+    this.necessiteInformationsVehicule = false,
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
@@ -85,6 +87,7 @@ class Product {
       branche: json['branche'],
       necessiteBeneficiaires: json['necessite_beneficiaires'] ?? false,
       maxBeneficiaires: json['max_beneficiaires'] ?? 0,
+      necessiteInformationsVehicule: json['necessite_informations_vehicule'] ?? false,
     );
   }
 
@@ -113,6 +116,7 @@ class Product {
       'branche': branche,
       'necessite_beneficiaires': necessiteBeneficiaires,
       'max_beneficiaires': maxBeneficiaires,
+      'necessite_informations_vehicule': necessiteInformationsVehicule,
     };
   }
 
@@ -129,6 +133,7 @@ class Product {
     Map<String, dynamic>? branche,
     bool? necessiteBeneficiaires,
     int? maxBeneficiaires,
+    bool? necessiteInformationsVehicule,
   }) {
     return Product(
       id: id ?? this.id,
@@ -144,6 +149,8 @@ class Product {
       necessiteBeneficiaires:
           necessiteBeneficiaires ?? this.necessiteBeneficiaires,
       maxBeneficiaires: maxBeneficiaires ?? this.maxBeneficiaires,
+      necessiteInformationsVehicule:
+          necessiteInformationsVehicule ?? this.necessiteInformationsVehicule,
     );
   }
 

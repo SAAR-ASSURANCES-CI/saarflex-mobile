@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:saarciflex_app/core/constants/colors.dart';
 import 'package:saarciflex_app/data/models/product_model.dart';
+import 'package:saarciflex_app/core/utils/product_formatters.dart';
 
 class AllProductsList extends StatelessWidget {
   final List<Product> products;
@@ -102,39 +103,41 @@ class AllProductsList extends StatelessWidget {
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      product.nom,
-                      style: GoogleFonts.poppins(
-                        fontSize: nameFontSize,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
+                    children: [
+                      Text(
+                        ProductFormatters.formatProductName(product.nom),
+                        style: GoogleFonts.poppins(
+                          fontSize: nameFontSize,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimary,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    SizedBox(height: spacing2),
-                    Text(
-                      product.typeLabel,
-                      style: GoogleFonts.poppins(
-                        fontSize: typeFontSize,
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w500,
+                      SizedBox(height: spacing2),
+                      Text(
+                        product.typeLabel,
+                        style: GoogleFonts.poppins(
+                          fontSize: typeFontSize,
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    SizedBox(height: spacing3),
-                    Text(
-                      product.description,
-                      style: GoogleFonts.poppins(
-                        fontSize: descFontSize,
-                        color: AppColors.textSecondary,
+                      SizedBox(height: spacing3),
+                      Text(
+                        ProductFormatters.formatProductDescription(
+                          product.description,
+                        ),
+                        style: GoogleFonts.poppins(
+                          fontSize: descFontSize,
+                          color: AppColors.textSecondary,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
+                    ],
                 ),
               ),
               Icon(

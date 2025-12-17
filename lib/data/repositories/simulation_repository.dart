@@ -37,6 +37,7 @@ class SimulationRepository {
     required Map<String, dynamic> criteres,
     required bool assureEstSouscripteur,
     Map<String, dynamic>? informationsAssure,
+    Map<String, dynamic>? informationsVehicule,
   }) async {
     try {
       final resultat = await _simulationService.simulerDevisSimplifie(
@@ -44,6 +45,7 @@ class SimulationRepository {
         criteres: criteres,
         assureEstSouscripteur: assureEstSouscripteur,
         informationsAssure: informationsAssure,
+        informationsVehicule: informationsVehicule,
       );
 
       return resultat;

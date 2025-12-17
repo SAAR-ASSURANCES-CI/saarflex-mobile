@@ -19,6 +19,8 @@ class SimulationViewModel extends ChangeNotifier {
 
   XFile? _tempRectoImage;
   XFile? _tempVersoImage;
+  XFile? _tempPermisRectoImage;
+  XFile? _tempPermisVersoImage;
   String? _devisId;
   String? _uploadedRectoUrl;
   String? _uploadedVersoUrl;
@@ -34,6 +36,7 @@ class SimulationViewModel extends ChangeNotifier {
 
   bool _assureEstSouscripteur = true;
   Map<String, dynamic>? _informationsAssure;
+  Map<String, dynamic>? _informationsVehicule;
 
   String? _errorMessage;
   Map<String, String> _validationErrors = {};
@@ -60,13 +63,18 @@ class SimulationViewModel extends ChangeNotifier {
 
   XFile? get tempRectoImage => _tempRectoImage;
   XFile? get tempVersoImage => _tempVersoImage;
+  XFile? get tempPermisRectoImage => _tempPermisRectoImage;
+  XFile? get tempPermisVersoImage => _tempPermisVersoImage;
   String? get devisId => _devisId;
   String? get uploadedRectoUrl => _uploadedRectoUrl;
   String? get uploadedVersoUrl => _uploadedVersoUrl;
   bool get isUploadingImages => _isUploadingImages;
   bool get hasTempImages => _tempRectoImage != null && _tempVersoImage != null;
+  bool get hasTempPermisImages => _tempPermisRectoImage != null && _tempPermisVersoImage != null;
   bool get hasUploadedImages =>
       _uploadedRectoUrl != null && _uploadedVersoUrl != null;
+  
+  Map<String, dynamic>? get informationsVehicule => _informationsVehicule;
 
   bool get isFormValid {
     for (final critere in _criteresProduit) {
@@ -126,7 +134,7 @@ class SimulationViewModel extends ChangeNotifier {
           try {
             calcAutoDureeWithContext(_contextForAutoCalc!);
           } catch (e) {
-            debugPrint('Erreur lors du calcul automatique de la durée: $e');
+            // Erreur silencieuse lors du calcul automatique
           }
         }
       });
@@ -248,6 +256,7 @@ class SimulationViewModel extends ChangeNotifier {
         criteres: criteresNettoyes,
         assureEstSouscripteur: _assureEstSouscripteur,
         informationsAssure: informationsAssureConverties,
+        informationsVehicule: _informationsVehicule,
       );
     } catch (e) {
       _setError(e.toString());
@@ -297,6 +306,7 @@ class SimulationViewModel extends ChangeNotifier {
     _dernierResultat = null;
     _assureEstSouscripteur = true;
     _informationsAssure = null;
+    _informationsVehicule = null;
     _criteresProduitTriesCache = null;
     _clearError();
     _clearImageData();
@@ -311,6 +321,8 @@ class SimulationViewModel extends ChangeNotifier {
   void _clearImageData() {
     _tempRectoImage = null;
     _tempVersoImage = null;
+    _tempPermisRectoImage = null;
+    _tempPermisVersoImage = null;
     _devisId = null;
     _uploadedRectoUrl = null;
     _uploadedVersoUrl = null;
@@ -389,6 +401,50 @@ class SimulationViewModel extends ChangeNotifier {
           final message = isRecto
               ? 'Veuillez maintenant sélectionner l\'image verso'
               : 'Veuillez maintenant sélectionner l\'image recto';
+          ErrorHandler.showSuccessSnackBar(context, message);
+        }
+      }
+    } catch (e) {
+      ErrorHandler.showErrorSnackBar(
+        context,
+        ErrorHandler.handleUploadError(e),
+      );
+    }
+  }
+
+  Future<void> pickPermisImage(bool isRecto, BuildContext context) async {
+    try {
+      final imagePicker = ImagePicker();
+      final image = await imagePicker.pickImage(source: ImageSource.gallery);
+
+      if (image != null) {
+        final extension = image.path.toLowerCase();
+        if (!extension.endsWith('.jpg') &&
+            !extension.endsWith('.jpeg') &&
+            !extension.endsWith('.png') &&
+            !extension.endsWith('.webp')) {
+          throw Exception(
+            'Format d\'image non supporté. Formats acceptés: JPEG, PNG, WebP',
+          );
+        }
+
+        if (isRecto) {
+          _tempPermisRectoImage = image;
+        } else {
+          _tempPermisVersoImage = image;
+        }
+
+        notifyListeners();
+
+        if (_tempPermisRectoImage != null && _tempPermisVersoImage != null) {
+          ErrorHandler.showSuccessSnackBar(
+            context,
+            'Photos du permis prêtes',
+          );
+        } else {
+          final message = isRecto
+              ? 'Veuillez maintenant sélectionner le verso du permis'
+              : 'Veuillez maintenant sélectionner le recto du permis';
           ErrorHandler.showSuccessSnackBar(context, message);
         }
       }
@@ -486,6 +542,11 @@ class SimulationViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void updateInformationsVehicule(Map<String, dynamic> informations) {
+    _informationsVehicule = informations;
+    notifyListeners();
+  }
+
   void calcDureeFromProfile(BuildContext context) {
     calcAutoDureeWithContext(context);
    }
@@ -518,7 +579,7 @@ class SimulationViewModel extends ChangeNotifier {
           _informationsAssure!['date_naissance'] = birthDate;
         }
       } catch (e) {
-        debugPrint('Erreur lors de la récupération de la date de naissance: $e');
+        // Erreur silencieuse lors de la récupération de la date de naissance
       }
     }
     
@@ -533,16 +594,12 @@ class SimulationViewModel extends ChangeNotifier {
   }
 
   void calcAutoDureeWithContext(BuildContext context) {
-    debugPrint('calcAutoDureeWithContext appelé: produitId=$_produitId, criteresCount=${_criteresProduit.length}');
     if (!_isSaarNansou()) {
-      debugPrint('calcAutoDureeWithContext: Ce n\'est pas Saar Nansou (produitId=$_produitId)');
       return;
     }
     if (_criteresProduit.isEmpty) {
-      debugPrint('calcAutoDureeWithContext: Aucun critère chargé');
       return;
     }
-    debugPrint('calcAutoDureeWithContext: Début du calcul automatique');
     _calcAutoDuree(context);
     notifyListeners();
   }
@@ -573,7 +630,7 @@ class SimulationViewModel extends ChangeNotifier {
         updateCritereReponse(critereDuree.nom, dureeString);
       }
     } catch (e) {
-      debugPrint('Erreur lors de la sélection automatique de la durée: $e');
+      // Erreur silencieuse lors de la sélection automatique de la durée
     }
   }
 
