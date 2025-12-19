@@ -84,19 +84,39 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   }
 
   PreferredSizeWidget _buildAppBar() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final textScaleFactor = MediaQuery.of(context).textScaleFactor;
+    final iconSize = screenWidth < 360 ? 22.0 : 26.0;
+
     return AppBar(
       backgroundColor: Colors.transparent,
       elevation: 0,
-      leading: IconButton(
-        icon: Icon(Icons.arrow_back, color: AppColors.primary),
-        onPressed: () => Navigator.pop(context),
+      toolbarHeight: 80,
+      flexibleSpace: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Colors.blue[600]!,
+              Colors.indigo[700]!,
+            ],
+          ),
+        ),
+      ),
+      leading: Padding(
+        padding: const EdgeInsets.only(left: 8),
+        child: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.white, size: iconSize),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       title: Text(
         'Vérification',
         style: GoogleFonts.poppins(
-          fontSize: 20,
-          fontWeight: FontWeight.w600,
-          color: AppColors.textPrimary,
+          fontSize: (22.0 / textScaleFactor).clamp(20.0, 26.0),
+          fontWeight: FontWeight.w700,
+          color: Colors.white,
         ),
       ),
     );

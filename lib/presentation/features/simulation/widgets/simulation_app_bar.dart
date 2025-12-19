@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:saarciflex_app/core/constants/colors.dart';
 import 'package:saarciflex_app/data/models/product_model.dart';
 
 class SimulationAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -10,12 +9,31 @@ class SimulationAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final iconSize = screenWidth < 360 ? 22 : 26;
+
     return AppBar(
-      backgroundColor: AppColors.white,
+      backgroundColor: Colors.transparent,
       elevation: 0,
-      leading: IconButton(
-        icon: Icon(Icons.arrow_back_ios_rounded, color: AppColors.primary),
-        onPressed: () => Navigator.pop(context),
+      toolbarHeight: 80,
+      flexibleSpace: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Colors.blue[600]!,
+              Colors.indigo[700]!,
+            ],
+          ),
+        ),
+      ),
+      leading: Padding(
+        padding: const EdgeInsets.only(left: 8),
+        child: IconButton(
+          icon: Icon(Icons.arrow_back_ios_rounded, color: Colors.white, size: iconSize.toDouble()),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -23,17 +41,17 @@ class SimulationAppBar extends StatelessWidget implements PreferredSizeWidget {
           Text(
             'Simulation',
             style: GoogleFonts.poppins(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
             ),
           ),
           Text(
             produit.nom,
             style: GoogleFonts.poppins(
-              fontSize: 12,
+              fontSize: 13,
               fontWeight: FontWeight.w400,
-              color: AppColors.textSecondary,
+              color: Colors.white70,
             ),
           ),
         ],
@@ -43,5 +61,5 @@ class SimulationAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+  Size get preferredSize => const Size.fromHeight(80);
 }

@@ -32,25 +32,82 @@ class Contract {
   });
 
   factory Contract.fromJson(Map<String, dynamic> json) {
+    // Extract product name from produit object if available
+    String nomProduit = '';
+    String typeProduit = '';
+    if (json['produit'] is Map) {
+      final produit = json['produit'] as Map<String, dynamic>;
+      nomProduit = produit['nom']?.toString() ?? produit['libelle']?.toString() ?? '';
+      typeProduit = produit['type']?.toString() ?? produit['categorie']?.toString() ?? '';
+    }
+    
+    // Extract prime_mensuelle (can be String or num)
+    double primeCalculee = 0.0;
+    if (json['prime_mensuelle'] != null) {
+      if (json['prime_mensuelle'] is String) {
+        primeCalculee = double.tryParse(json['prime_mensuelle']) ?? 0.0;
+      } else if (json['prime_mensuelle'] is num) {
+        primeCalculee = (json['prime_mensuelle'] as num).toDouble();
+      }
+    }
+    
+    // Extract franchise (can be String or num)
+    double franchiseCalculee = 0.0;
+    if (json['franchise'] != null) {
+      if (json['franchise'] is String) {
+        franchiseCalculee = double.tryParse(json['franchise']) ?? 0.0;
+      } else if (json['franchise'] is num) {
+        franchiseCalculee = (json['franchise'] as num).toDouble();
+      }
+    }
+    
+    // Extract plafond (can be String, num, or null)
+    double? plafondCalcule;
+    if (json['plafond'] != null) {
+      if (json['plafond'] is String) {
+        plafondCalcule = double.tryParse(json['plafond']);
+      } else if (json['plafond'] is num) {
+        plafondCalcule = (json['plafond'] as num).toDouble();
+      }
+    }
+    
+    // Count beneficiaires from the list
+    int nombreBeneficiaires = 0;
+    if (json['beneficiaires'] is List) {
+      nombreBeneficiaires = (json['beneficiaires'] as List).length;
+    }
+    
     return Contract(
-      id: json['id'],
-      nomProduit: json['nom_produit'],
-      typeProduit: json['type_produit'],
-      primeCalculee: (json['prime_calculee'] as num).toDouble(),
-      franchiseCalculee: (json['franchise_calculee'] as num).toDouble(),
-      plafondCalcule: json['plafond_calcule'] != null
-          ? (json['plafond_calcule'] as num).toDouble()
-          : null,
-      statut: json['statut'],
-      dateSouscription: DateTime.parse(json['date_souscription']),
-      dateExpiration: json['date_expiration'] != null
-          ? DateTime.parse(json['date_expiration'])
-          : null,
-      numeroContrat: json['numero_contrat'],
-      nomPersonnalise: json['nom_personnalise'],
-      notes: json['notes'],
-      nombreBeneficiaires: json['nombre_beneficiaires'] ?? 0,
-      nombreDocuments: json['nombre_documents'] ?? 0,
+      id: json['id']?.toString() ?? '',
+      nomProduit: nomProduit.isEmpty 
+          ? (json['nom_produit']?.toString() ?? '') 
+          : nomProduit,
+      typeProduit: typeProduit.isEmpty 
+          ? (json['type_produit']?.toString() ?? '') 
+          : typeProduit,
+      primeCalculee: primeCalculee,
+      franchiseCalculee: franchiseCalculee,
+      plafondCalcule: plafondCalcule,
+      statut: json['statut']?.toString() ?? 'actif',
+      dateSouscription: json['date_debut_couverture'] != null
+          ? DateTime.parse(json['date_debut_couverture'].toString())
+          : (json['date_souscription'] != null
+              ? DateTime.parse(json['date_souscription'].toString())
+              : DateTime.now()),
+      dateExpiration: json['date_fin_couverture'] != null
+          ? DateTime.parse(json['date_fin_couverture'].toString())
+          : (json['date_expiration'] != null
+              ? DateTime.parse(json['date_expiration'].toString())
+              : null),
+      numeroContrat: json['numero_contrat']?.toString() ?? '',
+      nomPersonnalise: json['nom_personnalise']?.toString(),
+      notes: json['notes']?.toString(),
+      nombreBeneficiaires: nombreBeneficiaires,
+      nombreDocuments: json['nombre_documents'] is int
+          ? json['nombre_documents'] as int
+          : (json['nombre_documents'] != null
+              ? int.tryParse(json['nombre_documents'].toString()) ?? 0
+              : 0),
     );
   }
 

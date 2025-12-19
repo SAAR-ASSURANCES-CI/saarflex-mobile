@@ -343,6 +343,7 @@ class ApiService {
           nom: data['nom'],
           email: data['email'],
           telephone: data['telephone'],
+          avatarUrl: data['avatarUrl'],
           typeUtilisateur: TypeUtilisateur.values.firstWhere(
             (e) => e.toString().split('.').last == data['type_utilisateur'],
             orElse: () => TypeUtilisateur.client,
@@ -407,6 +408,7 @@ class ApiService {
           nom: data['nom'],
           email: data['email'],
           telephone: data['telephone'],
+          avatarUrl: data['avatarUrl'],
           typeUtilisateur: TypeUtilisateur.values.firstWhere(
             (e) => e.toString().split('.').last == data['type_utilisateur'],
             orElse: () => TypeUtilisateur.client,
