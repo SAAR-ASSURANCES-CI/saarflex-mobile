@@ -100,7 +100,7 @@ class _LatestProductsSectionState extends State<LatestProductsSection> {
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [AppColors.primary.withOpacity(0.02), Colors.white],
+          colors: [Colors.blue[600]!.withOpacity(0.05), Colors.white],
         ),
       ),
       child: Column(
@@ -170,8 +170,8 @@ class _LatestProductsSectionState extends State<LatestProductsSection> {
                     gradient: _currentPage == index
                         ? LinearGradient(
                             colors: [
-                              AppColors.primary,
-                              AppColors.primary.withOpacity(0.7),
+                              Colors.blue[600]!,
+                              Colors.indigo[700]!,
                             ],
                           )
                         : null,
@@ -217,8 +217,8 @@ class _LatestProductsSectionState extends State<LatestProductsSection> {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  AppColors.primary.withOpacity(0.05),
-                  AppColors.primary.withOpacity(0.02),
+                  Colors.blue[600]!.withOpacity(0.08),
+                  Colors.indigo[700]!.withOpacity(0.03),
                 ],
               ),
             ),
@@ -262,19 +262,19 @@ class _LatestProductsSectionState extends State<LatestProductsSection> {
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        AppColors.primary.withOpacity(0.15),
-                        AppColors.primary.withOpacity(0.08),
+                        Colors.blue[600]!.withOpacity(0.2),
+                        Colors.indigo[700]!.withOpacity(0.1),
                       ],
                     ),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
-                      color: AppColors.primary.withOpacity(0.2),
+                      color: Colors.blue[600]!.withOpacity(0.3),
                       width: 1,
                     ),
                   ),
                   child: Icon(
                     Icons.arrow_forward_ios_rounded,
-                    color: AppColors.primary,
+                    color: Colors.blue[700],
                     size: iconSize,
                   ),
                 ),

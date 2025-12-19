@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:saarciflex_app/data/models/user_model.dart';
-import 'package:saarciflex_app/core/constants/colors.dart';
 
 class DashboardHeader extends StatelessWidget {
   final User? user;
@@ -20,98 +19,123 @@ class DashboardHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: AppColors.primary,
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(24),
-          bottomRight: Radius.circular(24),
-        ),
+      padding: const EdgeInsets.only(
+         top: 12,
+        bottom: 16,
+        left: 20,
+        right: 20,
       ),
       child: SafeArea(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Première ligne : Avatar + Boutons d'action
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  "SAARCI-FLEX",
-                  style: GoogleFonts.poppins(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.white,
-                  ),
-                ),
+                _buildUserAvatar(context),
                 _buildActionButtons(),
               ],
             ),
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                _buildUserAvatar(),
-                const SizedBox(width: 16),
-                _buildUserInfo(),
-              ],
-            ),
+            const SizedBox(height: 16),
+            // Deuxième ligne : Texte de bienvenue
+            _buildWelcomeText(),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildUserAvatar() {
+  Widget _buildUserAvatar(BuildContext context) {
+    final hasAvatar = (user?.avatarUrl ?? '').isNotEmpty;
+
     return Container(
-      width: 60,
-      height: 60,
+      width: 56,
+      height: 56,
       decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: Colors.white,
+          width: 3,
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.1),
-            spreadRadius: 0,
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
-      child: Icon(Icons.person_rounded, color: AppColors.primary, size: 30),
+      child: Container(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.white,
+        ),
+        child: ClipOval(
+          child: hasAvatar
+              ? Image.network(
+                  user!.avatarUrl!,
+                  width: 56,
+                  height: 56,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return _buildDefaultAvatar();
+                  },
+                )
+              : _buildDefaultAvatar(),
+        ),
+      ),
     );
   }
 
-  Widget _buildUserInfo() {
-    return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            "Bonjour,",
-            style: GoogleFonts.poppins(
-              fontSize: 16,
-              fontWeight: FontWeight.w400,
-              color: AppColors.white.withOpacity(0.9),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            user?.nom ?? "Utilisateur",
-            style: GoogleFonts.poppins(
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
-              color: AppColors.white,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            user?.email ?? "email@example.com",
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: AppColors.white.withOpacity(0.8),
-            ),
-          ),
-        ],
+  Widget _buildDefaultAvatar() {
+    return Container(
+      width: 56,
+      height: 56,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.blue[100]!,
+            Colors.blue[50]!,
+          ],
+        ),
       ),
+      child: Icon(
+        Icons.person_rounded,
+        color: Colors.blue[400],
+        size: 32,
+      ),
+    );
+  }
+
+  Widget _buildWelcomeText() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          "Bienvenue !",
+          style: GoogleFonts.poppins(
+            fontSize: 15,
+            fontWeight: FontWeight.w500,
+            color: Colors.grey[600],
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          user?.nom ?? "Utilisateur",
+          style: GoogleFonts.poppins(
+            fontSize: 22,
+            fontWeight: FontWeight.w700,
+            color: Colors.grey[900],
+          ),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
     );
   }
 
@@ -119,11 +143,14 @@ class DashboardHeader extends StatelessWidget {
     return Row(
       children: [
         _buildHeaderButton(
-          icon: Icons.notifications_rounded,
+          icon: Icons.notifications_outlined,
           onTap: onNotification,
         ),
-        const SizedBox(width: 12),
-        _buildHeaderButton(icon: Icons.person_rounded, onTap: onProfil),
+        const SizedBox(width: 8),
+        _buildHeaderButton(
+          icon: Icons.person_outline_rounded,
+          onTap: onProfil,
+        ),
       ],
     );
   }
@@ -133,18 +160,32 @@ class DashboardHeader extends StatelessWidget {
     required VoidCallback onTap,
   }) {
     return Container(
-      width: 44,
-      height: 44,
+      width: 42,
+      height: 42,
       decoration: BoxDecoration(
-        color: AppColors.white.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.white.withOpacity(0.3), width: 1),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
-      child: IconButton(
-        icon: Icon(icon, color: AppColors.white, size: 20),
-        onPressed: onTap,
-        padding: EdgeInsets.zero,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(14),
+          child: Icon(
+            icon,
+            color: Colors.grey[700],
+            size: 22,
+          ),
+        ),
       ),
     );
   }
+
 }

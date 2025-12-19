@@ -32,6 +32,11 @@ class ProfileFormController extends ChangeNotifier {
   String? _versoImagePath;
   bool _isUploadingRecto = false;
   bool _isUploadingVerso = false;
+  
+  XFile? _avatarImage;
+  String? _avatarImagePath;
+  bool _isUploadingAvatar = false;
+  String? _originalAvatarUrl;
 
   bool _isLoading = false;
   bool _hasChanges = false;
@@ -64,6 +69,10 @@ class ProfileFormController extends ChangeNotifier {
   String? get versoImagePath => _versoImagePath;
   bool get isUploadingRecto => _isUploadingRecto;
   bool get isUploadingVerso => _isUploadingVerso;
+  
+  XFile? get avatarImage => _avatarImage;
+  String? get avatarImagePath => _avatarImagePath;
+  bool get isUploadingAvatar => _isUploadingAvatar;
 
   bool get isLoading => _isLoading;
   bool get hasChanges => _hasChanges;
@@ -123,8 +132,9 @@ class ProfileFormController extends ChangeNotifier {
 
     final hasNewRecto = _rectoImage != null;
     final hasNewVerso = _versoImage != null;
+    final hasNewAvatar = _avatarImage != null;
 
-    if (!hasChanged && (hasNewRecto || hasNewVerso)) {
+    if (!hasChanged && (hasNewRecto || hasNewVerso || hasNewAvatar)) {
       hasChanged = true;
     }
 
@@ -185,6 +195,8 @@ class ProfileFormController extends ChangeNotifier {
         'date_naissance': user.birthDate,
         'date_expiration_piece_identite': user.identityExpirationDate,
       };
+      
+      _originalAvatarUrl = user.avatarUrl;
 
       _checkForChanges();
     }
@@ -252,6 +264,83 @@ class ProfileFormController extends ChangeNotifier {
       ErrorHandler.showErrorSnackBar(
         context,
         ErrorHandler.handleUploadError(e),
+      );
+    }
+  }
+
+  Future<void> pickAvatar(BuildContext context, ImageSource source) async {
+    try {
+      final imagePicker = ImagePicker();
+      final image = await imagePicker.pickImage(
+        source: source,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85,
+      );
+
+      if (image != null) {
+        await _fileUploadService.validateXFile(image);
+        
+        _avatarImage = image;
+        _avatarImagePath = image.path;
+        _isUploadingAvatar = true;
+        notifyListeners();
+
+        await _uploadAvatar(context);
+      }
+    } catch (e) {
+      ErrorHandler.showErrorSnackBar(
+        context,
+        ErrorHandler.handleUploadError(e),
+      );
+      _isUploadingAvatar = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> _uploadAvatar(BuildContext context) async {
+    try {
+      if (_avatarImagePath == null) return;
+
+      final imageUrl = await _fileUploadService.uploadAvatar(_avatarImagePath!);
+      
+      final authProvider = context.read<AuthViewModel>();
+      await authProvider.updateUserField('avatarUrl', imageUrl);
+
+      ErrorHandler.showSuccessSnackBar(
+        context,
+        'Photo de profil mise à jour avec succès.',
+      );
+      
+      _checkForChanges();
+    } catch (e) {
+      ErrorHandler.showErrorSnackBar(
+        context,
+        ErrorHandler.handleUploadError(e),
+      );
+    } finally {
+      _isUploadingAvatar = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> deleteAvatar(BuildContext context) async {
+    try {
+      final authProvider = context.read<AuthViewModel>();
+      await authProvider.updateUserField('avatarUrl', null);
+
+      _avatarImage = null;
+      _avatarImagePath = null;
+      _checkForChanges();
+      
+      ErrorHandler.showSuccessSnackBar(
+        context,
+        'Photo de profil supprimée.',
+      );
+    } catch (e) {
+      ErrorHandler.showErrorSnackBar(
+        context,
+        ErrorHandler.handleProfileError(e),
       );
     }
   }

@@ -1,12 +1,14 @@
-import 'package:saarciflex_app/core/constants/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:saarciflex_app/presentation/features/profile/screens/profile_screen.dart';
 import 'package:saarciflex_app/presentation/features/auth/widgets/dashboard_header.dart';
 import 'package:saarciflex_app/presentation/features/products/screens/product_list_screen.dart';
+import 'package:saarciflex_app/presentation/features/products/screens/product_detail_screen.dart';
 import 'package:saarciflex_app/presentation/features/contracts/screens/contracts_screen.dart';
 import 'package:saarciflex_app/presentation/features/auth/viewmodels/auth_viewmodel.dart';
+import 'package:saarciflex_app/presentation/features/products/viewmodels/product_viewmodel.dart';
+import 'package:saarciflex_app/data/models/product_model.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -16,12 +18,16 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
+  // Couleur de fond cyan/bleu très clair
+  static const Color _backgroundColor = Color(0xFFE8F4F8);
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         context.read<AuthViewModel>().ensureUserProfileLoaded();
+        context.read<ProductViewModel>().loadProducts();
       }
     });
   }
@@ -31,18 +37,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Consumer<AuthViewModel>(
       builder: (context, authProvider, child) {
         return Scaffold(
-          body: Container(
-            color: AppColors.primary,
-            child: SafeArea(
+          backgroundColor: _backgroundColor,
+          body: SafeArea(
+            child: SingleChildScrollView(
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Header simplifié
                   DashboardHeader(
                     user: authProvider.currentUser,
                     onProfil: _handleProfil,
                     onNotification: () => _showComingSoon(context),
                     onSettings: () => _showComingSoon(context),
                   ),
-                  _buildContent(context, authProvider),
+                  // Contenu principal
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Carte promotionnelle avec dégradé
+                        _buildPromoCard(),
+                        const SizedBox(height: 24),
+                        // Section Stats
+                        _buildStatsSection(),
+                        const SizedBox(height: 24),
+                        // Section Actions rapides
+                        _buildQuickActionsSection(),
+                        const SizedBox(height: 24),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -52,314 +77,360 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildContent(BuildContext context, AuthViewModel authProvider) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final horizontalPadding = screenWidth < 360
-        ? 16.0
-        : screenWidth < 600
-            ? 24.0
-            : (screenWidth * 0.08).clamp(24.0, 48.0);
-    final verticalPadding = screenWidth < 360 ? 16.0 : 24.0;
-
-    return Expanded(
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.background,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(20),
-            topRight: Radius.circular(20),
-          ),
+  Widget _buildPromoCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.blue[600]!,
+            Colors.indigo[700]!,
+          ],
         ),
-        child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(
-            horizontal: horizontalPadding,
-            vertical: verticalPadding,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.blue[400]!.withOpacity(0.4),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(height: screenWidth < 360 ? 10 : 15),
-              _buildWelcomeSection(authProvider),
-              SizedBox(height: screenWidth < 360 ? 24 : 32),
-              _buildStatsCards(),
-              SizedBox(height: screenWidth < 360 ? 24 : 32),
-              _buildQuickActionsSection(context),
-              const SizedBox(height: 24),
-            ],
+        ],
+      ),
+      child: Row(
+        children: [
+          // Contenu texte
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Découvrez nos offres",
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  "Protégez ce qui compte le plus avec nos solutions d'assurance",
+                  style: GoogleFonts.poppins(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w400,
+                    color: Colors.white.withOpacity(0.9),
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                ElevatedButton(
+                  onPressed: _navigateToProducts,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.blue[700],
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Text(
+                    "Explorer",
+                    style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
+          const SizedBox(width: 12),
+          // Logo à droite
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            padding: const EdgeInsets.all(8),
+            child: Image.asset(
+              'lib/assets/logoSaarCI.png',
+              fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) => Icon(
+                Icons.shield_rounded,
+                color: Colors.white,
+                size: 40,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildWelcomeSection(AuthViewModel authProvider) {
+  Widget _buildStatsSection() {
+    const double cardHeight = 170.0;
+    
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          "Tableau de bord",
-          style: GoogleFonts.poppins(
-            fontSize: 28,
-            fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
+        // Première ligne : Contrats Actifs + Sinistres
+        IntrinsicHeight(
+          child: Row(
+            children: [
+              Expanded(
+                child: _buildUnifiedCard(
+                  title: "Contrats Actifs",
+                  value: "0",
+                  icon: Icons.description_outlined,
+                  gradientColors: [Colors.teal[400]!, Colors.teal[600]!],
+                  height: cardHeight,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildUnifiedCard(
+                  title: "Sinistres",
+                  value: "1",
+                  icon: Icons.warning_amber_rounded,
+                  gradientColors: [Colors.orange[400]!, Colors.deepOrange[500]!],
+                  height: cardHeight,
+                ),
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: 8),
-        Text(
-          authProvider.currentUser != null
-              ? "Bonjour ${authProvider.currentUser!.nom} !"
-              : "Gérez votre assurance en toute simplicité",
-          style: GoogleFonts.poppins(
-            fontSize: 16,
-            fontWeight: FontWeight.w400,
-            color: AppColors.textSecondary,
+        const SizedBox(height: 12),
+        // Deuxième ligne : Offres Assurance + Mes Contrats
+        IntrinsicHeight(
+          child: Row(
+            children: [
+              Expanded(
+                child: _buildUnifiedCard(
+                  title: "Offres Assurance",
+                  icon: Icons.shopping_bag_rounded,
+                  gradientColors: [Colors.red[400]!, Colors.red[600]!],
+                  onTap: _navigateToProducts,
+                  height: cardHeight,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildUnifiedCard(
+                  title: "Mes Contrats",
+                  icon: Icons.folder_rounded,
+                  gradientColors: [Colors.purple[400]!, Colors.purple[600]!],
+                  onTap: _navigateToContracts,
+                  height: cardHeight,
+                ),
+              ),
+            ],
           ),
         ),
       ],
     );
   }
 
-  Widget _buildStatsCards() {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isNarrow = constraints.maxWidth < 360;
-        final spacing = isNarrow ? 12.0 : 16.0;
-
-        if (isNarrow) {
-          return Column(
-            children: [
-              _buildStatCard(
-                "Contrats Actifs",
-                "0",
-                Icons.description_rounded,
-                AppColors.success,
-              ),
-              SizedBox(height: spacing),
-              _buildStatCard(
-                "Sinistres",
-                "1",
-                Icons.report_problem_rounded,
-                AppColors.warning,
-              ),
-            ],
-          );
-        }
-
-        return Row(
-          children: [
-            Expanded(
-              child: _buildStatCard(
-                "Contrats Actifs",
-                "0",
-                Icons.description_rounded,
-                AppColors.success,
-              ),
-            ),
-            SizedBox(width: spacing),
-            Expanded(
-              child: _buildStatCard(
-                "Sinistres",
-                "1",
-                Icons.report_problem_rounded,
-                AppColors.warning,
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildStatCard(
-    String title,
-    String value,
-    IconData icon,
-    Color color,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(20),
+  Widget _buildUnifiedCard({
+    required String title,
+    String? value,
+    required IconData icon,
+    required List<Color> gradientColors,
+    VoidCallback? onTap,
+    required double height,
+  }) {
+    final content = Container(
+      height: height,
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.2), width: 1),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.1),
-            spreadRadius: 0,
-            blurRadius: 10,
-            offset: const Offset(0, 2),
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 15,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
+              gradient: LinearGradient(
+                colors: [
+                  gradientColors[0].withOpacity(0.2),
+                  gradientColors[1].withOpacity(0.1),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(14),
             ),
-            child: Icon(icon, color: color, size: 24),
+            child: Icon(
+              icon,
+              color: gradientColors[0],
+              size: 26,
+            ),
           ),
           const SizedBox(height: 12),
-          Text(
-            value,
-            style: GoogleFonts.poppins(
-              fontSize: 24,
-              fontWeight: FontWeight.w700,
-              color: color,
+          if (value != null) ...[
+            Text(
+              value,
+              style: GoogleFonts.poppins(
+                fontSize: 28,
+                fontWeight: FontWeight.w700,
+                color: gradientColors[0],
+              ),
             ),
-          ),
-          const SizedBox(height: 4),
+            const SizedBox(height: 4),
+          ],
           Text(
             title,
             style: GoogleFonts.poppins(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: AppColors.textSecondary,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey[700],
             ),
             textAlign: TextAlign.center,
           ),
         ],
       ),
     );
+
+    if (onTap != null) {
+      return GestureDetector(onTap: onTap, child: content);
+    }
+    return content;
   }
 
-  Widget _buildQuickActionsSection(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          "Actions rapides",
-          style: GoogleFonts.poppins(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        const SizedBox(height: 16),
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final width = constraints.maxWidth;
-            final crossAxisCount = width >= 900
-                ? 4
-                : width >= 680
-                    ? 3
-                    : 2;
-            final spacing = width < 360 ? 12.0 : 16.0;
-            final itemWidth = (width - (crossAxisCount - 1) * spacing) / crossAxisCount;
-            final childAspectRatio = width < 360 ? 0.95 : (itemWidth / (itemWidth + 20));
-
-            return GridView.count(
-              crossAxisCount: crossAxisCount,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisSpacing: spacing,
-              mainAxisSpacing: spacing,
-              childAspectRatio: childAspectRatio,
+  Widget _buildQuickActionsSection() {
+    return Consumer<ProductViewModel>(
+      builder: (context, productViewModel, child) {
+        final products = productViewModel.allProducts;
+        
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _buildActionCard(
-                  "Offres Assurance",
-                  Icons.shopping_bag_rounded,
-                  AppColors.primary,
-                  () => _navigateToProducts(),
+                Text(
+                  "Nos Produits",
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.grey[900],
+                  ),
                 ),
-                _buildActionCard(
-                  "Mes Contrats",
-                  Icons.description_rounded,
-                  AppColors.accent,
-                  () => _navigateToContracts(),
-                ),
-                _buildActionCard(
-                  "Sinistres",
-                  Icons.report_problem_rounded,
-                  AppColors.warning,
-                  () => _showComingSoon(context),
-                ),
-                _buildActionCard(
-                  "Support",
-                  Icons.support_agent_rounded,
-                  AppColors.success,
-                  () => _showComingSoon(context),
+                TextButton(
+                  onPressed: _navigateToProducts,
+                  child: Text(
+                    "Voir tout",
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.blue[600],
+                    ),
+                  ),
                 ),
               ],
-            );
-          },
-        ),
-      ],
+            ),
+            const SizedBox(height: 12),
+            if (productViewModel.isLoading)
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(20),
+                  child: CircularProgressIndicator(),
+                ),
+              )
+            else if (products.isEmpty)
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Text(
+                    "Aucun produit disponible",
+                    style: GoogleFonts.poppins(
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ),
+              )
+            else
+              SizedBox(
+                height: 115,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: products.length > 6 ? 6 : products.length,
+                  separatorBuilder: (context, index) => const SizedBox(width: 16),
+                  itemBuilder: (context, index) {
+                    final product = products[index];
+                    return _buildProductItem(product);
+                  },
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 
-  Widget _buildActionCard(
-    String title,
-    IconData icon,
-    Color color,
-    VoidCallback onTap,
-  ) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.15),
-            spreadRadius: 0,
-            blurRadius: 15,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Material(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(20),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(20),
-          child: Container(
-            padding: const EdgeInsets.all(0),
+  Widget _buildProductItem(Product product) {
+    final color = product.type.color;
+    final bgColor = color.withOpacity(0.1);
+    
+    return GestureDetector(
+      onTap: () => _navigateToProductDetail(product),
+      child: Column(
+        children: [
+          Container(
+            width: 60,
+            height: 60,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: color.withOpacity(0.2), width: 1),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [color.withOpacity(0.05), color.withOpacity(0.02)],
-              ),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [color.withOpacity(0.2), color.withOpacity(0.1)],
-                    ),
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: color.withOpacity(0.2),
-                        spreadRadius: 0,
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Icon(icon, color: color, size: 32),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  title,
-                  style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
-                  ),
-                  textAlign: TextAlign.center,
+              color: bgColor,
+              borderRadius: BorderRadius.circular(18),
+              boxShadow: [
+                BoxShadow(
+                  color: color.withOpacity(0.2),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
                 ),
               ],
             ),
+            child: Icon(
+              product.type.icon,
+              color: color,
+              size: 28,
+            ),
           ),
-        ),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: 70,
+            child: Text(
+              product.nom,
+              style: GoogleFonts.poppins(
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+                color: Colors.grey[700],
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _navigateToProductDetail(Product product) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ProductDetailScreen(productId: product.id),
       ),
     );
   }
@@ -391,7 +462,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Erreur de navigation: $e'),
-          backgroundColor: AppColors.error,
+          backgroundColor: Colors.red,
         ),
       );
     }
@@ -402,7 +473,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       SnackBar(
         content: Row(
           children: [
-            Icon(Icons.info_outline_rounded, color: Colors.white, size: 20),
+            const Icon(Icons.info_outline_rounded, color: Colors.white, size: 20),
             const SizedBox(width: 12),
             Text(
               "Fonctionnalité à venir !",
@@ -413,7 +484,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ],
         ),
-        backgroundColor: AppColors.info,
+        backgroundColor: Colors.blue[600],
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         duration: const Duration(seconds: 2),

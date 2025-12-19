@@ -106,7 +106,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         final appBarFontSize = (20.0 / textScaleFactor).clamp(18.0, 22.0);
 
         return Scaffold(
-          backgroundColor: AppColors.background,
+          backgroundColor: const Color(0xFFE8F4F8),
           appBar: AppBar(
             backgroundColor: Colors.transparent,
             elevation: 0,
@@ -119,7 +119,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               onPressed: () => Navigator.pop(context),
             ),
             title: Text(
-              "Mon Profil",
+              "Profile",
               style: GoogleFonts.poppins(
                 fontSize: appBarFontSize,
                 fontWeight: FontWeight.w600,
@@ -135,9 +135,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             child: Column(
               children: [
+                const SizedBox(height: 16),
                 ProfileHeader(user: user, screenWidth: screenWidth, textScaleFactor: textScaleFactor),
                 SizedBox(height: headerSpacing),
-                _buildEditButton(screenWidth, textScaleFactor),
+                _buildEditButton(screenWidth, screenHeight, textScaleFactor),
                 SizedBox(height: buttonSpacing),
                 _buildPersonalInfoSection(user, screenWidth, textScaleFactor),
                 SizedBox(height: sectionSpacing),
@@ -211,16 +212,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildEditButton(double screenWidth, double textScaleFactor) {
-    return ProfileActionButton(
-      text: "Modifier mon profil",
-      icon: Icons.edit_rounded,
-      onPressed: _navigateToEditProfile,
-      backgroundColor: AppColors.primary,
-      foregroundColor: AppColors.white,
-      borderColor: AppColors.primary,
-      screenWidth: screenWidth,
-      textScaleFactor: textScaleFactor,
+  Widget _buildEditButton(double screenWidth, double screenHeight, double textScaleFactor) {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: _navigateToEditProfile,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          padding: EdgeInsets.symmetric(
+            vertical: screenHeight < 600 ? 14 : 16,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+        child: Text(
+          "Modifier le profil",
+          style: GoogleFonts.poppins(
+            fontSize: (16.0 / textScaleFactor).clamp(14.0, 18.0),
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
     );
   }
 

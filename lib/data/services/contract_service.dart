@@ -1,5 +1,8 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
 import 'package:saarciflex_app/data/models/saved_quote_model.dart';
 import 'package:saarciflex_app/data/models/contract_model.dart';
 import 'package:saarciflex_app/core/constants/api_constants.dart';
@@ -54,7 +57,43 @@ class ContractService {
 
   Future<List<Contract>> getContracts({int page = 1, int limit = 20}) async {
     try {
-      return [];
+      final response = await http.get(
+        Uri.parse('$baseUrl${ApiConstants.contrats}?page=$page&limit=$limit'),
+        headers: await _authHeaders,
+      );
+
+      if (response.statusCode == 200) {
+        final decodedData = json.decode(response.body);
+
+        // Handle different response structures
+        List<dynamic> contractsJson;
+        if (decodedData is List) {
+          // Response is directly a list
+          contractsJson = decodedData;
+        } else if (decodedData is Map) {
+          // Response is an object with data/contrats key
+          final dataValue = decodedData['data'] ?? decodedData['contrats'];
+          if (dataValue is List) {
+            contractsJson = dataValue;
+          } else {
+            contractsJson = [];
+          }
+        } else {
+          contractsJson = [];
+        }
+
+        final contracts = contractsJson
+            .map((json) => Contract.fromJson(json as Map<String, dynamic>))
+            .toList();
+
+        return contracts;
+      } else {
+        final errorData = json.decode(response.body);
+        throw Exception(
+          errorData['message'] ??
+              'Erreur lors du chargement des contrats',
+        );
+      }
     } catch (e) {
       throw Exception('Erreur de connexion: ${e.toString()}');
     }
@@ -135,6 +174,102 @@ class ContractService {
       }
     } catch (e) {
       throw Exception('Erreur lors du chargement: ${e.toString()}');
+    }
+  }
+
+  /// Get the Downloads directory on the phone (accessible externally)
+  Future<Directory> _getDownloadsDirectory() async {
+    if (Platform.isAndroid) {
+      // For Android, use external storage Downloads directory
+      final externalDir = await getExternalStorageDirectory();
+      if (externalDir != null) {
+        // Navigate to Downloads folder
+        final downloadsPath = path.join(
+          externalDir.path.split('Android')[0],
+          'Download',
+        );
+        final directory = Directory(downloadsPath);
+        if (!await directory.exists()) {
+          await directory.create(recursive: true);
+        }
+        return directory;
+      } else {
+        // Fallback to external storage root
+        return await getExternalStorageDirectory() ?? 
+               await getApplicationDocumentsDirectory();
+      }
+    } else if (Platform.isIOS) {
+      // For iOS, use Documents directory (accessible via Files app)
+      return await getApplicationDocumentsDirectory();
+    } else {
+      // Fallback for other platforms
+      return await getApplicationDocumentsDirectory();
+    }
+  }
+
+  /// Download a file and save it to the phone's Downloads directory
+  Future<File> _downloadAndSaveFile({
+    required String url,
+    required String fileName,
+    Map<String, String>? headers,
+  }) async {
+    final response = await http.get(
+      Uri.parse(url),
+      headers: headers ?? {},
+    );
+
+    if (response.statusCode == 200) {
+      final directory = await _getDownloadsDirectory();
+      final filePath = path.join(directory.path, fileName);
+      final file = File(filePath);
+      await file.writeAsBytes(response.bodyBytes);
+      return file;
+    } else {
+      final errorData = json.decode(response.body);
+      throw Exception(
+        errorData['message'] ?? 'Erreur lors du téléchargement',
+      );
+    }
+  }
+
+  Future<File> downloadContractDocument(String contractId, String numeroContrat) async {
+    try {
+      final token = await StorageHelper.getToken();
+      final headers = {
+        'Accept': 'application/pdf, application/octet-stream, */*',
+        if (token != null) 'Authorization': 'Bearer $token',
+      };
+
+      final fileName = 'contrat_${numeroContrat.replaceAll(RegExp(r'[^\w\s-]'), '_')}.pdf';
+      
+      return await _downloadAndSaveFile(
+        url: '$baseUrl${ApiConstants.contratDocument(contractId)}',
+        fileName: fileName,
+        headers: headers,
+      );
+    } catch (e) {
+      throw Exception('Erreur lors du téléchargement du contrat: ${e.toString()}');
+    }
+  }
+
+  Future<File> downloadAttestationSouscription(String contractId, String numeroContrat) async {
+    try {
+      final token = await StorageHelper.getToken();
+      final headers = {
+        'Accept': 'application/pdf, application/octet-stream, */*',
+        if (token != null) 'Authorization': 'Bearer $token',
+      };
+
+      final fileName = 'attestation_souscription_${numeroContrat.replaceAll(RegExp(r'[^\w\s-]'), '_')}.pdf';
+      
+      // TODO: Remplacer par le bon endpoint quand vous l'aurez
+      return await _downloadAndSaveFile(
+        url: '$baseUrl${ApiConstants.contratAttestation(contractId)}',
+        fileName: fileName,
+        headers: headers,
+      );
+    } catch (e) {
+      throw Exception('Erreur lors du téléchargement de l\'attestation: ${e.toString()}');
     }
   }
 }
