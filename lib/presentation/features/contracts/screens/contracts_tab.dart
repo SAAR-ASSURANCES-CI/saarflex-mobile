@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 import 'package:saarciflex_app/presentation/features/contracts/viewmodels/contract_viewmodel.dart';
 import 'package:saarciflex_app/core/utils/format_helper.dart';
 import 'package:saarciflex_app/presentation/shared/empty_state_widget.dart';
+import 'package:saarciflex_app/data/services/contract_service.dart';
+import 'package:open_file/open_file.dart';
 
 class ContractsTab extends StatefulWidget {
   final TabController? tabController;
@@ -343,7 +345,7 @@ class _ContractsTabState extends State<ContractsTab> {
               SizedBox(width: buttonSpacing),
               Expanded(
                 child: ElevatedButton.icon(
-                  onPressed: () => _downloadContract(contract),
+                  onPressed: () => _downloadClientContract(contract),
                   icon: Icon(Icons.download, size: buttonIconSize),
                   label: Text(
                     'Télécharger',
@@ -443,7 +445,6 @@ class _ContractsTabState extends State<ContractsTab> {
     final subtitleFontSize = (16.0 / widget.textScaleFactor).clamp(14.0, 18.0);
     final buttonFontSize = (16.0 / widget.textScaleFactor).clamp(14.0, 18.0);
     final buttonIconSize = widget.screenWidth < 360 ? 18.0 : 20.0;
-    final buttonSpacing = widget.screenWidth < 360 ? 12.0 : 16.0;
     final buttonPadding = widget.screenWidth < 360 ? 16.0 : 24.0;
     
     return Container(
@@ -526,61 +527,39 @@ class _ContractsTabState extends State<ContractsTab> {
               ),
             ),
           ),
-          Container(
+          Padding(
             padding: EdgeInsets.all(buttonPadding),
-            decoration: BoxDecoration(
-              color: AppColors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  spreadRadius: 0,
-                  blurRadius: 10,
-                  offset: const Offset(0, -2),
-                ),
-              ],
-            ),
-            child: Row(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      _downloadContract(contract);
-                    },
-                    icon: Icon(Icons.download, size: buttonIconSize),
-                    label: Text(
-                      'Télécharger',
-                      style: GoogleFonts.poppins(fontSize: buttonFontSize),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    _downloadContract(contract);
+                  },
+                  icon: Icon(Icons.download, size: buttonIconSize),
+                  label: Text(
+                    'Télécharger',
+                    style: GoogleFonts.poppins(fontSize: buttonFontSize),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: AppColors.white,
+                    padding: EdgeInsets.symmetric(
+                      vertical: widget.screenWidth < 360 ? 12.0 : 14.0,
                     ),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.primary,
-                      side: const BorderSide(color: AppColors.primary),
-                      padding: EdgeInsets.symmetric(
-                        vertical: widget.screenWidth < 360 ? 12.0 : 14.0,
-                      ),
-                    ),
+                    minimumSize: const Size(double.infinity, 0),
                   ),
                 ),
-                SizedBox(width: buttonSpacing),
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      _manageContract(contract);
-                    },
-                    icon: Icon(Icons.settings, size: buttonIconSize),
-                    label: Text(
-                      'Gérer',
-                      style: GoogleFonts.poppins(fontSize: buttonFontSize),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: AppColors.white,
-                      padding: EdgeInsets.symmetric(
-                        vertical: widget.screenWidth < 360 ? 12.0 : 14.0,
-                      ),
-                    ),
+                SizedBox(height: widget.screenWidth < 360 ? 6.0 : 8.0),
+                Text(
+                  'Attestation de souscription',
+                  style: GoogleFonts.poppins(
+                    fontSize: (12.0 / widget.textScaleFactor).clamp(11.0, 13.0),
+                    color: AppColors.textSecondary,
+                    fontStyle: FontStyle.italic,
                   ),
+                  textAlign: TextAlign.center,
                 ),
               ],
             ),
@@ -630,23 +609,71 @@ class _ContractsTabState extends State<ContractsTab> {
     );
   }
 
-  void _downloadContract(contract) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Téléchargement du contrat ${contract.numeroContrat}...'),
-        backgroundColor: AppColors.primary,
-      ),
-    );
+  Future<void> _downloadContract(contract) async {
+    try {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Téléchargement de l\'attestation de souscription ${contract.numeroContrat}...'),
+          backgroundColor: AppColors.primary,
+        ),
+      );
 
+      final contractService = ContractService();
+      final file = await contractService.downloadAttestationSouscription(
+        contract.id,
+        contract.numeroContrat,
+      );
+
+      // Open the downloaded file
+      await OpenFile.open(file.path);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Attestation téléchargée avec succès'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erreur: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
-  void _manageContract(contract) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Gestion du contrat ${contract.numeroContrat}...'),
-        backgroundColor: AppColors.primary,
-      ),
-    );
+  Future<void> _downloadClientContract(contract) async {
+    try {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Téléchargement du contrat ${contract.numeroContrat}...'),
+          backgroundColor: AppColors.primary,
+        ),
+      );
 
+      final contractService = ContractService();
+      final file = await contractService.downloadContractDocument(
+        contract.id,
+        contract.numeroContrat,
+      );
+
+      // Open the downloaded file
+      await OpenFile.open(file.path);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Contrat téléchargé avec succès'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erreur: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 }

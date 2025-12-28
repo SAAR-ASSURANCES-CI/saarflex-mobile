@@ -37,7 +37,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
         _updateCache(productProvider);
 
         return Scaffold(
-          backgroundColor: Colors.white,
+          backgroundColor: const Color(0xFFE8F4F8),
           appBar: const ProductListAppBar(),
           body: _buildBody(productProvider),
         );

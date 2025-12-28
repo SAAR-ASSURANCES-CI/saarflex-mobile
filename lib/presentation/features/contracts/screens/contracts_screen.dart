@@ -45,7 +45,7 @@ class _ContractsScreenState extends State<ContractsScreen>
     final textScaleFactor = MediaQuery.of(context).textScaleFactor;
     
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: const Color(0xFFE8F4F8),
       appBar: _buildAppBar(screenWidth, textScaleFactor),
       body: TabBarView(
         controller: _tabController,
@@ -62,27 +62,43 @@ class _ContractsScreenState extends State<ContractsScreen>
   }
 
   PreferredSizeWidget _buildAppBar(double screenWidth, double textScaleFactor) {
-    final titleFontSize = (20.0 / textScaleFactor).clamp(18.0, 22.0);
+    final titleFontSize = (22.0 / textScaleFactor).clamp(20.0, 26.0);
     final tabFontSize = (16.0 / textScaleFactor).clamp(14.0, 18.0);
-    final iconSize = screenWidth < 360 ? 20 : 24;
+    final iconSize = screenWidth < 360 ? 22 : 26;
     
     return AppBar(
-      backgroundColor: AppColors.primary,
+      backgroundColor: Colors.transparent,
       foregroundColor: AppColors.white,
       elevation: 0,
-      leading: IconButton(
-        icon: Icon(
-          Icons.arrow_back_ios,
-          color: AppColors.white,
-          size: iconSize.toDouble(),
+      toolbarHeight: 80,
+      flexibleSpace: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Colors.blue[600]!,
+              Colors.indigo[700]!,
+            ],
+          ),
         ),
-        onPressed: () => Navigator.pop(context),
+      ),
+      leading: Padding(
+        padding: const EdgeInsets.only(left: 8),
+        child: IconButton(
+          icon: Icon(
+            Icons.arrow_back_ios,
+            color: AppColors.white,
+            size: iconSize.toDouble(),
+          ),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       title: Text(
         'Mes Contrats',
         style: GoogleFonts.poppins(
           fontSize: titleFontSize,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w700,
           color: AppColors.white,
         ),
       ),
@@ -119,14 +135,14 @@ class _ContractsScreenState extends State<ContractsScreen>
         ],
       ),
       actions: [
-        IconButton(
-          icon: Icon(
-            Icons.refresh,
-            size: iconSize.toDouble(),
+        Padding(
+          padding: const EdgeInsets.only(right: 16),
+          child: Image.asset(
+            'lib/assets/logoSaarCI.png',
+            width: 50,
+            height: 50,
+            errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
           ),
-          onPressed: () {
-            Provider.of<ContractViewModel>(context, listen: false).refresh();
-          },
         ),
       ],
     );

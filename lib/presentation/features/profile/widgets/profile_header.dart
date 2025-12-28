@@ -17,76 +17,86 @@ class ProfileHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final avatarSpacing = screenWidth < 360 ? 12.0 : 16.0;
-    final nameSpacing = screenWidth < 360 ? 6.0 : 8.0;
-    
-    return Column(
+    return Row(
       children: [
         _buildAvatar(),
-        SizedBox(height: avatarSpacing),
-        _buildUserName(),
-        SizedBox(height: nameSpacing),
-        _buildUserEmail(),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildUserName(),
+              const SizedBox(height: 4),
+              _buildUserEmail(),
+            ],
+          ),
+        ),
       ],
     );
   }
 
   Widget _buildAvatar() {
-    final avatarSize = screenWidth < 360 ? 80.0 : 100.0;
-    final iconSize = screenWidth < 360 ? 40.0 : 50.0;
-    
+    final avatarSize = screenWidth < 360 ? 70.0 : 80.0;
+    final iconSize = screenWidth < 360 ? 35.0 : 40.0;
+    final hasAvatar = (user?.avatarUrl ?? '').isNotEmpty;
+
     return Container(
       width: avatarSize,
       height: avatarSize,
       decoration: BoxDecoration(
-        color: AppColors.primary,
+        color: Colors.grey[300],
         shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withOpacity(0.2),
-            spreadRadius: 0,
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ],
       ),
-      child: Icon(
-        Icons.person_rounded, 
-        color: AppColors.white, 
-        size: iconSize,
+      child: ClipOval(
+        child: hasAvatar
+            ? Image.network(
+                user!.avatarUrl!,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Icon(
+                    Icons.person_rounded,
+                    color: Colors.grey[600],
+                    size: iconSize,
+                  );
+                },
+              )
+            : Icon(
+                Icons.person_rounded,
+                color: Colors.grey[600],
+                size: iconSize,
+              ),
       ),
     );
   }
 
   Widget _buildUserName() {
-    final fontSize = (24.0 / textScaleFactor).clamp(20.0, 28.0);
+    final fontSize = (20.0 / textScaleFactor).clamp(18.0, 24.0);
     
     return Text(
       user?.nom ?? "Utilisateur",
       style: GoogleFonts.poppins(
         fontSize: fontSize,
-        fontWeight: FontWeight.w700,
+        fontWeight: FontWeight.w600,
         color: AppColors.textPrimary,
       ),
-      textAlign: TextAlign.center,
-      maxLines: 2,
+      maxLines: 1,
       overflow: TextOverflow.ellipsis,
     );
   }
 
   Widget _buildUserEmail() {
-    final fontSize = (16.0 / textScaleFactor).clamp(14.0, 18.0);
+    final fontSize = (14.0 / textScaleFactor).clamp(12.0, 16.0);
     
     return Text(
       user?.email ?? "Email non renseigné",
       style: GoogleFonts.poppins(
         fontSize: fontSize,
         fontWeight: FontWeight.w400,
-        color: AppColors.textSecondary,
+        color: Colors.grey[600],
       ),
-      textAlign: TextAlign.center,
-      maxLines: 2,
+      maxLines: 1,
       overflow: TextOverflow.ellipsis,
     );
   }
+
 }

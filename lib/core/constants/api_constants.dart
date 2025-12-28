@@ -22,6 +22,9 @@ class ApiConstants {
   static const String uploadBasePath = '/upload';
 
   static const String savedQuotes = '/devis-sauvegardes';
+  static const String contrats = '/contrats';
+  static String contratDocument(String contractId) => '/contrats/$contractId/document';
+  static String contratAttestation(String contractId) => '/contrats/$contractId/attestation';
   static const String grillesTarifaires = '/grilles-tarifaires';
   static const String productCriteres = '/criteres';
   static const String uploadAssureImages = '/profiles/devis';

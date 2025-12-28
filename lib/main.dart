@@ -127,7 +127,7 @@ class AuthenticationWrapper extends StatefulWidget {
 class _AuthenticationWrapperState extends State<AuthenticationWrapper> {
   bool _initialized = false;
 
-  @override
+  @override 
   void initState() {
     super.initState();  
     WidgetsBinding.instance.addPostFrameCallback((_) {

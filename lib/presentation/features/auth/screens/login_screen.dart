@@ -208,11 +208,10 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Widget _buildHeader(double screenWidth, double screenHeight, double textScaleFactor) {
-    final iconSize = screenWidth < 360 ? 50.0 : 60.0;
-    final iconInnerSize = screenWidth < 360 ? 24.0 : 28.0;
+    final logoSize = screenWidth < 360 ? 70.0 : 80.0;
     final titleFontSize = (28.0 / textScaleFactor).clamp(24.0, 32.0);
     final subtitleFontSize = (16.0 / textScaleFactor).clamp(14.0, 18.0);
-    final iconSpacing = screenHeight < 600 ? 16.0 : 24.0;
+    final logoSpacing = screenHeight < 600 ? 16.0 : 24.0;
     final titleSpacing = screenHeight < 600 ? 6.0 : 8.0;
     
     return Column(
@@ -220,20 +219,32 @@ class _LoginScreenState extends State<LoginScreen> {
       children: [
         Center(
           child: Container(
-            width: iconSize,
-            height: iconSize,
+            width: logoSize,
+            height: logoSize,
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.primary,
-              borderRadius: BorderRadius.circular(16),
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.blue.withOpacity(0.15),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                ),
+              ],
             ),
-            child: Icon(
-              Icons.login, 
-              color: AppColors.white, 
-              size: iconInnerSize,
+            child: Image.asset(
+              'lib/assets/logoSaarCI.png',
+              fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) => Icon(
+                Icons.shield_rounded,
+                color: AppColors.primary,
+                size: logoSize * 0.5,
+              ),
             ),
           ),
         ),
-        SizedBox(height: iconSpacing),
+        SizedBox(height: logoSpacing),
         Text(
           "Bon retour !",
           style: GoogleFonts.poppins(

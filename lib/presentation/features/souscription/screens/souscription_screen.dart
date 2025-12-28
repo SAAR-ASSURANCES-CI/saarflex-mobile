@@ -150,22 +150,38 @@ class _souscriptionScreenState extends State<souscriptionScreen> {
     final iconSize = screenWidth < 360 ? 20 : 24;
     
     return AppBar(
-      backgroundColor: AppColors.white,
+      backgroundColor: Colors.transparent,
       elevation: 0,
-      leading: IconButton(
-        icon: Icon(
-          Icons.arrow_back_ios,
-          color: AppColors.primary,
-          size: iconSize.toDouble(),
+      toolbarHeight: 80,
+      flexibleSpace: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Colors.blue[600]!,
+              Colors.indigo[700]!,
+            ],
+          ),
         ),
-        onPressed: () => Navigator.pop(context),
+      ),
+      leading: Padding(
+        padding: const EdgeInsets.only(left: 8),
+        child: IconButton(
+          icon: Icon(
+            Icons.arrow_back_ios,
+            color: Colors.white,
+            size: iconSize.toDouble(),
+          ),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       title: Text(
         'Souscription',
         style: GoogleFonts.poppins(
-          fontSize: titleFontSize,
-          fontWeight: FontWeight.w600,
-          color: AppColors.textPrimary,
+          fontSize: (22.0 / textScaleFactor).clamp(20.0, 26.0),
+          fontWeight: FontWeight.w700,
+          color: Colors.white,
         ),
       ),
       centerTitle: true,
