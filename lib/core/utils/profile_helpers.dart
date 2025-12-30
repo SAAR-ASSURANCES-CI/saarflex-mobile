@@ -51,7 +51,22 @@ class ProfileHelpers {
   }
 
   static String buildImageUrl(String imageUrl, String baseUrl) {
-    return imageUrl.startsWith('http') ? imageUrl : '$baseUrl/$imageUrl';
+    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+      if (imageUrl.contains('localhost') || imageUrl.contains('127.0.0.1')) {
+        try {
+          final uri = Uri.parse(imageUrl);
+          final path = uri.path;
+          final normalizedPath = path.startsWith('/') ? path.substring(1) : path;
+          return '$baseUrl/$normalizedPath';
+        } catch (e) {
+          return imageUrl;
+        }
+      }
+      return imageUrl;
+    }
+    
+    final normalizedPath = imageUrl.startsWith('/') ? imageUrl.substring(1) : imageUrl;
+    return '$baseUrl/$normalizedPath';
   }
 
   static bool isValidImage(String? imageUrl) {

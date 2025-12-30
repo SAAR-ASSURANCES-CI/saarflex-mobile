@@ -36,7 +36,6 @@ class ProfileFormController extends ChangeNotifier {
   XFile? _avatarImage;
   String? _avatarImagePath;
   bool _isUploadingAvatar = false;
-  String? _originalAvatarUrl;
 
   bool _isLoading = false;
   bool _hasChanges = false;
@@ -195,8 +194,6 @@ class ProfileFormController extends ChangeNotifier {
         'date_naissance': user.birthDate,
         'date_expiration_piece_identite': user.identityExpirationDate,
       };
-      
-      _originalAvatarUrl = user.avatarUrl;
 
       _checkForChanges();
     }
@@ -261,10 +258,12 @@ class ProfileFormController extends ChangeNotifier {
         await _uploadImage(image.path, isRecto, context);
       }
     } catch (e) {
-      ErrorHandler.showErrorSnackBar(
-        context,
-        ErrorHandler.handleUploadError(e),
-      );
+      if (context.mounted) {
+        ErrorHandler.showErrorSnackBar(
+          context,
+          ErrorHandler.handleUploadError(e),
+        );
+      }
     }
   }
 
@@ -273,9 +272,9 @@ class ProfileFormController extends ChangeNotifier {
       final imagePicker = ImagePicker();
       final image = await imagePicker.pickImage(
         source: source,
-        maxWidth: 1024,
-        maxHeight: 1024,
-        imageQuality: 85,
+        maxWidth: 2048,
+        maxHeight: 2048,
+        imageQuality: 95,
       );
 
       if (image != null) {
@@ -302,22 +301,28 @@ class ProfileFormController extends ChangeNotifier {
     try {
       if (_avatarImagePath == null) return;
 
-      final imageUrl = await _fileUploadService.uploadAvatar(_avatarImagePath!);
-      
+      final avatarPath = await _fileUploadService.uploadAvatar(_avatarImagePath!);
       final authProvider = context.read<AuthViewModel>();
-      await authProvider.updateUserField('avatarUrl', imageUrl);
+      await authProvider.updateUserField('avatar_path', avatarPath);
+      notifyListeners();
 
-      ErrorHandler.showSuccessSnackBar(
-        context,
-        'Photo de profil mise à jour avec succès.',
-      );
+      // Vérifier que le contexte est toujours valide avant d'afficher le snackbar
+      if (context.mounted) {
+        ErrorHandler.showSuccessSnackBar(
+          context,
+          'Photo de profil mise à jour avec succès.',
+        );
+      }
       
       _checkForChanges();
     } catch (e) {
-      ErrorHandler.showErrorSnackBar(
-        context,
-        ErrorHandler.handleUploadError(e),
-      );
+      // Vérifier que le contexte est toujours valide avant d'afficher le snackbar
+      if (context.mounted) {
+        ErrorHandler.showErrorSnackBar(
+          context,
+          ErrorHandler.handleUploadError(e),
+        );
+      }
     } finally {
       _isUploadingAvatar = false;
       notifyListeners();
@@ -327,21 +332,27 @@ class ProfileFormController extends ChangeNotifier {
   Future<void> deleteAvatar(BuildContext context) async {
     try {
       final authProvider = context.read<AuthViewModel>();
-      await authProvider.updateUserField('avatarUrl', null);
+      // Le backend gère la suppression de l'avatar via un endpoint dédié
+      // Pour l'instant, on recharge simplement le profil
+      await authProvider.loadUserProfile();
 
       _avatarImage = null;
       _avatarImagePath = null;
       _checkForChanges();
       
-      ErrorHandler.showSuccessSnackBar(
-        context,
-        'Photo de profil supprimée.',
-      );
+      if (context.mounted) {
+        ErrorHandler.showSuccessSnackBar(
+          context,
+          'Photo de profil supprimée.',
+        );
+      }
     } catch (e) {
-      ErrorHandler.showErrorSnackBar(
-        context,
-        ErrorHandler.handleProfileError(e),
-      );
+      if (context.mounted) {
+        ErrorHandler.showErrorSnackBar(
+          context,
+          ErrorHandler.handleProfileError(e),
+        );
+      }
     }
   }
 
@@ -356,10 +367,12 @@ class ProfileFormController extends ChangeNotifier {
         await _uploadBothImages(context);
       } else {
 
-        final message = isRecto
-            ? 'Veuillez maintenant sélectionner l\'image verso'
-            : 'Veuillez maintenant sélectionner l\'image recto';
-        ErrorHandler.showSuccessSnackBar(context, message);
+        if (context.mounted) {
+          final message = isRecto
+              ? 'Veuillez maintenant sélectionner l\'image verso'
+              : 'Veuillez maintenant sélectionner l\'image recto';
+          ErrorHandler.showSuccessSnackBar(context, message);
+        }
       }
       _checkForChanges();
     } catch (e) {
@@ -401,16 +414,20 @@ class ProfileFormController extends ChangeNotifier {
       authProvider.updateUserField('frontDocumentPath', result['recto_path']);
       authProvider.updateUserField('backDocumentPath', result['verso_path']);
 
-      ErrorHandler.showSuccessSnackBar(
-        context,
-        'Images uploadées avec succès !',
-      );
+      if (context.mounted) {
+        ErrorHandler.showSuccessSnackBar(
+          context,
+          'Images uploadées avec succès !',
+        );
+      }
       _checkForChanges();
     } catch (e) {
-      ErrorHandler.showErrorSnackBar(
-        context,
-        ErrorHandler.handleUploadError(e),
-      );
+      if (context.mounted) {
+        ErrorHandler.showErrorSnackBar(
+          context,
+          ErrorHandler.handleUploadError(e),
+        );
+      }
     } finally {
       _isUploadingRecto = false;
       _isUploadingVerso = false;
@@ -443,10 +460,12 @@ class ProfileFormController extends ChangeNotifier {
         _fieldErrors = errors;
         _isLoading = false;
         notifyListeners();
-        ErrorHandler.showErrorSnackBar(
-          context,
-          'Veuillez corriger les erreurs ci-dessus',
-        );
+        if (context.mounted) {
+          ErrorHandler.showErrorSnackBar(
+            context,
+            'Veuillez corriger les erreurs ci-dessus',
+          );
+        }
         return;
       }
 
@@ -539,19 +558,31 @@ class ProfileFormController extends ChangeNotifier {
         }
       }
 
+      final hasUploadedImages = _rectoImage != null || _versoImage != null || _avatarImage != null;
+      
       if (profileData.isNotEmpty) {
         final success = await authProvider.updateProfile(profileData);
         if (!success) {
           throw Exception('Échec de la mise à jour du profil');
         }
+      } else if (hasUploadedImages) {
+        // Images déjà sauvegardées, on recharge juste les données
+      } else {
+        _hasChanges = false;
+        _isLoading = false;
+        notifyListeners();
+        return;
       }
 
-      loadUserData(context);
-
-      ErrorHandler.showSuccessSnackBar(
-        context,
-        'Profil mis à jour avec succès !',
-      );
+      await authProvider.loadUserProfile();
+      
+      if (context.mounted) {
+        loadUserData(context);
+        ErrorHandler.showSuccessSnackBar(
+          context,
+          'Profil mis à jour avec succès !',
+        );
+      }
 
       _hasChanges = false;
       _rectoImage = null;
@@ -559,10 +590,12 @@ class ProfileFormController extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     } catch (e) {
-      ErrorHandler.showErrorSnackBar(
-        context,
-        'Erreur lors de la sauvegarde: ${e.toString()}',
-      );
+      if (context.mounted) {
+        ErrorHandler.showErrorSnackBar(
+          context,
+          'Erreur lors de la sauvegarde: ${e.toString()}',
+        );
+      }
       _isLoading = false;
       notifyListeners();
     }

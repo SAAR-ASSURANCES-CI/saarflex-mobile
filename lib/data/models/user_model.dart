@@ -104,12 +104,14 @@ class User {
   }
 
   factory User.fromJson(Map<String, dynamic> json) {
+    final avatarUrl = json['avatar_path'] ?? json['avatarUrl'] ?? json['avatar_url'];
+    
     return User(
       id: json['id'],
       nom: json['nom'],
       email: json['email'],
       telephone: json['telephone'],
-      avatarUrl: json['avatarUrl'],
+      avatarUrl: avatarUrl,
       typeUtilisateur: TypeUtilisateur.values.firstWhere(
         (e) => e.toString().split('.').last == json['type_utilisateur'],
         orElse: () => TypeUtilisateur.client,
@@ -137,10 +139,9 @@ class User {
         json['date_expiration_piece_identite'],
         'date_expiration_piece_identite',
       ),
-      frontDocumentPath:
-          json['front_document_path'] ?? json['chemin_recto_piece'],
-      backDocumentPath:
-          json['back_document_path'] ?? json['chemin_verso_piece'],
+      // URLs complètes du backend
+      frontDocumentPath: json['frontDocumentUrl'] ?? json['front_document_url'],
+      backDocumentPath: json['backDocumentUrl'] ?? json['back_document_url'],
     );
   }
 

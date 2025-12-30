@@ -79,7 +79,7 @@ class Product {
       type: _parseProductType(json['type']),
       description: json['description'],
       conditionsPdf: json['conditions_pdf'],
-      iconPath: json['icon'],
+      iconPath: json['iconUrl'] ?? json['icon_url'] ?? json['icon'],
       statut: json['statut'],
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'])
@@ -158,6 +158,9 @@ class Product {
   Color get displayColor => type.color;
   String get typeLabel => type.label;
   String get typeShortLabel => type.shortLabel;
+  
+  // Getter pour l'URL de l'icône SVG
+  String? get iconUrl => iconPath;
 
   bool get hasConditions => conditionsPdf != null && conditionsPdf!.isNotEmpty;
 

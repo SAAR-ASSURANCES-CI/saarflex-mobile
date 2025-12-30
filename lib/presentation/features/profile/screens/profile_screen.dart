@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:saarciflex_app/presentation/features/profile/screens/edit_profile_screen.dart';
 import 'package:saarciflex_app/presentation/features/auth/viewmodels/auth_viewmodel.dart';
 import 'package:saarciflex_app/presentation/features/auth/screens/otp_verification_screen.dart';
@@ -14,6 +15,8 @@ import 'package:saarciflex_app/presentation/features/profile/widgets/image_displ
 import 'package:saarciflex_app/data/models/user_model.dart';
 import 'package:saarciflex_app/core/constants/colors.dart';
 import 'package:saarciflex_app/core/utils/image_labels.dart';
+import 'package:saarciflex_app/data/services/file_upload_service.dart';
+import 'package:saarciflex_app/core/utils/error_handler.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -23,6 +26,151 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  final FileUploadService _fileUploadService = FileUploadService();
+  bool _isUploadingAvatar = false;
+
+  Future<void> _onAvatarTap() async {
+    final user = context.read<AuthViewModel>().currentUser;
+    final hasAvatar = (user?.avatarUrl ?? '').isNotEmpty;
+
+    await showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (bottomSheetContext) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                margin: const EdgeInsets.only(top: 12, bottom: 8),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              ListTile(
+                leading: const Icon(Icons.camera_alt_rounded),
+                title: const Text('Prendre une photo'),
+                onTap: () {
+                  Navigator.pop(bottomSheetContext);
+                  _pickAvatar(ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library_rounded),
+                title: const Text('Choisir depuis la galerie'),
+                onTap: () {
+                  Navigator.pop(bottomSheetContext);
+                  _pickAvatar(ImageSource.gallery);
+                },
+              ),
+              if (hasAvatar)
+                ListTile(
+                  leading: const Icon(Icons.delete_rounded, color: Colors.red),
+                  title: const Text('Supprimer la photo', style: TextStyle(color: Colors.red)),
+                  onTap: () {
+                    Navigator.pop(bottomSheetContext);
+                    _deleteAvatar();
+                  },
+                ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _pickAvatar(ImageSource source) async {
+    try {
+      final imagePicker = ImagePicker();
+      final image = await imagePicker.pickImage(
+        source: source,
+        maxWidth: 2048,
+        maxHeight: 2048,
+        imageQuality: 95,
+      );
+
+      if (image != null) {
+        await _fileUploadService.validateXFile(image);
+        setState(() {
+          _isUploadingAvatar = true;
+        });
+
+        await _uploadAvatar(image.path);
+      }
+    } catch (e) {
+      if (mounted) {
+        ErrorHandler.showErrorSnackBar(
+          context,
+          ErrorHandler.handleUploadError(e),
+        );
+      }
+      setState(() {
+        _isUploadingAvatar = false;
+      });
+    }
+  }
+
+  Future<void> _uploadAvatar(String imagePath) async {
+    try {
+      final avatarPath = await _fileUploadService.uploadAvatar(imagePath);
+      final authProvider = context.read<AuthViewModel>();
+      
+      // Mettre à jour le champ avatar_path
+      await authProvider.updateUserField('avatar_path', avatarPath);
+      
+      // Recharger le profil pour obtenir les données à jour (notamment updatedAt)
+      await authProvider.loadUserProfile();
+
+      if (mounted) {
+        ErrorHandler.showSuccessSnackBar(
+          context,
+          'Photo de profil mise à jour avec succès.',
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ErrorHandler.showErrorSnackBar(
+          context,
+          ErrorHandler.handleUploadError(e),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isUploadingAvatar = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _deleteAvatar() async {
+    try {
+      final authProvider = context.read<AuthViewModel>();
+      await authProvider.loadUserProfile();
+
+      if (mounted) {
+        ErrorHandler.showSuccessSnackBar(
+          context,
+          'Photo de profil supprimée.',
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ErrorHandler.showErrorSnackBar(
+          context,
+          ErrorHandler.handleProfileError(e),
+        );
+      }
+    }
+  }
+
   Future<void> _changePassword() async {
     final authProvider = context.read<AuthViewModel>();
     final user = authProvider.currentUser;
@@ -136,7 +284,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: Column(
               children: [
                 const SizedBox(height: 16),
-                ProfileHeader(user: user, screenWidth: screenWidth, textScaleFactor: textScaleFactor),
+                ProfileHeader(
+                  user: user,
+                  screenWidth: screenWidth,
+                  textScaleFactor: textScaleFactor,
+                  onAvatarTap: _isUploadingAvatar ? null : _onAvatarTap,
+                ),
+                if (_isUploadingAvatar)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text(
+                      'Upload en cours...',
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ),
                 SizedBox(height: headerSpacing),
                 _buildEditButton(screenWidth, screenHeight, textScaleFactor),
                 SizedBox(height: buttonSpacing),

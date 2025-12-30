@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import 'package:saarciflex_app/core/constants/api_constants.dart';
+import 'package:saarciflex_app/core/utils/profile_helpers.dart';
 import 'package:saarciflex_app/data/models/user_model.dart';
+import 'package:saarciflex_app/presentation/features/auth/viewmodels/auth_viewmodel.dart';
 
 class DashboardHeader extends StatelessWidget {
   final User? user;
@@ -47,44 +51,65 @@ class DashboardHeader extends StatelessWidget {
   }
 
   Widget _buildUserAvatar(BuildContext context) {
-    final hasAvatar = (user?.avatarUrl ?? '').isNotEmpty;
+    return Consumer<AuthViewModel>(
+      builder: (context, authProvider, child) {
+        final currentUser = authProvider.currentUser ?? user;
+        final hasAvatar = ProfileHelpers.isValidImage(currentUser?.avatarUrl);
+        final avatarUrl = currentUser?.avatarUrl != null
+            ? ProfileHelpers.buildImageUrl(currentUser!.avatarUrl!, ApiConstants.baseUrl)
+            : null;
 
-    return Container(
-      width: 56,
-      height: 56,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: Colors.white,
-          width: 3,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+        // Utiliser le timestamp d'avatar s'il existe, sinon utiliser updatedAt ou un timestamp actuel
+        final cacheBuster = authProvider.avatarTimestamp ?? 
+            currentUser?.updatedAt?.millisecondsSinceEpoch ?? 
+            DateTime.now().millisecondsSinceEpoch;
+        
+        final avatarUrlWithCacheBuster = avatarUrl != null 
+            ? '$avatarUrl?t=$cacheBuster&v=${DateTime.now().millisecondsSinceEpoch}'
+            : null;
+
+        return Container(
+          width: 56,
+          height: 56,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: Colors.white,
+              width: 3,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Container(
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: Colors.white,
-        ),
-        child: ClipOval(
-          child: hasAvatar
-              ? Image.network(
-                  user!.avatarUrl!,
-                  width: 56,
-                  height: 56,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return _buildDefaultAvatar();
-                  },
-                )
-              : _buildDefaultAvatar(),
-        ),
-      ),
+          child: Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white,
+            ),
+            child: ClipOval(
+              child: hasAvatar && avatarUrlWithCacheBuster != null
+                  ? Image.network(
+                      avatarUrlWithCacheBuster,
+                      key: ValueKey('dashboard_avatar_${currentUser?.id}_$cacheBuster'), // Key unique pour forcer le rebuild
+                      width: 56,
+                      height: 56,
+                      fit: BoxFit.cover,
+                      // Utiliser 3x pour les écrans haute densité (Retina, etc.)
+                      cacheWidth: 168, // 56 * 3
+                      cacheHeight: 168,
+                      errorBuilder: (context, error, stackTrace) {
+                        return _buildDefaultAvatar();
+                      },
+                    )
+                  : _buildDefaultAvatar(),
+            ),
+          ),
+        );
+      },
     );
   }
 

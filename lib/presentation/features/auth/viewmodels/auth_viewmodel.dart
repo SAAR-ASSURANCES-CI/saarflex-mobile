@@ -22,6 +22,7 @@ class AuthViewModel extends ChangeNotifier {
   bool _isUploadingDocument = false;
   String? _uploadErrorMessage;
   double _uploadProgress = 0.0;
+  int? _avatarTimestamp;
 
   static bool _hasInitialized = false;
   static const String _initTimestampKey = 'auth_init_timestamp';
@@ -34,6 +35,7 @@ class AuthViewModel extends ChangeNotifier {
   bool get isUploadingDocument => _isUploadingDocument;
   String? get uploadErrorMessage => _uploadErrorMessage;
   double get uploadProgress => _uploadProgress;
+  int? get avatarTimestamp => _avatarTimestamp;
 
   String get userName => _currentUser?.displayName ?? 'Utilisateur';
   String get userEmail => _currentUser?.email ?? '';
@@ -453,6 +455,12 @@ class AuthViewModel extends ChangeNotifier {
       final updatedUser =
           await _profileRepository.updateProfileField(fieldName, value);
       _currentUser = updatedUser;
+      
+      // Si c'est l'avatar qui est mis à jour, générer un nouveau timestamp
+      if (fieldName == 'avatar_path' || fieldName == 'avatarUrl') {
+        _avatarTimestamp = DateTime.now().millisecondsSinceEpoch;
+      }
+      
       notifyListeners();
     } catch (e) {
       _setError(ErrorHandler.handleProfileError(e));

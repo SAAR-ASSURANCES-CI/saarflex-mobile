@@ -1,9 +1,9 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:saarciflex_app/core/constants/colors.dart';
+import 'package:saarciflex_app/core/constants/api_constants.dart';
+import 'package:saarciflex_app/core/utils/profile_helpers.dart';
 import 'package:saarciflex_app/data/models/product_model.dart';
 import 'package:saarciflex_app/presentation/features/auth/viewmodels/auth_viewmodel.dart';
 import 'package:saarciflex_app/presentation/features/simulation/screens/simulation_screen.dart';
@@ -218,17 +218,12 @@ class _EditProfileScreenRefactoredState
   }
 
   Widget _buildProfileHeader(ProfileFormController formController, double screenWidth, double textScaleFactor) {
-    final user = context.read<AuthViewModel>().currentUser;
-    final hasAvatar = (user?.avatarUrl ?? '').isNotEmpty || formController.avatarImage != null;
-    final avatarToShow = formController.avatarImage != null 
-        ? formController.avatarImagePath 
-        : user?.avatarUrl;
-    
+    // Utiliser Consumer pour écouter les changements de AuthViewModel
+    return Consumer<AuthViewModel>(
+      builder: (context, authProvider, child) {
     final padding = screenWidth < 360 ? 16.0 : screenWidth < 600 ? 20.0 : 24.0;
     final avatarSize = screenWidth < 360 ? 70.0 : screenWidth < 600 ? 80.0 : 90.0;
     final iconSize = screenWidth < 360 ? 35.0 : screenWidth < 600 ? 40.0 : 45.0;
-    final cameraIconSize = screenWidth < 360 ? 24.0 : 28.0;
-    final cameraIconInnerSize = screenWidth < 360 ? 14.0 : 16.0;
     final titleFontSize = (16.0 / textScaleFactor).clamp(14.0, 18.0);
     final subtitleFontSize = (14.0 / textScaleFactor).clamp(12.0, 16.0);
     final titleSpacing = screenWidth < 360 ? 12.0 : 16.0;
@@ -251,92 +246,63 @@ class _EditProfileScreenRefactoredState
       ),
       child: Column(
         children: [
-          GestureDetector(
-            onTap: () => _onAvatarTap(formController),
-            child: Stack(
-              children: [
-                Container(
-                  width: avatarSize,
-                  height: avatarSize,
-                  decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.primary.withOpacity(0.3),
-                        spreadRadius: 0,
-                        blurRadius: 15,
-                        offset: const Offset(0, 5),
-                      ),
-                    ],
-                  ),
-                  child: formController.isUploadingAvatar
-                      ? Center(
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(AppColors.white),
-                          ),
-                        )
-                      : (formController.avatarImage != null && formController.avatarImagePath != null)
-                          ? ClipRRect(
-                              borderRadius: BorderRadius.circular(avatarSize / 2),
-                              child: Image.file(
-                                File(formController.avatarImagePath!),
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return Icon(
-                                    Icons.person_rounded,
-                                    color: AppColors.white,
-                                    size: iconSize,
-                                  );
-                                },
-                              ),
-                            )
-                          : (user?.avatarUrl != null && formController.avatarImage == null)
-                              ? ClipRRect(
-                                  borderRadius: BorderRadius.circular(avatarSize / 2),
-                                  child: Image.network(
-                                    user!.avatarUrl!,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return Icon(
-                                        Icons.person_rounded,
-                                        color: AppColors.white,
-                                        size: iconSize,
-                                      );
-                                    },
-                                  ),
-                                )
-                              : Icon(
-                                  Icons.person_rounded,
-                                  color: AppColors.white,
-                                  size: iconSize,
-                                ),
-                ),
-                if (!formController.isUploadingAvatar)
-                  Positioned(
-                    bottom: 0,
-                    right: 0,
-                    child: Container(
-                      width: cameraIconSize,
-                      height: cameraIconSize,
-                      decoration: BoxDecoration(
-                        color: AppColors.secondary,
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: AppColors.white, 
-                          width: screenWidth < 360 ? 1.5 : 2,
-                        ),
-                      ),
-                      child: Icon(
-                        Icons.camera_alt_rounded,
-                        color: AppColors.white,
-                        size: cameraIconInnerSize,
-                      ),
+          Consumer<AuthViewModel>(
+            builder: (context, authProvider, child) {
+              final currentUser = authProvider.currentUser;
+              final hasAvatar = ProfileHelpers.isValidImage(currentUser?.avatarUrl);
+              final avatarUrl = currentUser?.avatarUrl != null
+                  ? ProfileHelpers.buildImageUrl(currentUser!.avatarUrl!, ApiConstants.baseUrl)
+                  : null;
+              
+              // Utiliser le timestamp d'avatar s'il existe, sinon utiliser updatedAt ou un timestamp actuel
+              final cacheBuster = authProvider.avatarTimestamp ?? 
+                  currentUser?.updatedAt?.millisecondsSinceEpoch ?? 
+                  DateTime.now().millisecondsSinceEpoch;
+              
+              final avatarUrlWithCacheBuster = avatarUrl != null 
+                  ? '$avatarUrl?t=$cacheBuster&v=${DateTime.now().millisecondsSinceEpoch}'
+                  : null;
+
+              return Container(
+                width: avatarSize,
+                height: avatarSize,
+                decoration: BoxDecoration(
+                  color: AppColors.primary,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withOpacity(0.3),
+                      spreadRadius: 0,
+                      blurRadius: 15,
+                      offset: const Offset(0, 5),
                     ),
-                  ),
-              ],
-            ),
+                  ],
+                ),
+                child: ClipOval(
+                  child: hasAvatar && avatarUrlWithCacheBuster != null
+                      ? Image.network(
+                          avatarUrlWithCacheBuster,
+                          key: ValueKey('edit_avatar_${currentUser?.id}_$cacheBuster'), // Key unique pour forcer le rebuild
+                          fit: BoxFit.cover,
+                          // Utiliser 3x pour les écrans haute densité (Retina, etc.)
+                          cacheWidth: (avatarSize * 3).toInt(),
+                          cacheHeight: (avatarSize * 3).toInt(),
+                          errorBuilder: (context, error, stackTrace) {
+                            return Icon(
+                              Icons.person_rounded,
+                              color: AppColors.white,
+                              size: iconSize,
+                            );
+                          },
+                        )
+                      : Icon(
+                          Icons.person_rounded,
+                          color: AppColors.white,
+                          size: iconSize,
+                        ),
+                ),
+              );
+            },
           ),
           SizedBox(height: titleSpacing),
           Text(
@@ -364,97 +330,11 @@ class _EditProfileScreenRefactoredState
           ),
         ],
       ),
-    );
-  }
-
-  Future<void> _onAvatarTap(ProfileFormController formController) async {
-    final user = context.read<AuthViewModel>().currentUser;
-    final hasAvatar = (user?.avatarUrl ?? '').isNotEmpty;
-
-    await showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (bottomSheetContext) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                ListTile(
-                  leading: Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.blue[50],
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(Icons.camera_alt_rounded, color: Colors.blue[600]),
-                  ),
-                  title: Text(
-                    'Prendre une photo',
-                    style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
-                  ),
-                  onTap: () {
-                    Navigator.pop(bottomSheetContext);
-                    formController.pickAvatar(context, ImageSource.camera);
-                  },
-                ),
-                ListTile(
-                  leading: Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.purple[50],
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(Icons.photo_library_rounded, color: Colors.purple[600]),
-                  ),
-                  title: Text(
-                    'Choisir depuis la galerie',
-                    style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
-                  ),
-                  onTap: () {
-                    Navigator.pop(bottomSheetContext);
-                    formController.pickAvatar(context, ImageSource.gallery);
-                  },
-                ),
-                if (hasAvatar)
-                  ListTile(
-                    leading: Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: Colors.red[50],
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(Icons.delete_outline_rounded, color: Colors.red[600]),
-                    ),
-                    title: Text(
-                      'Supprimer la photo',
-                      style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
-                    ),
-                    onTap: () {
-                      Navigator.pop(bottomSheetContext);
-                      formController.deleteAvatar(context);
-                    },
-                  ),
-              ],
-            ),
-          ),
-        );
+      );
       },
     );
   }
+
 
   Widget _buildSaveButton(
     ProfileFormController formController,
