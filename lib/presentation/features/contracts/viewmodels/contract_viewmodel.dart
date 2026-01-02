@@ -14,6 +14,10 @@ class ContractViewModel extends ChangeNotifier {
   bool _isLoadingContracts = false;
   String? _contractsError;
 
+  int _activeContractsCount = 0;
+  bool _isLoadingActiveCount = false;
+  String? _activeCountError;
+
   bool _isLoading = false;
   String? _error;
 
@@ -24,6 +28,10 @@ class ContractViewModel extends ChangeNotifier {
   List<Contract> get contracts => List.unmodifiable(_contracts);
   bool get isLoadingContracts => _isLoadingContracts;
   String? get contractsError => _contractsError;
+
+  int get activeContractsCount => _activeContractsCount;
+  bool get isLoadingActiveCount => _isLoadingActiveCount;
+  String? get activeCountError => _activeCountError;
 
   bool get isLoading => _isLoading;
   String? get error => _error;
@@ -68,6 +76,26 @@ class ContractViewModel extends ChangeNotifier {
     }
   }
 
+  Future<void> loadActiveContractsCount({bool forceRefresh = false}) async {
+    if (_isLoadingActiveCount && !forceRefresh) return;
+
+    _isLoadingActiveCount = true;
+    _activeCountError = null;
+    notifyListeners();
+
+    try {
+      final count = await _contractRepository.getActiveContractsCount();
+      _activeContractsCount = count;
+      _activeCountError = null;
+    } catch (e) {
+      _activeCountError = e.toString();
+      _activeContractsCount = 0; // Valeur par défaut en cas d'erreur
+    } finally {
+      _isLoadingActiveCount = false;
+      notifyListeners();
+    }
+  }
+
   Future<void> loadAllData({bool forceRefresh = false}) async {
     _isLoading = true;
     _error = null;
@@ -77,6 +105,7 @@ class ContractViewModel extends ChangeNotifier {
       await Future.wait([
         loadSavedQuotes(forceRefresh: forceRefresh),
         loadContracts(forceRefresh: forceRefresh),
+        loadActiveContractsCount(forceRefresh: forceRefresh),
       ]);
     } catch (e) {
       _error = e.toString();
@@ -154,9 +183,12 @@ class ContractViewModel extends ChangeNotifier {
     _savedQuotesError = null;
     _contractsError = null;
     _error = null;
+    _activeContractsCount = 0;
+    _activeCountError = null;
     _isLoading = false;
     _isLoadingSavedQuotes = false;
     _isLoadingContracts = false;
+    _isLoadingActiveCount = false;
     notifyListeners();
   }
 

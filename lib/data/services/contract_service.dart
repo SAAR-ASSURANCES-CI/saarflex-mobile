@@ -8,6 +8,15 @@ import 'package:saarciflex_app/data/models/contract_model.dart';
 import 'package:saarciflex_app/core/constants/api_constants.dart';
 import 'package:saarciflex_app/core/utils/storage_helper.dart';
 
+/// Exception personnalisée pour indiquer qu'un contrat n'est pas encore disponible
+class ContractNotAvailableException implements Exception {
+  final String message;
+  ContractNotAvailableException(this.message);
+  
+  @override
+  String toString() => message;
+}
+
 class ContractService {
   static final ContractService _instance = ContractService._internal();
   factory ContractService() => _instance;
@@ -213,37 +222,145 @@ class ContractService {
     required String fileName,
     Map<String, String>? headers,
   }) async {
-    final response = await http.get(
-      Uri.parse(url),
-      headers: headers ?? {},
-    );
-
-    if (response.statusCode == 200) {
-      final directory = await _getDownloadsDirectory();
-      final filePath = path.join(directory.path, fileName);
-      final file = File(filePath);
-      await file.writeAsBytes(response.bodyBytes);
-      return file;
-    } else {
-      final errorData = json.decode(response.body);
-      throw Exception(
-        errorData['message'] ?? 'Erreur lors du téléchargement',
+    try {
+      final response = await http.get(
+        Uri.parse(url),
+        headers: headers ?? {},
       );
+
+      if (response.statusCode == 200) {
+        // Vérifier le Content-Type - si c'est du JSON, c'est une erreur
+        final contentType = response.headers['content-type']?.toLowerCase() ?? '';
+        
+        if (contentType.contains('application/json')) {
+          String errorMessage = 'Le serveur a retourné une erreur au lieu du fichier PDF';
+          try {
+            final errorData = json.decode(response.body);
+            errorMessage = errorData['message'] ?? 
+                          errorData['error'] ?? 
+                          errorData['detail'] ??
+                          errorMessage;
+          } catch (e) {
+            if (response.body.length < 200) {
+              errorMessage = response.body;
+            }
+          }
+          throw Exception(errorMessage);
+        }
+        
+        // Vérifier que ce n'est pas un JSON en regardant le début des données
+        if (response.bodyBytes.isNotEmpty && response.bodyBytes[0] == 123) { // 123 = '{' en ASCII
+          final firstChars = String.fromCharCodes(response.bodyBytes.take(10));
+          if (firstChars.trim().startsWith('{')) {
+            String errorMessage = 'Le serveur a retourné une erreur au lieu du fichier PDF';
+            try {
+              final errorData = json.decode(response.body);
+              errorMessage = errorData['message'] ?? 
+                            errorData['error'] ?? 
+                            errorData['detail'] ??
+                            errorMessage;
+            } catch (e) {
+              if (response.body.length < 200) {
+                errorMessage = response.body;
+              }
+            }
+            throw Exception(errorMessage);
+          }
+        }
+        
+        final directory = await _getDownloadsDirectory();
+        final filePath = path.join(directory.path, fileName);
+        final file = File(filePath);
+        
+        await file.writeAsBytes(response.bodyBytes);
+        
+        return file;
+      } else {
+        // Détecter si le contrat n'est pas encore disponible
+        if (response.statusCode == 404) {
+          try {
+            if (response.body.isNotEmpty) {
+              final errorData = json.decode(response.body);
+              final message = errorData['message']?.toString().toLowerCase() ?? '';
+              final errorText = errorData['error']?.toString().toLowerCase() ?? '';
+              
+              // Vérifier si le message indique que le contrat n'est pas disponible
+              if (message.contains('non disponible') ||
+                  message.contains('pas encore') ||
+                  message.contains('not available') ||
+                  message.contains('not found') ||
+                  errorText.contains('not found') ||
+                  errorText.contains('non disponible')) {
+                throw ContractNotAvailableException(
+                  'Ce contrat n\'est pas encore disponible. Vous recevrez un email lorsqu\'il sera prêt.'
+                );
+              }
+            }
+          } catch (e) {
+            if (e is ContractNotAvailableException) {
+              rethrow;
+            }
+            // Si c'est une 404, c'est probablement que le contrat n'existe pas encore
+            throw ContractNotAvailableException(
+              'Ce contrat n\'est pas encore disponible. Vous recevrez un email lorsqu\'il sera prêt.'
+            );
+          }
+        }
+        
+        String errorMessage = 'Erreur lors du téléchargement (Status: ${response.statusCode})';
+        try {
+          if (response.body.isNotEmpty) {
+            final errorData = json.decode(response.body);
+            final message = errorData['message']?.toString().toLowerCase() ?? '';
+            final errorText = errorData['error']?.toString().toLowerCase() ?? '';
+            
+            // Vérifier d'autres cas où le contrat pourrait ne pas être disponible
+            if (message.contains('non disponible') ||
+                message.contains('pas encore') ||
+                message.contains('not available') ||
+                message.contains('en cours') ||
+                message.contains('pending') ||
+                errorText.contains('not available') ||
+                errorText.contains('non disponible')) {
+              throw ContractNotAvailableException(
+                'Ce contrat n\'est pas encore disponible. Vous recevrez un email lorsqu\'il sera prêt.'
+              );
+            }
+            
+            errorMessage = errorData['message'] ?? 
+                          errorData['error'] ?? 
+                          errorMessage;
+          }
+        } catch (e) {
+          if (e is ContractNotAvailableException) {
+            rethrow;
+          }
+          if (response.body.isNotEmpty && response.body.length < 200) {
+            errorMessage = response.body;
+          }
+        }
+        
+        throw Exception(errorMessage);
+      }
+    } catch (e) {
+      rethrow;
     }
   }
 
   Future<File> downloadContractDocument(String contractId, String numeroContrat) async {
     try {
       final token = await StorageHelper.getToken();
+      
       final headers = {
         'Accept': 'application/pdf, application/octet-stream, */*',
         if (token != null) 'Authorization': 'Bearer $token',
       };
 
       final fileName = 'contrat_${numeroContrat.replaceAll(RegExp(r'[^\w\s-]'), '_')}.pdf';
+      final url = '$baseUrl${ApiConstants.contratDocument(contractId)}';
       
       return await _downloadAndSaveFile(
-        url: '$baseUrl${ApiConstants.contratDocument(contractId)}',
+        url: url,
         fileName: fileName,
         headers: headers,
       );
@@ -255,21 +372,72 @@ class ContractService {
   Future<File> downloadAttestationSouscription(String contractId, String numeroContrat) async {
     try {
       final token = await StorageHelper.getToken();
+      
       final headers = {
         'Accept': 'application/pdf, application/octet-stream, */*',
         if (token != null) 'Authorization': 'Bearer $token',
       };
 
       final fileName = 'attestation_souscription_${numeroContrat.replaceAll(RegExp(r'[^\w\s-]'), '_')}.pdf';
+      final url = '$baseUrl${ApiConstants.contratAttestation(contractId)}';
       
-      // TODO: Remplacer par le bon endpoint quand vous l'aurez
       return await _downloadAndSaveFile(
-        url: '$baseUrl${ApiConstants.contratAttestation(contractId)}',
+        url: url,
         fileName: fileName,
         headers: headers,
       );
     } catch (e) {
       throw Exception('Erreur lors du téléchargement de l\'attestation: ${e.toString()}');
+    }
+  }
+
+  Future<int> getActiveContractsCount() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl${ApiConstants.contratsCount}'),
+        headers: await _authHeaders,
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        
+        // Gérer différents formats de réponse
+        int count = 0;
+        if (data is int) {
+          count = data;
+        } else if (data is Map) {
+          // Essayer différentes clés possibles
+          count = data['count'] ?? 
+                  data['active_contracts'] ?? 
+                  data['total'] ?? 
+                  data['nombre'] ??
+                  data['data'] ??
+                  0;
+          
+          // Si data['data'] est un Map, chercher à l'intérieur
+          if (count == 0 && data['data'] is Map) {
+            final innerData = data['data'] as Map;
+            count = innerData['count'] ?? 
+                   innerData['active_contracts'] ?? 
+                   innerData['total'] ?? 
+                   0;
+          }
+        } else if (data is String) {
+          // Si c'est une chaîne, essayer de la convertir
+          count = int.tryParse(data) ?? 0;
+        }
+        
+        return count;
+      } else {
+        final errorData = json.decode(response.body);
+        throw Exception(
+          errorData['message'] ?? 'Erreur lors du chargement du nombre de contrats actifs',
+        );
+      }
+    } catch (e) {
+      // En cas d'erreur, retourner 0 plutôt que de lancer une exception
+      // pour éviter de bloquer l'interface
+      return 0;
     }
   }
 }
