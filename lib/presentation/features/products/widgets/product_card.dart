@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:saarciflex_app/data/models/product_model.dart';
 import 'package:saarciflex_app/core/utils/product_formatters.dart';
+import 'package:saarciflex_app/presentation/features/products/widgets/product_icon_widget.dart';
 
 class ProductCard extends StatelessWidget {
   final Product product;
@@ -83,10 +84,10 @@ class ProductCard extends StatelessWidget {
             color: product.displayColor.withOpacity(0.1),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(
-            product.displayIcon,
-            color: product.displayColor,
+          child: ProductIconWidget(
+            product: product,
             size: iconSize,
+            color: product.displayColor,
           ),
         ),
         SizedBox(width: spacing1),
@@ -250,10 +251,10 @@ class ProductCardCompact extends StatelessWidget {
                     color: product.displayColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(6),
                   ),
-                  child: Icon(
-                    product.displayIcon,
-                    color: product.displayColor,
+                  child: ProductIconWidget(
+                    product: product,
                     size: iconSize,
+                    color: product.displayColor,
                   ),
                 ),
                 SizedBox(width: spacing1),

@@ -338,12 +338,13 @@ class ApiService {
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
         final data = responseData['data'] ?? responseData;
+        final avatarUrl = data['avatar_path'] ?? data['avatarUrl'] ?? data['avatar_url'];
         return User(
           id: data['id'],
           nom: data['nom'],
           email: data['email'],
           telephone: data['telephone'],
-          avatarUrl: data['avatarUrl'],
+          avatarUrl: avatarUrl,
           typeUtilisateur: TypeUtilisateur.values.firstWhere(
             (e) => e.toString().split('.').last == data['type_utilisateur'],
             orElse: () => TypeUtilisateur.client,

@@ -9,6 +9,7 @@ import 'package:saarciflex_app/presentation/features/contracts/screens/contracts
 import 'package:saarciflex_app/presentation/features/auth/viewmodels/auth_viewmodel.dart';
 import 'package:saarciflex_app/presentation/features/products/viewmodels/product_viewmodel.dart';
 import 'package:saarciflex_app/data/models/product_model.dart';
+import 'package:saarciflex_app/presentation/features/products/widgets/product_icon_widget.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -380,7 +381,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildProductItem(Product product) {
     final color = product.type.color;
-    final bgColor = color.withOpacity(0.1);
+    final gradientColors = [color, color];
     
     return GestureDetector(
       onTap: () => _navigateToProductDetail(product),
@@ -389,21 +390,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Container(
             width: 60,
             height: 60,
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: bgColor,
-              borderRadius: BorderRadius.circular(18),
-              boxShadow: [
-                BoxShadow(
-                  color: color.withOpacity(0.2),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+              gradient: LinearGradient(
+                colors: [
+                  gradientColors[0].withOpacity(0.2),
+                  gradientColors[1].withOpacity(0.1),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(14),
             ),
-            child: Icon(
-              product.type.icon,
+            child: ProductIconWidget(
+              product: product,
+              size: 26,
               color: color,
-              size: 28,
             ),
           ),
           const SizedBox(height: 10),

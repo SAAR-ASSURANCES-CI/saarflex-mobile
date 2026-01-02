@@ -57,6 +57,7 @@ dependencies:
   url_launcher: ^6.2.5
   path_provider: ^2.1.5
   open_file: ^3.5.2
+  flutter_svg: ^2.0.10
   
   
 

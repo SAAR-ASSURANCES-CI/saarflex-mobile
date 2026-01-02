@@ -14,6 +14,7 @@ class ApiConstants {
   static const String updateProfile = '/users/me';
   static const String uploadDocument = '/users/upload-piece-identite';
   static const String uploadImages = '/profiles/upload/images';
+  static const String uploadAvatar = '/profiles/upload/avatar';
 
   static const String simulationBasePath = '/simulation-devis-simplifie';
   static const String souscriptionBasePath = '/devis';
