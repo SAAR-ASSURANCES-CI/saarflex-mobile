@@ -75,5 +75,13 @@ class ContractRepository {
       rethrow;
     }
   }
+
+  Future<int> getActiveContractsCount() async {
+    try {
+      return await _contractService.getActiveContractsCount();
+    } catch (e) {
+      rethrow;
+    }
+  }
 }
 

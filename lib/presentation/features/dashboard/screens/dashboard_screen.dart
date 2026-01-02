@@ -8,6 +8,7 @@ import 'package:saarciflex_app/presentation/features/products/screens/product_de
 import 'package:saarciflex_app/presentation/features/contracts/screens/contracts_screen.dart';
 import 'package:saarciflex_app/presentation/features/auth/viewmodels/auth_viewmodel.dart';
 import 'package:saarciflex_app/presentation/features/products/viewmodels/product_viewmodel.dart';
+import 'package:saarciflex_app/presentation/features/contracts/viewmodels/contract_viewmodel.dart';
 import 'package:saarciflex_app/data/models/product_model.dart';
 import 'package:saarciflex_app/presentation/features/products/widgets/product_icon_widget.dart';
 
@@ -29,6 +30,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       if (mounted) {
         context.read<AuthViewModel>().ensureUserProfileLoaded();
         context.read<ProductViewModel>().loadProducts();
+        context.read<ContractViewModel>().loadActiveContractsCount();
       }
     });
   }
@@ -183,12 +185,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
           child: Row(
             children: [
               Expanded(
-                child: _buildUnifiedCard(
-                  title: "Contrats Actifs",
-                  value: "0",
-                  icon: Icons.description_outlined,
-                  gradientColors: [Colors.teal[400]!, Colors.teal[600]!],
-                  height: cardHeight,
+                child: Consumer<ContractViewModel>(
+                  builder: (context, contractViewModel, child) {
+                    final count = contractViewModel.isLoadingActiveCount 
+                        ? "..." 
+                        : contractViewModel.activeContractsCount.toString();
+                    
+                    return _buildUnifiedCard(
+                      title: "Contrats Actifs",
+                      value: count,
+                      icon: Icons.description_outlined,
+                      gradientColors: [Colors.teal[400]!, Colors.teal[600]!],
+                      height: cardHeight,
+                    );
+                  },
                 ),
               ),
               const SizedBox(width: 12),

@@ -624,22 +624,45 @@ class _ContractsTabState extends State<ContractsTab> {
         contract.numeroContrat,
       );
 
-      // Open the downloaded file
-      await OpenFile.open(file.path);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Attestation téléchargée avec succès'),
-          backgroundColor: Colors.green,
-        ),
-      );
+      // Ouvrir le fichier
+      try {
+        final result = await OpenFile.open(file.path);
+        
+        if (result.type.toString().contains('done') || result.message.toLowerCase().contains('done')) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Attestation téléchargée avec succès'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Fichier téléchargé mais impossible de l\'ouvrir: ${result.message}'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+      } catch (openError) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Fichier téléchargé mais impossible de l\'ouvrir: ${openError.toString()}'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erreur: ${e.toString()}'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      // Afficher un message spécial si le contrat n'est pas encore disponible
+      if (e is ContractNotAvailableException) {
+        _showContractNotAvailableDialog(context);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -658,22 +681,139 @@ class _ContractsTabState extends State<ContractsTab> {
         contract.numeroContrat,
       );
 
-      // Open the downloaded file
-      await OpenFile.open(file.path);
+      // Vérifier que le fichier est bien un PDF
+      if (await file.exists()) {
+        final fileSize = await file.length();
+        if (fileSize > 0) {
+          final bytes = await file.readAsBytes();
+          
+          // Un PDF commence par %PDF (0x25 0x50 0x44 0x46)
+          final isPdf = bytes.length >= 4 && 
+                       bytes[0] == 0x25 && // %
+                       bytes[1] == 0x50 && // P
+                       bytes[2] == 0x44 && // D
+                       bytes[3] == 0x46;   // F
+          
+          if (!isPdf) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Le fichier téléchargé n\'est pas un PDF valide. Le serveur a peut-être retourné une erreur.'),
+                backgroundColor: Colors.red,
+                duration: const Duration(seconds: 5),
+              ),
+            );
+            return;
+          }
+        }
+      }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Contrat téléchargé avec succès'),
-          backgroundColor: Colors.green,
-        ),
-      );
+      // Ouvrir le fichier
+      try {
+        final result = await OpenFile.open(file.path);
+        
+        if (result.type.toString().contains('done') || result.message.toLowerCase().contains('done')) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Contrat téléchargé avec succès'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Fichier téléchargé mais impossible de l\'ouvrir: ${result.message}'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+      } catch (openError) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Fichier téléchargé mais impossible de l\'ouvrir: ${openError.toString()}'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erreur: ${e.toString()}'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      // Afficher un message spécial si le contrat n'est pas encore disponible
+      if (e is ContractNotAvailableException) {
+        _showContractNotAvailableDialog(context);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
+  }
+
+  void _showContractNotAvailableDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Icon(
+                Icons.info_outline,
+                color: AppColors.primary,
+                size: 28,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Contrat non disponible',
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey[800],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Ce contrat n\'est pas encore disponible.',
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  color: Colors.grey[700],
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Il est en cours de traitement par nos équipes. Vous recevrez un email de notification dès qu\'il sera prêt à être téléchargé.',
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  color: Colors.grey[700],
+                  height: 1.5,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                'Compris',
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.primary,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 }

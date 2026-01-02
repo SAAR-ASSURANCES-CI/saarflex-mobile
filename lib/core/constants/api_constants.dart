@@ -24,7 +24,8 @@ class ApiConstants {
 
   static const String savedQuotes = '/devis-sauvegardes';
   static const String contrats = '/contrats';
-  static String contratDocument(String contractId) => '/contrats/$contractId/document';
+  static const String contratsCount = '/contrats/count';
+  static String contratDocument(String contractId) => '/contrats/$contractId/telecharger';
   static String contratAttestation(String contractId) => '/contrats/$contractId/attestation';
   static const String grillesTarifaires = '/grilles-tarifaires';
   static const String productCriteres = '/criteres';
