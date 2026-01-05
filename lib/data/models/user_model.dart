@@ -104,7 +104,7 @@ class User {
   }
 
   factory User.fromJson(Map<String, dynamic> json) {
-    final avatarUrl = json['avatar_path'] ?? json['avatarUrl'] ?? json['avatar_url'];
+    final avatarUrl = json['avatar_path'];
     
     return User(
       id: json['id'],
@@ -139,9 +139,8 @@ class User {
         json['date_expiration_piece_identite'],
         'date_expiration_piece_identite',
       ),
-      // URLs complètes du backend
-      frontDocumentPath: json['frontDocumentUrl'] ?? json['front_document_url'],
-      backDocumentPath: json['backDocumentUrl'] ?? json['back_document_url'],
+      frontDocumentPath: json['front_document_path'],
+      backDocumentPath: json['back_document_path'],
     );
   }
 

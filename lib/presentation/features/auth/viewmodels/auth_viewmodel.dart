@@ -457,7 +457,7 @@ class AuthViewModel extends ChangeNotifier {
       _currentUser = updatedUser;
       
       // Si c'est l'avatar qui est mis à jour, générer un nouveau timestamp
-      if (fieldName == 'avatar_path' || fieldName == 'avatarUrl') {
+      if (fieldName == 'avatar_path') {
         _avatarTimestamp = DateTime.now().millisecondsSinceEpoch;
       }
       

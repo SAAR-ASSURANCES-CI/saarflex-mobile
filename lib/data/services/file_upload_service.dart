@@ -244,12 +244,9 @@ class FileUploadService {
     final responseBody = await response.stream.bytesToString();
     final responseData = json.decode(responseBody);
 
-    // Extraire le chemin/URL selon les formats supportés par le backend
-    // avatar_path: pour uploadAvatar
-    // data.url ou url: formats standards pour autres uploads
-    String? imagePath = responseData['avatar_path'] ??
-                        responseData['data']?['url'] ?? 
-                        responseData['url'];
+    // Extraire le chemin/URL depuis la réponse du backend
+    // Pour les documents d'identité, le backend renvoie le chemin dans 'data.url' ou directement 'url'
+    String? imagePath = responseData['data']?['url'] ?? responseData['url'];
 
     if (imagePath == null) {
       throw Exception('URL de l\'image non reçue du serveur. Réponse: $responseBody');
