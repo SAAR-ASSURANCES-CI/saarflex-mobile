@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:saarciflex_app/presentation/features/profile/screens/profile_screen.dart';
 import 'package:saarciflex_app/presentation/features/auth/widgets/dashboard_header.dart';
 import 'package:saarciflex_app/presentation/features/products/screens/product_list_screen.dart';
@@ -22,6 +23,9 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   // Couleur de fond cyan/bleu très clair
   static const Color _backgroundColor = Color(0xFFE8F4F8);
+  
+  // URL de l'application web de déclaration de sinistres
+  static const String _sinistresWebUrl = 'https://sinistres.saarassurancesci.com/';
 
   @override
   void initState() {
@@ -205,9 +209,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Expanded(
                 child: _buildUnifiedCard(
                   title: "Sinistres",
-                  value: "1",
                   icon: Icons.warning_amber_rounded,
                   gradientColors: [Colors.orange[400]!, Colors.deepOrange[500]!],
+                  onTap: _navigateToSinistres,
                   height: cardHeight,
                 ),
               ),
@@ -475,6 +479,64 @@ class _DashboardScreenState extends State<DashboardScreen> {
           backgroundColor: Colors.red,
         ),
       );
+    }
+  }
+
+  Future<void> _navigateToSinistres() async {
+    try {
+      final uri = Uri.parse(_sinistresWebUrl);
+      
+      if (await canLaunchUrl(uri)) {
+        final launched = await launchUrl(
+          uri,
+          mode: LaunchMode.externalApplication,
+        );
+        
+        if (!launched) {
+          await launchUrl(
+            uri,
+            mode: LaunchMode.platformDefault,
+          );
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Impossible d\'ouvrir l\'application de déclaration de sinistres',
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white,
+                ),
+              ),
+              backgroundColor: Colors.red,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              duration: const Duration(seconds: 3),
+              margin: const EdgeInsets.all(16),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Erreur lors de l\'ouverture: $e',
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.w500,
+                color: Colors.white,
+              ),
+            ),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            duration: const Duration(seconds: 3),
+            margin: const EdgeInsets.all(16),
+          ),
+        );
+      }
     }
   }
 
