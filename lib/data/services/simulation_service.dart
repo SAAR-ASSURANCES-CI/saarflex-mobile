@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:developer' as developer;
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:saarciflex_app/data/models/simulation_model.dart';
@@ -45,15 +44,11 @@ class SimulationService {
         payload['informations_vehicule'] = informationsVehicule;
       }
 
-      _logSimulationRequest(url, headers, payload);
-
       final response = await http.post(
         url,
         headers: headers,
         body: json.encode(payload),
       );
-
-      _logSimulationResponse(response);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final responseData = json.decode(response.body);
@@ -66,8 +61,7 @@ class SimulationService {
 
         throw ApiException(errorMessage, response.statusCode);
       }
-    } catch (e, stackTrace) {
-      _logSimulationError(e, stackTrace, url, payload);
+    } catch (e) {
       throw Exception(_getUserFriendlyError(e));
     }
   }
@@ -341,11 +335,32 @@ class SimulationService {
       final valeur = criteres[critere.nom];
       if (valeur == null) continue;
 
+      // Détection automatique : si c'est un texte qui contient "expir", traiter comme date
+      final isDateField = critere.type == TypeCritere.date ||
+          (critere.type == TypeCritere.texte &&
+              (critere.nom.toLowerCase().contains('expir') ||
+               critere.nom.toLowerCase().contains('expiration') ||
+               critere.nom.toLowerCase().contains('date')));
+
       if (critere.type == TypeCritere.numerique &&
           critereNecessiteFormatage(critere) &&
           valeur is String) {
         final valeurNettoyee = valeur.toString().replaceAll(RegExp(r'[^\d]'), '');
         criteresNettoyes[critere.nom] = num.tryParse(valeurNettoyee) ?? 0;
+      } else if (isDateField) {
+        // Formater la date au format DD-MM-YYYY pour l'API
+        if (valeur is DateTime) {
+          criteresNettoyes[critere.nom] = formatBirthDateForApi(valeur);
+        } else if (valeur is String) {
+          final parsed = parseBirthDate(valeur);
+          if (parsed != null) {
+            criteresNettoyes[critere.nom] = formatBirthDateForApi(parsed);
+          } else {
+            criteresNettoyes[critere.nom] = valeur;
+          }
+        } else {
+          criteresNettoyes[critere.nom] = valeur;
+        }
       } else {
         criteresNettoyes[critere.nom] = valeur;
       }
@@ -417,6 +432,34 @@ class SimulationService {
 
       case TypeCritere.booleen:
         break;
+
+      case TypeCritere.date:
+        if (valeur != null && valeur.toString().isNotEmpty) {
+          // Vérifier que c'est une date valide
+          final parsedDate = parseBirthDate(valeur);
+          if (parsedDate == null) {
+            return 'Veuillez entrer une date valide (format: DD-MM-YYYY)';
+          }
+          // Pour une date d'expiration de passeport, on peut vérifier qu'elle est dans le futur
+          // mais on ne le fait que si c'est explicitement demandé
+        }
+        break;
+
+      case TypeCritere.texte:
+        // Détection automatique : si c'est un texte qui contient "expir", valider comme date
+        final isDateField = critere.nom.toLowerCase().contains('expir') ||
+            critere.nom.toLowerCase().contains('expiration') ||
+            critere.nom.toLowerCase().contains('date');
+        
+        if (isDateField && valeur != null && valeur.toString().isNotEmpty) {
+          // Vérifier que c'est une date valide
+          final parsedDate = parseBirthDate(valeur);
+          if (parsedDate == null) {
+            return 'Veuillez entrer une date valide (format: DD-MM-YYYY)';
+          }
+        }
+        // Pour le texte libre normal (comme numéro de passeport), pas de validation spécifique
+        break;
     }
 
     return null;
@@ -445,7 +488,7 @@ class SimulationService {
   }
 
   int? calculerDureeAuto(int age) {
-    if (age >= 40 && age <= 68) return 10;
+    if (age >= 18 && age <= 68) return 10;
     if (age >= 69 && age <= 71) return 5;
     if (age >= 72 && age <= 75) return 2;
     return null;
@@ -518,43 +561,5 @@ class SimulationService {
     }
 
     return informationsNettoyees;
-  }
-
-  void _logSimulationRequest(
-    Uri url,
-    Map<String, String> headers,
-    Map<String, dynamic>? payload,
-  ) {
-    // TODO: Retirer les logs quand le diagnostic est terminé.
-    final sanitizedHeaders = Map<String, String>.from(headers);
-    sanitizedHeaders.remove('Authorization');
-
-    developer.log(
-      'Simulation request\nURL: $url\nHeaders: $sanitizedHeaders\nPayload: ${json.encode(payload)}',
-      name: 'SimulationService',
-    );
-  }
-
-  void _logSimulationResponse(http.Response response) {
-    // TODO: Retirer les logs quand le diagnostic est terminé.
-    developer.log(
-      'Simulation response\nStatus: ${response.statusCode}\nBody: ${response.body}',
-      name: 'SimulationService',
-    );
-  }
-
-  void _logSimulationError(
-    Object error,
-    StackTrace stackTrace,
-    Uri? url,
-    Map<String, dynamic>? payload,
-  ) {
-    // TODO: Retirer les logs quand le diagnostic est terminé.
-    developer.log(
-      'Simulation error for $url\nPayload: ${json.encode(payload)}',
-      name: 'SimulationService',
-      error: error,
-      stackTrace: stackTrace,
-    );
   }
 }

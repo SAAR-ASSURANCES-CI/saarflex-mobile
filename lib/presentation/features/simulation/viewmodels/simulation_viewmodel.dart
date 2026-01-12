@@ -165,6 +165,8 @@ class SimulationViewModel extends ChangeNotifier {
         } else if (critere.type == TypeCritere.categoriel &&
             critere.hasValeurs) {
           _criteresReponses[critere.nom] = null;
+        } else if (critere.type == TypeCritere.date || critere.type == TypeCritere.texte) {
+          _criteresReponses[critere.nom] = null;
         }
       }
 

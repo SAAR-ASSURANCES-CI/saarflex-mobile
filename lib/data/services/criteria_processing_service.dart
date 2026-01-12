@@ -58,6 +58,8 @@ class CriteriaProcessingService {
           }
           break;
         case TypeCritere.numerique:
+        case TypeCritere.date:
+        case TypeCritere.texte:
           defaultValues[critere.nom] = null;
           break;
       }
@@ -99,6 +101,14 @@ class CriteriaProcessingService {
         return valeur.toString();
       case TypeCritere.categoriel:
       case TypeCritere.booleen:
+      case TypeCritere.texte:
+        return valeur.toString();
+      case TypeCritere.date:
+        if (valeur is DateTime) {
+          final day = valeur.day.toString().padLeft(2, '0');
+          final month = valeur.month.toString().padLeft(2, '0');
+          return '$day/$month/${valeur.year}';
+        }
         return valeur.toString();
     }
   }
@@ -124,6 +134,9 @@ class CriteriaProcessingService {
         return critere.hasValeurs;
       case TypeCritere.numerique:
         return critere.valeurs.isNotEmpty;
+      case TypeCritere.date:
+      case TypeCritere.texte:
+        return true; // Les dates et textes n'ont pas besoin de valeurs prédéfinies
     }
   }
 

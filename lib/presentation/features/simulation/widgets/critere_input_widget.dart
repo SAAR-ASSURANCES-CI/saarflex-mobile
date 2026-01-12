@@ -64,9 +64,18 @@ class _CritereInputWidgetState extends State<CritereInputWidget> {
         }
         return widget.valeur.toString();
       case TypeCritere.categoriel:
+      case TypeCritere.texte:
         return widget.valeur.toString();
       case TypeCritere.booleen:
         return widget.valeur ? 'Oui' : 'Non';
+      case TypeCritere.date:
+        if (widget.valeur is DateTime) {
+          final date = widget.valeur as DateTime;
+          final day = date.day.toString().padLeft(2, '0');
+          final month = date.month.toString().padLeft(2, '0');
+          return '$day/$month/${date.year}';
+        }
+        return widget.valeur.toString();
     }
   }
 
@@ -107,6 +116,17 @@ class _CritereInputWidgetState extends State<CritereInputWidget> {
   }
 
   Widget _buildInput() {
+    // Détection automatique : si c'est un texte qui contient "expir", traiter comme date
+    final isDateField = widget.critere.type == TypeCritere.date ||
+        (widget.critere.type == TypeCritere.texte &&
+            (widget.critere.nom.toLowerCase().contains('expir') ||
+             widget.critere.nom.toLowerCase().contains('expiration') ||
+             widget.critere.nom.toLowerCase().contains('date')));
+
+    if (isDateField && widget.critere.type != TypeCritere.date) {
+      return _buildDateInput();
+    }
+
     switch (widget.critere.type) {
       case TypeCritere.numerique:
         return _buildNumericInput();
@@ -114,6 +134,10 @@ class _CritereInputWidgetState extends State<CritereInputWidget> {
         return _buildCategoricalInput();
       case TypeCritere.booleen:
         return _buildBooleanInput();
+      case TypeCritere.date:
+        return _buildDateInput();
+      case TypeCritere.texte:
+        return _buildTextInput();
     }
   }
 
@@ -218,5 +242,146 @@ class _CritereInputWidgetState extends State<CritereInputWidget> {
         ],
       ),
     );
+  }
+
+  Widget _buildDateInput() {
+    DateTime? selectedDate;
+    if (widget.valeur is DateTime) {
+      selectedDate = widget.valeur as DateTime;
+    } else if (widget.valeur is String && widget.valeur.toString().isNotEmpty) {
+      selectedDate = DateTime.tryParse(widget.valeur.toString());
+      if (selectedDate == null) {
+        final parts = widget.valeur.toString().split('-');
+        if (parts.length == 3) {
+          try {
+            final day = int.parse(parts[0]);
+            final month = int.parse(parts[1]);
+            final year = int.parse(parts[2]);
+            selectedDate = DateTime(year, month, day);
+          } catch (_) {
+            selectedDate = null;
+          }
+        }
+      }
+    }
+
+    return InkWell(
+      onTap: () => _selectDate(context),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.calendar_today, color: AppColors.primary),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                selectedDate != null
+                    ? _formatDate(selectedDate)
+                    : 'Sélectionnez ${widget.critere.nom.toLowerCase()}',
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  color: selectedDate != null
+                      ? AppColors.textPrimary
+                      : AppColors.textHint,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextInput() {
+    return TextFormField(
+      controller: _controller,
+      keyboardType: TextInputType.text,
+      decoration: InputDecoration(
+        hintText: 'Saisissez ${widget.critere.nom.toLowerCase()}',
+        hintStyle: GoogleFonts.poppins(color: AppColors.textHint),
+        prefixIcon: Icon(Icons.text_fields, color: AppColors.primary),
+        filled: true,
+        fillColor: AppColors.surface,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: AppColors.border),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: AppColors.border),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: AppColors.primary, width: 2),
+        ),
+        contentPadding: const EdgeInsets.all(16),
+      ),
+      style: GoogleFonts.poppins(fontSize: 16, color: AppColors.textPrimary),
+      onChanged: (value) => widget.onChanged(value.trim().isEmpty ? null : value.trim()),
+    );
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime now = DateTime.now();
+    final DateTime firstDate = DateTime(now.year - 100, now.month, now.day);
+    final DateTime lastDate = DateTime(now.year + 20, now.month, now.day);
+
+    DateTime? currentDate;
+    if (widget.valeur is DateTime) {
+      currentDate = widget.valeur as DateTime;
+    } else if (widget.valeur is String && widget.valeur.toString().isNotEmpty) {
+      currentDate = DateTime.tryParse(widget.valeur.toString());
+      if (currentDate == null) {
+        final parts = widget.valeur.toString().split('-');
+        if (parts.length == 3) {
+          try {
+            final day = int.parse(parts[0]);
+            final month = int.parse(parts[1]);
+            final year = int.parse(parts[2]);
+            currentDate = DateTime(year, month, day);
+          } catch (_) {
+            currentDate = null;
+          }
+        }
+      }
+    }
+
+    final DateTime initialDate = currentDate ?? now;
+
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: firstDate,
+      lastDate: lastDate,
+      locale: const Locale('fr', 'FR'),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: AppColors.primary,
+              onPrimary: AppColors.white,
+              surface: AppColors.surface,
+              onSurface: AppColors.textPrimary,
+            ),
+          ),
+          child: child ?? const SizedBox(),
+        );
+      },
+    );
+
+    if (picked != null) {
+      widget.onChanged(picked);
+    }
+  }
+
+  String _formatDate(DateTime date) {
+    final day = date.day.toString().padLeft(2, '0');
+    final month = date.month.toString().padLeft(2, '0');
+    return '$day/$month/${date.year}';
   }
 }
