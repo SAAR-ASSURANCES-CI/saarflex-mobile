@@ -1,4 +1,4 @@
-enum TypeCritere { numerique, categoriel, booleen }
+enum TypeCritere { numerique, categoriel, booleen, date, texte }
 
 extension TypeCritereExtension on TypeCritere {
   String get label {
@@ -9,6 +9,10 @@ extension TypeCritereExtension on TypeCritere {
         return 'Catégoriel';
       case TypeCritere.booleen:
         return 'Booléen';
+      case TypeCritere.date:
+        return 'Date';
+      case TypeCritere.texte:
+        return 'Texte';
     }
   }
 
@@ -20,6 +24,10 @@ extension TypeCritereExtension on TypeCritere {
         return 'categoriel';
       case TypeCritere.booleen:
         return 'booleen';
+      case TypeCritere.date:
+        return 'date';
+      case TypeCritere.texte:
+        return 'texte';
     }
   }
 }
@@ -113,6 +121,11 @@ class CritereTarification {
         return TypeCritere.categoriel;
       case 'booleen':
         return TypeCritere.booleen;
+      case 'date':
+        return TypeCritere.date;
+      case 'texte':
+      case 'texte_libre':
+        return TypeCritere.texte;
       default:
         return TypeCritere.numerique;
     }

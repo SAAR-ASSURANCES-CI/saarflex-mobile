@@ -27,6 +27,19 @@ class ValidationService {
         return _validateCategoricalCritere(critere, valeur);
       case TypeCritere.booleen:
         return null;
+      case TypeCritere.date:
+        return _validateDateCritere(critere, valeur);
+      case TypeCritere.texte:
+        // Détection automatique : si c'est un texte qui contient "expir", valider comme date
+        final isDateField = critere.nom.toLowerCase().contains('expir') ||
+            critere.nom.toLowerCase().contains('expiration') ||
+            critere.nom.toLowerCase().contains('date');
+        
+        if (isDateField) {
+          return _validateDateCritere(critere, valeur);
+        }
+        // Pour le texte libre normal (comme numéro de passeport), pas de validation spécifique
+        return null;
     }
   }
 
@@ -95,6 +108,61 @@ class ValidationService {
     }
 
     return null;
+  }
+
+  static String? _validateDateCritere(
+    CritereTarification critere,
+    dynamic valeur,
+  ) {
+    if (valeur == null) return null;
+
+    // Si c'est déjà un DateTime, c'est valide
+    if (valeur is DateTime) {
+      return null;
+    }
+
+    // Essayer de parser depuis une string
+    if (valeur is String) {
+      // Essayer le format ISO
+      DateTime? parsed = DateTime.tryParse(valeur);
+      if (parsed != null) return null;
+
+      // Essayer le format DD-MM-YYYY
+      final parts = valeur.split('-');
+      if (parts.length == 3) {
+        try {
+          final day = int.parse(parts[0]);
+          final month = int.parse(parts[1]);
+          final year = int.parse(parts[2]);
+          if (day >= 1 && day <= 31 && month >= 1 && month <= 12 && year > 1900) {
+            DateTime(year, month, day);
+            return null;
+          }
+        } catch (_) {
+          // Continue pour retourner l'erreur
+        }
+      }
+
+      // Essayer le format DD/MM/YYYY
+      final partsSlash = valeur.split('/');
+      if (partsSlash.length == 3) {
+        try {
+          final day = int.parse(partsSlash[0]);
+          final month = int.parse(partsSlash[1]);
+          final year = int.parse(partsSlash[2]);
+          if (day >= 1 && day <= 31 && month >= 1 && month <= 12 && year > 1900) {
+            DateTime(year, month, day);
+            return null;
+          }
+        } catch (_) {
+          // Continue pour retourner l'erreur
+        }
+      }
+
+      return 'Veuillez entrer une date valide (format: DD-MM-YYYY)';
+    }
+
+    return 'Format de date invalide';
   }
 
   static num? cleanNumericValue(CritereTarification critere, dynamic valeur) {
