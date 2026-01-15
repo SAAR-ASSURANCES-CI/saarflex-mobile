@@ -146,7 +146,6 @@ class _souscriptionScreenState extends State<souscriptionScreen> {
   }
 
   PreferredSizeWidget _buildAppBar(double screenWidth, double textScaleFactor) {
-    final titleFontSize = (18.0 / textScaleFactor).clamp(16.0, 20.0);
     final iconSize = screenWidth < 360 ? 20 : 24;
     
     return AppBar(

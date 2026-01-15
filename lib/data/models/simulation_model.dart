@@ -246,40 +246,6 @@ class SimulationResponse {
     }
   }
 
-
-  static String? _findCritereValue(
-    Map<String, dynamic>? criteres,
-    List<String> nomsPossibles,
-  ) {
-    if (criteres == null) return null;
-
-    for (final nom in nomsPossibles) {
-      if (criteres.containsKey(nom)) {
-        return criteres[nom]?.toString();
-      }
-    }
-
-    final criteresLower = criteres.map((k, v) => MapEntry(k.toLowerCase(), v));
-    for (final nom in nomsPossibles) {
-      final nomLower = nom.toLowerCase();
-      if (criteresLower.containsKey(nomLower)) {
-        return criteresLower[nomLower]?.toString();
-      }
-    }
-
-    for (final entry in criteres.entries) {
-      final keyLower = entry.key.toLowerCase();
-      for (final nom in nomsPossibles) {
-        final nomLower = nom.toLowerCase();
-        if (keyLower.contains(nomLower) || nomLower.contains(keyLower)) {
-          return entry.value?.toString();
-        }
-      }
-    }
-    
-    return null;
-  }
-
   static DetailsCalcul _createDefaultDetailsCalcul(
     Map<String, dynamic> json,
     String periodicitePrime,

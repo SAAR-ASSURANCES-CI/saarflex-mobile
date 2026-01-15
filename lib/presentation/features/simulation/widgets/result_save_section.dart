@@ -219,33 +219,6 @@ class _ResultSaveSectionState extends State<ResultSaveSection> {
     );
   }
 
-  Widget _buildValidationErrors() {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.error.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.error.withOpacity(0.3)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: widget.viewModel.validationErrors.entries.map((entry) {
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 4),
-            child: Text(
-              '• ${entry.value}',
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-                color: AppColors.error,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
   Widget _buildAssureWarning() {
     final padding = widget.screenWidth < 360 ? 12.0 : 16.0;
     final iconSize = widget.screenWidth < 360 ? 18.0 : 20.0;
