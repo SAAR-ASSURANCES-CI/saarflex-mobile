@@ -1,10 +1,12 @@
 import 'package:saarciflex_app/core/constants/colors.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:saarciflex_app/presentation/features/auth/viewmodels/auth_viewmodel.dart';
 import 'package:saarciflex_app/core/utils/error_handler.dart';
 import 'package:saarciflex_app/core/utils/validation_cache.dart';
+import 'package:saarciflex_app/presentation/features/auth/screens/cgu_modal.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -22,6 +24,7 @@ class _SignupScreenState extends State<SignupScreen> {
   final _confirmPasswordController = TextEditingController();
 
   bool _acceptTerms = false;
+  bool _hasOpenedCGU = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _isFormValid = false;
@@ -587,41 +590,103 @@ class _SignupScreenState extends State<SignupScreen> {
   Widget _buildTermsCheckbox(double screenWidth, double textScaleFactor) {
     final checkboxSize = screenWidth < 360 ? 18.0 : 20.0;
     final labelFontSize = (14.0 / textScaleFactor).clamp(12.0, 16.0);
+    final helpFontSize = (12.0 / textScaleFactor).clamp(10.0, 14.0);
+    final helpSpacing = screenWidth < 360 ? 6.0 : 8.0;
     
-    return Row(
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(
-          width: checkboxSize,
-          height: checkboxSize,
-          child: Checkbox(
-            value: _acceptTerms,
-            onChanged: (value) {
-              setState(() {
-                _acceptTerms = value ?? false;
-                _updateFormValidity();
-              });
-            },
-            activeColor: AppColors.primary,
-            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
-        ),
-        SizedBox(width: screenWidth < 360 ? 6.0 : 8.0),
-        Expanded(
-          child: Padding(
-            padding: EdgeInsets.only(top: screenWidth < 360 ? 2.0 : 0.0),
-            child: Text(
-              "J'accepte les conditions générales d'utilisation",
-              style: GoogleFonts.poppins(
-                fontSize: labelFontSize,
-                color: AppColors.textSecondary,
-                height: 1.4,
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              width: checkboxSize,
+              height: checkboxSize,
+              child: Checkbox(
+                value: _acceptTerms,
+                onChanged: _hasOpenedCGU
+                    ? (value) {
+                        setState(() {
+                          _acceptTerms = value ?? false;
+                          _updateFormValidity();
+                        });
+                      }
+                    : null,
+                activeColor: AppColors.primary,
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
             ),
-          ),
+            SizedBox(width: screenWidth < 360 ? 6.0 : 8.0),
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(top: screenWidth < 360 ? 2.0 : 0.0),
+                child: RichText(
+                  text: TextSpan(
+                    style: GoogleFonts.poppins(
+                      fontSize: labelFontSize,
+                      color: _hasOpenedCGU
+                          ? AppColors.textSecondary
+                          : AppColors.textHint,
+                      height: 1.4,
+                    ),
+                    children: [
+                      const TextSpan(text: "J'accepte les "),
+                      TextSpan(
+                        text: "conditions générales d'utilisation",
+                        style: GoogleFonts.poppins(
+                          fontSize: labelFontSize,
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w600,
+                          decoration: TextDecoration.underline,
+                          height: 1.4,
+                        ),
+                        recognizer: TapGestureRecognizer()
+                          ..onTap = () => _showCGUModal(),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
+        if (!_hasOpenedCGU) ...[
+          SizedBox(height: helpSpacing),
+          Row(
+            children: [
+              Icon(
+                Icons.info_outline_rounded,
+                size: screenWidth < 360 ? 14 : 16,
+                color: AppColors.warning,
+              ),
+              SizedBox(width: screenWidth < 360 ? 6 : 8),
+              Expanded(
+                child: Text(
+                  "Veuillez d'abord consulter les conditions générales d'utilisation",
+                  style: GoogleFonts.poppins(
+                    fontSize: helpFontSize,
+                    color: AppColors.warning,
+                    height: 1.4,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ],
     );
+  }
+
+  void _showCGUModal() {
+    CGUModal.show(context).then((_) {
+      if (mounted) {
+        setState(() {
+          _hasOpenedCGU = true;
+          _acceptTerms = true;
+          _updateFormValidity();
+        });
+      }
+    });
   }
 
   Widget _buildCreateAccountButton(AuthViewModel authProvider, double textScaleFactor, double screenWidth) {
