@@ -487,10 +487,69 @@ class SimulationService {
     return produitId == saarNansouId;
   }
 
-  int? calculerDureeAuto(int age) {
+  Future<int?> calculerDureeAutoFromApi(String produitId, int age) async {
+    try {
+      final token = await StorageHelper.getToken();
+      final url = Uri.parse(
+        '${ApiConstants.baseUrl}${ApiConstants.produitDureeCotisation(produitId, age)}',
+      );
+
+      final headers = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        if (token != null) 'Authorization': 'Bearer $token',
+      };
+
+      final response = await http.get(url, headers: headers).timeout(
+        const Duration(seconds: 30),
+        onTimeout: () {
+          throw TimeoutException('API call timeout after 30 seconds');
+        },
+      );
+
+      if (response.statusCode == 200) {
+        try {
+          final data = json.decode(response.body);
+          // Support multiple formats: "duree" or "duree_cotisation"
+          final duree = data['duree'] ?? data['duree_cotisation'];
+          if (duree != null) {
+            return duree is int ? duree : int.tryParse(duree.toString());
+          }
+          return null;
+        } catch (e) {
+          // Erreur de parsing JSON
+          return null;
+        }
+      } else {
+        return null;
+      }
+    } catch (e) {
+      // Erreur silencieuse - on utilisera le fallback si disponible
+      return null;
+    }
+  }
+
+  Future<int?> calculerDureeAuto(int age, {String? produitId}) async {
+    // Essayer d'abord l'API si produitId est fourni
+    if (produitId != null) {
+      try {
+        final dureeFromApi = await calculerDureeAutoFromApi(produitId, age);
+        if (dureeFromApi != null) {
+          return dureeFromApi;
+        }
+      } catch (e) {
+        // En cas d'erreur, continuer avec le fallback si disponible
+      }
+    }
+    
+    // Fallback vers la logique statique (commenté - l'API est maintenant la source principale)
+    // Si l'API échoue ou si produitId n'est pas fourni, on retourne null
+    // Pour réactiver le fallback, décommenter le code ci-dessous :
+    /*
     if (age >= 18 && age <= 68) return 10;
     if (age >= 69 && age <= 71) return 5;
     if (age >= 72 && age <= 75) return 2;
+    */
     return null;
   }
 

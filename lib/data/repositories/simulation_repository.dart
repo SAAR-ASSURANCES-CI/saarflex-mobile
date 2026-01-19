@@ -130,8 +130,8 @@ class SimulationRepository {
     return _simulationService.isSaarNansou(produitId);
   }
 
-  int? calculerDureeAuto(int age) {
-    return _simulationService.calculerDureeAuto(age);
+  Future<int?> calculerDureeAuto(int age, {String? produitId}) async {
+    return await _simulationService.calculerDureeAuto(age, produitId: produitId);
   }
 
   int calculerAge(DateTime birthDate) {

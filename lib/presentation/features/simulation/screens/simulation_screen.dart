@@ -83,9 +83,9 @@ class _SimulationScreenState extends State<SimulationScreen> {
               simulationProvider.removeListener(_calculationListener!);
               _calculationListener = null;
             }
-            Future.delayed(const Duration(milliseconds: 100), () {
+            Future.delayed(const Duration(milliseconds: 100), () async {
               if (mounted) {
-                simulationProvider.calcAutoDureeWithContext(context);
+                await simulationProvider.calcAutoDureeWithContext(context);
               }
             });
           }

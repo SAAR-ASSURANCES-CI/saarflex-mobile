@@ -32,36 +32,36 @@ void main() {
     });
 
     group('calculerDureeAuto', () {
-      test('retourne 10 pour âge entre 18 et 68', () {
+      test('retourne 10 pour âge entre 18 et 68', () async {
         final service = SimulationService();
-        expect(service.calculerDureeAuto(25), 10);
-        expect(service.calculerDureeAuto(50), 10);
-        expect(service.calculerDureeAuto(68), 10);
+        expect(await service.calculerDureeAuto(25), 10);
+        expect(await service.calculerDureeAuto(50), 10);
+        expect(await service.calculerDureeAuto(68), 10);
       });
 
-      test('retourne 5 pour âge entre 69 et 71', () {
+      test('retourne 5 pour âge entre 69 et 71', () async {
         final service = SimulationService();
-        expect(service.calculerDureeAuto(69), 5);
-        expect(service.calculerDureeAuto(70), 5);
-        expect(service.calculerDureeAuto(71), 5);
+        expect(await service.calculerDureeAuto(69), 5);
+        expect(await service.calculerDureeAuto(70), 5);
+        expect(await service.calculerDureeAuto(71), 5);
       });
 
-      test('retourne 2 pour âge entre 72 et 75', () {
+      test('retourne 2 pour âge entre 72 et 75', () async {
         final service = SimulationService();
-        expect(service.calculerDureeAuto(72), 2);
-        expect(service.calculerDureeAuto(75), 2);
+        expect(await service.calculerDureeAuto(72), 2);
+        expect(await service.calculerDureeAuto(75), 2);
       });
 
-      test('retourne null pour âge < 18', () {
+      test('retourne null pour âge < 18', () async {
         final service = SimulationService();
-        expect(service.calculerDureeAuto(17), null);
-        expect(service.calculerDureeAuto(10), null);
+        expect(await service.calculerDureeAuto(17), null);
+        expect(await service.calculerDureeAuto(10), null);
       });
 
-      test('retourne null pour âge > 75', () {
+      test('retourne null pour âge > 75', () async {
         final service = SimulationService();
-        expect(service.calculerDureeAuto(76), null);
-        expect(service.calculerDureeAuto(80), null);
+        expect(await service.calculerDureeAuto(76), null);
+        expect(await service.calculerDureeAuto(80), null);
       });
     });
 

@@ -21,14 +21,12 @@ class AuthService {
   Future<AuthResponse> signup({
     required String nom,
     required String email,
-    required String telephone,
     required String password,
   }) async {
     try {
       final authResponse = await _apiService.signup(
         nom: nom,
         email: email,
-        telephone: telephone,
         password: password,
       );
       return authResponse;

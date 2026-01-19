@@ -30,6 +30,7 @@ class ApiConstants {
   static const String grillesTarifaires = '/grilles-tarifaires';
   static const String productCriteres = '/criteres';
   static const String uploadAssureImages = '/profiles/devis';
+  static String produitDureeCotisation(String produitId, int age) => '/produits/$produitId/duree-cotisation?age=$age';
 
   static const Duration connectTimeout = Duration(seconds: 30);
   static const Duration receiveTimeout = Duration(seconds: 30);

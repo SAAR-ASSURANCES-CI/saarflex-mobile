@@ -111,7 +111,6 @@ class AuthViewModel extends ChangeNotifier {
   Future<bool> signup({
     required String nom,
     required String email,
-    required String telephone,
     required String password,
   }) async {
     _setLoading(true);
@@ -121,7 +120,6 @@ class AuthViewModel extends ChangeNotifier {
       final authResponse = await _authRepository.signup(
         nom: nom,
         email: email,
-        telephone: telephone,
         password: password,
       );
 
@@ -216,10 +214,26 @@ class AuthViewModel extends ChangeNotifier {
     _clearError();
 
     final previousUser = _currentUser;
+    // Préserver avatarTimestamp lors du rechargement du profil
+    final previousAvatarTimestamp = _avatarTimestamp;
 
     try {
       final user = await _profileRepository.getUserProfile();
       _currentUser = user;
+      // Si avatarTimestamp était défini, le préserver (il sera mis à jour lors de l'upload)
+      // Sinon, le réinitialiser si l'avatar a changé
+      if (previousAvatarTimestamp != null) {
+        // Vérifier si l'avatar a changé en comparant les URLs
+        final previousAvatarUrl = previousUser?.avatarUrl;
+        final newAvatarUrl = user.avatarUrl;
+        if (previousAvatarUrl != newAvatarUrl) {
+          // Avatar a changé : générer un nouveau timestamp
+          _avatarTimestamp = DateTime.now().millisecondsSinceEpoch;
+        } else {
+          // Avatar inchangé : préserver le timestamp
+          _avatarTimestamp = previousAvatarTimestamp;
+        }
+      }
       _setLoading(false);
       notifyListeners();
     } catch (e) {
@@ -235,8 +249,10 @@ class AuthViewModel extends ChangeNotifier {
         _isLoggedIn = false;
         _currentUser = null;
         _authToken = null;
+        _avatarTimestamp = null;
       } else {
         _currentUser = previousUser;
+        _avatarTimestamp = previousAvatarTimestamp;
       }
       
       _setError(errorMessage);
