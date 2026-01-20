@@ -62,8 +62,8 @@ class ProfileHeader extends StatelessWidget {
         
         final avatarUrlWithCacheBuster = avatarUrl != null 
             ? (avatarUrl.startsWith('http://') || avatarUrl.startsWith('https://'))
-                ? avatarUrl // URL complète : utiliser telle quelle
-                : '$avatarUrl?t=$cacheBuster&v=${DateTime.now().millisecondsSinceEpoch}' // URL relative : ajouter cache buster
+                ? avatarUrl
+                : '$avatarUrl?t=$cacheBuster&v=${DateTime.now().millisecondsSinceEpoch}'
             : null;
 
         return Stack(

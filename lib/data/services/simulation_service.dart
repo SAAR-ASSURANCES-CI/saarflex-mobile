@@ -522,7 +522,7 @@ class SimulationService {
         if (dureeFromApi != null) {
           return dureeFromApi;
         }
-      } catch (e, st) {
+      } catch (e) {
         if (kDebugMode) debugPrint('Auto duree calc error: $e');
       }
     }

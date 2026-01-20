@@ -132,7 +132,7 @@ class SimulationViewModel extends ChangeNotifier {
         if (_contextForAutoCalc != null) {
           try {
             await calcAutoDureeWithContext(_contextForAutoCalc!);
-          } catch (e, st) {
+          } catch (e) {
             if (kDebugMode) debugPrint('Auto duree error: $e');
           }
         }
@@ -576,7 +576,7 @@ class SimulationViewModel extends ChangeNotifier {
           _informationsAssure ??= {};
           _informationsAssure!['date_naissance'] = birthDate;
         }
-      } catch (e, st) {
+      } catch (e) {
         if (kDebugMode) debugPrint('Birth date update error: $e');
       }
     }
@@ -627,7 +627,7 @@ class SimulationViewModel extends ChangeNotifier {
       if (critereDuree.valeursString.contains(dureeString)) {
         updateCritereReponse(critereDuree.nom, dureeString);
       }
-    } catch (e, st) {
+    } catch (e) {
       if (kDebugMode) debugPrint('Duree update error: $e');
     }
   }

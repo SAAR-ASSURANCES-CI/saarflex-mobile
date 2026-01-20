@@ -217,6 +217,7 @@ class AuthViewModel extends ChangeNotifier {
     try {
       final user = await _profileRepository.getUserProfile();
       _currentUser = user;
+      
       if (previousAvatarTimestamp != null) {
         final previousAvatarUrl = previousUser?.avatarUrl;
         final newAvatarUrl = user.avatarUrl;
