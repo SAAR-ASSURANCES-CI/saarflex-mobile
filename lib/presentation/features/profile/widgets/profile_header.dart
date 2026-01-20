@@ -56,17 +56,14 @@ class ProfileHeader extends StatelessWidget {
             ? ProfileHelpers.buildImageUrl(currentUser!.avatarUrl!, ApiConstants.baseUrl)
             : null;
 
-        // Utiliser le timestamp d'avatar s'il existe, sinon utiliser updatedAt ou un timestamp actuel
         final cacheBuster = authProvider.avatarTimestamp ?? 
             currentUser?.updatedAt?.millisecondsSinceEpoch ?? 
             DateTime.now().millisecondsSinceEpoch;
-        
-        // Si l'URL est déjà complète (contient https://), ne pas ajouter de query params
-        // car le backend peut ne pas les accepter
+
         final avatarUrlWithCacheBuster = avatarUrl != null 
             ? (avatarUrl.startsWith('http://') || avatarUrl.startsWith('https://'))
-                ? avatarUrl // URL complète : utiliser telle quelle
-                : '$avatarUrl?t=$cacheBuster&v=${DateTime.now().millisecondsSinceEpoch}' // URL relative : ajouter cache buster
+                ? avatarUrl
+                : '$avatarUrl?t=$cacheBuster&v=${DateTime.now().millisecondsSinceEpoch}'
             : null;
 
         return Stack(
@@ -92,10 +89,9 @@ class ProfileHeader extends StatelessWidget {
                           }
                           return Image.network(
                             avatarUrlWithCacheBuster,
-                            key: ValueKey('avatar_${currentUser?.id}_$cacheBuster'), // Key unique pour forcer le rebuild
+                            key: ValueKey('avatar_${currentUser?.id}_$cacheBuster'), 
                             fit: BoxFit.cover,
                             headers: snapshot.data!,
-                            // Utiliser 3x pour les écrans haute densité (Retina, etc.)
                             cacheWidth: (avatarSize * 3).toInt(),
                             cacheHeight: (avatarSize * 3).toInt(),
                             loadingBuilder: (context, child, loadingProgress) {
@@ -159,7 +155,6 @@ class ProfileHeader extends StatelessWidget {
         return {'Authorization': 'Bearer $token'};
       }
     } catch (e) {
-      // Ignore errors
     }
     return {};
   }
