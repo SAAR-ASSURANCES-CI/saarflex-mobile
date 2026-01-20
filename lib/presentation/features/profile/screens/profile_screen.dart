@@ -122,10 +122,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final avatarPath = await _fileUploadService.uploadAvatar(imagePath);
       final authProvider = context.read<AuthViewModel>();
       
-      // Mettre à jour le champ avatar_path
       await authProvider.updateUserField('avatar_path', avatarPath);
       
-      // Recharger le profil pour obtenir les données à jour (notamment updatedAt)
       await authProvider.loadUserProfile();
 
       if (mounted) {
@@ -235,7 +233,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         final screenHeight = MediaQuery.of(context).size.height;
         final textScaleFactor = MediaQuery.of(context).textScaleFactor;
         
-        // Padding adaptatif
         final horizontalPadding = screenWidth < 360 
             ? 16.0 
             : screenWidth < 600 
@@ -243,14 +240,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 : (screenWidth * 0.08).clamp(20.0, 48.0);
         final verticalPadding = screenHeight < 600 ? 16.0 : 20.0;
         
-        // Espacements adaptatifs
         final headerSpacing = screenHeight < 600 ? 24.0 : 32.0;
         final buttonSpacing = screenHeight < 600 ? 20.0 : 24.0;
         final sectionSpacing = screenHeight < 600 ? 16.0 : 20.0;
         final actionsSpacing = screenHeight < 600 ? 24.0 : 32.0;
         final bottomSpacing = screenHeight < 600 ? 16.0 : 20.0;
         
-        // Taille de police AppBar adaptative
         final appBarFontSize = (20.0 / textScaleFactor).clamp(18.0, 22.0);
 
         return Scaffold(

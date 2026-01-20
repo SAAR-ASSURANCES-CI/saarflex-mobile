@@ -62,7 +62,6 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
           final textScaleFactor = MediaQuery.of(context).textScaleFactor;
           final viewInsets = MediaQuery.of(context).viewInsets;
           
-          // Padding adaptatif
           final horizontalPadding = screenWidth < 360 
               ? 16.0 
               : screenWidth < 600 
@@ -70,7 +69,6 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
                   : (screenWidth * 0.08).clamp(20.0, 48.0);
           final verticalPadding = screenHeight < 600 ? 16.0 : 20.0;
           
-          // Espacements adaptatifs
           final headerSpacing = screenHeight < 600 ? 24.0 : 32.0;
           final cardSpacing = screenHeight < 600 ? 20.0 : 24.0;
           final saveSpacing = screenHeight < 600 ? 12.0 : 16.0;

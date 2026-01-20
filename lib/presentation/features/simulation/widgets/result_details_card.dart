@@ -59,13 +59,11 @@ class _ResultDetailsCardState extends State<ResultDetailsCard> {
   }
 
   String _buildDynamicCalculationText() {
-    // Si on a les critères du produit, construire dynamiquement
     if (_criteresProduit != null && _criteresProduit!.isNotEmpty) {
       final criteresUtilisateur = widget.resultat.criteresUtilisateur;
       final periodiciteFormatee = widget.resultat.periodicitePrimeFormatee;
-      final prime = widget.resultat.primeCalculee;
+        final prime = widget.resultat.primeCalculee;
 
-      // Trier les critères par ordre
       final criteresTries = List<CritereTarification>.from(_criteresProduit!);
       criteresTries.sort((a, b) => a.ordre.compareTo(b.ordre));
 
@@ -80,13 +78,11 @@ class _ResultDetailsCardState extends State<ResultDetailsCard> {
         }
       }
 
-      // Ajouter la prime à la fin
       buffer.write('• Prime $periodiciteFormatee: ${prime.toStringAsFixed(0)} FCFA');
 
       return buffer.toString();
     }
 
-    // Sinon, utiliser l'explication par défaut si disponible
     if (widget.resultat.detailsCalcul?.explication != null) {
       return FormatHelper.formatTexteCalcul(widget.resultat.detailsCalcul!.explication);
     }
@@ -99,12 +95,9 @@ class _ResultDetailsCardState extends State<ResultDetailsCard> {
 
     String valeurStr = valeur.toString();
 
-    // Formater selon le type de critère
     if (critere.type == TypeCritere.numerique) {
-      // Si c'est un nombre, formater avec séparateurs de milliers si nécessaire
       final num? numericValue = num.tryParse(valeurStr);
       if (numericValue != null) {
-        // Vérifier si le critère nécessite un formatage monétaire
         final nomLower = critere.nom.toLowerCase();
         if (nomLower.contains('capital') || 
             nomLower.contains('montant') || 
@@ -113,7 +106,6 @@ class _ResultDetailsCardState extends State<ResultDetailsCard> {
             nomLower.contains('plafond')) {
           valeurStr = FormatHelper.formatMontant(numericValue.toDouble());
         } else {
-          // Pour les autres valeurs numériques, formater avec séparateurs
           valeurStr = numericValue.toStringAsFixed(0).replaceAllMapped(
             RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
             (Match m) => '${m[1]} ',
@@ -122,7 +114,6 @@ class _ResultDetailsCardState extends State<ResultDetailsCard> {
       }
     }
 
-    // Ajouter l'unité si disponible
     if (critere.unite != null && critere.unite!.isNotEmpty) {
       valeurStr += ' ${critere.unite}';
     }

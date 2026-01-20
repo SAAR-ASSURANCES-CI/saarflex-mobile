@@ -22,7 +22,6 @@ class SouscriptionRequest {
       'beneficiaires': beneficiaires.map((b) => b.toJson()).toList(),
     };
     
-    // Ajouter numero_telephone seulement s'il est fourni
     if (numeroTelephone != null && numeroTelephone!.trim().isNotEmpty) {
       json['numero_telephone'] = numeroTelephone!;
     }

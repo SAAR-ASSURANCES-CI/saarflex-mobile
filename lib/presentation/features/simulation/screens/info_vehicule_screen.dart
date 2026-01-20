@@ -43,7 +43,6 @@ class _InfoVehiculeScreenState extends State<InfoVehiculeScreen> {
     final simulationViewModel = context.read<SimulationViewModel>();
     final hasRequiredImages = simulationViewModel.hasTempPermisImages;
 
-    // Vérifier les champs obligatoires
     final requiredFields = [
       'marque',
       'modele',
@@ -67,7 +66,6 @@ class _InfoVehiculeScreenState extends State<InfoVehiculeScreen> {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     
-    // Padding adaptatif
     final horizontalPadding = screenWidth < 360 
         ? 16.0 
         : screenWidth < 600 
@@ -76,7 +74,6 @@ class _InfoVehiculeScreenState extends State<InfoVehiculeScreen> {
     final verticalPadding = screenHeight < 600 ? 16.0 : 24.0;
     final bottomPadding = 24.0;
     
-    // Espacements adaptatifs
     final topSpacing = screenHeight < 600 ? 10.0 : 16.0;
     final headerSpacing = screenHeight < 600 ? 24.0 : 32.0;
     final sectionSpacing = screenHeight < 600 ? 24.0 : 32.0;
@@ -251,10 +248,8 @@ class _InfoVehiculeScreenState extends State<InfoVehiculeScreen> {
         _autovalidateMode = AutovalidateMode.disabled;
       });
 
-      // Préparer les données du véhicule
       Map<String, dynamic> infosVehicule = Map.from(_formData);
       
-      // Nettoyer les valeurs vides pour les champs optionnels
       if (infosVehicule.containsKey('couleur') && 
           (infosVehicule['couleur'] == null || infosVehicule['couleur'].toString().trim().isEmpty)) {
         infosVehicule.remove('couleur');

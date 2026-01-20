@@ -111,21 +111,17 @@ final user = authProvider.currentUser;
         final screenWidth = constraints.maxWidth;
         final screenHeight = constraints.maxHeight;
         
-        // Padding adaptatif selon la taille de l'écran
         final horizontalPadding = screenWidth < 360 
             ? 16.0 
             : screenWidth < 600 
                 ? 24.0 
                 : (screenWidth * 0.1).clamp(24.0, 48.0);
         
-        // Espacements adaptatifs
         final sectionSpacing = screenHeight < 600 
             ? 24.0 
             : 32.0;
         
-        // Padding bas dynamique pour éviter que le contenu soit caché par le bouton
-        // Hauteur approximative du bouton + padding = ~100px, mais on calcule dynamiquement
-        final bottomPadding = 120.0; // Espace pour le bouton + marge
+        final bottomPadding = 120.0;
         
         return CustomScrollView(
           slivers: [

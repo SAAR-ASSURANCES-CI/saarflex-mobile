@@ -44,7 +44,7 @@ class ImageService {
             finalImagePath = jpegPath;
           }
         } catch (e) {
-
+          // ignore: empty_catches
         }
       }
 

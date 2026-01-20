@@ -15,7 +15,6 @@ class ProductDetailHeader extends StatelessWidget {
     final screenWidth = MediaQuery.of(context).size.width;
     final textScaleFactor = MediaQuery.of(context).textScaleFactor;
 
-    // Calculer la hauteur dynamique selon la longueur du nom
     final nomLength = product.nom.length;
     final baseHeight = 230.0;
     final additionalHeight = nomLength > 30 
@@ -23,7 +22,6 @@ class ProductDetailHeader extends StatelessWidget {
         : 0.0;
     final calculatedHeight = (baseHeight + additionalHeight).clamp(230.0, 320.0);
 
-    // Taille de police adaptative
     final fontSize = screenWidth < 360 
         ? (24.0 / textScaleFactor).clamp(18.0, 24.0)
         : (24.0 / textScaleFactor).clamp(20.0, 28.0);

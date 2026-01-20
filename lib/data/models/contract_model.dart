@@ -32,7 +32,6 @@ class Contract {
   });
 
   factory Contract.fromJson(Map<String, dynamic> json) {
-    // Extract product name from produit object if available
     String nomProduit = '';
     String typeProduit = '';
     if (json['produit'] is Map) {
@@ -41,7 +40,6 @@ class Contract {
       typeProduit = produit['type']?.toString() ?? produit['categorie']?.toString() ?? '';
     }
     
-    // Extract prime_mensuelle (can be String or num)
     double primeCalculee = 0.0;
     if (json['prime_mensuelle'] != null) {
       if (json['prime_mensuelle'] is String) {
@@ -51,7 +49,6 @@ class Contract {
       }
     }
     
-    // Extract franchise (can be String or num)
     double franchiseCalculee = 0.0;
     if (json['franchise'] != null) {
       if (json['franchise'] is String) {
@@ -61,7 +58,6 @@ class Contract {
       }
     }
     
-    // Extract plafond (can be String, num, or null)
     double? plafondCalcule;
     if (json['plafond'] != null) {
       if (json['plafond'] is String) {
@@ -71,7 +67,6 @@ class Contract {
       }
     }
     
-    // Count beneficiaires from the list
     int nombreBeneficiaires = 0;
     if (json['beneficiaires'] is List) {
       nombreBeneficiaires = (json['beneficiaires'] as List).length;

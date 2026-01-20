@@ -8,7 +8,6 @@ import 'package:saarciflex_app/data/models/contract_model.dart';
 import 'package:saarciflex_app/core/constants/api_constants.dart';
 import 'package:saarciflex_app/core/utils/storage_helper.dart';
 
-/// Exception personnalisée pour indiquer qu'un contrat n'est pas encore disponible
 class ContractNotAvailableException implements Exception {
   final String message;
   ContractNotAvailableException(this.message);
@@ -74,13 +73,10 @@ class ContractService {
       if (response.statusCode == 200) {
         final decodedData = json.decode(response.body);
 
-        // Handle different response structures
         List<dynamic> contractsJson;
         if (decodedData is List) {
-          // Response is directly a list
           contractsJson = decodedData;
         } else if (decodedData is Map) {
-          // Response is an object with data/contrats key
           final dataValue = decodedData['data'] ?? decodedData['contrats'];
           if (dataValue is List) {
             contractsJson = dataValue;
@@ -186,13 +182,10 @@ class ContractService {
     }
   }
 
-  /// Get the Downloads directory on the phone (accessible externally)
   Future<Directory> _getDownloadsDirectory() async {
     if (Platform.isAndroid) {
-      // For Android, use external storage Downloads directory
       final externalDir = await getExternalStorageDirectory();
       if (externalDir != null) {
-        // Navigate to Downloads folder
         final downloadsPath = path.join(
           externalDir.path.split('Android')[0],
           'Download',
@@ -203,20 +196,16 @@ class ContractService {
         }
         return directory;
       } else {
-        // Fallback to external storage root
         return await getExternalStorageDirectory() ?? 
                await getApplicationDocumentsDirectory();
       }
     } else if (Platform.isIOS) {
-      // For iOS, use Documents directory (accessible via Files app)
       return await getApplicationDocumentsDirectory();
     } else {
-      // Fallback for other platforms
       return await getApplicationDocumentsDirectory();
     }
   }
 
-  /// Download a file and save it to the phone's Downloads directory
   Future<File> _downloadAndSaveFile({
     required String url,
     required String fileName,
@@ -229,7 +218,6 @@ class ContractService {
       );
 
       if (response.statusCode == 200) {
-        // Vérifier le Content-Type - si c'est du JSON, c'est une erreur
         final contentType = response.headers['content-type']?.toLowerCase() ?? '';
         
         if (contentType.contains('application/json')) {
@@ -248,8 +236,7 @@ class ContractService {
           throw Exception(errorMessage);
         }
         
-        // Vérifier que ce n'est pas un JSON en regardant le début des données
-        if (response.bodyBytes.isNotEmpty && response.bodyBytes[0] == 123) { // 123 = '{' en ASCII
+        if (response.bodyBytes.isNotEmpty && response.bodyBytes[0] == 123) {
           final firstChars = String.fromCharCodes(response.bodyBytes.take(10));
           if (firstChars.trim().startsWith('{')) {
             String errorMessage = 'Le serveur a retourné une erreur au lieu du fichier PDF';
@@ -276,7 +263,6 @@ class ContractService {
         
         return file;
       } else {
-        // Détecter si le contrat n'est pas encore disponible
         if (response.statusCode == 404) {
           try {
             if (response.body.isNotEmpty) {
@@ -284,7 +270,6 @@ class ContractService {
               final message = errorData['message']?.toString().toLowerCase() ?? '';
               final errorText = errorData['error']?.toString().toLowerCase() ?? '';
               
-              // Vérifier si le message indique que le contrat n'est pas disponible
               if (message.contains('non disponible') ||
                   message.contains('pas encore') ||
                   message.contains('not available') ||
@@ -300,7 +285,6 @@ class ContractService {
             if (e is ContractNotAvailableException) {
               rethrow;
             }
-            // Si c'est une 404, c'est probablement que le contrat n'existe pas encore
             throw ContractNotAvailableException(
               'Ce contrat n\'est pas encore disponible. Vous recevrez un email lorsqu\'il sera prêt.'
             );
@@ -314,7 +298,6 @@ class ContractService {
             final message = errorData['message']?.toString().toLowerCase() ?? '';
             final errorText = errorData['error']?.toString().toLowerCase() ?? '';
             
-            // Vérifier d'autres cas où le contrat pourrait ne pas être disponible
             if (message.contains('non disponible') ||
                 message.contains('pas encore') ||
                 message.contains('not available') ||
@@ -401,12 +384,10 @@ class ContractService {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         
-        // Gérer différents formats de réponse
         int count = 0;
         if (data is int) {
           count = data;
         } else if (data is Map) {
-          // Essayer différentes clés possibles
           count = data['count'] ?? 
                   data['active_contracts'] ?? 
                   data['total'] ?? 
@@ -414,7 +395,6 @@ class ContractService {
                   data['data'] ??
                   0;
           
-          // Si data['data'] est un Map, chercher à l'intérieur
           if (count == 0 && data['data'] is Map) {
             final innerData = data['data'] as Map;
             count = innerData['count'] ?? 
@@ -423,7 +403,6 @@ class ContractService {
                    0;
           }
         } else if (data is String) {
-          // Si c'est une chaîne, essayer de la convertir
           count = int.tryParse(data) ?? 0;
         }
         
@@ -435,8 +414,6 @@ class ContractService {
         );
       }
     } catch (e) {
-      // En cas d'erreur, retourner 0 plutôt que de lancer une exception
-      // pour éviter de bloquer l'interface
       return 0;
     }
   }

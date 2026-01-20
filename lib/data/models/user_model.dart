@@ -97,7 +97,9 @@ class User {
           return parsedDate;
         }
 
-      } catch (e2) {}
+      } catch (e2) {
+        // ignore: empty_catches
+      }
 
       return null;
     }

@@ -24,9 +24,8 @@ class CGUContent extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(height: verticalSpacing),
-          // Titre principal
           Text(  
-            'CONDITIONS GÉNÉRALES D\'UTILISATION DE SAARCI FLEX',
+            'CONDITIONS GÉNÉRALES D\'UTILISATION DE SAARCIFLEX',
             style: GoogleFonts.poppins(
               fontSize: mainTitleFontSize,
               fontWeight: FontWeight.w700,
@@ -45,7 +44,6 @@ class CGUContent extends StatelessWidget {
             textAlign: TextAlign.center,
           ),
           SizedBox(height: sectionSpacing),
-          // Préambule
           _buildSection(
             context,
             'Préambule',
@@ -54,16 +52,14 @@ class CGUContent extends StatelessWidget {
             bodyFontSize,
           ),
           SizedBox(height: sectionSpacing),
-          // Section 1
           _buildSection(
             context,
             '1. Collecte et traitement des données personnelles',
-            'Dans le cadre de l\'utilisation de l\'application SAAR CI FLEX, SAAR Assurances Côte d\'Ivoire, en sa qualité de Responsable de traitement, est amenée à collecter, enregistrer, organiser, conserver, consulter, utiliser et, le cas échéant, communiquer des données à caractère personnel concernant les Utilisateurs.\n\nCes traitements sont effectués dans le strict respect :\n• de la loi n°2013-450 du 19 juin 2013 relative à la protection des données à caractère personnel en République de Côte d\'Ivoire ;\n• des exigences de l\'Autorité de Régulation des Télécommunications/TIC de Côte d\'Ivoire (ARTCI) ;\n• des dispositions du Code des Assurances des États membres de la CIMA et des textes réglementaires applicables au secteur des assurances ;\n• ainsi que de toute autre réglementation nationale ou communautaire en vigueur.\n\nLa présente charte de confidentialité a pour objet d\'informer l\'Utilisateur, de manière claire et transparente, des modalités de collecte, d\'utilisation, de conservation, de sécurisation et de protection de ses données personnelles. Elle est accessible à tout moment depuis l\'Application.',
+            'Dans le cadre de l\'utilisation de l\'application SAARCIFLEX, SAAR Assurances Côte d\'Ivoire, en sa qualité de Responsable de traitement, est amenée à collecter, enregistrer, organiser, conserver, consulter, utiliser et, le cas échéant, communiquer des données à caractère personnel concernant les Utilisateurs.\n\nCes traitements sont effectués dans le strict respect :\n• de la loi n°2013-450 du 19 juin 2013 relative à la protection des données à caractère personnel en République de Côte d\'Ivoire\u00A0;\n• des exigences de l\'Autorité de Régulation des Télécommunications/TIC de Côte d\'Ivoire (ARTCI)\u00A0;\n• des dispositions du Code des Assurances des États membres de la CIMA et des textes réglementaires applicables au secteur des assurances\u00A0;\n• ainsi que de toute autre réglementation nationale ou communautaire en vigueur.\n\nLa présente charte de confidentialité a pour objet d\'informer l\'Utilisateur, de manière claire et transparente, des modalités de collecte, d\'utilisation, de conservation, de sécurisation et de protection de ses données personnelles. Elle est accessible à tout moment depuis l\'Application.',
             sectionTitleFontSize,
             bodyFontSize,
           ),
           SizedBox(height: sectionSpacing),
-          // Section 2
           _buildSectionWithList(
             context,
             '2. Catégories de données collectées',
@@ -82,7 +78,6 @@ class CGUContent extends StatelessWidget {
             bodyFontSize,
           ),
           SizedBox(height: sectionSpacing),
-          // Section 3
           _buildSection(
             context,
             '3. Finalités et fondements juridiques du traitement',
@@ -91,25 +86,22 @@ class CGUContent extends StatelessWidget {
             bodyFontSize,
           ),
           SizedBox(height: sectionSpacing),
-          // Section 4
           _buildSection(
             context,
             '4. Exécution des obligations légales et réglementaires',
-            'SAAR CI est tenue de traiter certaines données afin de respecter ses obligations légales, réglementaires et professionnelles, notamment en matière de :\n• identification et connaissance de la clientèle (KYC) ;\n• lutte contre le blanchiment de capitaux le financement du terrorisme et la prolifération des armes de destruction massive (LBC/FT/FP) ;\n• déclarations obligatoires auprès des autorités de tutelle et organismes compétents ;\n• réponses aux réquisitions judiciaires, administratives ou fiscales légalement formées ;\n\nCes traitements sont réalisés sur le fondement des textes légaux et réglementaires qui s\'imposent à SAAR CI.',
+            'SAAR CI est tenue de traiter certaines données afin de respecter ses obligations légales, réglementaires et professionnelles, notamment en matière de :\n• identification et connaissance de la clientèle (KYC)\u00A0;\n• lutte contre le blanchiment de capitaux le financement du terrorisme et la prolifération des armes de destruction massive (LBC/FT/FP)\u00A0;\n• déclarations obligatoires auprès des autorités de tutelle et organismes compétents\u00A0;\n• réponses aux réquisitions judiciaires, administratives ou fiscales légalement formées\u00A0;\n\nCes traitements sont réalisés sur le fondement des textes légaux et réglementaires qui s\'imposent à SAAR CI.',
             sectionTitleFontSize,
             bodyFontSize,
           ),
           SizedBox(height: sectionSpacing),
-          // Section 5
           _buildSection(
             context,
             '5. Exécution des contrats et mesures précontractuelles',
-            'Les données sont traitées sur le fondement de l\'exécution du contrat ou de mesures précontractuelles prises à la demande de l\'Utilisateur, notamment pour :\n• la création, l\'authentification et la gestion des comptes utilisateurs sur l\'Application ;\n• L\'analyse, la souscription, la modification et la résiliation des contrats d\'assurance;\n• l\'établissement de devis, simulations et propositions commerciales ;\n• la gestion des paiements, encaissements, échéanciers ;\n• l\'analyse, l\'acceptation, le contrôle et la surveillance du risque ;\n• la gestion des prestations, indemnisations et recours ;',
+            'Les données sont traitées sur le fondement de l\'exécution du contrat ou de mesures précontractuelles prises à la demande de l\'Utilisateur, notamment pour :\n• la création, l\'authentification et la gestion des comptes utilisateurs sur l\'Application\u00A0;\n• L\'analyse, la souscription, la modification et la résiliation des contrats d\'assurance\u00A0;\n• l\'établissement de devis, simulations et propositions commerciales\u00A0;\n• la gestion des paiements, encaissements, échéanciers\u00A0;\n• l\'analyse, l\'acceptation, le contrôle et la surveillance du risque\u00A0;\n• la gestion des prestations, indemnisations et recours\u00A0;',
             sectionTitleFontSize,
             bodyFontSize,
           ),
           SizedBox(height: sectionSpacing),
-          // Section 6
           _buildSectionWithList(
             context,
             '6. Droits de l\'Utilisateur',
@@ -125,16 +117,14 @@ class CGUContent extends StatelessWidget {
             additionalText: '\nL\'Utilisateur peut exercer ses droits en adressant une demande écrite à SAAR Assurances Côte d\'Ivoire, via les coordonnées indiquées dans l\'Application ou par tout autre canal officiel de la compagnie, accompagnée d\'un justificatif d\'identité.\n\nUne réponse est apportée dans un délai maximal de trente (30) jours à compter de la réception de la demande complète.',
           ),
           SizedBox(height: sectionSpacing),
-          // Section 7
           _buildSection(
             context,
             '7. Sécurité et confidentialité des données',
-            'SAAR Assurances Côte d\'Ivoire met en œuvre l\'ensemble des mesures techniques, organisationnelles, physiques et logiques appropriées afin d\'assurer la sécurité, l\'intégrité, la disponibilité et la confidentialité des données personnelles traitées via l\'Application SAAR CI FLEX.\n\nL\'ensemble du personnel, partenaires, prestataires et sous-traitants intervenant dans le traitement des données est soumis à une obligation stricte de confidentialité et est tenu au respect des règles internes de sécurité de l\'information.',
+            'SAAR Assurances Côte d\'Ivoire met en œuvre l\'ensemble des mesures techniques, organisationnelles, physiques et logiques appropriées afin d\'assurer la sécurité, l\'intégrité, la disponibilité et la confidentialité des données personnelles traitées via l\'Application SAARCIFLEX.\n\nL\'ensemble du personnel, partenaires, prestataires et sous-traitants intervenant dans le traitement des données est soumis à une obligation stricte de confidentialité et est tenu au respect des règles internes de sécurité de l\'information.',
             sectionTitleFontSize,
             bodyFontSize,
           ),
           SizedBox(height: sectionSpacing),
-          // Section 8
           _buildSection(
             context,
             '8. Durée de conservation des données',
@@ -143,7 +133,6 @@ class CGUContent extends StatelessWidget {
             bodyFontSize,
           ),
           SizedBox(height: sectionSpacing),
-          // Section 9
           _buildSection(
             context,
             '9. Exactitude des données',
@@ -152,7 +141,6 @@ class CGUContent extends StatelessWidget {
             bodyFontSize,
           ),
           SizedBox(height: sectionSpacing),
-          // Section 10
           _buildSection(
             context,
             '10. Modification des conditions générales',
@@ -161,20 +149,26 @@ class CGUContent extends StatelessWidget {
             bodyFontSize,
           ),
           SizedBox(height: sectionSpacing),
-          // Section 11
           _buildSection(
             context,
             '11. Résiliation',
-            'L\'Utilisateur peut, à tout moment, demander la suppression ou la désactivation de son compte via les fonctionnalités prévues à cet effet dans l\'Application ou en contactant les services de SAAR Assurances Côte d\'Ivoire.\n\nSAAR Assurances Côte d\'Ivoire se réserve le droit de suspendre ou de résilier, de plein droit et sans préavis, tout compte Utilisateur en cas de :\n• non-respect des présentes Conditions Générales ;\n• utilisation frauduleuse ou abusive de l\'Application ;\n• atteinte aux droits, à la sécurité ou aux intérêts de SAAR Assurances Côte d\'Ivoire ou de tiers.\n\nLa résiliation du compte entraîne la perte de l\'accès aux services de l\'Application, sans préjudice des obligations légales ou contractuelles en cours.',
+            'L\'Utilisateur peut, à tout moment, demander la suppression ou la désactivation de son compte via les fonctionnalités prévues à cet effet dans l\'Application ou en contactant les services de SAAR Assurances Côte d\'Ivoire.\n\nSAAR Assurances Côte d\'Ivoire se réserve le droit de suspendre ou de résilier, de plein droit et sans préavis, tout compte Utilisateur en cas de :\n• non-respect des présentes Conditions Générales\u00A0;\n• utilisation frauduleuse ou abusive de l\'Application\u00A0;\n• atteinte aux droits, à la sécurité ou aux intérêts de SAAR Assurances Côte d\'Ivoire ou de tiers.\n\nLa résiliation du compte entraîne la perte de l\'accès aux services de l\'Application, sans préjudice des obligations légales ou contractuelles en cours.',
             sectionTitleFontSize,
             bodyFontSize,
           ),
           SizedBox(height: sectionSpacing),
-          // Section 12
           _buildSection(
             context,
             '12. Droit applicable et juridiction compétente',
             'Les présentes Conditions Générales sont régies et interprétées conformément au droit ivoirien.\n\nTout litige relatif à leur validité, leur interprétation, leur exécution ou leur résiliation sera soumis à la compétence des juridictions ivoiriennes territorialement compétentes, conformément aux règles en vigueur.\n\nPour toute information, question ou réclamation, l\'Utilisateur peut contacter SAAR Assurances Côte d\'Ivoire via à l\'adresse suivante : saarci@saar-assurances.com',
+            sectionTitleFontSize,
+            bodyFontSize,
+          ),
+          SizedBox(height: sectionSpacing),
+          _buildSection(
+            context,
+            '13. Consentement de l\'Utilisateur',
+            "L'Utilisateur reconnaît avoir pris connaissance de la présente Charte de confidentialité, l'avoir comprise et l'accepter sans réserve. L'utilisation de l'Application SAARCIFLEX vaut consentement exprès au traitement de ses données à caractère personnel par SAAR Assurances Côte d'Ivoire, conformément aux modalités et finalités telles qu'explicitement décrites dans la présente Charte et à la réglementation en vigueur.",
             sectionTitleFontSize,
             bodyFontSize,
           ),

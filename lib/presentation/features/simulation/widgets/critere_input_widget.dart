@@ -116,7 +116,6 @@ class _CritereInputWidgetState extends State<CritereInputWidget> {
   }
 
   Widget _buildInput() {
-    // Détection automatique : si c'est un texte qui contient "expir", traiter comme date
     final isDateField = widget.critere.type == TypeCritere.date ||
         (widget.critere.type == TypeCritere.texte &&
             (widget.critere.nom.toLowerCase().contains('expir') ||

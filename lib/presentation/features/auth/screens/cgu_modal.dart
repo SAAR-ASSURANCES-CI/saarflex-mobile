@@ -34,7 +34,6 @@ class CGUModal extends StatelessWidget {
       ),
       child: Column(
         children: [
-          // Handle bar
           Container(
             margin: const EdgeInsets.only(top: 12, bottom: 8),
             width: 40,
@@ -44,7 +43,6 @@ class CGUModal extends StatelessWidget {
               borderRadius: BorderRadius.circular(2),
             ),
           ),
-          // AppBar
           AppBar(
             backgroundColor: Colors.transparent,
             elevation: 0,
@@ -66,7 +64,6 @@ class CGUModal extends StatelessWidget {
             ),
             centerTitle: true,
           ),
-          // Content
           Expanded(
             child: SingleChildScrollView(
               child: const CGUContent(),

@@ -20,7 +20,6 @@ class ProductSimulationButton extends StatelessWidget {
     final screenWidth = MediaQuery.of(context).size.width;
     final textScaleFactor = MediaQuery.of(context).textScaleFactor;
     
-    // Taille de police adaptative
     final fontSize = (16.0 / textScaleFactor).clamp(14.0, 18.0);
     final horizontalPadding = screenWidth < 360 ? 16.0 : 24.0;
     final verticalPadding = screenWidth < 360 ? 16.0 : 24.0;

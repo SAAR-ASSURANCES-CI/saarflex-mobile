@@ -254,14 +254,12 @@ class SimulationResponse {
     final prime = _parseDouble(json['prime_calculee']);
     final periodiciteFormatee = _getPeriodiciteFormatee(periodicitePrime);
 
-    // Construire dynamiquement la liste des critères à partir de criteresUtilisateur
     final buffer = StringBuffer();
     buffer.writeln('Prime calculée sur la base des critères fournis:');
 
     final variablesCalculees = <String, dynamic>{};
 
     if (criteresUtilisateur != null && criteresUtilisateur.isNotEmpty) {
-      // Trier les clés pour un affichage cohérent
       final criteresEntries = criteresUtilisateur.entries.toList();
       criteresEntries.sort((a, b) => a.key.compareTo(b.key));
 
@@ -277,9 +275,8 @@ class SimulationResponse {
       }
     }
 
-    // Ajouter la prime à la fin
     buffer.write('• Prime $periodiciteFormatee: ${prime.toStringAsFixed(0)} FCFA');
-    variablesCalculees['prime_${periodicitePrime}'] = prime;
+    variablesCalculees['prime_$periodicitePrime'] = prime;
 
     return DetailsCalcul(
       formuleUtilisee: 'Calcul standard basé sur les tables actuarielles',
@@ -291,10 +288,8 @@ class SimulationResponse {
   static String _formatCritereValueForDetails(dynamic valeur) {
     if (valeur == null) return 'N/A';
 
-    // Si c'est un nombre, formater avec séparateurs de milliers si c'est un grand nombre
     final num? numericValue = num.tryParse(valeur.toString());
     if (numericValue != null) {
-      // Pour les nombres >= 1000, formater avec séparateurs
       if (numericValue.abs() >= 1000) {
         return numericValue.toStringAsFixed(0).replaceAllMapped(
           RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),

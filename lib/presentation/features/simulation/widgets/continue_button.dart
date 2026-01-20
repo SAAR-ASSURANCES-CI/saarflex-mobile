@@ -21,7 +21,6 @@ class ContinueButton extends StatelessWidget {
     final screenWidth = MediaQuery.of(context).size.width;
     final textScaleFactor = MediaQuery.of(context).textScaleFactor;
     
-    // Tailles adaptatives
     final buttonHeight = screenWidth < 360 ? 48.0 : 50.0;
     final fontSize = (16.0 / textScaleFactor).clamp(14.0, 18.0);
     

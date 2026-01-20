@@ -253,7 +253,6 @@ class ApiService {
   Future<AuthResponse> signup({
     required String nom,
     required String email,
-    required String telephone,
     required String password,
   }) async {
     try {
@@ -263,7 +262,6 @@ class ApiService {
         body: json.encode({
           'nom': nom,
           'email': email,
-          'telephone': telephone,
           'mot_de_passe': password,
           'type_utilisateur': 'client',
         }),
@@ -338,7 +336,20 @@ class ApiService {
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
         final data = responseData['data'] ?? responseData;
-        final avatarUrl = data['avatar_path'];
+        final avatarUrlRaw = data['avatar_url'] ?? data['avatar_path'];
+        String? avatarUrl;
+        if (avatarUrlRaw != null && avatarUrlRaw.toString().contains('localhost')) {
+          try {
+            final uri = Uri.parse(avatarUrlRaw.toString());
+            final path = uri.path;
+            final normalizedPath = path.startsWith('/') ? path.substring(1) : path;
+            avatarUrl = normalizedPath;
+          } catch (e) {
+            avatarUrl = data['avatar_path'];
+          }
+        } else {
+          avatarUrl = avatarUrlRaw;
+        }
         return User(
           id: data['id'],
           nom: data['nom'],
@@ -403,7 +414,20 @@ class ApiService {
       if (response.statusCode == 200 || response.statusCode == 201) {
         final responseData = json.decode(response.body);
         final data = responseData['data'] ?? responseData;
-        final avatarUrl = data['avatar_path'];
+        final avatarUrlRaw = data['avatar_url'] ?? data['avatar_path'];
+        String? avatarUrl;
+        if (avatarUrlRaw != null && avatarUrlRaw.toString().contains('localhost')) {
+          try {
+            final uri = Uri.parse(avatarUrlRaw.toString());
+            final path = uri.path;
+            final normalizedPath = path.startsWith('/') ? path.substring(1) : path;
+            avatarUrl = normalizedPath;
+          } catch (e) {
+            avatarUrl = data['avatar_path'];
+          }
+        } else {
+          avatarUrl = avatarUrlRaw;
+        }
 
         return User(
           id: data['id'],

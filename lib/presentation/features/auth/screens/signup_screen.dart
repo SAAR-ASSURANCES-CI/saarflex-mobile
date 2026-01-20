@@ -19,7 +19,6 @@ class _SignupScreenState extends State<SignupScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
-  final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
@@ -32,20 +31,17 @@ class _SignupScreenState extends State<SignupScreen> {
 
   final _nameFocus = FocusNode();
   final _emailFocus = FocusNode();
-  final _phoneFocus = FocusNode();
   final _passwordFocus = FocusNode();
   final _confirmPasswordFocus = FocusNode();
 
   String? _nameError;
   String? _emailError;
-  String? _phoneError;
   List<String> _passwordErrors = [];
   String? _confirmPasswordError;
   String? _generalError;
 
   final String _nameValidationKey = 'signup_name';
   final String _emailValidationKey = 'signup_email';
-  final String _phoneValidationKey = 'signup_phone';
   final String _passwordValidationKey = 'signup_password';
   final String _confirmPasswordValidationKey = 'signup_confirm_password';
 
@@ -54,7 +50,6 @@ class _SignupScreenState extends State<SignupScreen> {
     super.initState();
     _nameController.addListener(_debouncedNameValidation);
     _emailController.addListener(_debouncedEmailValidation);
-    _phoneController.addListener(_debouncedPhoneValidation);
     _passwordController.addListener(_debouncedPasswordValidation);
     _confirmPasswordController.addListener(_debouncedConfirmPasswordValidation);
   }
@@ -71,14 +66,6 @@ class _SignupScreenState extends State<SignupScreen> {
     ValidationCache.debounceValidation(
       _emailValidationKey,
       () => _validateEmailOptimized(),
-      delay: Duration(milliseconds: 400),
-    );
-  }
-
-  void _debouncedPhoneValidation() {
-    ValidationCache.debounceValidation(
-      _phoneValidationKey,
-      () => _validatePhoneOptimized(),
       delay: Duration(milliseconds: 400),
     );
   }
@@ -129,21 +116,6 @@ class _SignupScreenState extends State<SignupScreen> {
     }
   }
 
-  void _validatePhoneOptimized() {
-    if (!mounted) return;
-
-    final newPhoneError = ValidationCache.validatePhoneOptimized(
-      _phoneController.text,
-    );
-
-    if (_phoneError != newPhoneError) {
-      setState(() {
-        _phoneError = newPhoneError;
-        _updateFormValidity();
-      });
-    }
-  }
-
   void _validatePasswordOptimized() {
     if (!mounted) return;
 
@@ -188,13 +160,11 @@ class _SignupScreenState extends State<SignupScreen> {
     final newIsValid =
         _nameError == null &&
         _emailError == null &&
-        _phoneError == null &&
         _passwordErrors.isEmpty &&
         _confirmPasswordError == null &&
         _acceptTerms &&
         _nameController.text.isNotEmpty &&
         _emailController.text.isNotEmpty &&
-        _phoneController.text.isNotEmpty &&
         _passwordController.text.isNotEmpty &&
         _confirmPasswordController.text.isNotEmpty;
 
@@ -215,7 +185,6 @@ class _SignupScreenState extends State<SignupScreen> {
         final viewInsets = MediaQuery.of(context).viewInsets;
         final textScaleFactor = MediaQuery.of(context).textScaleFactor;
         
-        // Padding adaptatif
         final horizontalPadding = screenWidth < 360 
             ? 16.0 
             : screenWidth < 600 
@@ -226,7 +195,6 @@ class _SignupScreenState extends State<SignupScreen> {
             ? viewInsets.bottom + 16.0 
             : 24.0;
         
-        // Espacements adaptatifs
         final topSpacing = screenHeight < 600 ? 10.0 : 20.0;
         final headerSpacing = screenHeight < 600 ? 24.0 : 40.0;
         final fieldSpacing = screenHeight < 600 ? 16.0 : 20.0;
@@ -264,8 +232,6 @@ class _SignupScreenState extends State<SignupScreen> {
                   _buildNameField(textScaleFactor, screenWidth),
                   SizedBox(height: fieldSpacing),
                   _buildEmailField(textScaleFactor, screenWidth),
-                  SizedBox(height: fieldSpacing),
-                  _buildPhoneField(textScaleFactor, screenWidth),
                   SizedBox(height: fieldSpacing),
                   _buildPasswordField(textScaleFactor, screenWidth),
                   SizedBox(height: fieldSpacing),
@@ -390,22 +356,6 @@ class _SignupScreenState extends State<SignupScreen> {
       icon: Icons.email_outlined,
       error: _emailError,
       keyboardType: TextInputType.emailAddress,
-      textInputAction: TextInputAction.next,
-      onFieldSubmitted: (_) => _phoneFocus.requestFocus(),
-      textScaleFactor: textScaleFactor,
-      screenWidth: screenWidth,
-    );
-  }
-
-  Widget _buildPhoneField(double textScaleFactor, double screenWidth) {
-    return _buildFormField(
-      controller: _phoneController,
-      focusNode: _phoneFocus,
-      label: "Téléphone",
-      hintText: 'Votre numéro de téléphone',
-      icon: Icons.phone_outlined,
-      error: _phoneError,
-      keyboardType: TextInputType.phone,
       textInputAction: TextInputAction.next,
       onFieldSubmitted: (_) => _passwordFocus.requestFocus(),
       textScaleFactor: textScaleFactor,
@@ -744,7 +694,6 @@ class _SignupScreenState extends State<SignupScreen> {
       final success = await authProvider.signup(
         nom: _nameController.text.trim(),
         email: _emailController.text.trim(),
-        telephone: _phoneController.text.trim(),
         password: _passwordController.text,
       );
 
@@ -770,12 +719,10 @@ class _SignupScreenState extends State<SignupScreen> {
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
-    _phoneController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     _nameFocus.dispose();
     _emailFocus.dispose();
-    _phoneFocus.dispose();
     _passwordFocus.dispose();
     _confirmPasswordFocus.dispose();
     super.dispose();

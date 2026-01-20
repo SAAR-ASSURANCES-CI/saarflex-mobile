@@ -158,8 +158,6 @@ class Product {
   Color get displayColor => type.color;
   String get typeLabel => type.label;
   String get typeShortLabel => type.shortLabel;
-  
-  // Getter pour l'URL de l'icône SVG
   String? get iconUrl => iconPath;
 
   bool get hasConditions => conditionsPdf != null && conditionsPdf!.isNotEmpty;

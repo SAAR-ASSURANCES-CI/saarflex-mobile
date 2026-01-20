@@ -14,10 +14,8 @@ class ProductDescriptionSection extends StatelessWidget {
     final screenWidth = MediaQuery.of(context).size.width;
     final textScaleFactor = MediaQuery.of(context).textScaleFactor;
     
-    // Padding adaptatif
     final padding = screenWidth < 360 ? 16.0 : 20.0;
     
-    // Tailles de police adaptatives
     final titleFontSize = (18.0 / textScaleFactor).clamp(16.0, 20.0);
     final descriptionFontSize = (14.0 / textScaleFactor).clamp(12.0, 16.0);
     

@@ -1,11 +1,10 @@
 import 'dart:convert';
-import 'dart:developer' as developer;
 import 'package:http/http.dart' as http;
 import 'package:saarciflex_app/data/models/souscription_model.dart';
 import 'package:saarciflex_app/core/constants/api_constants.dart';
 import 'package:saarciflex_app/core/utils/storage_helper.dart';
 
-class souscriptionService {
+class SouscriptionService {
   String _mapMethodePaiement(String methodePaiement) {
     if (methodePaiement == 'wave') {
       return 'wallet';
@@ -34,24 +33,10 @@ class souscriptionService {
       requestBody['methode_paiement'] = _mapMethodePaiement(request.methodePaiement);
       requestBody['currency'] = request.currency;
 
-      // TODO: Retirer les logs quand le diagnostic est terminé.
-      final sanitizedHeaders = Map<String, String>.from(headers);
-      sanitizedHeaders.remove('Authorization');
-      developer.log(
-        'Souscription request\nURL: $url\nHeaders: $sanitizedHeaders\nBody: ${json.encode(requestBody)}',
-        name: 'SouscriptionService',
-      );
-
       final response = await http.post(
         url,
         headers: headers,
         body: json.encode(requestBody),
-      );
-
-      // TODO: Retirer les logs quand le diagnostic est terminé.
-      developer.log(
-        'Souscription response\nStatus: ${response.statusCode}\nBody: ${response.body}',
-        name: 'SouscriptionService',
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -64,14 +49,7 @@ class souscriptionService {
             'Erreur lors de la souscription (${response.statusCode})';
         throw Exception(errorMessage);
       }
-    } catch (e, stackTrace) {
-      // TODO: Retirer les logs quand le diagnostic est terminé.
-      developer.log(
-        'Souscription error',
-        name: 'SouscriptionService',
-        error: e,
-        stackTrace: stackTrace,
-      );
+    } catch (e) {
       throw Exception(_getUserFriendlyError(e));
     }
   }
@@ -176,7 +154,6 @@ class souscriptionService {
       return false;
     }
 
-    // Numéro de téléphone requis seulement pour mobile_money
     final mappedMethode = _mapMethodePaiement(request.methodePaiement);
     if (mappedMethode == 'mobile_money' && 
         (request.numeroTelephone == null || request.numeroTelephone!.trim().isEmpty)) {

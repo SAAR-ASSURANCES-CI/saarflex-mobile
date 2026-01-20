@@ -6,6 +6,7 @@ import 'package:saarciflex_app/core/constants/api_constants.dart';
 import 'package:saarciflex_app/core/utils/profile_helpers.dart';
 import 'package:saarciflex_app/data/models/user_model.dart';
 import 'package:saarciflex_app/presentation/features/auth/viewmodels/auth_viewmodel.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfileHeader extends StatelessWidget {
   final User? user;
@@ -54,14 +55,15 @@ class ProfileHeader extends StatelessWidget {
         final avatarUrl = currentUser?.avatarUrl != null
             ? ProfileHelpers.buildImageUrl(currentUser!.avatarUrl!, ApiConstants.baseUrl)
             : null;
-        
-        // Utiliser le timestamp d'avatar s'il existe, sinon utiliser updatedAt ou un timestamp actuel
+
         final cacheBuster = authProvider.avatarTimestamp ?? 
             currentUser?.updatedAt?.millisecondsSinceEpoch ?? 
             DateTime.now().millisecondsSinceEpoch;
         
         final avatarUrlWithCacheBuster = avatarUrl != null 
-            ? '$avatarUrl?t=$cacheBuster&v=${DateTime.now().millisecondsSinceEpoch}'
+            ? (avatarUrl.startsWith('http://') || avatarUrl.startsWith('https://'))
+                ? avatarUrl
+                : '$avatarUrl?t=$cacheBuster&v=${DateTime.now().millisecondsSinceEpoch}'
             : null;
 
         return Stack(
@@ -75,29 +77,41 @@ class ProfileHeader extends StatelessWidget {
               ),
               child: ClipOval(
                 child: hasAvatar && avatarUrlWithCacheBuster != null
-                    ? Image.network(
-                        avatarUrlWithCacheBuster,
-                        key: ValueKey('avatar_${currentUser?.id}_$cacheBuster'), // Key unique pour forcer le rebuild
-                        fit: BoxFit.cover,
-                        // Utiliser 3x pour les écrans haute densité (Retina, etc.)
-                        cacheWidth: (avatarSize * 3).toInt(),
-                        cacheHeight: (avatarSize * 3).toInt(),
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return Center(
-                            child: CircularProgressIndicator(
-                              value: loadingProgress.expectedTotalBytes != null
-                                  ? loadingProgress.cumulativeBytesLoaded /
-                                        loadingProgress.expectedTotalBytes!
-                                  : null,
-                            ),
-                          );
-                        },
-                        errorBuilder: (context, error, stackTrace) {
-                          return Icon(
+                    ? FutureBuilder<Map<String, String>>(
+                        future: _getAuthHeaders(),
+                        builder: (context, snapshot) {
+                          if (!snapshot.hasData) {
+                            return Icon(
+                              Icons.person_rounded,
+                              color: Colors.grey[600],
+                              size: iconSize,
+                            );
+                          }
+                          return Image.network(
+                            avatarUrlWithCacheBuster,
+                            key: ValueKey('avatar_${currentUser?.id}_$cacheBuster'),
+                            fit: BoxFit.cover,
+                            headers: snapshot.data!,
+                            cacheWidth: (avatarSize * 3).toInt(),
+                            cacheHeight: (avatarSize * 3).toInt(),
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return Center(
+                                child: CircularProgressIndicator(
+                                  value: loadingProgress.expectedTotalBytes != null
+                                      ? loadingProgress.cumulativeBytesLoaded /
+                                            loadingProgress.expectedTotalBytes!
+                                      : null,
+                                ),
+                              );
+                            },
+                            errorBuilder: (context, error, stackTrace) {
+                              return Icon(
                             Icons.person_rounded,
                             color: Colors.grey[600],
                             size: iconSize,
+                          );
+                            },
                           );
                         },
                       )
@@ -131,6 +145,19 @@ class ProfileHeader extends StatelessWidget {
         );
       },
     );
+  }
+
+  Future<Map<String, String>> _getAuthHeaders() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token');
+      if (token != null) {
+        return {'Authorization': 'Bearer $token'};
+      }
+    } catch (e) {
+      // ignore: empty_catches
+    }
+    return {};
   }
 
   Widget _buildUserName() {

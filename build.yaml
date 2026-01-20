@@ -1,0 +1,10 @@
+targets:
+  $default:
+    builders:
+      mockito|mockBuilder:
+        generate_for:
+          - test/mocks/**.dart
+        options:
+          # Exclure les helpers de l'analyse
+          exclude:
+            - test/helpers/**

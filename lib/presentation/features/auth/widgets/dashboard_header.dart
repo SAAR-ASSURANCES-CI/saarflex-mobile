@@ -33,7 +33,6 @@ class DashboardHeader extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Première ligne : Avatar + Boutons d'action
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -42,7 +41,6 @@ class DashboardHeader extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 16),
-            // Deuxième ligne : Texte de bienvenue
             _buildWelcomeText(),
           ],
         ),
@@ -59,7 +57,6 @@ class DashboardHeader extends StatelessWidget {
             ? ProfileHelpers.buildImageUrl(currentUser!.avatarUrl!, ApiConstants.baseUrl)
             : null;
 
-        // Utiliser le timestamp d'avatar s'il existe, sinon utiliser updatedAt ou un timestamp actuel
         final cacheBuster = authProvider.avatarTimestamp ?? 
             currentUser?.updatedAt?.millisecondsSinceEpoch ?? 
             DateTime.now().millisecondsSinceEpoch;
@@ -94,12 +91,11 @@ class DashboardHeader extends StatelessWidget {
               child: hasAvatar && avatarUrlWithCacheBuster != null
                   ? Image.network(
                       avatarUrlWithCacheBuster,
-                      key: ValueKey('dashboard_avatar_${currentUser?.id}_$cacheBuster'), // Key unique pour forcer le rebuild
+                      key: ValueKey('dashboard_avatar_${currentUser?.id}_$cacheBuster'),
                       width: 56,
                       height: 56,
                       fit: BoxFit.cover,
-                      // Utiliser 3x pour les écrans haute densité (Retina, etc.)
-                      cacheWidth: 168, // 56 * 3
+                      cacheWidth: 168,
                       cacheHeight: 168,
                       errorBuilder: (context, error, stackTrace) {
                         return _buildDefaultAvatar();

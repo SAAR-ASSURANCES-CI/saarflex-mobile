@@ -30,7 +30,6 @@ class ValidationService {
       case TypeCritere.date:
         return _validateDateCritere(critere, valeur);
       case TypeCritere.texte:
-        // Détection automatique : si c'est un texte qui contient "expir", valider comme date
         final isDateField = critere.nom.toLowerCase().contains('expir') ||
             critere.nom.toLowerCase().contains('expiration') ||
             critere.nom.toLowerCase().contains('date');
@@ -38,7 +37,6 @@ class ValidationService {
         if (isDateField) {
           return _validateDateCritere(critere, valeur);
         }
-        // Pour le texte libre normal (comme numéro de passeport), pas de validation spécifique
         return null;
     }
   }
@@ -49,11 +47,8 @@ class ValidationService {
   ) {
     String valeurString = valeur.toString();
     if (_critereNecessiteFormatage(critere)) {
-      // Pour les champs avec formatage (capital, prime, etc.), on enlève tous les séparateurs
       valeurString = valeurString.replaceAll(RegExp(r'[^\d]'), '');
     } else {
-      // Pour les autres critères numériques, on normalise la virgule en point
-      // pour accepter les deux formats (1.5 ou 1,5)
       valeurString = valeurString.replaceAll(',', '.').replaceAll(' ', '');
     }
 
@@ -116,18 +111,14 @@ class ValidationService {
   ) {
     if (valeur == null) return null;
 
-    // Si c'est déjà un DateTime, c'est valide
     if (valeur is DateTime) {
       return null;
     }
 
-    // Essayer de parser depuis une string
     if (valeur is String) {
-      // Essayer le format ISO
       DateTime? parsed = DateTime.tryParse(valeur);
       if (parsed != null) return null;
 
-      // Essayer le format DD-MM-YYYY
       final parts = valeur.split('-');
       if (parts.length == 3) {
         try {
@@ -139,11 +130,9 @@ class ValidationService {
             return null;
           }
         } catch (_) {
-          // Continue pour retourner l'erreur
         }
       }
 
-      // Essayer le format DD/MM/YYYY
       final partsSlash = valeur.split('/');
       if (partsSlash.length == 3) {
         try {
@@ -155,7 +144,6 @@ class ValidationService {
             return null;
           }
         } catch (_) {
-          // Continue pour retourner l'erreur
         }
       }
 

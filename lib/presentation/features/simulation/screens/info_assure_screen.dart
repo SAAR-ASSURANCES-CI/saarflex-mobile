@@ -61,18 +61,14 @@ class _InfoAssureScreenState extends State<InfoAssureScreen> {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     
-    // Padding adaptatif
     final horizontalPadding = screenWidth < 360 
         ? 16.0 
         : screenWidth < 600 
             ? 24.0 
             : (screenWidth * 0.08).clamp(24.0, 48.0);
     final verticalPadding = screenHeight < 600 ? 16.0 : 24.0;
-    // Padding bas : pas de padding supplémentaire quand le clavier est ouvert
-    // Flutter gère automatiquement le scroll avec resizeToAvoidBottomInset
     final bottomPadding = 24.0;
     
-    // Espacements adaptatifs
     final topSpacing = screenHeight < 600 ? 10.0 : 16.0;
     final headerSpacing = screenHeight < 600 ? 24.0 : 32.0;
     final sectionSpacing = screenHeight < 600 ? 24.0 : 32.0;
@@ -246,7 +242,6 @@ class _InfoAssureScreenState extends State<InfoAssureScreen> {
       final simulationViewModel = context.read<SimulationViewModel>();
       simulationViewModel.updateInformationsAssure(infosAEnvoyer);
 
-      // Vérifier si le produit nécessite des informations véhicule
       if (widget.produit.necessiteInformationsVehicule) {
         Navigator.pushReplacement(
           context,

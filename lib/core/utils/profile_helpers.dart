@@ -45,7 +45,7 @@ class ProfileHelpers {
         }
       }
     } catch (e) {
-
+      // ignore: empty_catches
     }
     return null;
   }
@@ -57,7 +57,8 @@ class ProfileHelpers {
           final uri = Uri.parse(imageUrl);
           final path = uri.path;
           final normalizedPath = path.startsWith('/') ? path.substring(1) : path;
-          return '$baseUrl/$normalizedPath';
+          final out = '$baseUrl/$normalizedPath';
+          return out;
         } catch (e) {
           return imageUrl;
         }
@@ -66,13 +67,13 @@ class ProfileHelpers {
     }
     
     final normalizedPath = imageUrl.startsWith('/') ? imageUrl.substring(1) : imageUrl;
-    return '$baseUrl/$normalizedPath';
+    final out = '$baseUrl/$normalizedPath';
+    return out;
   }
 
+
+
   static bool isValidImage(String? imageUrl) {
-    return imageUrl != null &&
-        imageUrl.isNotEmpty &&
-        imageUrl != 'null' &&
-        imageUrl != 'undefined';
+    return imageUrl != null && imageUrl.isNotEmpty;
   }
 }

@@ -24,14 +24,12 @@ class AuthRepository {
   Future<AuthResponse> signup({
     required String nom,
     required String email,
-    required String telephone,
     required String password,
   }) async {
     try {
       return await _authService.signup(
         nom: nom,
         email: email,
-        telephone: telephone,
         password: password,
       );
     } catch (e) {

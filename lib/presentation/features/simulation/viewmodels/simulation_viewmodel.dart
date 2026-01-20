@@ -1,9 +1,9 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:saarciflex_app/data/models/simulation_model.dart';
 import 'package:saarciflex_app/data/models/critere_tarification_model.dart';
 import 'package:saarciflex_app/data/repositories/simulation_repository.dart';
+import 'package:flutter/foundation.dart';
 import 'package:saarciflex_app/core/utils/error_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:saarciflex_app/presentation/features/auth/viewmodels/auth_viewmodel.dart';
@@ -127,14 +127,13 @@ class SimulationViewModel extends ChangeNotifier {
 
     await chargerCriteresProduit();
     
-    // Calcul automatique de la durée pour Saar Nansou après chargement des critères
     if (_isSaarNansou() && _contextForAutoCalc != null && _criteresProduit.isNotEmpty) {
-      Future.delayed(const Duration(milliseconds: 300), () {
+      Future.delayed(const Duration(milliseconds: 300), () async {
         if (_contextForAutoCalc != null) {
           try {
-            calcAutoDureeWithContext(_contextForAutoCalc!);
+            await calcAutoDureeWithContext(_contextForAutoCalc!);
           } catch (e) {
-            // Erreur silencieuse lors du calcul automatique
+            if (kDebugMode) debugPrint('Auto duree error: $e');
           }
         }
       });
@@ -539,7 +538,8 @@ class SimulationViewModel extends ChangeNotifier {
   void updateInformationsAssure(Map<String, dynamic> informations) {
     _informationsAssure = informations;
     if (_isSaarNansou() && _criteresProduit.isNotEmpty) {
-      _calcAutoDuree();
+      _calcAutoDuree().catchError((e) {
+      });
     }
     notifyListeners();
   }
@@ -549,15 +549,13 @@ class SimulationViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void calcDureeFromProfile(BuildContext context) {
-    calcAutoDureeWithContext(context);
+  Future<void> calcDureeFromProfile(BuildContext context) async {
+    await calcAutoDureeWithContext(context);
    }
 
   bool _isSaarNansou() {
-    // Vérifier d'abord par ID
     final isSaarNansouById = _simulationRepository.isSaarNansou(_produitId);
     
-    // Vérifier aussi par nom si l'ID ne correspond pas (fallback)
     if (!isSaarNansouById && _produitNom != null) {
       final nomLower = _produitNom!.toLowerCase();
       return nomLower.contains('nansou') || nomLower.contains('saar nansou');
@@ -566,11 +564,9 @@ class SimulationViewModel extends ChangeNotifier {
     return isSaarNansouById;
   }
 
-  void _calcAutoDuree([BuildContext? context]) {
+  Future<void> _calcAutoDuree([BuildContext? context]) async {
     DateTime? birthDate = _getBirthDate();
     
-    // Si pas de date dans _informationsAssure et qu'on a un contexte et que c'est le souscripteur
-    // Récupérer la date de naissance du profil utilisateur
     if (birthDate == null && context != null && _assureEstSouscripteur) {
       try {
         final authProvider = context.read<AuthViewModel>();
@@ -581,28 +577,28 @@ class SimulationViewModel extends ChangeNotifier {
           _informationsAssure!['date_naissance'] = birthDate;
         }
       } catch (e) {
-        // Erreur silencieuse lors de la récupération de la date de naissance
+        if (kDebugMode) debugPrint('Birth date update error: $e');
       }
     }
     
     if (birthDate == null) return;
     
     final age = _calculateAge(birthDate);
-    final duree = _calcDuree(age);
+    final duree = await _calcDuree(age);
     
     if (duree != null) {
       _setDuree(duree);
     }
   }
 
-  void calcAutoDureeWithContext(BuildContext context) {
+  Future<void> calcAutoDureeWithContext(BuildContext context) async {
     if (!_isSaarNansou()) {
       return;
     }
     if (_criteresProduit.isEmpty) {
       return;
     }
-    _calcAutoDuree(context);
+    await _calcAutoDuree(context);
     notifyListeners();
   }
 
@@ -611,8 +607,8 @@ class SimulationViewModel extends ChangeNotifier {
     return _simulationRepository.parseBirthDate(dateNaissance);
   }
 
-  int? _calcDuree(int age) {
-    return _simulationRepository.calculerDureeAuto(age);
+  Future<int?> _calcDuree(int age) async {
+    return await _simulationRepository.calculerDureeAuto(age, produitId: _produitId);
   }
 
   void _setDuree(int duree) {
@@ -632,7 +628,7 @@ class SimulationViewModel extends ChangeNotifier {
         updateCritereReponse(critereDuree.nom, dureeString);
       }
     } catch (e) {
-      // Erreur silencieuse lors de la sélection automatique de la durée
+      if (kDebugMode) debugPrint('Duree update error: $e');
     }
   }
 

@@ -104,7 +104,6 @@ class FileUploadService {
     } else if (extension == '.webp') {
       return MediaType('image', 'webp');
     } else {
-      // Par défaut, JPEG (pour .jpg, .jpeg)
       return MediaType('image', 'jpeg');
     }
   }
@@ -244,20 +243,16 @@ class FileUploadService {
     final responseBody = await response.stream.bytesToString();
     final responseData = json.decode(responseBody);
 
-    // Extraire le chemin/URL depuis la réponse du backend
-    // Pour les documents d'identité, le backend renvoie le chemin dans 'data.url' ou directement 'url'
     String? imagePath = responseData['data']?['url'] ?? responseData['url'];
 
     if (imagePath == null) {
       throw Exception('URL de l\'image non reçue du serveur. Réponse: $responseBody');
     }
 
-    // Construire l'URL complète si c'est un chemin relatif
     if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
       return imagePath;
     }
 
-    // C'est un chemin relatif, construire l'URL complète
     final baseUri = Uri.parse(ApiConstants.baseUrl);
     final normalizedPath = imagePath.startsWith('/') ? imagePath : '/$imagePath';
     return baseUri.resolve(normalizedPath).toString();

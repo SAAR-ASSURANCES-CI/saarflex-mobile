@@ -5,6 +5,7 @@ import 'package:saarciflex_app/core/constants/api_constants.dart';
 import 'package:saarciflex_app/data/models/critere_tarification_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
+import 'package:flutter/foundation.dart';
 import 'package:saarciflex_app/data/models/product_model.dart';
 
 class ProductService {
@@ -66,7 +67,6 @@ class ProductService {
   }
 
   Future<Product?> getProductById(String id) async {
-    // Essayer d'abord l'endpoint individuel qui peut avoir plus de détails
     try {
       final url = Uri.parse('$baseUrl/produits/$id');
       final response = await http.get(
@@ -80,11 +80,10 @@ class ProductService {
       } else if (response.statusCode == 404) {
         return null;
       }
-    } catch (e) {
-      // Fallback vers la liste si l'endpoint individuel échoue
+    } catch (e, st) {
+      if (kDebugMode) debugPrint('Get product error: $e');
     }
     
-    // Fallback: chercher dans la liste si l'endpoint individuel échoue
     final products = await fetchProductsFromApi();
     try {
       return products.firstWhere((product) => product.id == id);

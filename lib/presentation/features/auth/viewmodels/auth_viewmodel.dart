@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:saarciflex_app/data/repositories/auth_repository.dart';
 import 'package:saarciflex_app/data/repositories/profile_repository.dart';
@@ -49,13 +48,11 @@ class AuthViewModel extends ChangeNotifier {
     final existingTimestamp = prefs.getString(_initTimestampKey);
     final currentTimestamp = DateTime.now().toIso8601String();
     
-    // Ne pas forcer la déconnexion en mode debug (hot reload)
     if (_hasInitialized && existingTimestamp != null) {
       if (!kDebugMode) {
         await _forceLogoutForReload();
         return;
       }
-      // En mode debug, on continue normalement sans déconnecter
     }
     
     await prefs.setString(_initTimestampKey, currentTimestamp);
@@ -111,7 +108,6 @@ class AuthViewModel extends ChangeNotifier {
   Future<bool> signup({
     required String nom,
     required String email,
-    required String telephone,
     required String password,
   }) async {
     _setLoading(true);
@@ -121,7 +117,6 @@ class AuthViewModel extends ChangeNotifier {
       final authResponse = await _authRepository.signup(
         nom: nom,
         email: email,
-        telephone: telephone,
         password: password,
       );
 
@@ -197,6 +192,7 @@ class AuthViewModel extends ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(_initTimestampKey);
     } catch (e) {
+      // ignore: empty_catches
     }
     
     _hasInitialized = false;
@@ -216,10 +212,21 @@ class AuthViewModel extends ChangeNotifier {
     _clearError();
 
     final previousUser = _currentUser;
+    final previousAvatarTimestamp = _avatarTimestamp;
 
     try {
       final user = await _profileRepository.getUserProfile();
       _currentUser = user;
+      
+      if (previousAvatarTimestamp != null) {
+        final previousAvatarUrl = previousUser?.avatarUrl;
+        final newAvatarUrl = user.avatarUrl;
+        if (previousAvatarUrl != newAvatarUrl) {
+          _avatarTimestamp = DateTime.now().millisecondsSinceEpoch;
+        } else {
+          _avatarTimestamp = previousAvatarTimestamp;
+        }
+      }
       _setLoading(false);
       notifyListeners();
     } catch (e) {
@@ -235,8 +242,10 @@ class AuthViewModel extends ChangeNotifier {
         _isLoggedIn = false;
         _currentUser = null;
         _authToken = null;
+        _avatarTimestamp = null;
       } else {
         _currentUser = previousUser;
+        _avatarTimestamp = previousAvatarTimestamp;
       }
       
       _setError(errorMessage);
@@ -456,7 +465,6 @@ class AuthViewModel extends ChangeNotifier {
           await _profileRepository.updateProfileField(fieldName, value);
       _currentUser = updatedUser;
       
-      // Si c'est l'avatar qui est mis à jour, générer un nouveau timestamp
       if (fieldName == 'avatar_path') {
         _avatarTimestamp = DateTime.now().millisecondsSinceEpoch;
       }

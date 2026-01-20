@@ -19,7 +19,6 @@ class WelcomeScreen extends StatelessWidget {
             final screenHeight = constraints.maxHeight;
             final textScaleFactor = MediaQuery.of(context).textScaleFactor;
             
-            // Padding adaptatif
             final horizontalPadding = screenWidth < 360 
                 ? 16.0 
                 : screenWidth < 600 
@@ -29,18 +28,14 @@ class WelcomeScreen extends StatelessWidget {
                 ? 16.0 
                 : 24.0;
             
-            // Tailles adaptatives pour le logo
             final logoContainerHeight = (screenWidth * 0.6).clamp(180.0, 280.0);
             final logoSize = (screenWidth * 0.5).clamp(180.0, 250.0);
             final decorativeCircleSize = (screenWidth * 0.3).clamp(80.0, 120.0);
-            
-            // Tailles de police adaptatives
             final titleFontSize = (28.0 / textScaleFactor).clamp(22.0, 32.0);
             final subtitleFontSize = (16.0 / textScaleFactor).clamp(14.0, 18.0);
             final buttonFontSize = (16.0 / textScaleFactor).clamp(14.0, 18.0);
             final termsFontSize = (12.0 / textScaleFactor).clamp(10.0, 14.0);
             
-            // Espacements adaptatifs
             final topSpacing = screenHeight < 600 ? 10.0 : 20.0;
             final logoToTitleSpacing = screenHeight < 600 ? 24.0 : 40.0;
             final titleToSubtitleSpacing = screenHeight < 600 ? 12.0 : 16.0;
@@ -60,8 +55,6 @@ class WelcomeScreen extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       SizedBox(height: topSpacing),
-                      
-                      // Section Logo et Titre
                       Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -153,9 +146,7 @@ class WelcomeScreen extends StatelessWidget {
                         ],
                       ),
                       
-                      SizedBox(height: contentToButtonsSpacing),
-                      
-                      // Section Boutons
+                      SizedBox(height: contentToButtonsSpacing                      ),
                       Column(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [

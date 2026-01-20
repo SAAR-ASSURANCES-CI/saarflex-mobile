@@ -580,17 +580,14 @@ class _souscriptionScreenState extends State<souscriptionScreen> {
   }
 
   int _getMaxBeneficiaires() {
-    // Priorité 1: Produit passé en paramètre
     if (widget.product != null && widget.product!.maxBeneficiaires > 0) {
       return widget.product!.maxBeneficiaires;
     }
 
-    // Priorité 2: Produit chargé dynamiquement
     if (_loadedProduct != null && _loadedProduct!.maxBeneficiaires > 0) {
       return _loadedProduct!.maxBeneficiaires;
     }
 
-    // Fallback: Estimation basée sur les bénéficiaires existants
     if (widget.source == 'simulation' && widget.simulationResult != null) {
       final existingCount = widget.simulationResult!.beneficiaires.length;
       if (existingCount > 0) {
@@ -603,29 +600,24 @@ class _souscriptionScreenState extends State<souscriptionScreen> {
       }
     }
 
-    // Valeur par défaut minimale
     return 3;
   }
 
   bool _getNecessiteBeneficiaires() {
-    // Priorité 1: Produit passé en paramètre
     if (widget.product != null) {
       return widget.product!.necessiteBeneficiaires;
     }
 
-    // Priorité 2: Produit chargé dynamiquement
     if (_loadedProduct != null) {
       return _loadedProduct!.necessiteBeneficiaires;
     }
 
-    // Fallback: Si des bénéficiaires existent déjà, c'est probablement requis
     if (widget.source == 'simulation' && widget.simulationResult != null) {
       return widget.simulationResult!.beneficiaires.isNotEmpty;
     } else if (widget.source == 'saved_quote' && widget.savedQuote != null) {
       return widget.savedQuote!.beneficiaires?.isNotEmpty ?? false;
     }
 
-    // Par défaut, on assume que les bénéficiaires sont requis pour éviter les erreurs
     return true;
   }
 
