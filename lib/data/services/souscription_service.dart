@@ -4,7 +4,7 @@ import 'package:saarciflex_app/data/models/souscription_model.dart';
 import 'package:saarciflex_app/core/constants/api_constants.dart';
 import 'package:saarciflex_app/core/utils/storage_helper.dart';
 
-class souscriptionService {
+class SouscriptionService {
   String _mapMethodePaiement(String methodePaiement) {
     if (methodePaiement == 'wave') {
       return 'wallet';
@@ -154,7 +154,6 @@ class souscriptionService {
       return false;
     }
 
-    // Numéro de téléphone requis seulement pour mobile_money
     final mappedMethode = _mapMethodePaiement(request.methodePaiement);
     if (mappedMethode == 'mobile_money' && 
         (request.numeroTelephone == null || request.numeroTelephone!.trim().isEmpty)) {

@@ -2,10 +2,10 @@ import 'package:saarciflex_app/data/models/souscription_model.dart';
 import 'package:saarciflex_app/data/services/souscription_service.dart';
 
 class SouscriptionRepository {
-  final souscriptionService _souscriptionService;
+  final SouscriptionService _souscriptionService;
 
-  SouscriptionRepository({souscriptionService? service})
-      : _souscriptionService = service ?? souscriptionService();
+  SouscriptionRepository({SouscriptionService? service})
+      : _souscriptionService = service ?? SouscriptionService();
 
   Future<SouscriptionResponse> souscrire(SouscriptionRequest request) async {
     try {

@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:saarciflex_app/data/repositories/auth_repository.dart';
 import 'package:saarciflex_app/data/repositories/profile_repository.dart';
@@ -49,13 +48,11 @@ class AuthViewModel extends ChangeNotifier {
     final existingTimestamp = prefs.getString(_initTimestampKey);
     final currentTimestamp = DateTime.now().toIso8601String();
     
-    // Ne pas forcer la déconnexion en mode debug (hot reload)
     if (_hasInitialized && existingTimestamp != null) {
       if (!kDebugMode) {
         await _forceLogoutForReload();
         return;
       }
-      // En mode debug, on continue normalement sans déconnecter
     }
     
     await prefs.setString(_initTimestampKey, currentTimestamp);
@@ -195,6 +192,7 @@ class AuthViewModel extends ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(_initTimestampKey);
     } catch (e) {
+      // ignore: empty_catches
     }
     
     _hasInitialized = false;
@@ -214,23 +212,17 @@ class AuthViewModel extends ChangeNotifier {
     _clearError();
 
     final previousUser = _currentUser;
-    // Préserver avatarTimestamp lors du rechargement du profil
     final previousAvatarTimestamp = _avatarTimestamp;
 
     try {
       final user = await _profileRepository.getUserProfile();
       _currentUser = user;
-      // Si avatarTimestamp était défini, le préserver (il sera mis à jour lors de l'upload)
-      // Sinon, le réinitialiser si l'avatar a changé
       if (previousAvatarTimestamp != null) {
-        // Vérifier si l'avatar a changé en comparant les URLs
         final previousAvatarUrl = previousUser?.avatarUrl;
         final newAvatarUrl = user.avatarUrl;
         if (previousAvatarUrl != newAvatarUrl) {
-          // Avatar a changé : générer un nouveau timestamp
           _avatarTimestamp = DateTime.now().millisecondsSinceEpoch;
         } else {
-          // Avatar inchangé : préserver le timestamp
           _avatarTimestamp = previousAvatarTimestamp;
         }
       }
@@ -472,7 +464,6 @@ class AuthViewModel extends ChangeNotifier {
           await _profileRepository.updateProfileField(fieldName, value);
       _currentUser = updatedUser;
       
-      // Si c'est l'avatar qui est mis à jour, générer un nouveau timestamp
       if (fieldName == 'avatar_path') {
         _avatarTimestamp = DateTime.now().millisecondsSinceEpoch;
       }

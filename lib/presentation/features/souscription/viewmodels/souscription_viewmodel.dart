@@ -32,12 +32,10 @@ class SouscriptionViewModel extends ChangeNotifier {
   List<Beneficiaire> get beneficiaires => List.unmodifiable(_beneficiaires);
 
   bool get isFormValid {
-    // Vérifier que le devis ID et la méthode de paiement sont sélectionnés
     if (_devisId == null || _selectedMethodePaiement == null) {
       return false;
     }
     
-    // Le numéro de téléphone est obligatoire et doit être valide pour toutes les méthodes de paiement
     final trimmedPhone = _numeroTelephone.trim();
     if (trimmedPhone.isEmpty || !_isValidPhone(trimmedPhone)) {
       return false;
@@ -106,7 +104,6 @@ class SouscriptionViewModel extends ChangeNotifier {
       isValid = false;
     }
 
-    // Numéro de téléphone requis pour toutes les méthodes de paiement
     if (_numeroTelephone.trim().isEmpty) {
       _fieldErrors['numero_telephone'] =
           'Le numéro de téléphone est obligatoire';
@@ -116,7 +113,6 @@ class SouscriptionViewModel extends ChangeNotifier {
       isValid = false;
     }
 
-    // Vérifier les bénéficiaires seulement si nécessaires
     if (necessiteBeneficiaires) {
       if (_beneficiaires.isEmpty) {
         _fieldErrors['beneficiaires'] = 'Au moins un bénéficiaire est requis';

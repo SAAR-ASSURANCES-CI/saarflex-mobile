@@ -25,7 +25,6 @@ void main() {
         final service = SimulationService();
         final birthDate = DateTime(DateTime.now().year - 25, 6, 15);
         final age = service.calculerAge(birthDate);
-        // L'âge peut être 24 ou 25 selon le mois actuel
         expect(age, greaterThanOrEqualTo(24));
         expect(age, lessThanOrEqualTo(25));
       });

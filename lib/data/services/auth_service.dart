@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:saarciflex_app/data/services/api_service.dart';
 
 class AuthService {
@@ -38,7 +39,8 @@ class AuthService {
   Future<void> logout() async {
     try {
       await _apiService.logout();
-    } catch (e) {
+    } catch (e, st) {
+      if (kDebugMode) debugPrint('Logout error: $e');
     }
   }
 

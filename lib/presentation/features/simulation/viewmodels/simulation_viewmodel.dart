@@ -1,9 +1,9 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:saarciflex_app/data/models/simulation_model.dart';
 import 'package:saarciflex_app/data/models/critere_tarification_model.dart';
 import 'package:saarciflex_app/data/repositories/simulation_repository.dart';
+import 'package:flutter/foundation.dart';
 import 'package:saarciflex_app/core/utils/error_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:saarciflex_app/presentation/features/auth/viewmodels/auth_viewmodel.dart';
@@ -127,14 +127,13 @@ class SimulationViewModel extends ChangeNotifier {
 
     await chargerCriteresProduit();
     
-    // Calcul automatique de la durée pour Saar Nansou après chargement des critères
     if (_isSaarNansou() && _contextForAutoCalc != null && _criteresProduit.isNotEmpty) {
       Future.delayed(const Duration(milliseconds: 300), () async {
         if (_contextForAutoCalc != null) {
           try {
             await calcAutoDureeWithContext(_contextForAutoCalc!);
-          } catch (e) {
-            // Erreur silencieuse lors du calcul automatique
+          } catch (e, st) {
+            if (kDebugMode) debugPrint('Auto duree error: $e');
           }
         }
       });
@@ -540,7 +539,6 @@ class SimulationViewModel extends ChangeNotifier {
     _informationsAssure = informations;
     if (_isSaarNansou() && _criteresProduit.isNotEmpty) {
       _calcAutoDuree().catchError((e) {
-        // Erreur silencieuse lors du calcul automatique
       });
     }
     notifyListeners();
@@ -556,10 +554,8 @@ class SimulationViewModel extends ChangeNotifier {
    }
 
   bool _isSaarNansou() {
-    // Vérifier d'abord par ID
     final isSaarNansouById = _simulationRepository.isSaarNansou(_produitId);
     
-    // Vérifier aussi par nom si l'ID ne correspond pas (fallback)
     if (!isSaarNansouById && _produitNom != null) {
       final nomLower = _produitNom!.toLowerCase();
       return nomLower.contains('nansou') || nomLower.contains('saar nansou');
@@ -571,8 +567,6 @@ class SimulationViewModel extends ChangeNotifier {
   Future<void> _calcAutoDuree([BuildContext? context]) async {
     DateTime? birthDate = _getBirthDate();
     
-    // Si pas de date dans _informationsAssure et qu'on a un contexte et que c'est le souscripteur
-    // Récupérer la date de naissance du profil utilisateur
     if (birthDate == null && context != null && _assureEstSouscripteur) {
       try {
         final authProvider = context.read<AuthViewModel>();
@@ -582,8 +576,8 @@ class SimulationViewModel extends ChangeNotifier {
           _informationsAssure ??= {};
           _informationsAssure!['date_naissance'] = birthDate;
         }
-      } catch (e) {
-        // Erreur silencieuse lors de la récupération de la date de naissance
+      } catch (e, st) {
+        if (kDebugMode) debugPrint('Birth date update error: $e');
       }
     }
     
@@ -633,8 +627,8 @@ class SimulationViewModel extends ChangeNotifier {
       if (critereDuree.valeursString.contains(dureeString)) {
         updateCritereReponse(critereDuree.nom, dureeString);
       }
-    } catch (e) {
-      // Erreur silencieuse lors de la sélection automatique de la durée
+    } catch (e, st) {
+      if (kDebugMode) debugPrint('Duree update error: $e');
     }
   }
 

@@ -336,19 +336,15 @@ class ApiService {
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
         final data = responseData['data'] ?? responseData;
-        // Prefer avatar_url (full URL) over avatar_path (relative path) if available
-        // But if avatar_url contains localhost, extract the path and use it (localhost doesn't work on physical devices)
         final avatarUrlRaw = data['avatar_url'] ?? data['avatar_path'];
         String? avatarUrl;
         if (avatarUrlRaw != null && avatarUrlRaw.toString().contains('localhost')) {
-          // Extract path from localhost URL (e.g., "http://localhost:3004/uploads/..." -> "uploads/...")
           try {
             final uri = Uri.parse(avatarUrlRaw.toString());
             final path = uri.path;
             final normalizedPath = path.startsWith('/') ? path.substring(1) : path;
-            avatarUrl = normalizedPath; // Use relative path to build with baseUrl
+            avatarUrl = normalizedPath;
           } catch (e) {
-            // Fallback to avatar_path if parsing fails
             avatarUrl = data['avatar_path'];
           }
         } else {
@@ -418,19 +414,15 @@ class ApiService {
       if (response.statusCode == 200 || response.statusCode == 201) {
         final responseData = json.decode(response.body);
         final data = responseData['data'] ?? responseData;
-        // Prefer avatar_url (full URL) over avatar_path (relative path) if available
-        // But if avatar_url contains localhost, extract the path and use it (localhost doesn't work on physical devices)
         final avatarUrlRaw = data['avatar_url'] ?? data['avatar_path'];
         String? avatarUrl;
         if (avatarUrlRaw != null && avatarUrlRaw.toString().contains('localhost')) {
-          // Extract path from localhost URL (e.g., "http://localhost:3004/uploads/..." -> "uploads/...")
           try {
             final uri = Uri.parse(avatarUrlRaw.toString());
             final path = uri.path;
             final normalizedPath = path.startsWith('/') ? path.substring(1) : path;
-            avatarUrl = normalizedPath; // Use relative path to build with baseUrl
+            avatarUrl = normalizedPath;
           } catch (e) {
-            // Fallback to avatar_path if parsing fails
             avatarUrl = data['avatar_path'];
           }
         } else {

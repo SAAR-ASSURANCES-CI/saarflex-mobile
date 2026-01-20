@@ -1,8 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:saarciflex_app/presentation/features/auth/viewmodels/auth_viewmodel.dart';
 import 'package:saarciflex_app/data/models/user_model.dart';
-import 'package:saarciflex_app/data/services/api_service.dart';
-import '../../mocks/mocks.dart';
 
 void main() {
   late AuthViewModel viewModel;
@@ -12,7 +10,6 @@ void main() {
   });
 
   tearDown(() {
-    // Nettoyer après chaque test
   });
 
   group('AuthViewModel - États initiaux', () {
@@ -55,8 +52,6 @@ void main() {
 
   group('AuthViewModel - clearError', () {
     test('clearError nettoie le message d\'erreur', () {
-      // Note: On ne peut pas tester directement _setError car c'est privé
-      // Mais on peut tester clearError
       viewModel.clearError();
       expect(viewModel.errorMessage, isNull);
     });
@@ -103,24 +98,15 @@ void main() {
     });
   });
 
-  // Note: Les tests suivants nécessiteraient des mocks injectés dans AuthViewModel
-  // Pour l'instant, on teste la structure et les comportements de base
-  // Pour des tests complets avec mocks, il faudrait refactoriser AuthViewModel
-  // pour accepter des dépendances injectées (AuthRepository, ProfileRepository, etc.)
-
   group('AuthViewModel - Comportements (nécessitent mocks)', () {
     test('login devrait mettre isLoading à true puis false', () async {
-      // Note: Ce test échouera probablement car il nécessite une vraie connexion API
-      // ou des mocks injectés. On teste juste que la méthode existe et ne crash pas.
       try {
         final result = await viewModel.login(
           email: 'test@test.com',
           password: 'password123',
         );
-        // Le résultat dépend de la connexion réelle ou des mocks
         expect(result, isA<bool>());
       } catch (e) {
-        // Attendu si pas de connexion ou mocks
         expect(e, isNotNull);
       }
     });
@@ -144,7 +130,6 @@ void main() {
         expect(viewModel.isLoggedIn, false);
         expect(viewModel.currentUser, isNull);
       } catch (e) {
-        // Peut échouer si pas de session active
         expect(e, isNotNull);
       }
     });

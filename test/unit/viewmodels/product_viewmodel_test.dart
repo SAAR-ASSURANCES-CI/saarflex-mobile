@@ -74,7 +74,6 @@ void main() {
 
     group('loadProducts', () {
       test('met isLoading à true pendant le chargement', () {
-        // Test structurel - nécessite mocks
         expect(viewModel.isLoading, false);
       });
     });

@@ -24,7 +24,6 @@ class CGUContent extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(height: verticalSpacing),
-          // Titre principal
           Text(  
             'CONDITIONS GÉNÉRALES D\'UTILISATION DE SAARCIFLEX',
             style: GoogleFonts.poppins(
@@ -45,7 +44,6 @@ class CGUContent extends StatelessWidget {
             textAlign: TextAlign.center,
           ),
           SizedBox(height: sectionSpacing),
-          // Préambule
           _buildSection(
             context,
             'Préambule',
@@ -54,7 +52,6 @@ class CGUContent extends StatelessWidget {
             bodyFontSize,
           ),
           SizedBox(height: sectionSpacing),
-          // Section 1
           _buildSection(
             context,
             '1. Collecte et traitement des données personnelles',
@@ -63,7 +60,6 @@ class CGUContent extends StatelessWidget {
             bodyFontSize,
           ),
           SizedBox(height: sectionSpacing),
-          // Section 2
           _buildSectionWithList(
             context,
             '2. Catégories de données collectées',
@@ -82,7 +78,6 @@ class CGUContent extends StatelessWidget {
             bodyFontSize,
           ),
           SizedBox(height: sectionSpacing),
-          // Section 3
           _buildSection(
             context,
             '3. Finalités et fondements juridiques du traitement',
@@ -91,7 +86,6 @@ class CGUContent extends StatelessWidget {
             bodyFontSize,
           ),
           SizedBox(height: sectionSpacing),
-          // Section 4
           _buildSection(
             context,
             '4. Exécution des obligations légales et réglementaires',
@@ -100,7 +94,6 @@ class CGUContent extends StatelessWidget {
             bodyFontSize,
           ),
           SizedBox(height: sectionSpacing),
-          // Section 5
           _buildSection(
             context,
             '5. Exécution des contrats et mesures précontractuelles',
@@ -109,7 +102,6 @@ class CGUContent extends StatelessWidget {
             bodyFontSize,
           ),
           SizedBox(height: sectionSpacing),
-          // Section 6
           _buildSectionWithList(
             context,
             '6. Droits de l\'Utilisateur',
@@ -125,7 +117,6 @@ class CGUContent extends StatelessWidget {
             additionalText: '\nL\'Utilisateur peut exercer ses droits en adressant une demande écrite à SAAR Assurances Côte d\'Ivoire, via les coordonnées indiquées dans l\'Application ou par tout autre canal officiel de la compagnie, accompagnée d\'un justificatif d\'identité.\n\nUne réponse est apportée dans un délai maximal de trente (30) jours à compter de la réception de la demande complète.',
           ),
           SizedBox(height: sectionSpacing),
-          // Section 7
           _buildSection(
             context,
             '7. Sécurité et confidentialité des données',
@@ -134,7 +125,6 @@ class CGUContent extends StatelessWidget {
             bodyFontSize,
           ),
           SizedBox(height: sectionSpacing),
-          // Section 8
           _buildSection(
             context,
             '8. Durée de conservation des données',
@@ -143,7 +133,6 @@ class CGUContent extends StatelessWidget {
             bodyFontSize,
           ),
           SizedBox(height: sectionSpacing),
-          // Section 9
           _buildSection(
             context,
             '9. Exactitude des données',
@@ -152,7 +141,6 @@ class CGUContent extends StatelessWidget {
             bodyFontSize,
           ),
           SizedBox(height: sectionSpacing),
-          // Section 10
           _buildSection(
             context,
             '10. Modification des conditions générales',
@@ -161,7 +149,6 @@ class CGUContent extends StatelessWidget {
             bodyFontSize,
           ),
           SizedBox(height: sectionSpacing),
-          // Section 11
           _buildSection(
             context,
             '11. Résiliation',
@@ -170,7 +157,6 @@ class CGUContent extends StatelessWidget {
             bodyFontSize,
           ),
           SizedBox(height: sectionSpacing),
-          // Section 12
           _buildSection(
             context,
             '12. Droit applicable et juridiction compétente',
@@ -179,7 +165,6 @@ class CGUContent extends StatelessWidget {
             bodyFontSize,
           ),
           SizedBox(height: sectionSpacing),
-          // Section 13
           _buildSection(
             context,
             '13. Consentement de l\'Utilisateur',

@@ -624,7 +624,6 @@ class _ContractsTabState extends State<ContractsTab> {
         contract.numeroContrat,
       );
 
-      // Ouvrir le fichier
       try {
         final result = await OpenFile.open(file.path);
         
@@ -652,7 +651,6 @@ class _ContractsTabState extends State<ContractsTab> {
         );
       }
     } catch (e) {
-      // Afficher un message spécial si le contrat n'est pas encore disponible
       if (e is ContractNotAvailableException) {
         _showContractNotAvailableDialog(context);
       } else {
@@ -681,13 +679,11 @@ class _ContractsTabState extends State<ContractsTab> {
         contract.numeroContrat,
       );
 
-      // Vérifier que le fichier est bien un PDF
       if (await file.exists()) {
         final fileSize = await file.length();
         if (fileSize > 0) {
           final bytes = await file.readAsBytes();
           
-          // Un PDF commence par %PDF (0x25 0x50 0x44 0x46)
           final isPdf = bytes.length >= 4 && 
                        bytes[0] == 0x25 && // %
                        bytes[1] == 0x50 && // P
@@ -707,7 +703,6 @@ class _ContractsTabState extends State<ContractsTab> {
         }
       }
 
-      // Ouvrir le fichier
       try {
         final result = await OpenFile.open(file.path);
         
@@ -735,7 +730,6 @@ class _ContractsTabState extends State<ContractsTab> {
         );
       }
     } catch (e) {
-      // Afficher un message spécial si le contrat n'est pas encore disponible
       if (e is ContractNotAvailableException) {
         _showContractNotAvailableDialog(context);
       } else {

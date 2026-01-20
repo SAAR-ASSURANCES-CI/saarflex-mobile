@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:saarciflex_app/data/services/api_service.dart';
 
@@ -200,8 +201,8 @@ class ErrorHandler {
           duration: const Duration(seconds: 3),
         ),
       );
-    } catch (e) {
-      // Ignorer si le contexte n'est plus valide
+    } catch (e, st) {
+      if (kDebugMode) debugPrint('Error showing snackbar: $e');
     }
   }
 
@@ -216,8 +217,8 @@ class ErrorHandler {
           duration: const Duration(seconds: 2),
         ),
       );
-    } catch (e) {
-      // Ignorer si le contexte n'est plus valide
+    } catch (e, st) {
+      if (kDebugMode) debugPrint('Error showing snackbar: $e');
     }
   }
 

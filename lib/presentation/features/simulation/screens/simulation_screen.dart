@@ -11,6 +11,7 @@ import 'package:saarciflex_app/presentation/features/simulation/widgets/simulati
 import 'package:saarciflex_app/presentation/features/simulation/widgets/simulation_product_header.dart';
 import 'package:saarciflex_app/presentation/features/simulation/widgets/simulation_form_title.dart';
 import 'package:saarciflex_app/presentation/features/simulation/widgets/simulation_bottom_button.dart';
+import 'package:flutter/foundation.dart';
 import 'simulation_result_screen.dart';
 
 class SimulationScreen extends StatefulWidget {
@@ -71,7 +72,6 @@ class _SimulationScreenState extends State<SimulationScreen> {
         produitNom: widget.produit.nom,
       );
       
-      // Listener de fallback pour le calcul automatique si le calcul direct échoue
       if (_isSaarNansou(widget.produit.nom)) {
         bool _hasCalculated = false;
         void checkAndCalculate() {
@@ -140,21 +140,14 @@ class _SimulationScreenState extends State<SimulationScreen> {
     final screenHeight = MediaQuery.of(context).size.height;
     final textScaleFactor = MediaQuery.of(context).textScaleFactor;
     
-    // Padding adaptatif
     final horizontalPadding = screenWidth < 360 
         ? 16.0 
         : screenWidth < 600 
             ? 24.0 
             : (screenWidth * 0.08).clamp(24.0, 48.0);
     final verticalPadding = screenHeight < 600 ? 16.0 : 24.0;
+    final bottomPadding = 120.0;
     
-    // Padding bas dynamique pour éviter que le contenu soit caché par le bouton
-    // Hauteur approximative du bouton + padding = ~100px, mais on calcule dynamiquement
-    // Pas de padding supplémentaire quand le clavier est ouvert
-    // Flutter gère automatiquement le scroll avec resizeToAvoidBottomInset
-    final bottomPadding = 120.0; // Espace pour le bouton + marge
-    
-    // Espacements adaptatifs
     final headerSpacing = screenHeight < 600 ? 24.0 : 32.0;
     final titleSpacing = screenHeight < 600 ? 20.0 : 24.0;
     final errorSpacing = screenHeight < 600 ? 12.0 : 16.0;
@@ -284,8 +277,8 @@ class _SimulationScreenState extends State<SimulationScreen> {
           ),
         );
       }
-    } catch (e) {
-      // L'erreur est déjà gérée par le ViewModel et affichée dans l'interface
+    } catch (e, st) {
+      if (kDebugMode) debugPrint('Simulation result error: $e');
     }
   }
 }

@@ -115,7 +115,6 @@ class _LoginScreenState extends State<LoginScreen> {
         final viewInsets = MediaQuery.of(context).viewInsets;
         final textScaleFactor = MediaQuery.of(context).textScaleFactor;
         
-        // Padding adaptatif
         final horizontalPadding = screenWidth < 360 
             ? 16.0 
             : screenWidth < 600 
@@ -126,7 +125,6 @@ class _LoginScreenState extends State<LoginScreen> {
             ? viewInsets.bottom + 16.0 
             : 24.0;
         
-        // Espacements adaptatifs
         final topSpacing = screenHeight < 600 ? 10.0 : 20.0;
         final headerSpacing = screenHeight < 600 ? 24.0 : 40.0;
         final fieldSpacing = screenHeight < 600 ? 16.0 : 20.0;

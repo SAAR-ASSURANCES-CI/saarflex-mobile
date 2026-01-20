@@ -45,7 +45,7 @@ class ProfileHelpers {
         }
       }
     } catch (e) {
-
+      // ignore: empty_catches
     }
     return null;
   }

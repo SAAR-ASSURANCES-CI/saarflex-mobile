@@ -25,7 +25,6 @@ class SessionManager {
 
   void initialize() {
     if (_hasBeenInitialized) {
-      // Ne pas déconnecter en mode debug (hot reload)
       if (!kDebugMode) {
         onAppReload();
       }
@@ -61,7 +60,6 @@ class SessionManager {
   }
 
   void onAppReload() {
-    // Ne pas déconnecter en mode debug (hot reload)
     if (kDebugMode) {
       return;
     }
@@ -96,6 +94,7 @@ class SessionManager {
         await prefs.remove('auth_token');
         await prefs.remove('auth_timestamp');
       } catch (e2) {
+        // ignore: empty_catches
       }
       
       if (onLogout != null) {

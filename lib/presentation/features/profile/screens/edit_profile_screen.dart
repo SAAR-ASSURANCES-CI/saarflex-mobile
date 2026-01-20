@@ -97,7 +97,6 @@ class _EditProfileScreenRefactoredState
             final textScaleFactor = MediaQuery.of(context).textScaleFactor;
             final viewInsets = MediaQuery.of(context).viewInsets;
             
-            // Padding adaptatif
             final horizontalPadding = screenWidth < 360 
                 ? 16.0 
                 : screenWidth < 600 
@@ -105,7 +104,6 @@ class _EditProfileScreenRefactoredState
                     : (screenWidth * 0.08).clamp(20.0, 48.0);
             final verticalPadding = screenHeight < 600 ? 16.0 : 20.0;
             
-            // Espacements adaptatifs
             final headerSpacing = screenHeight < 600 ? 32.0 : 40.0;
             final sectionSpacing = screenHeight < 600 ? 24.0 : 32.0;
             final errorSpacing = screenHeight < 600 ? 16.0 : 20.0;
@@ -218,7 +216,6 @@ class _EditProfileScreenRefactoredState
   }
 
   Widget _buildProfileHeader(ProfileFormController formController, double screenWidth, double textScaleFactor) {
-    // Utiliser Consumer pour écouter les changements de AuthViewModel
     return Consumer<AuthViewModel>(
       builder: (context, authProvider, child) {
     final padding = screenWidth < 360 ? 16.0 : screenWidth < 600 ? 20.0 : 24.0;
@@ -254,7 +251,6 @@ class _EditProfileScreenRefactoredState
                   ? ProfileHelpers.buildImageUrl(currentUser!.avatarUrl!, ApiConstants.baseUrl)
                   : null;
               
-              // Utiliser le timestamp d'avatar s'il existe, sinon utiliser updatedAt ou un timestamp actuel
               final cacheBuster = authProvider.avatarTimestamp ?? 
                   currentUser?.updatedAt?.millisecondsSinceEpoch ?? 
                   DateTime.now().millisecondsSinceEpoch;
@@ -282,9 +278,8 @@ class _EditProfileScreenRefactoredState
                   child: hasAvatar && avatarUrlWithCacheBuster != null
                       ? Image.network(
                           avatarUrlWithCacheBuster,
-                          key: ValueKey('edit_avatar_${currentUser?.id}_$cacheBuster'), // Key unique pour forcer le rebuild
+                          key: ValueKey('edit_avatar_${currentUser?.id}_$cacheBuster'),
                           fit: BoxFit.cover,
-                          // Utiliser 3x pour les écrans haute densité (Retina, etc.)
                           cacheWidth: (avatarSize * 3).toInt(),
                           cacheHeight: (avatarSize * 3).toInt(),
                           errorBuilder: (context, error, stackTrace) {

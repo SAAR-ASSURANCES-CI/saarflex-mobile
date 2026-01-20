@@ -80,8 +80,6 @@ void main() {
 
       await tester.pumpAndSettle();
       
-      // Le dropdown devrait être présent (utilise DropdownButton dans un DropdownButtonHideUnderline)
-      // Vérifions d'abord le conteneur, puis le DropdownButton
       expect(find.byType(DropdownButtonHideUnderline), findsOneWidget);
       expect(find.byType(DropdownButton<String>), findsOneWidget);
     });
@@ -109,7 +107,6 @@ void main() {
 
       await tester.pumpAndSettle();
       
-      // Pour les booléens, utilise SwitchListTile, pas Checkbox
       expect(find.byType(SwitchListTile), findsOneWidget);
     });
   });

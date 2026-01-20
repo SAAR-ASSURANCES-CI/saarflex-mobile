@@ -306,7 +306,6 @@ class ProfileFormController extends ChangeNotifier {
       await authProvider.updateUserField('avatar_path', avatarPath);
       notifyListeners();
 
-      // Vérifier que le contexte est toujours valide avant d'afficher le snackbar
       if (context.mounted) {
         ErrorHandler.showSuccessSnackBar(
           context,
@@ -316,7 +315,6 @@ class ProfileFormController extends ChangeNotifier {
       
       _checkForChanges();
     } catch (e) {
-      // Vérifier que le contexte est toujours valide avant d'afficher le snackbar
       if (context.mounted) {
         ErrorHandler.showErrorSnackBar(
           context,
@@ -332,8 +330,6 @@ class ProfileFormController extends ChangeNotifier {
   Future<void> deleteAvatar(BuildContext context) async {
     try {
       final authProvider = context.read<AuthViewModel>();
-      // Le backend gère la suppression de l'avatar via un endpoint dédié
-      // Pour l'instant, on recharge simplement le profil
       await authProvider.loadUserProfile();
 
       _avatarImage = null;
@@ -566,7 +562,6 @@ class ProfileFormController extends ChangeNotifier {
           throw Exception('Échec de la mise à jour du profil');
         }
       } else if (hasUploadedImages) {
-        // Images déjà sauvegardées, on recharge juste les données
       } else {
         _hasChanges = false;
         _isLoading = false;

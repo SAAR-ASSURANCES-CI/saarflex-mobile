@@ -76,10 +76,8 @@ void main() {
 
       await tester.enterText(emailField, 'test@test.com');
       await tester.enterText(passwordField, 'password123');
-      // Attendre que les timers de debounce se terminent
       await tester.pumpAndSettle(const Duration(seconds: 1));
 
-      // Vérifions que les champs existent
       expect(emailField, findsOneWidget);
       expect(passwordField, findsOneWidget);
     });
@@ -94,8 +92,6 @@ void main() {
         ),
       );
 
-      // Le bouton d'icône pour afficher/masquer le mot de passe
-      // LoginScreen utilise Icons.visibility et Icons.visibility_off (sans _outlined)
       final visibilityIcon = find.byIcon(Icons.visibility);
       final visibilityOffIcon = find.byIcon(Icons.visibility_off);
       expect(

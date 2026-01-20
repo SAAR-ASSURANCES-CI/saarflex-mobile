@@ -2,9 +2,7 @@ import 'package:saarciflex_app/data/models/user_model.dart';
 import 'package:saarciflex_app/data/models/simulation_model.dart';
 import 'package:saarciflex_app/data/services/api_service.dart';
 
-/// Helpers pour les tests unitaires
 class TestHelpers {
-  /// Crée un utilisateur de test
   static User createTestUser({
     String? id,
     String? nom,
@@ -24,7 +22,6 @@ class TestHelpers {
     );
   }
 
-  /// Crée une réponse d'authentification de test
   static AuthResponse createTestAuthResponse({
     String? token,
     User? user,
@@ -35,7 +32,6 @@ class TestHelpers {
     );
   }
 
-  /// Crée une SimulationResponse de test
   static SimulationResponse createTestSimulationResponse({
     String? id,
     String? nomProduit,
@@ -54,7 +50,6 @@ class TestHelpers {
     );
   }
 
-  /// Crée une ApiException de test
   static ApiException createTestApiException({
     int? statusCode,
     String? message,
@@ -65,7 +60,6 @@ class TestHelpers {
     );
   }
 
-  /// Attend qu'une condition soit vraie (pour les tests async)
   static Future<void> waitForCondition(
     bool Function() condition, {
     Duration timeout = const Duration(seconds: 5),
@@ -82,7 +76,6 @@ class TestHelpers {
   }
 }
 
-/// Exception pour les timeouts de test
 class TimeoutException implements Exception {
   final String message;
   TimeoutException(this.message);

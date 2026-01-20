@@ -31,7 +31,7 @@ class ResultSaveConfirmationDialog extends StatelessWidget {
         simulationViewModel.uploadImagesAfterSave(devisId, null);
       }
     } catch (e) {
-
+      // ignore: empty_catches
     }
   }
 
@@ -40,7 +40,7 @@ class ResultSaveConfirmationDialog extends StatelessWidget {
       final simulationViewModel = context.read<SimulationViewModel>();
       simulationViewModel.clearTempImagesAfterSave();
     } catch (e) {
-
+      // ignore: empty_catches
     }
   }
 

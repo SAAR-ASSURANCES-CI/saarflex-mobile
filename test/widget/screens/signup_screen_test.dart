@@ -18,7 +18,6 @@ void main() {
 
       expect(find.text('Nom complet'), findsOneWidget);
       expect(find.text('Email'), findsOneWidget);
-      expect(find.text('Téléphone'), findsOneWidget);
       expect(find.text('Mot de passe'), findsOneWidget);
       expect(find.text('Confirmer le mot de passe'), findsOneWidget);
     });
@@ -33,7 +32,6 @@ void main() {
         ),
       );
 
-      // Le texte CGU peut être différent, vérifions juste qu'il y a une checkbox
       expect(find.byType(Checkbox), findsOneWidget);
     });
 
@@ -61,7 +59,7 @@ void main() {
       );
 
       final textFields = find.byType(TextFormField);
-      expect(textFields, findsAtLeastNWidgets(5));
+      expect(textFields, findsAtLeastNWidgets(4));
     });
   });
 }

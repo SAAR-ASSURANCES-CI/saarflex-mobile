@@ -6,9 +6,7 @@ import 'package:saarciflex_app/presentation/features/products/viewmodels/product
 import 'package:saarciflex_app/presentation/features/simulation/viewmodels/simulation_viewmodel.dart';
 import 'package:saarciflex_app/core/constants/colors.dart';
 
-/// Helpers pour les tests de widgets
 class WidgetTestHelpers {
-  /// Crée un MaterialApp avec Provider pour les tests
   static Widget createTestApp({
     required Widget child,
     AuthViewModel? authViewModel,
@@ -43,7 +41,6 @@ class WidgetTestHelpers {
     );
   }
 
-  /// Crée un MaterialApp simple sans Provider
   static Widget createSimpleTestApp(Widget child) {
     return MaterialApp(
       title: 'Test App',
@@ -56,7 +53,6 @@ class WidgetTestHelpers {
     );
   }
 
-  /// Crée un Scaffold avec MaterialApp pour les tests
   static Widget createTestScaffold({
     required Widget body,
     AppBar? appBar,
@@ -69,40 +65,33 @@ class WidgetTestHelpers {
     );
   }
 
-  /// Attend que le widget soit complètement rendu
   static Future<void> pumpAndSettle(WidgetTester tester) async {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
     await tester.pumpAndSettle();
   }
 
-  /// Trouve un widget par son type et texte
   static Finder findWidgetByText(String text) {
     return find.text(text);
   }
 
-  /// Trouve un widget par sa clé
   static Finder findWidgetByKey(Key key) {
     return find.byKey(key);
   }
 
-  /// Trouve un widget par son type
   static Finder findWidgetByType<T>() {
     return find.byType(T);
   }
 
-  /// Vérifie qu'un widget existe
   static bool widgetExists(WidgetTester tester, Finder finder) {
     return finder.evaluate().isNotEmpty;
   }
 
-  /// Tape sur un widget
   static Future<void> tapWidget(WidgetTester tester, Finder finder) async {
     await tester.tap(finder);
     await tester.pump();
   }
 
-  /// Entre du texte dans un champ
   static Future<void> enterText(
     WidgetTester tester,
     Finder finder,
@@ -112,7 +101,6 @@ class WidgetTestHelpers {
     await tester.pump();
   }
 
-  /// Fait défiler jusqu'à trouver un widget
   static Future<void> scrollUntilVisible(
     WidgetTester tester,
     Finder finder, {

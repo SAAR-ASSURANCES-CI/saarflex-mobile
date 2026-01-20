@@ -25,7 +25,6 @@ void main() {
         ),
       );
 
-      // Le screen devrait s'afficher
       expect(find.byType(SimulationScreen), findsOneWidget);
     });
 
@@ -48,8 +47,6 @@ void main() {
         ),
       );
 
-      // Le bouton peut ne pas être visible si le formulaire n'est pas initialisé
-      // Vérifions juste que l'écran s'affiche
       expect(find.byType(SimulationScreen), findsOneWidget);
     });
   });

@@ -21,10 +21,7 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  // Couleur de fond cyan/bleu très clair
   static const Color _backgroundColor = Color(0xFFE8F4F8);
-  
-  // URL de l'application web de déclaration de sinistres
   static const String _sinistresWebUrl = 'https://sinistres.saarassurancesci.com/';
 
   @override
@@ -50,26 +47,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Header simplifié
                   DashboardHeader(
                     user: authProvider.currentUser,
                     onProfil: _handleProfil,
                     onNotification: () => _showComingSoon(context),
                     onSettings: () => _showComingSoon(context),
                   ),
-                  // Contenu principal
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Carte promotionnelle avec dégradé
                         _buildPromoCard(),
                         const SizedBox(height: 24),
-                        // Section Stats
                         _buildStatsSection(),
                         const SizedBox(height: 24),
-                        // Section Actions rapides
                         _buildQuickActionsSection(),
                         const SizedBox(height: 24),
                       ],
@@ -108,7 +100,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       child: Row(
         children: [
-          // Contenu texte
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -155,7 +146,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ),
           const SizedBox(width: 12),
-          // Logo à droite
           Container(
             width: 80,
             height: 80,
@@ -184,7 +174,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     
     return Column(
       children: [
-        // Première ligne : Contrats Actifs + Sinistres
         IntrinsicHeight(
           child: Row(
             children: [
@@ -219,7 +208,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ),
         const SizedBox(height: 12),
-        // Deuxième ligne : Offres Assurance + Mes Contrats
         IntrinsicHeight(
           child: Row(
             children: [

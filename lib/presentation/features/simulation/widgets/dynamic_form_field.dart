@@ -132,7 +132,6 @@ class _DynamicFormFieldState extends State<DynamicFormField> {
   }
 
   Widget _buildField() {
-    // Détection automatique : si c'est un texte qui contient "expir", traiter comme date
     final isDateField = widget.critere.type == TypeCritere.date ||
         (widget.critere.type == TypeCritere.texte &&
             (widget.critere.nom.toLowerCase().contains('expir') ||
@@ -163,7 +162,6 @@ class _DynamicFormFieldState extends State<DynamicFormField> {
       enabled: widget.enabled,
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
       inputFormatters: [
-        // Autorise chiffres + séparateurs décimaux usuels
         FilteringTextInputFormatter.allow(RegExp(r'[0-9 ,\\.]')),
       ],
       onChanged: (value) {
@@ -251,8 +249,6 @@ class _DynamicFormFieldState extends State<DynamicFormField> {
     );
   }
 
-  // Normalise l'entrée numérique : supprime les espaces et remplace la virgule
-  // par un point pour accepter les deux séparateurs décimaux.
   String _normalizeNumericInput(String valeur) {
     return valeur
         .replaceAll(' ', '')
@@ -261,11 +257,9 @@ class _DynamicFormFieldState extends State<DynamicFormField> {
   }
 
   String _formatNombre(double valeur) {
-    // Si c'est un nombre entier, on l'affiche sans décimales
     if (valeur % 1 == 0) {
       return valeur.toStringAsFixed(0);
     }
-    // Sinon, on affiche le nombre tel quel (toString() gère déjà bien les décimales)
     return valeur.toString();
   }
 
@@ -476,10 +470,8 @@ class _DynamicFormFieldState extends State<DynamicFormField> {
     if (widget.valeur is DateTime) {
       selectedDate = widget.valeur as DateTime;
     } else if (widget.valeur is String && widget.valeur.toString().isNotEmpty) {
-      // Essayer de parser la date depuis une string
       selectedDate = DateTime.tryParse(widget.valeur.toString());
       if (selectedDate == null) {
-        // Essayer le format DD-MM-YYYY
         final parts = widget.valeur.toString().split('-');
         if (parts.length == 3) {
           try {
@@ -547,7 +539,6 @@ class _DynamicFormFieldState extends State<DynamicFormField> {
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime now = DateTime.now();
-    // Détecter si c'est une date d'expiration
     final isExpirationDate = widget.critere.nom.toLowerCase().contains('expir') ||
                              widget.critere.nom.toLowerCase().contains('expiration');
     

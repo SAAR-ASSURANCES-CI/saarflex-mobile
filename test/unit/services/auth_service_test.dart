@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:saarciflex_app/data/services/auth_service.dart';
-import 'package:saarciflex_app/data/services/api_service.dart';
 
 void main() {
   group('AuthService', () {
@@ -19,8 +18,6 @@ void main() {
 
     group('login', () {
       test('retourne une exception si email invalide', () async {
-        // Note: AuthService délègue à ApiService qui est un singleton
-        // Ce test vérifie que les erreurs sont propagées correctement
         try {
           await service.login(
             email: 'invalid-email',
@@ -29,7 +26,6 @@ void main() {
           fail('Devrait lancer une exception');
         } catch (e) {
           expect(e, isNotNull);
-          // Peut être ApiException ou autre selon la validation
         }
       });
 
@@ -51,8 +47,6 @@ void main() {
         }
       });
 
-      // Note: Les tests de succès nécessitent un serveur de test ou des mocks
-      // Pour l'instant, on teste seulement la gestion d'erreurs
     });
 
     group('signup', () {
@@ -98,12 +92,9 @@ void main() {
 
     group('logout', () {
       test('peut être appelé sans erreur même si non connecté', () async {
-        // Logout ne devrait pas lancer d'exception même si pas connecté
         try {
           await service.logout();
-          // Succès - pas d'exception
         } catch (e) {
-          // Si exception, elle devrait être gérée gracieusement
           expect(e, isNotNull);
         }
       });
@@ -116,10 +107,7 @@ void main() {
       });
 
       test('retourne false si non connecté', () async {
-        // Note: Ce test peut échouer si un token existe déjà
-        // Dans un environnement de test propre, devrait retourner false
         final result = await service.isLoggedIn();
-        // Peut être true ou false selon l'état actuel
         expect(result, isA<bool>());
       });
     });
@@ -219,16 +207,5 @@ void main() {
       });
     });
 
-    // Note: Pour des tests complets avec mocks, il faudrait:
-    // 1. Refactoriser AuthService pour accepter ApiService en injection de dépendance
-    // 2. Créer un MockApiService
-    // 3. Tester les cas de succès avec des réponses mockées
-    // 
-    // Exemple de refactoring souhaité:
-    // class AuthService {
-    //   final ApiService _apiService;
-    //   AuthService({ApiService? apiService}) 
-    //     : _apiService = apiService ?? ApiService();
-    // }
   });
 }
