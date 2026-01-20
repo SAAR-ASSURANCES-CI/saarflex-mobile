@@ -127,14 +127,12 @@ class SimulationViewModel extends ChangeNotifier {
 
     await chargerCriteresProduit();
     
-    // Calcul automatique de la durée pour Saar Nansou après chargement des critères
     if (_isSaarNansou() && _contextForAutoCalc != null && _criteresProduit.isNotEmpty) {
       Future.delayed(const Duration(milliseconds: 300), () async {
         if (_contextForAutoCalc != null) {
           try {
             await calcAutoDureeWithContext(_contextForAutoCalc!);
           } catch (e) {
-            // Erreur silencieuse lors du calcul automatique
           }
         }
       });
@@ -540,7 +538,6 @@ class SimulationViewModel extends ChangeNotifier {
     _informationsAssure = informations;
     if (_isSaarNansou() && _criteresProduit.isNotEmpty) {
       _calcAutoDuree().catchError((e) {
-        // Erreur silencieuse lors du calcul automatique
       });
     }
     notifyListeners();
@@ -556,10 +553,8 @@ class SimulationViewModel extends ChangeNotifier {
    }
 
   bool _isSaarNansou() {
-    // Vérifier d'abord par ID
     final isSaarNansouById = _simulationRepository.isSaarNansou(_produitId);
     
-    // Vérifier aussi par nom si l'ID ne correspond pas (fallback)
     if (!isSaarNansouById && _produitNom != null) {
       final nomLower = _produitNom!.toLowerCase();
       return nomLower.contains('nansou') || nomLower.contains('saar nansou');
@@ -571,8 +566,7 @@ class SimulationViewModel extends ChangeNotifier {
   Future<void> _calcAutoDuree([BuildContext? context]) async {
     DateTime? birthDate = _getBirthDate();
     
-    // Si pas de date dans _informationsAssure et qu'on a un contexte et que c'est le souscripteur
-    // Récupérer la date de naissance du profil utilisateur
+
     if (birthDate == null && context != null && _assureEstSouscripteur) {
       try {
         final authProvider = context.read<AuthViewModel>();
@@ -583,7 +577,6 @@ class SimulationViewModel extends ChangeNotifier {
           _informationsAssure!['date_naissance'] = birthDate;
         }
       } catch (e) {
-        // Erreur silencieuse lors de la récupération de la date de naissance
       }
     }
     
@@ -634,7 +627,6 @@ class SimulationViewModel extends ChangeNotifier {
         updateCritereReponse(critereDuree.nom, dureeString);
       }
     } catch (e) {
-      // Erreur silencieuse lors de la sélection automatique de la durée
     }
   }
 
