@@ -301,9 +301,14 @@ class ProfileFormController extends ChangeNotifier {
     try {
       if (_avatarImagePath == null) return;
 
-      final avatarPath = await _fileUploadService.uploadAvatar(_avatarImagePath!);
       final authProvider = context.read<AuthViewModel>();
-      await authProvider.updateUserField('avatar_path', avatarPath);
+      
+      await _fileUploadService.uploadAvatar(_avatarImagePath!);
+      authProvider.markAvatarUploaded();
+      await authProvider.loadUserProfile();
+      authProvider.forceAvatarRefresh();
+      await Future.delayed(const Duration(milliseconds: 100));
+      
       notifyListeners();
 
       if (context.mounted) {

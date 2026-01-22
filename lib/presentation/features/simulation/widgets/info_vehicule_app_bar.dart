@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 
 class InfoVehiculeAppBar extends StatelessWidget implements PreferredSizeWidget {
   const InfoVehiculeAppBar({super.key});
@@ -36,7 +36,7 @@ class InfoVehiculeAppBar extends StatelessWidget implements PreferredSizeWidget 
       ),
       title: Text(
         'Informations du véhicule',
-        style: GoogleFonts.poppins(
+        style: FontHelper.poppins(
           fontSize: titleFontSize,
           fontWeight: FontWeight.w700,
           color: Colors.white,

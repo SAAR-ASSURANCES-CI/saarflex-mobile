@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:saarciflex_app/core/constants/colors.dart';
 
 class ProductListLoadingState extends StatelessWidget {
@@ -34,7 +34,7 @@ class ProductListLoadingState extends StatelessWidget {
           SizedBox(height: spacing),
           Text(
             'Chargement des produits...',
-            style: GoogleFonts.poppins(
+            style: FontHelper.poppins(
               fontSize: fontSize,
               fontWeight: FontWeight.w500,
               color: Colors.grey.shade600,

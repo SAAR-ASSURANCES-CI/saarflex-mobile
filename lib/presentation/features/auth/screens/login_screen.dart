@@ -1,6 +1,6 @@
-import 'package:saarciflex_app/core/constants/colors.dart';
+﻿import 'package:saarciflex_app/core/constants/colors.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:provider/provider.dart';
 import 'package:saarciflex_app/presentation/features/auth/screens/reset_password_screen.dart';
 import 'package:saarciflex_app/presentation/features/auth/screens/signup_screen.dart';
@@ -196,7 +196,7 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
       title: Text(
         "Se connecter",
-        style: GoogleFonts.poppins(
+        style: FontHelper.poppins(
           fontSize: fontSize,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
@@ -245,7 +245,7 @@ class _LoginScreenState extends State<LoginScreen> {
         SizedBox(height: logoSpacing),
         Text(
           "Bon retour !",
-          style: GoogleFonts.poppins(
+          style: FontHelper.poppins(
             fontSize: titleFontSize,
             fontWeight: FontWeight.w700,
             color: AppColors.textPrimary,
@@ -254,7 +254,7 @@ class _LoginScreenState extends State<LoginScreen> {
         SizedBox(height: titleSpacing),
         Text(
           "Connectez-vous à votre compte SAAR",
-          style: GoogleFonts.poppins(
+          style: FontHelper.poppins(
             fontSize: subtitleFontSize,
             color: AppColors.textSecondary,
           ),
@@ -339,7 +339,7 @@ class _LoginScreenState extends State<LoginScreen> {
       children: [
         Text(
           label,
-          style: GoogleFonts.poppins(
+          style: FontHelper.poppins(
             fontSize: labelFontSize,
             fontWeight: FontWeight.w600,
             color: AppColors.textPrimary,
@@ -353,13 +353,13 @@ class _LoginScreenState extends State<LoginScreen> {
           keyboardType: keyboardType,
           textInputAction: textInputAction,
           onFieldSubmitted: onFieldSubmitted,
-          style: GoogleFonts.poppins(
+          style: FontHelper.poppins(
             fontSize: fieldFontSize,
             color: AppColors.textPrimary,
           ),
           decoration: InputDecoration(
             hintText: hintText,
-            hintStyle: GoogleFonts.poppins(
+            hintStyle: FontHelper.poppins(
               color: AppColors.textHint,
               fontSize: fieldFontSize,
             ),
@@ -406,7 +406,7 @@ class _LoginScreenState extends State<LoginScreen> {
               Expanded(
                 child: Text(
                   error,
-                  style: GoogleFonts.poppins(
+                  style: FontHelper.poppins(
                     color: AppColors.error,
                     fontSize: errorFontSize,
                     fontWeight: FontWeight.w500,
@@ -450,7 +450,7 @@ class _LoginScreenState extends State<LoginScreen> {
               Flexible(
                 child: Text(
                   "Se souvenir de moi",
-                  style: GoogleFonts.poppins(
+                  style: FontHelper.poppins(
                     fontSize: labelFontSize,
                     color: AppColors.textSecondary,
                   ),
@@ -479,7 +479,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             child: Text(
               "Mot de passe oublié ?",
-              style: GoogleFonts.poppins(
+              style: FontHelper.poppins(
                 fontSize: linkFontSize,
                 fontWeight: FontWeight.w600,
                 color: AppColors.primary,
@@ -526,7 +526,7 @@ class _LoginScreenState extends State<LoginScreen> {
               )
             : Text(
                 "Se connecter",
-                style: GoogleFonts.poppins(
+                style: FontHelper.poppins(
                   fontSize: buttonFontSize,
                   fontWeight: FontWeight.w600,
                 ),
@@ -546,7 +546,7 @@ class _LoginScreenState extends State<LoginScreen> {
           padding: EdgeInsets.symmetric(horizontal: dividerPadding),
           child: Text(
             "OU",
-            style: GoogleFonts.poppins(
+            style: FontHelper.poppins(
               fontSize: dividerFontSize,
               fontWeight: FontWeight.w500,
               color: AppColors.textSecondary,
@@ -582,7 +582,7 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
         child: Text(
           "Créer un compte",
-          style: GoogleFonts.poppins(
+          style: FontHelper.poppins(
             fontSize: buttonFontSize,
             fontWeight: FontWeight.w600,
             color: AppColors.primary,

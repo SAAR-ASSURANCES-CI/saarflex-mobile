@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:saarciflex_app/core/constants/colors.dart';
 
 class DropdownFieldWidget extends StatelessWidget {
@@ -45,7 +45,7 @@ class DropdownFieldWidget extends StatelessWidget {
         RichText(
           text: TextSpan(
             text: label,
-            style: GoogleFonts.poppins(
+            style: FontHelper.poppins(
               fontSize: labelFontSize,
               fontWeight: FontWeight.w500,
               color: AppColors.textPrimary,
@@ -59,7 +59,7 @@ class DropdownFieldWidget extends StatelessWidget {
               if (isModified)
                 TextSpan(
                   text: ' (modifié)',
-                  style: GoogleFonts.poppins(
+                  style: FontHelper.poppins(
                     fontSize: modifiedFontSize,
                     color: AppColors.primary,
                     fontWeight: FontWeight.w500,
@@ -97,7 +97,7 @@ class DropdownFieldWidget extends StatelessWidget {
               vertical: verticalPadding,
             ),
           ),
-          style: GoogleFonts.poppins(
+          style: FontHelper.poppins(
             fontSize: textFontSize,
             fontWeight: FontWeight.w500,
             color: AppColors.textPrimary,
@@ -117,7 +117,7 @@ class DropdownFieldWidget extends StatelessWidget {
         value: null,
         child: Text(
           hintText,
-          style: GoogleFonts.poppins(
+          style: FontHelper.poppins(
             fontSize: fontSize,
             color: AppColors.textSecondary.withOpacity(0.6),
           ),
@@ -128,7 +128,7 @@ class DropdownFieldWidget extends StatelessWidget {
           value: item,
           child: Text(
             item,
-            style: GoogleFonts.poppins(
+            style: FontHelper.poppins(
               fontSize: fontSize,
               fontWeight: FontWeight.w500,
               color: AppColors.textPrimary,

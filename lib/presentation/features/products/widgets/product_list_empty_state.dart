@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 
 class ProductListEmptyState extends StatelessWidget {
   const ProductListEmptyState({super.key});
@@ -38,7 +38,7 @@ class ProductListEmptyState extends StatelessWidget {
             SizedBox(height: spacing1),
             Text(
               'Aucun produit disponible',
-              style: GoogleFonts.poppins(
+              style: FontHelper.poppins(
                 fontSize: titleFontSize,
                 fontWeight: FontWeight.w600,
                 color: Colors.black87,
@@ -50,7 +50,7 @@ class ProductListEmptyState extends StatelessWidget {
             SizedBox(height: spacing2),
             Text(
               'Il n\'y a actuellement aucun produit d\'assurance disponible.',
-              style: GoogleFonts.poppins(
+              style: FontHelper.poppins(
                 fontSize: messageFontSize,
                 fontWeight: FontWeight.w400,
                 color: Colors.grey.shade600,

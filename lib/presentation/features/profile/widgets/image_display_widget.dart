@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:saarciflex_app/core/constants/colors.dart';
 import 'package:saarciflex_app/core/constants/api_constants.dart';
 import 'package:saarciflex_app/core/utils/profile_helpers.dart';
@@ -39,7 +39,7 @@ class ImageDisplayWidget extends StatelessWidget {
   Widget _buildImageHeader() {
     return Text(
       label,
-      style: GoogleFonts.poppins(
+      style: FontHelper.poppins(
         fontSize: 14,
         fontWeight: FontWeight.w500,
         color: AppColors.textSecondary,
@@ -103,7 +103,7 @@ class ImageDisplayWidget extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               'Image non disponible',
-              style: GoogleFonts.poppins(
+              style: FontHelper.poppins(
                 fontSize: 12,
                 color: Colors.grey[600],
                 fontWeight: FontWeight.w500,

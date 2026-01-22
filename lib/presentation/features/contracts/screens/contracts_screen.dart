@@ -1,6 +1,6 @@
-import 'package:saarciflex_app/core/constants/colors.dart';
+﻿import 'package:saarciflex_app/core/constants/colors.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:provider/provider.dart';
 import 'package:saarciflex_app/presentation/features/contracts/viewmodels/contract_viewmodel.dart';
 import 'saved_quotes_tab.dart';
@@ -96,7 +96,7 @@ class _ContractsScreenState extends State<ContractsScreen>
       ),
       title: Text(
         'Mes Contrats',
-        style: GoogleFonts.poppins(
+        style: FontHelper.poppins(
           fontSize: titleFontSize,
           fontWeight: FontWeight.w700,
           color: AppColors.white,
@@ -109,11 +109,11 @@ class _ContractsScreenState extends State<ContractsScreen>
         indicatorWeight: 3,
         labelColor: AppColors.white,
         unselectedLabelColor: AppColors.white.withOpacity(0.7),
-        labelStyle: GoogleFonts.poppins(
+        labelStyle: FontHelper.poppins(
           fontSize: tabFontSize,
           fontWeight: FontWeight.w500,
         ),
-        unselectedLabelStyle: GoogleFonts.poppins(
+        unselectedLabelStyle: FontHelper.poppins(
           fontSize: tabFontSize,
           fontWeight: FontWeight.w400,
         ),

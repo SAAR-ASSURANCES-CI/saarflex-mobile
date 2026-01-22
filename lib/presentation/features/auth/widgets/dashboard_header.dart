@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:provider/provider.dart';
 import 'package:saarciflex_app/core/constants/api_constants.dart';
 import 'package:saarciflex_app/core/utils/profile_helpers.dart';
@@ -53,8 +53,12 @@ class DashboardHeader extends StatelessWidget {
       builder: (context, authProvider, child) {
         final currentUser = authProvider.currentUser ?? user;
         final hasAvatar = ProfileHelpers.isValidImage(currentUser?.avatarUrl);
-        final avatarUrl = currentUser?.avatarUrl != null
-            ? ProfileHelpers.buildImageUrl(currentUser!.avatarUrl!, ApiConstants.baseUrl)
+        
+        final avatarUrlRaw = currentUser?.avatarUrl;
+        final avatarUrl = avatarUrlRaw != null
+            ? (avatarUrlRaw.startsWith('http://') || avatarUrlRaw.startsWith('https://'))
+                ? avatarUrlRaw
+                : ProfileHelpers.buildImageUrl(avatarUrlRaw, ApiConstants.baseUrl)
             : null;
 
         final cacheBuster = authProvider.avatarTimestamp ?? 
@@ -62,7 +66,9 @@ class DashboardHeader extends StatelessWidget {
             DateTime.now().millisecondsSinceEpoch;
         
         final avatarUrlWithCacheBuster = avatarUrl != null 
-            ? '$avatarUrl?t=$cacheBuster&v=${DateTime.now().millisecondsSinceEpoch}'
+            ? (avatarUrl.contains('?') 
+                ? '$avatarUrl&t=$cacheBuster&v=${DateTime.now().millisecondsSinceEpoch}'
+                : '$avatarUrl?t=$cacheBuster&v=${DateTime.now().millisecondsSinceEpoch}')
             : null;
 
         return Container(
@@ -139,7 +145,7 @@ class DashboardHeader extends StatelessWidget {
       children: [
         Text(
           "Bienvenue !",
-          style: GoogleFonts.poppins(
+          style: FontHelper.poppins(
             fontSize: 15,
             fontWeight: FontWeight.w500,
             color: Colors.grey[600],
@@ -148,7 +154,7 @@ class DashboardHeader extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           user?.nom ?? "Utilisateur",
-          style: GoogleFonts.poppins(
+          style: FontHelper.poppins(
             fontSize: 22,
             fontWeight: FontWeight.w700,
             color: Colors.grey[900],

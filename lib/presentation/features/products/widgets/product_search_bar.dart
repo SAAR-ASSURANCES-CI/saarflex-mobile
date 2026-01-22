@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:saarciflex_app/core/constants/colors.dart';
 
 class ProductSearchBar extends StatefulWidget {
@@ -57,7 +57,7 @@ class _ProductSearchBarState extends State<ProductSearchBar> {
         onChanged: widget.onSearch,
         decoration: InputDecoration(
           hintText: widget.hintText,
-          hintStyle: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[500]),
+          hintStyle: FontHelper.poppins(fontSize: 14, color: Colors.grey[500]),
           prefixIcon: Icon(Icons.search, color: Colors.grey[500], size: 20),
           suffixIcon: _controller.text.isNotEmpty
               ? IconButton(
@@ -84,7 +84,7 @@ class _ProductSearchBarState extends State<ProductSearchBar> {
             vertical: 12,
           ),
         ),
-        style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[800]),
+        style: FontHelper.poppins(fontSize: 14, color: Colors.grey[800]),
       ),
     );
   }
@@ -152,7 +152,7 @@ class _ProductSearchBarCompactState extends State<ProductSearchBarCompact> {
         onChanged: widget.onSearch,
         decoration: InputDecoration(
           hintText: widget.hintText,
-          hintStyle: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[500]),
+          hintStyle: FontHelper.poppins(fontSize: 12, color: Colors.grey[500]),
           prefixIcon: Icon(Icons.search, color: Colors.grey[500], size: 16),
           suffixIcon: _controller.text.isNotEmpty
               ? IconButton(
@@ -166,7 +166,7 @@ class _ProductSearchBarCompactState extends State<ProductSearchBarCompact> {
             vertical: 8,
           ),
         ),
-        style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[800]),
+        style: FontHelper.poppins(fontSize: 12, color: Colors.grey[800]),
       ),
     );
   }

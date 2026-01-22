@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 
 class ProductListAppBar extends StatelessWidget implements PreferredSizeWidget {
   const ProductListAppBar({super.key});
@@ -50,7 +50,7 @@ class ProductListAppBar extends StatelessWidget implements PreferredSizeWidget {
       ),
       title: Text(
         "Produits d'assurance",
-        style: GoogleFonts.poppins(
+        style: FontHelper.poppins(
           fontSize: titleFontSize,
           fontWeight: FontWeight.w700,
           color: Colors.white,

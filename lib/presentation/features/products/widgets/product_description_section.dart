@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:saarciflex_app/core/constants/colors.dart';
 import 'package:saarciflex_app/data/models/product_model.dart';
 import 'package:saarciflex_app/core/utils/product_formatters.dart';
@@ -38,7 +38,7 @@ class ProductDescriptionSection extends StatelessWidget {
         children: [
           Text(
             'Description',
-            style: GoogleFonts.poppins(
+            style: FontHelper.poppins(
               fontSize: titleFontSize,
               fontWeight: FontWeight.w600,
               color: AppColors.textPrimary,
@@ -51,7 +51,7 @@ class ProductDescriptionSection extends StatelessWidget {
                     product.description,
                   )
                 : 'Protection complète et personnalisée selon vos besoins.',
-            style: GoogleFonts.poppins(
+            style: FontHelper.poppins(
               fontSize: descriptionFontSize,
               fontWeight: FontWeight.w400,
               color: AppColors.textSecondary,

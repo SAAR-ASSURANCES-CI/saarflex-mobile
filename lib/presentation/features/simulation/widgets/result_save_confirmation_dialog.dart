@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:provider/provider.dart';
 import 'package:saarciflex_app/core/constants/colors.dart';
 import 'package:saarciflex_app/data/models/simulation_model.dart';
@@ -104,7 +104,7 @@ class ResultSaveConfirmationDialog extends StatelessWidget {
 
             Text(
               'Sauvegarder le devis',
-              style: GoogleFonts.poppins(
+              style: FontHelper.poppins(
                 fontSize: titleFontSize,
                 fontWeight: FontWeight.w700,
                 color: AppColors.textPrimary,
@@ -117,7 +117,7 @@ class ResultSaveConfirmationDialog extends StatelessWidget {
 
             Text(
               'Votre devis "$nomDevis" sera sauvegardé. Que souhaitez-vous faire ensuite ?',
-              style: GoogleFonts.poppins(
+              style: FontHelper.poppins(
                 fontSize: bodyFontSize,
                 fontWeight: FontWeight.w400,
                 color: AppColors.textSecondary,
@@ -155,7 +155,7 @@ class ResultSaveConfirmationDialog extends StatelessWidget {
                           SnackBar(
                             content: Text(
                               'Impossible de sauvegarder le devis',
-                              style: GoogleFonts.poppins(
+                              style: FontHelper.poppins(
                                 fontSize: (14.0 / textScaleFactor).clamp(12.0, 16.0),
                               ),
                             ),
@@ -174,7 +174,7 @@ class ResultSaveConfirmationDialog extends StatelessWidget {
                     ),
                     child: Text(
                       'Nouvelle simulation',
-                      style: GoogleFonts.poppins(
+                      style: FontHelper.poppins(
                         fontSize: buttonFontSize,
                         fontWeight: FontWeight.w600,
                       ),
@@ -209,7 +209,7 @@ class ResultSaveConfirmationDialog extends StatelessWidget {
                           SnackBar(
                             content: Text(
                               'Impossible de sauvegarder le devis',
-                              style: GoogleFonts.poppins(
+                              style: FontHelper.poppins(
                                 fontSize: (14.0 / textScaleFactor).clamp(12.0, 16.0),
                               ),
                             ),
@@ -229,7 +229,7 @@ class ResultSaveConfirmationDialog extends StatelessWidget {
                     ),
                     child: Text(
                       'Voir mes devis',
-                      style: GoogleFonts.poppins(
+                      style: FontHelper.poppins(
                         fontSize: buttonFontSize,
                         fontWeight: FontWeight.w600,
                       ),

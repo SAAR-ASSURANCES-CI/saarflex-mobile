@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:saarciflex_app/core/constants/colors.dart';
 
 class CGUContent extends StatelessWidget {
@@ -26,7 +26,7 @@ class CGUContent extends StatelessWidget {
           SizedBox(height: verticalSpacing),
           Text(  
             'CONDITIONS GÉNÉRALES D\'UTILISATION DE SAARCIFLEX',
-            style: GoogleFonts.poppins(
+            style: FontHelper.poppins(
               fontSize: mainTitleFontSize,
               fontWeight: FontWeight.w700,
               color: AppColors.primary,
@@ -36,7 +36,7 @@ class CGUContent extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             'CHARTE DE CONFIDENTIALITÉ ET DE PROTECTION DES DONNÉES À CARACTÈRE PERSONNEL',
-            style: GoogleFonts.poppins(
+            style: FontHelper.poppins(
               fontSize: subtitleFontSize,
               fontWeight: FontWeight.w600,
               color: AppColors.textPrimary,
@@ -190,7 +190,7 @@ class CGUContent extends StatelessWidget {
       children: [
         Text(
           title,
-          style: GoogleFonts.poppins(
+          style: FontHelper.poppins(
             fontSize: titleSize,
             fontWeight: FontWeight.w600,
             color: AppColors.primary,
@@ -199,7 +199,7 @@ class CGUContent extends StatelessWidget {
         const SizedBox(height: 8),
         Text(
           content,
-          style: GoogleFonts.poppins(
+          style: FontHelper.poppins(
             fontSize: bodySize,
             color: AppColors.textPrimary,
             height: 1.6,
@@ -223,7 +223,7 @@ class CGUContent extends StatelessWidget {
       children: [
         Text(
           title,
-          style: GoogleFonts.poppins(
+          style: FontHelper.poppins(
             fontSize: titleSize,
             fontWeight: FontWeight.w600,
             color: AppColors.primary,
@@ -233,7 +233,7 @@ class CGUContent extends StatelessWidget {
         if (introText.isNotEmpty) ...[
           Text(
             introText,
-            style: GoogleFonts.poppins(
+            style: FontHelper.poppins(
               fontSize: bodySize,
               color: AppColors.textPrimary,
               height: 1.6,
@@ -248,7 +248,7 @@ class CGUContent extends StatelessWidget {
                 children: [
                   Text(
                     '• ',
-                    style: GoogleFonts.poppins(
+                    style: FontHelper.poppins(
                       fontSize: bodySize,
                       color: AppColors.primary,
                       fontWeight: FontWeight.bold,
@@ -257,7 +257,7 @@ class CGUContent extends StatelessWidget {
                   Expanded(
                     child: Text(
                       item,
-                      style: GoogleFonts.poppins(
+                      style: FontHelper.poppins(
                         fontSize: bodySize,
                         color: AppColors.textPrimary,
                         height: 1.6,
@@ -271,7 +271,7 @@ class CGUContent extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             additionalText,
-            style: GoogleFonts.poppins(
+            style: FontHelper.poppins(
               fontSize: bodySize,
               color: AppColors.textPrimary,
               height: 1.6,

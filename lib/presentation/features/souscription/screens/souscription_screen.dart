@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:saarciflex_app/core/constants/colors.dart';
 import 'package:saarciflex_app/data/models/beneficiaire_model.dart';
@@ -177,7 +177,7 @@ class _souscriptionScreenState extends State<souscriptionScreen> {
       ),
       title: Text(
         'Souscription',
-        style: GoogleFonts.poppins(
+        style: FontHelper.poppins(
           fontSize: (22.0 / textScaleFactor).clamp(20.0, 26.0),
           fontWeight: FontWeight.w700,
           color: Colors.white,
@@ -235,7 +235,7 @@ class _souscriptionScreenState extends State<souscriptionScreen> {
             SizedBox(height: spacing1),
             Text(
               'Erreur',
-              style: GoogleFonts.poppins(
+              style: FontHelper.poppins(
                 fontSize: titleFontSize,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textPrimary,
@@ -246,7 +246,7 @@ class _souscriptionScreenState extends State<souscriptionScreen> {
             Text(
               error,
               textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(
+              style: FontHelper.poppins(
                 fontSize: errorFontSize,
                 color: AppColors.textSecondary,
               ),
@@ -266,7 +266,7 @@ class _souscriptionScreenState extends State<souscriptionScreen> {
               ),
               child: Text(
                 'Retour',
-                style: GoogleFonts.poppins(fontSize: buttonFontSize),
+                style: FontHelper.poppins(fontSize: buttonFontSize),
               ),
             ),
           ],
@@ -299,7 +299,7 @@ class _souscriptionScreenState extends State<souscriptionScreen> {
             SizedBox(height: spacing1),
             Text(
               'Souscription réussie !',
-              style: GoogleFonts.poppins(
+              style: FontHelper.poppins(
                 fontSize: titleFontSize,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textPrimary,
@@ -310,7 +310,7 @@ class _souscriptionScreenState extends State<souscriptionScreen> {
             Text(
               'Votre souscription a été enregistrée avec succès.',
               textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(
+              style: FontHelper.poppins(
                 fontSize: messageFontSize,
                 color: AppColors.textSecondary,
               ),
@@ -337,7 +337,7 @@ class _souscriptionScreenState extends State<souscriptionScreen> {
                 ),
                 child: Text(
                   'Retour au tableau de bord',
-                  style: GoogleFonts.poppins(fontSize: buttonFontSize),
+                  style: FontHelper.poppins(fontSize: buttonFontSize),
                   textAlign: TextAlign.center,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -472,7 +472,7 @@ class _souscriptionScreenState extends State<souscriptionScreen> {
                   )
                 : Text(
                     'Souscrire',
-                    style: GoogleFonts.poppins(
+                    style: FontHelper.poppins(
                       fontSize: fontSize,
                       fontWeight: FontWeight.w600,
                     ),
@@ -648,7 +648,7 @@ class _souscriptionScreenState extends State<souscriptionScreen> {
           Expanded(
             child: Text(
               'Chargement de la configuration du produit...',
-              style: GoogleFonts.poppins(
+              style: FontHelper.poppins(
                 fontSize: fontSize,
                 color: AppColors.textSecondary,
               ),

@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:saarciflex_app/core/constants/colors.dart';
 import 'package:saarciflex_app/data/models/product_model.dart';
 import 'package:saarciflex_app/core/utils/product_formatters.dart';
@@ -79,7 +79,7 @@ class ProductDetailHeader extends StatelessWidget {
                       ),
                       child: Text(
                         ProductFormatters.formatProductName(product.nom),
-                        style: GoogleFonts.poppins(
+                        style: FontHelper.poppins(
                           fontSize: fontSize,
                           fontWeight: FontWeight.w600,
                           color: AppColors.white,
@@ -102,7 +102,7 @@ class ProductDetailHeader extends StatelessWidget {
                       ),
                       child: Text(
                         product.type.label,
-                        style: GoogleFonts.poppins(
+                        style: FontHelper.poppins(
                           fontSize: screenWidth < 360 ? 12 : 14,
                           fontWeight: FontWeight.w500,
                           color: AppColors.white,

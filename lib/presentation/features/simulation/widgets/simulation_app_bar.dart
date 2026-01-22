@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:saarciflex_app/data/models/product_model.dart';
 
 class SimulationAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -40,7 +40,7 @@ class SimulationAppBar extends StatelessWidget implements PreferredSizeWidget {
         children: [
           Text(
             'Simulation',
-            style: GoogleFonts.poppins(
+            style: FontHelper.poppins(
               fontSize: 20,
               fontWeight: FontWeight.w700,
               color: Colors.white,
@@ -48,7 +48,7 @@ class SimulationAppBar extends StatelessWidget implements PreferredSizeWidget {
           ),
           Text(
             produit.nom,
-            style: GoogleFonts.poppins(
+            style: FontHelper.poppins(
               fontSize: 13,
               fontWeight: FontWeight.w400,
               color: Colors.white70,

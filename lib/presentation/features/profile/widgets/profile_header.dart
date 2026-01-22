@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:provider/provider.dart';
 import 'package:saarciflex_app/core/constants/colors.dart';
 import 'package:saarciflex_app/core/constants/api_constants.dart';
@@ -52,8 +52,12 @@ class ProfileHeader extends StatelessWidget {
         final avatarSize = screenWidth < 360 ? 70.0 : 80.0;
         final iconSize = screenWidth < 360 ? 35.0 : 40.0;
         final hasAvatar = ProfileHelpers.isValidImage(currentUser?.avatarUrl);
-        final avatarUrl = currentUser?.avatarUrl != null
-            ? ProfileHelpers.buildImageUrl(currentUser!.avatarUrl!, ApiConstants.baseUrl)
+        
+        final avatarUrlRaw = currentUser?.avatarUrl;
+        final avatarUrl = avatarUrlRaw != null
+            ? (avatarUrlRaw.startsWith('http://') || avatarUrlRaw.startsWith('https://'))
+                ? avatarUrlRaw
+                : ProfileHelpers.buildImageUrl(avatarUrlRaw, ApiConstants.baseUrl)
             : null;
 
         final cacheBuster = authProvider.avatarTimestamp ?? 
@@ -61,9 +65,9 @@ class ProfileHeader extends StatelessWidget {
             DateTime.now().millisecondsSinceEpoch;
         
         final avatarUrlWithCacheBuster = avatarUrl != null 
-            ? (avatarUrl.startsWith('http://') || avatarUrl.startsWith('https://'))
-                ? avatarUrl
-                : '$avatarUrl?t=$cacheBuster&v=${DateTime.now().millisecondsSinceEpoch}'
+            ? (avatarUrl.contains('?') 
+                ? '$avatarUrl&t=$cacheBuster&v=${DateTime.now().millisecondsSinceEpoch}'
+                : '$avatarUrl?t=$cacheBuster&v=${DateTime.now().millisecondsSinceEpoch}')
             : null;
 
         return Stack(
@@ -80,18 +84,13 @@ class ProfileHeader extends StatelessWidget {
                     ? FutureBuilder<Map<String, String>>(
                         future: _getAuthHeaders(),
                         builder: (context, snapshot) {
-                          if (!snapshot.hasData) {
-                            return Icon(
-                              Icons.person_rounded,
-                              color: Colors.grey[600],
-                              size: iconSize,
-                            );
-                          }
+                          final headers = snapshot.data ?? {};
+                          
                           return Image.network(
                             avatarUrlWithCacheBuster,
                             key: ValueKey('avatar_${currentUser?.id}_$cacheBuster'),
                             fit: BoxFit.cover,
-                            headers: snapshot.data!,
+                            headers: headers.isNotEmpty ? headers : null,
                             cacheWidth: (avatarSize * 3).toInt(),
                             cacheHeight: (avatarSize * 3).toInt(),
                             loadingBuilder: (context, child, loadingProgress) {
@@ -107,10 +106,10 @@ class ProfileHeader extends StatelessWidget {
                             },
                             errorBuilder: (context, error, stackTrace) {
                               return Icon(
-                            Icons.person_rounded,
-                            color: Colors.grey[600],
-                            size: iconSize,
-                          );
+                                Icons.person_rounded,
+                                color: Colors.grey[600],
+                                size: iconSize,
+                              );
                             },
                           );
                         },
@@ -165,7 +164,7 @@ class ProfileHeader extends StatelessWidget {
     
     return Text(
       user?.nom ?? "Utilisateur",
-      style: GoogleFonts.poppins(
+      style: FontHelper.poppins(
         fontSize: fontSize,
         fontWeight: FontWeight.w600,
         color: AppColors.textPrimary,
@@ -180,7 +179,7 @@ class ProfileHeader extends StatelessWidget {
     
     return Text(
       user?.email ?? "Email non renseigné",
-      style: GoogleFonts.poppins(
+      style: FontHelper.poppins(
         fontSize: fontSize,
         fontWeight: FontWeight.w400,
         color: Colors.grey[600],

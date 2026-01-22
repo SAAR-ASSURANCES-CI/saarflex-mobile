@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:saarciflex_app/core/constants/colors.dart';
 
 class ResultSuccessHeader extends StatelessWidget {
@@ -40,7 +40,7 @@ class ResultSuccessHeader extends StatelessWidget {
           SizedBox(height: spacing1),
           Text(
             'Devis calculé avec succès !',
-            style: GoogleFonts.poppins(
+            style: FontHelper.poppins(
               fontSize: titleFontSize,
               fontWeight: FontWeight.w600,
               color: AppColors.textPrimary,
@@ -52,7 +52,7 @@ class ResultSuccessHeader extends StatelessWidget {
           SizedBox(height: spacing2),
           Text(
             'Voici votre devis personnalisé',
-            style: GoogleFonts.poppins(
+            style: FontHelper.poppins(
               fontSize: subtitleFontSize,
               fontWeight: FontWeight.w400,
               color: AppColors.textSecondary,

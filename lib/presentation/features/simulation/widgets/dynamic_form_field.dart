@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:saarciflex_app/core/constants/colors.dart';
 import 'package:saarciflex_app/data/models/critere_tarification_model.dart';
 
@@ -102,7 +102,7 @@ class _DynamicFormFieldState extends State<DynamicFormField> {
   Widget _buildLabel() {
     return RichText(
       text: TextSpan(
-        style: GoogleFonts.poppins(
+        style: FontHelper.poppins(
           fontSize: 14,
           fontWeight: FontWeight.w500,
           color: AppColors.textPrimary,
@@ -112,7 +112,7 @@ class _DynamicFormFieldState extends State<DynamicFormField> {
           if (widget.critere.unite != null)
             TextSpan(
               text: ' (${widget.critere.unite})',
-              style: GoogleFonts.poppins(
+              style: FontHelper.poppins(
                 fontSize: 12,
                 fontWeight: FontWeight.w400,
                 color: AppColors.textSecondary,
@@ -121,7 +121,7 @@ class _DynamicFormFieldState extends State<DynamicFormField> {
           if (widget.critere.obligatoire)
             TextSpan(
               text: ' *',
-              style: GoogleFonts.poppins(
+              style: FontHelper.poppins(
                 color: AppColors.error,
                 fontWeight: FontWeight.w600,
               ),
@@ -196,7 +196,7 @@ class _DynamicFormFieldState extends State<DynamicFormField> {
           });
         }
       },
-      style: GoogleFonts.poppins(
+      style: FontHelper.poppins(
         fontSize: 14,
         fontWeight: FontWeight.w400,
         color: widget.enabled 
@@ -205,7 +205,7 @@ class _DynamicFormFieldState extends State<DynamicFormField> {
       ),
       decoration: InputDecoration(
         hintText: _getNumericHint(),
-        hintStyle: GoogleFonts.poppins(
+        hintStyle: FontHelper.poppins(
           fontSize: 14,
           fontWeight: FontWeight.w400,
           color: AppColors.textSecondary,
@@ -284,7 +284,7 @@ class _DynamicFormFieldState extends State<DynamicFormField> {
             padding: const EdgeInsets.symmetric(horizontal: 0),
             child: Text(
               'Sélectionnez ${widget.critere.nom.toLowerCase()}',
-              style: GoogleFonts.poppins(
+              style: FontHelper.poppins(
                 fontSize: 14,
                 fontWeight: FontWeight.w400,
                 color: widget.enabled 
@@ -301,7 +301,7 @@ class _DynamicFormFieldState extends State<DynamicFormField> {
                 ? AppColors.textSecondary 
                 : AppColors.textSecondary.withOpacity(0.5),
           ),
-          style: GoogleFonts.poppins(
+          style: FontHelper.poppins(
             fontSize: 14,
             fontWeight: FontWeight.w400,
             color: widget.enabled 
@@ -322,7 +322,7 @@ class _DynamicFormFieldState extends State<DynamicFormField> {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Text(
                   displayedValue,
-                  style: GoogleFonts.poppins(
+                  style: FontHelper.poppins(
                     fontSize: 14,
                     fontWeight: FontWeight.w400,
                     color: AppColors.textPrimary,
@@ -359,7 +359,7 @@ class _DynamicFormFieldState extends State<DynamicFormField> {
       child: SwitchListTile(
         title: Text(
           _getBooleanTitle(),
-          style: GoogleFonts.poppins(
+          style: FontHelper.poppins(
             fontSize: 14,
             fontWeight: FontWeight.w400,
             color: widget.enabled 
@@ -383,7 +383,7 @@ class _DynamicFormFieldState extends State<DynamicFormField> {
   Widget _buildError() {
     return Text(
       widget.errorText!,
-      style: GoogleFonts.poppins(
+      style: FontHelper.poppins(
         fontSize: 12,
         fontWeight: FontWeight.w400,
         color: AppColors.error,
@@ -404,7 +404,7 @@ class _DynamicFormFieldState extends State<DynamicFormField> {
         Expanded(
           child: Text(
             widget.infoText!,
-            style: GoogleFonts.poppins(
+            style: FontHelper.poppins(
               fontSize: 12,
               fontWeight: FontWeight.w400,
               color: const Color.fromARGB(255, 248, 24, 24),
@@ -518,7 +518,7 @@ class _DynamicFormFieldState extends State<DynamicFormField> {
                 selectedDate != null
                     ? _formatDate(selectedDate)
                     : 'Sélectionnez ${widget.critere.nom.toLowerCase()}',
-                style: GoogleFonts.poppins(
+                style: FontHelper.poppins(
                   fontSize: 14,
                   fontWeight: FontWeight.w400,
                   color: selectedDate != null
@@ -620,7 +620,7 @@ class _DynamicFormFieldState extends State<DynamicFormField> {
       onEditingComplete: () {
         _isEditing = false;
       },
-      style: GoogleFonts.poppins(
+      style: FontHelper.poppins(
         fontSize: 14,
         fontWeight: FontWeight.w400,
         color: widget.enabled 
@@ -629,7 +629,7 @@ class _DynamicFormFieldState extends State<DynamicFormField> {
       ),
       decoration: InputDecoration(
         hintText: 'Saisissez ${widget.critere.nom.toLowerCase()}',
-        hintStyle: GoogleFonts.poppins(
+        hintStyle: FontHelper.poppins(
           fontSize: 14,
           fontWeight: FontWeight.w400,
           color: AppColors.textSecondary,

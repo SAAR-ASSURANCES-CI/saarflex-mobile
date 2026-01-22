@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:provider/provider.dart';
 import 'package:saarciflex_app/core/constants/colors.dart';
 import 'package:saarciflex_app/presentation/features/auth/viewmodels/auth_viewmodel.dart';
@@ -81,7 +81,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       ),
       title: Text(
         "Mot de passe oublié",
-        style: GoogleFonts.poppins(
+        style: FontHelper.poppins(
           fontSize: 20,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
@@ -108,7 +108,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
         const SizedBox(height: 24),
         Text(
           "Réinitialiser le mot de passe",
-          style: GoogleFonts.poppins(
+          style: FontHelper.poppins(
             fontSize: 28,
             fontWeight: FontWeight.w700,
             color: AppColors.textPrimary,
@@ -117,7 +117,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
         const SizedBox(height: 8),
         Text(
           "Entrez votre email pour vérifier votre compte",
-          style: GoogleFonts.poppins(
+          style: FontHelper.poppins(
             fontSize: 16,
             color: AppColors.textSecondary,
           ),
@@ -142,7 +142,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
           Expanded(
             child: Text(
               message,
-              style: GoogleFonts.poppins(
+              style: FontHelper.poppins(
                 color: AppColors.error,
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
@@ -160,7 +160,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       children: [
         Text(
           "Email",
-          style: GoogleFonts.poppins(
+          style: FontHelper.poppins(
             fontSize: 16,
             fontWeight: FontWeight.w600,
             color: AppColors.textPrimary,
@@ -173,13 +173,13 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
           keyboardType: TextInputType.emailAddress,
           textInputAction: TextInputAction.done,
           validator: _validateEmail,
-          style: GoogleFonts.poppins(
+          style: FontHelper.poppins(
             fontSize: 16,
             color: AppColors.textPrimary,
           ),
           decoration: InputDecoration(
             hintText: 'Votre adresse email',
-            hintStyle: GoogleFonts.poppins(color: AppColors.textHint),
+            hintStyle: FontHelper.poppins(color: AppColors.textHint),
             prefixIcon: Icon(Icons.email_outlined, color: AppColors.primary),
             filled: true,
             fillColor: AppColors.surface,
@@ -235,7 +235,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
               )
             : Text(
                 "Continuer",
-                style: GoogleFonts.poppins(
+                style: FontHelper.poppins(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),
@@ -277,7 +277,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
             SnackBar(
               content: Text(
                 'Aucun compte associé à cette adresse email',
-                style: GoogleFonts.poppins(color: Colors.white),
+                style: FontHelper.poppins(color: Colors.white),
               ),
               backgroundColor: AppColors.error,
               behavior: SnackBarBehavior.floating,
@@ -298,7 +298,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
             SnackBar(
               content: Text(
                 'Erreur de connexion. Veuillez réessayer.',
-                style: GoogleFonts.poppins(color: Colors.white),
+                style: FontHelper.poppins(color: Colors.white),
               ),
               backgroundColor: AppColors.error,
               behavior: SnackBarBehavior.floating,
@@ -316,7 +316,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
           SnackBar(
             content: Text(
               'Erreur de connexion. Veuillez réessayer.',
-              style: GoogleFonts.poppins(color: Colors.white),
+              style: FontHelper.poppins(color: Colors.white),
             ),
             backgroundColor: AppColors.error,
             behavior: SnackBarBehavior.floating,
@@ -352,7 +352,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
         SnackBar(
           content: Text(
             authProvider.errorMessage ?? 'Erreur lors de l\'envoi',
-            style: GoogleFonts.poppins(color: Colors.white),
+            style: FontHelper.poppins(color: Colors.white),
           ),
           backgroundColor: AppColors.error,
           behavior: SnackBarBehavior.floating,

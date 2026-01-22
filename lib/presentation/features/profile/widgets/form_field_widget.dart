@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:saarciflex_app/core/constants/colors.dart';
 
 class FormFieldWidget extends StatelessWidget {
@@ -50,7 +50,7 @@ class FormFieldWidget extends StatelessWidget {
         RichText(
           text: TextSpan(
             text: label,
-            style: GoogleFonts.poppins(
+            style: FontHelper.poppins(
               fontSize: labelFontSize,
               fontWeight: FontWeight.w500,
               color: AppColors.textPrimary,
@@ -64,7 +64,7 @@ class FormFieldWidget extends StatelessWidget {
               if (isModified)
                 TextSpan(
                   text: ' (modifié)',
-                  style: GoogleFonts.poppins(
+                  style: FontHelper.poppins(
                     fontSize: modifiedFontSize,
                     color: AppColors.primary,
                     fontWeight: FontWeight.w500,
@@ -81,14 +81,14 @@ class FormFieldWidget extends StatelessWidget {
           onChanged: (value) {
             onChanged?.call();
           },
-          style: GoogleFonts.poppins(
+          style: FontHelper.poppins(
             fontSize: inputFontSize,
             fontWeight: FontWeight.w500,
             color: AppColors.textPrimary,
           ),
           decoration: InputDecoration(
             hintText: 'Saisir $label',
-            hintStyle: GoogleFonts.poppins(
+            hintStyle: FontHelper.poppins(
               color: AppColors.textSecondary.withOpacity(0.6),
               fontWeight: FontWeight.w400,
               fontSize: hintFontSize,

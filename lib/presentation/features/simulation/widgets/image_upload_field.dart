@@ -1,6 +1,6 @@
-import 'dart:io';
+﻿import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:saarciflex_app/core/constants/colors.dart';
 
@@ -29,7 +29,7 @@ class ImageUploadField extends StatelessWidget {
       children: [
         RichText(
           text: TextSpan(
-            style: GoogleFonts.poppins(
+            style: FontHelper.poppins(
               fontSize: 14,
               fontWeight: FontWeight.w500,
               color: AppColors.textPrimary,
@@ -77,7 +77,7 @@ class ImageUploadField extends StatelessWidget {
                         const SizedBox(height: 8),
                         Text(
                           'Upload en cours...',
-                          style: GoogleFonts.poppins(
+                          style: FontHelper.poppins(
                             fontSize: 12,
                             color: AppColors.textSecondary,
                           ),
@@ -106,7 +106,7 @@ class ImageUploadField extends StatelessWidget {
                 const SizedBox(width: 8),
                 Text(
                   'Image uploadée avec succès',
-                  style: GoogleFonts.poppins(
+                  style: FontHelper.poppins(
                     fontSize: 12,
                     color: AppColors.success,
                     fontWeight: FontWeight.w500,
@@ -197,7 +197,7 @@ class ImageUploadField extends StatelessWidget {
         const SizedBox(height: 8),
         Text(
           'Appuyez pour sélectionner',
-          style: GoogleFonts.poppins(
+          style: FontHelper.poppins(
             fontSize: 14,
             fontWeight: FontWeight.w500,
             color: AppColors.primary,
@@ -205,7 +205,7 @@ class ImageUploadField extends StatelessWidget {
         ),
         Text(
           'une image',
-          style: GoogleFonts.poppins(
+          style: FontHelper.poppins(
             fontSize: 12,
             color: AppColors.textSecondary,
           ),

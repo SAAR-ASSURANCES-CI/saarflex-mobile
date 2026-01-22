@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:saarciflex_app/core/constants/colors.dart';
 import 'package:saarciflex_app/data/models/simulation_model.dart';
 
@@ -76,7 +76,7 @@ class ResultAssureInfoCard extends StatelessWidget {
                   children: [
                     Text(
                       'Informations de l\'assuré',
-                      style: GoogleFonts.poppins(
+                      style: FontHelper.poppins(
                         fontSize: titleFontSize,
                         fontWeight: FontWeight.w600,
                         color: AppColors.textPrimary,
@@ -86,7 +86,7 @@ class ResultAssureInfoCard extends StatelessWidget {
                     ),
                     Text(
                       'Récapitulatif avant sauvegarde',
-                      style: GoogleFonts.poppins(
+                      style: FontHelper.poppins(
                         fontSize: subtitleFontSize,
                         fontWeight: FontWeight.w400,
                         color: AppColors.textSecondary,
@@ -163,7 +163,7 @@ class ResultAssureInfoCard extends StatelessWidget {
           flex: 2,
           child: Text(
             '$label :',
-            style: GoogleFonts.poppins(
+            style: FontHelper.poppins(
               fontSize: fontSize,
               fontWeight: FontWeight.w500,
               color: AppColors.textSecondary,
@@ -177,7 +177,7 @@ class ResultAssureInfoCard extends StatelessWidget {
           flex: 3,
           child: Text(
             value.isNotEmpty ? value : 'Non renseigné',
-            style: GoogleFonts.poppins(
+            style: FontHelper.poppins(
               fontSize: fontSize,
               fontWeight: FontWeight.w400,
               color: AppColors.textPrimary,

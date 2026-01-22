@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:saarciflex_app/core/constants/colors.dart';
 import 'package:saarciflex_app/data/models/product_model.dart';
 
@@ -33,7 +33,7 @@ class ProductFilterChip extends StatelessWidget {
           const SizedBox(width: 6),
           Text(
             type.shortLabel,
-            style: GoogleFonts.poppins(
+            style: FontHelper.poppins(
               fontSize: 12,
               fontWeight: FontWeight.w500,
               color: isSelected ? Colors.white : type.color,
@@ -51,7 +51,7 @@ class ProductFilterChip extends StatelessWidget {
               ),
               child: Text(
                 count.toString(),
-                style: GoogleFonts.poppins(
+                style: FontHelper.poppins(
                   fontSize: 10,
                   fontWeight: FontWeight.w600,
                   color: isSelected ? Colors.white : type.color,
@@ -111,7 +111,7 @@ class ProductFilterChips extends StatelessWidget {
                   const SizedBox(width: 6),
                   Text(
                     'Tous',
-                    style: GoogleFonts.poppins(
+                    style: FontHelper.poppins(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
                       color: selectedType == null
@@ -135,7 +135,7 @@ class ProductFilterChips extends StatelessWidget {
                       productCountByType.values
                           .fold(0, (sum, count) => sum + count)
                           .toString(),
-                      style: GoogleFonts.poppins(
+                      style: FontHelper.poppins(
                         fontSize: 10,
                         fontWeight: FontWeight.w600,
                         color: selectedType == null

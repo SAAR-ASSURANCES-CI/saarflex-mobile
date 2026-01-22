@@ -309,7 +309,7 @@ class FileUploadService {
     final avatarPath = responseData['avatar_path'];
     
     if (avatarPath == null) {
-      throw Exception('Chemin de l\'avatar non reçu du serveur');
+      throw Exception('Chemin de l\'avatar non reçu du serveur. Réponse: $responseData');
     }
 
     return avatarPath;

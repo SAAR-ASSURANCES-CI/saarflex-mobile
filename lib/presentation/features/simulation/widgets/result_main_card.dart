@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:saarciflex_app/core/constants/colors.dart';
 import 'package:saarciflex_app/data/models/simulation_model.dart';
 
@@ -45,7 +45,7 @@ class ResultMainCard extends StatelessWidget {
         children: [
           Text(
             'Votre devis',
-            style: GoogleFonts.poppins(
+            style: FontHelper.poppins(
               fontSize: titleFontSize,
               fontWeight: FontWeight.w600,
               color: AppColors.white,
@@ -109,7 +109,7 @@ class ResultMainCard extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: GoogleFonts.poppins(
+                style: FontHelper.poppins(
                   fontSize: labelFontSize,
                   fontWeight: FontWeight.w400,
                   color: AppColors.white.withOpacity(0.8),
@@ -120,7 +120,7 @@ class ResultMainCard extends StatelessWidget {
               SizedBox(height: spacing2),
               Text(
                 value,
-                style: GoogleFonts.poppins(
+                style: FontHelper.poppins(
                   fontSize: isMainResult ? mainValueFontSize : valueFontSize,
                   fontWeight: FontWeight.w600,
                   color: AppColors.white,

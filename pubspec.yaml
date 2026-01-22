@@ -32,6 +32,7 @@ dependencies:
   path_provider: ^2.1.5
   open_file: ^3.5.2
   flutter_svg: ^2.0.10
+  lottie: ^3.1.0
 
 dev_dependencies:
   flutter_test:
@@ -48,6 +49,18 @@ flutter:
   uses-material-design: true
   assets:
     - lib/assets/
+  
+  fonts:
+    - family: Poppins
+      fonts:
+        - asset: fonts/Poppins-Regular.ttf
+          weight: 400
+        - asset: fonts/Poppins-Medium.ttf
+          weight: 500
+        - asset: fonts/Poppins-SemiBold.ttf
+          weight: 600
+        - asset: fonts/Poppins-Bold.ttf
+          weight: 700
 
 flutter_launcher_icons:
   android: true

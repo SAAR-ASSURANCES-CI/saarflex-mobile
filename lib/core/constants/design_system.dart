@@ -1,39 +1,39 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:saarciflex_app/core/constants/colors.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 
 class DesignSystem {
-  static TextStyle get heading1 => GoogleFonts.poppins(
+  static TextStyle get heading1 => FontHelper.poppins(
     fontSize: 20,
     fontWeight: FontWeight.w600,
     color: AppColors.textPrimary,
   );
 
-  static TextStyle get heading2 => GoogleFonts.poppins(
+  static TextStyle get heading2 => FontHelper.poppins(
     fontSize: 18,
     fontWeight: FontWeight.w600,
     color: AppColors.textPrimary,
   );
 
-  static TextStyle get body1 => GoogleFonts.poppins(
+  static TextStyle get body1 => FontHelper.poppins(
     fontSize: 16,
     fontWeight: FontWeight.w500,
     color: AppColors.textPrimary,
   );
 
-  static TextStyle get body2 => GoogleFonts.poppins(
+  static TextStyle get body2 => FontHelper.poppins(
     fontSize: 14,
     fontWeight: FontWeight.w400,
     color: AppColors.textSecondary,
   );
 
-  static TextStyle get button => GoogleFonts.poppins(
+  static TextStyle get button => FontHelper.poppins(
     fontSize: 16,
     fontWeight: FontWeight.w600,
     color: AppColors.white,
   );
 
-  static TextStyle get error => GoogleFonts.poppins(
+  static TextStyle get error => FontHelper.poppins(
     fontSize: 14,
     fontWeight: FontWeight.w500,
     color: AppColors.error,

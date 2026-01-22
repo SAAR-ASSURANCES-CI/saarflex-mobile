@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:saarciflex_app/core/constants/colors.dart';
 
 class LoadingScreen extends StatelessWidget {
@@ -72,7 +72,7 @@ class LoadingScreen extends StatelessWidget {
 
                 Text(
                   'SAAR Assurance',
-                  style: GoogleFonts.poppins(
+                  style: FontHelper.poppins(
                     fontSize: 32,
                     fontWeight: FontWeight.w700,
                     color: AppColors.white,
@@ -104,7 +104,7 @@ class LoadingScreen extends StatelessWidget {
                   ),
                   child: Text(
                     'Chargement en cours...',
-                    style: GoogleFonts.poppins(
+                    style: FontHelper.poppins(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
                       color: AppColors.white.withOpacity(0.95),

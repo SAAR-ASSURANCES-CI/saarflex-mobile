@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:saarciflex_app/core/constants/colors.dart';
 import 'package:saarciflex_app/data/models/product_model.dart';
 import 'package:saarciflex_app/data/models/simulation_model.dart';
@@ -67,7 +67,7 @@ class ResultProductInfo extends StatelessWidget {
               children: [
                 Text(
                   produit.nom,
-                  style: GoogleFonts.poppins(
+                  style: FontHelper.poppins(
                     fontSize: nameFontSize,
                     fontWeight: FontWeight.w600,
                     color: AppColors.textPrimary,
@@ -78,7 +78,7 @@ class ResultProductInfo extends StatelessWidget {
                 SizedBox(height: spacing2),
                 Text(
                   produit.type.label,
-                  style: GoogleFonts.poppins(
+                  style: FontHelper.poppins(
                     fontSize: typeFontSize,
                     fontWeight: FontWeight.w400,
                     color: AppColors.textSecondary,
@@ -100,7 +100,7 @@ class ResultProductInfo extends StatelessWidget {
             ),
             child: Text(
               resultat.statut.label,
-              style: GoogleFonts.poppins(
+              style: FontHelper.poppins(
                 fontSize: statusFontSize,
                 fontWeight: FontWeight.w500,
                 color: resultat.statut.color,

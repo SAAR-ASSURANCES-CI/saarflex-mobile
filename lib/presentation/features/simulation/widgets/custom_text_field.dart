@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:saarciflex_app/core/constants/colors.dart';
 
 class CustomTextField extends StatelessWidget {
@@ -31,7 +31,7 @@ class CustomTextField extends StatelessWidget {
       children: [
         RichText(
           text: TextSpan(
-            style: GoogleFonts.poppins(
+            style: FontHelper.poppins(
               fontSize: 14,
               fontWeight: FontWeight.w500,
               color: AppColors.textPrimary,
@@ -52,7 +52,7 @@ class CustomTextField extends StatelessWidget {
           keyboardType: keyboardType,
           decoration: InputDecoration(
             hintText: 'Votre $label',
-            hintStyle: GoogleFonts.poppins(color: AppColors.textHint),
+            hintStyle: FontHelper.poppins(color: AppColors.textHint),
             prefixIcon: Icon(icon, color: AppColors.primary),
             filled: true,
             fillColor: AppColors.surface,
@@ -70,7 +70,7 @@ class CustomTextField extends StatelessWidget {
             ),
             contentPadding: const EdgeInsets.all(16),
           ),
-          style: GoogleFonts.poppins(
+          style: FontHelper.poppins(
             fontSize: 16,
             color: AppColors.textPrimary,
           ),

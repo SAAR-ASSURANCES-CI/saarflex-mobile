@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:saarciflex_app/core/constants/colors.dart';
 import 'package:saarciflex_app/data/models/simulation_model.dart';
 import 'package:saarciflex_app/presentation/features/simulation/widgets/result_save_confirmation_dialog.dart';
@@ -67,7 +67,7 @@ class _ResultSaveSectionState extends State<ResultSaveSection> {
           Expanded(
             child: Text(
               'Ce devis a déjà été sauvegardé dans vos contrats',
-              style: GoogleFonts.poppins(
+              style: FontHelper.poppins(
                 fontSize: fontSize,
                 color: AppColors.success,
                 fontWeight: FontWeight.w500,
@@ -105,7 +105,7 @@ class _ResultSaveSectionState extends State<ResultSaveSection> {
         children: [
           Text(
             'Sauvegarder ce devis',
-            style: GoogleFonts.poppins(
+            style: FontHelper.poppins(
               fontSize: titleFontSize,
               fontWeight: FontWeight.w600,
               color: AppColors.textPrimary,
@@ -137,19 +137,19 @@ class _ResultSaveSectionState extends State<ResultSaveSection> {
 
     return TextFormField(
       controller: _nomController,
-      style: GoogleFonts.poppins(fontSize: fontSize),
+      style: FontHelper.poppins(fontSize: fontSize),
       decoration: InputDecoration(
         label: RichText(
           text: TextSpan(
             text: 'Nom du devis ',
-            style: GoogleFonts.poppins(
+            style: FontHelper.poppins(
               color: AppColors.textPrimary,
               fontSize: fontSize,
             ),
             children: [
               TextSpan(
                 text: '*',
-                style: GoogleFonts.poppins(
+                style: FontHelper.poppins(
                   color: Colors.red,
                   fontSize: fontSize,
                   fontWeight: FontWeight.bold,
@@ -159,7 +159,7 @@ class _ResultSaveSectionState extends State<ResultSaveSection> {
           ),
         ),
         hintText: 'Ex: Devis voiture familiale',
-        hintStyle: GoogleFonts.poppins(fontSize: fontSize),
+        hintStyle: FontHelper.poppins(fontSize: fontSize),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(
@@ -196,12 +196,12 @@ class _ResultSaveSectionState extends State<ResultSaveSection> {
     return TextFormField(
       controller: _notesController,
       maxLines: 3,
-      style: GoogleFonts.poppins(fontSize: fontSize),
+      style: FontHelper.poppins(fontSize: fontSize),
       decoration: InputDecoration(
         labelText: 'Notes personnelles (optionnel)',
-        labelStyle: GoogleFonts.poppins(fontSize: labelFontSize),
+        labelStyle: FontHelper.poppins(fontSize: labelFontSize),
         hintText: 'Ajoutez vos commentaires...',
-        hintStyle: GoogleFonts.poppins(fontSize: fontSize),
+        hintStyle: FontHelper.poppins(fontSize: fontSize),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -239,7 +239,7 @@ class _ResultSaveSectionState extends State<ResultSaveSection> {
           Expanded(
             child: Text(
               'Vous simulez pour une autre personne. Vérifiez les informations de l\'assuré ci-dessus avant de sauvegarder.',
-              style: GoogleFonts.poppins(
+              style: FontHelper.poppins(
                 fontSize: fontSize,
                 fontWeight: FontWeight.w500,
                 color: AppColors.warning,

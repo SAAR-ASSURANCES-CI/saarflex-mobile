@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:saarciflex_app/core/constants/colors.dart';
 
 class ResetPasswordWidgets {
@@ -28,14 +28,14 @@ class ResetPasswordWidgets {
         controller: controller,
         keyboardType: keyboardType,
         validator: validator,
-        style: GoogleFonts.poppins(
+        style: FontHelper.poppins(
           fontSize: 16,
           fontWeight: FontWeight.w500,
           color: AppColors.textPrimary,
         ),
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: GoogleFonts.poppins(
+          labelStyle: FontHelper.poppins(
             color: AppColors.textSecondary,
             fontWeight: FontWeight.w500,
           ),
@@ -70,7 +70,7 @@ class ResetPasswordWidgets {
             borderRadius: BorderRadius.circular(16),
             borderSide: BorderSide(color: AppColors.error, width: 2),
           ),
-          errorStyle: GoogleFonts.poppins(
+          errorStyle: FontHelper.poppins(
             fontSize: 12,
             fontWeight: FontWeight.w500,
             color: AppColors.error,
@@ -148,7 +148,7 @@ class ResetPasswordWidgets {
         const SizedBox(width: 12),
         Text(
           "Envoi en cours...",
-          style: GoogleFonts.poppins(
+          style: FontHelper.poppins(
             fontSize: 16,
             fontWeight: FontWeight.w600,
             letterSpacing: 0.5,
@@ -166,7 +166,7 @@ class ResetPasswordWidgets {
         const SizedBox(width: 8),
         Text(
           text,
-          style: GoogleFonts.poppins(
+          style: FontHelper.poppins(
             fontSize: 16,
             fontWeight: FontWeight.w600,
             letterSpacing: 0.5,
@@ -186,7 +186,7 @@ class ResetPasswordWidgets {
             Expanded(
               child: Text(
                 message,
-                style: GoogleFonts.poppins(
+                style: FontHelper.poppins(
                   fontWeight: FontWeight.w500,
                   color: Colors.white,
                 ),
@@ -217,7 +217,7 @@ class ResetPasswordWidgets {
             Expanded(
               child: Text(
                 message,
-                style: GoogleFonts.poppins(
+                style: FontHelper.poppins(
                   fontWeight: FontWeight.w500,
                   color: Colors.white,
                 ),

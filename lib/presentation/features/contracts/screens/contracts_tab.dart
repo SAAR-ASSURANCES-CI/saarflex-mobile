@@ -1,6 +1,6 @@
-import 'package:saarciflex_app/core/constants/colors.dart';
+﻿import 'package:saarciflex_app/core/constants/colors.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:provider/provider.dart';
 import 'package:saarciflex_app/presentation/features/contracts/viewmodels/contract_viewmodel.dart';
 import 'package:saarciflex_app/core/utils/format_helper.dart';
@@ -110,7 +110,7 @@ class _ContractsTabState extends State<ContractsTab> {
             SizedBox(height: spacing1),
             Text(
               'Erreur de chargement',
-              style: GoogleFonts.poppins(
+              style: FontHelper.poppins(
                 fontSize: titleFontSize,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textPrimary,
@@ -121,7 +121,7 @@ class _ContractsTabState extends State<ContractsTab> {
             Text(
               error,
               textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(
+              style: FontHelper.poppins(
                 fontSize: errorFontSize,
                 color: AppColors.textSecondary,
               ),
@@ -142,7 +142,7 @@ class _ContractsTabState extends State<ContractsTab> {
               ),
               label: Text(
                 'Réessayer',
-                style: GoogleFonts.poppins(fontSize: buttonFontSize),
+                style: FontHelper.poppins(fontSize: buttonFontSize),
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
@@ -241,7 +241,7 @@ class _ContractsTabState extends State<ContractsTab> {
                   children: [
                     Text(
                       contract.nomPersonnalise ?? contract.nomProduit,
-                      style: GoogleFonts.poppins(
+                      style: FontHelper.poppins(
                         fontSize: titleFontSize,
                         fontWeight: FontWeight.w600,
                         color: AppColors.textPrimary,
@@ -252,7 +252,7 @@ class _ContractsTabState extends State<ContractsTab> {
                     SizedBox(height: spacing2),
                     Text(
                       contract.typeProduit,
-                      style: GoogleFonts.poppins(
+                      style: FontHelper.poppins(
                         fontSize: subtitleFontSize,
                         color: AppColors.textSecondary,
                       ),
@@ -273,7 +273,7 @@ class _ContractsTabState extends State<ContractsTab> {
                 ),
                 child: Text(
                   contract.statusDisplayName,
-                  style: GoogleFonts.poppins(
+                  style: FontHelper.poppins(
                     fontSize: statusFontSize,
                     fontWeight: FontWeight.w500,
                     color: _getStatusColor(contract.statut),
@@ -331,7 +331,7 @@ class _ContractsTabState extends State<ContractsTab> {
                   icon: Icon(Icons.visibility, size: buttonIconSize),
                   label: Text(
                     'Détails',
-                    style: GoogleFonts.poppins(fontSize: buttonFontSize),
+                    style: FontHelper.poppins(fontSize: buttonFontSize),
                   ),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.primary,
@@ -349,7 +349,7 @@ class _ContractsTabState extends State<ContractsTab> {
                   icon: Icon(Icons.download, size: buttonIconSize),
                   label: Text(
                     'Télécharger',
-                    style: GoogleFonts.poppins(fontSize: buttonFontSize),
+                    style: FontHelper.poppins(fontSize: buttonFontSize),
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
@@ -384,7 +384,7 @@ class _ContractsTabState extends State<ContractsTab> {
             Flexible(
               child: Text(
                 label,
-                style: GoogleFonts.poppins(
+                style: FontHelper.poppins(
                   fontSize: labelFontSize,
                   color: AppColors.textSecondary,
                 ),
@@ -397,7 +397,7 @@ class _ContractsTabState extends State<ContractsTab> {
         SizedBox(height: valueSpacing),
         Text(
           value,
-          style: GoogleFonts.poppins(
+          style: FontHelper.poppins(
             fontSize: valueFontSize,
             fontWeight: FontWeight.w600,
             color: AppColors.textPrimary,
@@ -475,7 +475,7 @@ class _ContractsTabState extends State<ContractsTab> {
                 children: [
                   Text(
                     contract.nomPersonnalise ?? contract.nomProduit,
-                    style: GoogleFonts.poppins(
+                    style: FontHelper.poppins(
                       fontSize: titleFontSize,
                       fontWeight: FontWeight.w700,
                       color: AppColors.textPrimary,
@@ -486,7 +486,7 @@ class _ContractsTabState extends State<ContractsTab> {
                   SizedBox(height: widget.screenWidth < 360 ? 6.0 : 8.0),
                   Text(
                     contract.typeProduit,
-                    style: GoogleFonts.poppins(
+                    style: FontHelper.poppins(
                       fontSize: subtitleFontSize,
                       color: AppColors.textSecondary,
                     ),
@@ -540,7 +540,7 @@ class _ContractsTabState extends State<ContractsTab> {
                   icon: Icon(Icons.download, size: buttonIconSize),
                   label: Text(
                     'Télécharger',
-                    style: GoogleFonts.poppins(fontSize: buttonFontSize),
+                    style: FontHelper.poppins(fontSize: buttonFontSize),
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
@@ -554,7 +554,7 @@ class _ContractsTabState extends State<ContractsTab> {
                 SizedBox(height: widget.screenWidth < 360 ? 6.0 : 8.0),
                 Text(
                   'Attestation de souscription',
-                  style: GoogleFonts.poppins(
+                  style: FontHelper.poppins(
                     fontSize: (12.0 / widget.textScaleFactor).clamp(11.0, 13.0),
                     color: AppColors.textSecondary,
                     fontStyle: FontStyle.italic,
@@ -583,7 +583,7 @@ class _ContractsTabState extends State<ContractsTab> {
             width: labelWidth,
             child: Text(
               label,
-              style: GoogleFonts.poppins(
+              style: FontHelper.poppins(
                 fontSize: fontSize,
                 fontWeight: FontWeight.w500,
                 color: AppColors.textSecondary,
@@ -595,7 +595,7 @@ class _ContractsTabState extends State<ContractsTab> {
           Expanded(
             child: Text(
               value,
-              style: GoogleFonts.poppins(
+              style: FontHelper.poppins(
                 fontSize: fontSize,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textPrimary,
@@ -762,7 +762,7 @@ class _ContractsTabState extends State<ContractsTab> {
               Expanded(
                 child: Text(
                   'Contrat non disponible',
-                  style: GoogleFonts.poppins(
+                  style: FontHelper.poppins(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
                     color: Colors.grey[800],
@@ -777,7 +777,7 @@ class _ContractsTabState extends State<ContractsTab> {
             children: [
               Text(
                 'Ce contrat n\'est pas encore disponible.',
-                style: GoogleFonts.poppins(
+                style: FontHelper.poppins(
                   fontSize: 14,
                   color: Colors.grey[700],
                   height: 1.5,
@@ -786,7 +786,7 @@ class _ContractsTabState extends State<ContractsTab> {
               const SizedBox(height: 12),
               Text(
                 'Il est en cours de traitement par nos équipes. Vous recevrez un email de notification dès qu\'il sera prêt à être téléchargé.',
-                style: GoogleFonts.poppins(
+                style: FontHelper.poppins(
                   fontSize: 14,
                   color: Colors.grey[700],
                   height: 1.5,
@@ -799,7 +799,7 @@ class _ContractsTabState extends State<ContractsTab> {
               onPressed: () => Navigator.of(context).pop(),
               child: Text(
                 'Compris',
-                style: GoogleFonts.poppins(
+                style: FontHelper.poppins(
                   fontWeight: FontWeight.w600,
                   color: AppColors.primary,
                 ),

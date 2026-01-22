@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:saarciflex_app/core/constants/colors.dart';
 
 class FormHelpers {
@@ -13,7 +13,7 @@ class FormHelpers {
             Expanded(
               child: Text(
                 message,
-                style: GoogleFonts.poppins(
+                style: FontHelper.poppins(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                   color: Colors.white,
@@ -45,7 +45,7 @@ class FormHelpers {
             Expanded(
               child: Text(
                 message,
-                style: GoogleFonts.poppins(
+                style: FontHelper.poppins(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                   color: Colors.white,
@@ -73,7 +73,7 @@ class FormHelpers {
             Expanded(
               child: Text(
                 message,
-                style: GoogleFonts.poppins(
+                style: FontHelper.poppins(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                   color: Colors.white,
@@ -101,7 +101,7 @@ class FormHelpers {
             Expanded(
               child: Text(
                 message,
-                style: GoogleFonts.poppins(
+                style: FontHelper.poppins(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                   color: Colors.white,
@@ -191,7 +191,7 @@ class FormHelpers {
 
               Text(
                 title,
-                style: GoogleFonts.poppins(
+                style: FontHelper.poppins(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
                   color: AppColors.textPrimary,
@@ -204,7 +204,7 @@ class FormHelpers {
                 Text(
                   subtitle,
                   textAlign: TextAlign.center,
-                  style: GoogleFonts.poppins(
+                  style: FontHelper.poppins(
                     fontSize: 14,
                     fontWeight: FontWeight.w400,
                     color: AppColors.textSecondary,
@@ -241,7 +241,7 @@ class FormHelpers {
           Expanded(
             child: Text(
               message,
-              style: GoogleFonts.poppins(
+              style: FontHelper.poppins(
                 color: AppColors.error,
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
@@ -273,7 +273,7 @@ class FormHelpers {
           Expanded(
             child: Text(
               message,
-              style: GoogleFonts.poppins(
+              style: FontHelper.poppins(
                 color: AppColors.success,
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
@@ -305,7 +305,7 @@ class FormHelpers {
           Expanded(
             child: Text(
               message,
-              style: GoogleFonts.poppins(
+              style: FontHelper.poppins(
                 color: AppColors.warning,
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
@@ -333,7 +333,7 @@ class FormHelpers {
           Expanded(
             child: Text(
               message,
-              style: GoogleFonts.poppins(
+              style: FontHelper.poppins(
                 color: AppColors.info,
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
@@ -381,7 +381,7 @@ class FormHelpers {
               Expanded(
                 child: Text(
                   title,
-                  style: GoogleFonts.poppins(
+                  style: FontHelper.poppins(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
                     color: AppColors.textPrimary,
@@ -392,7 +392,7 @@ class FormHelpers {
           ),
           content: Text(
             message,
-            style: GoogleFonts.poppins(
+            style: FontHelper.poppins(
               fontSize: 14,
               color: AppColors.textSecondary,
               height: 1.4,
@@ -410,7 +410,7 @@ class FormHelpers {
               ),
               child: Text(
                 cancelText,
-                style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+                style: FontHelper.poppins(fontWeight: FontWeight.w500),
               ),
             ),
             ElevatedButton(
@@ -428,7 +428,7 @@ class FormHelpers {
               ),
               child: Text(
                 confirmText,
-                style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                style: FontHelper.poppins(fontWeight: FontWeight.w600),
               ),
             ),
           ],
@@ -442,7 +442,7 @@ class FormHelpers {
       padding: const EdgeInsets.only(top: 8, left: 4),
       child: Text(
         text,
-        style: GoogleFonts.poppins(
+        style: FontHelper.poppins(
           fontSize: 12,
           fontWeight: FontWeight.w400,
           color: color ?? AppColors.textSecondary,
@@ -465,7 +465,7 @@ class FormHelpers {
         children: [
           Text(
             "Exigences :",
-            style: GoogleFonts.poppins(
+            style: FontHelper.poppins(
               fontSize: 14,
               fontWeight: FontWeight.w600,
               color: AppColors.textPrimary,
@@ -486,7 +486,7 @@ class FormHelpers {
                   Expanded(
                     child: Text(
                       requirement,
-                      style: GoogleFonts.poppins(
+                      style: FontHelper.poppins(
                         fontSize: 12,
                         fontWeight: FontWeight.w400,
                         color: AppColors.textSecondary,

@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:saarciflex_app/core/constants/colors.dart';
 
 class ResetPasswordHeader extends StatelessWidget {
@@ -49,7 +49,7 @@ class ResetPasswordHeader extends StatelessWidget {
   Widget _buildTitle() {
     return Text(
       isEmailSent ? "Email envoyé !" : "Réinitialiser votre mot de passe",
-      style: GoogleFonts.poppins(
+      style: FontHelper.poppins(
         fontSize: 28,
         fontWeight: FontWeight.w700,
         color: AppColors.textPrimary,
@@ -65,7 +65,7 @@ class ResetPasswordHeader extends StatelessWidget {
         isEmailSent
             ? "Vérifiez votre boîte mail et suivez les instructions pour créer un nouveau mot de passe."
             : "Saisissez votre adresse email pour recevoir un lien de réinitialisation.",
-        style: GoogleFonts.poppins(
+        style: FontHelper.poppins(
           fontSize: 16,
           fontWeight: FontWeight.w400,
           color: AppColors.textSecondary,
