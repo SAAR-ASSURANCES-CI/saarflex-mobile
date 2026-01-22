@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:saarciflex_app/core/constants/colors.dart';
 import 'package:saarciflex_app/data/models/souscription_model.dart';
 
@@ -33,7 +33,7 @@ class PaymentMethodSelector extends StatelessWidget {
       children: [
         Text(
           'Méthode de paiement',
-          style: GoogleFonts.poppins(
+          style: FontHelper.poppins(
             fontSize: titleFontSize,
             fontWeight: FontWeight.w700,
             color: const Color(0xFF1A1A1A),
@@ -45,7 +45,7 @@ class PaymentMethodSelector extends StatelessWidget {
           SizedBox(height: spacing2),
           Text(
             errorText!,
-            style: GoogleFonts.poppins(
+            style: FontHelper.poppins(
               fontSize: errorFontSize,
               color: AppColors.error,
             ),
@@ -99,7 +99,7 @@ class PaymentMethodSelector extends StatelessWidget {
                 Expanded(
                   child: Text(
                     method.displayName,
-                    style: GoogleFonts.poppins(
+                    style: FontHelper.poppins(
                       fontSize: textFontSize,
                       fontWeight: FontWeight.w600,
                       color: const Color(0xFF1A1A1A),

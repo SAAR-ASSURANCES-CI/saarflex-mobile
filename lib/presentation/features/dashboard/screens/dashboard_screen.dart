@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:saarciflex_app/presentation/features/profile/screens/profile_screen.dart';
@@ -106,7 +106,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               children: [
                 Text(
                   "Découvrez nos offres",
-                  style: GoogleFonts.poppins(
+                  style: FontHelper.poppins(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
                     color: Colors.white,
@@ -115,7 +115,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 const SizedBox(height: 8),
                 Text(
                   "Protégez ce qui compte le plus avec nos solutions d'assurance",
-                  style: GoogleFonts.poppins(
+                  style: FontHelper.poppins(
                     fontSize: 13,
                     fontWeight: FontWeight.w400,
                     color: Colors.white.withOpacity(0.9),
@@ -136,7 +136,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   child: Text(
                     "Explorer",
-                    style: GoogleFonts.poppins(
+                    style: FontHelper.poppins(
                       fontWeight: FontWeight.w600,
                       fontSize: 13,
                     ),
@@ -283,7 +283,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           if (value != null) ...[
             Text(
               value,
-              style: GoogleFonts.poppins(
+              style: FontHelper.poppins(
                 fontSize: 28,
                 fontWeight: FontWeight.w700,
                 color: gradientColors[0],
@@ -293,7 +293,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ],
           Text(
             title,
-            style: GoogleFonts.poppins(
+            style: FontHelper.poppins(
               fontSize: 13,
               fontWeight: FontWeight.w600,
               color: Colors.grey[700],
@@ -323,7 +323,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               children: [
                 Text(
                   "Nos Produits",
-                  style: GoogleFonts.poppins(
+                  style: FontHelper.poppins(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
                     color: Colors.grey[900],
@@ -333,7 +333,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   onPressed: _navigateToProducts,
                   child: Text(
                     "Voir tout",
-                    style: GoogleFonts.poppins(
+                    style: FontHelper.poppins(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                       color: Colors.blue[600],
@@ -356,7 +356,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   padding: const EdgeInsets.all(20),
                   child: Text(
                     "Aucun produit disponible",
-                    style: GoogleFonts.poppins(
+                    style: FontHelper.poppins(
                       color: Colors.grey[600],
                     ),
                   ),
@@ -413,7 +413,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             width: 70,
             child: Text(
               product.nom,
-              style: GoogleFonts.poppins(
+              style: FontHelper.poppins(
                 fontSize: 11,
                 fontWeight: FontWeight.w500,
                 color: Colors.grey[700],
@@ -492,7 +492,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             SnackBar(
               content: Text(
                 'Impossible d\'ouvrir l\'application de déclaration de sinistres',
-                style: GoogleFonts.poppins(
+                style: FontHelper.poppins(
                   fontWeight: FontWeight.w500,
                   color: Colors.white,
                 ),
@@ -512,7 +512,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           SnackBar(
             content: Text(
               'Erreur lors de l\'ouverture: $e',
-              style: GoogleFonts.poppins(
+              style: FontHelper.poppins(
                 fontWeight: FontWeight.w500,
                 color: Colors.white,
               ),
@@ -537,7 +537,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             const SizedBox(width: 12),
             Text(
               "Fonctionnalité à venir !",
-              style: GoogleFonts.poppins(
+              style: FontHelper.poppins(
                 fontWeight: FontWeight.w500,
                 color: Colors.white,
               ),

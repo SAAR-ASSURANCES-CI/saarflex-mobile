@@ -1,6 +1,6 @@
-import 'package:saarciflex_app/core/constants/colors.dart';
+﻿import 'package:saarciflex_app/core/constants/colors.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:provider/provider.dart';
 import 'package:saarciflex_app/presentation/features/auth/viewmodels/auth_viewmodel.dart';
 import 'package:saarciflex_app/core/utils/error_handler.dart';
@@ -113,7 +113,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
       ),
       title: Text(
         'Vérification',
-        style: GoogleFonts.poppins(
+        style: FontHelper.poppins(
           fontSize: (22.0 / textScaleFactor).clamp(20.0, 26.0),
           fontWeight: FontWeight.w700,
           color: Colors.white,
@@ -145,7 +145,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
         const SizedBox(height: 24),
         Text(
           'Vérifiez votre email',
-          style: GoogleFonts.poppins(
+          style: FontHelper.poppins(
             fontSize: 28,
             fontWeight: FontWeight.w700,
             color: AppColors.textPrimary,
@@ -154,7 +154,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
         const SizedBox(height: 8),
         Text(
           'Nous avons envoyé un code à',
-          style: GoogleFonts.poppins(
+          style: FontHelper.poppins(
             fontSize: 16,
             color: AppColors.textSecondary,
           ),
@@ -168,7 +168,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
           ),
           child: Text(
             widget.email,
-            style: GoogleFonts.poppins(
+            style: FontHelper.poppins(
               fontSize: 16,
               fontWeight: FontWeight.w600,
               color: AppColors.primary,
@@ -204,7 +204,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
             textAlign: TextAlign.center,
             keyboardType: TextInputType.number,
             maxLength: 1,
-            style: GoogleFonts.poppins(
+            style: FontHelper.poppins(
               fontSize: 24,
               fontWeight: FontWeight.w600,
               color: AppColors.textPrimary,
@@ -281,7 +281,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                   const SizedBox(width: 12),
                   Text(
                     'Vérification...',
-                    style: GoogleFonts.poppins(
+                    style: FontHelper.poppins(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
@@ -295,7 +295,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                   const SizedBox(width: 8),
                   Text(
                     'Vérifier le code',
-                    style: GoogleFonts.poppins(
+                    style: FontHelper.poppins(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
@@ -311,7 +311,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
       children: [
         Text(
           "Vous n'avez pas reçu le code ?",
-          style: GoogleFonts.poppins(
+          style: FontHelper.poppins(
             fontSize: 14,
             color: AppColors.textSecondary,
           ),
@@ -322,7 +322,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
           icon: Icon(Icons.refresh_rounded, size: 18),
           label: Text(
             'Renvoyer le code',
-            style: GoogleFonts.poppins(
+            style: FontHelper.poppins(
               fontSize: 14,
               fontWeight: FontWeight.w600,
               color: AppColors.primary,

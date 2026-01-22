@@ -1,6 +1,6 @@
-import 'dart:io';
+﻿import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:saarciflex_app/core/constants/colors.dart';
 
@@ -46,7 +46,7 @@ class ImageUploadField extends StatelessWidget {
           children: [
             Text(
               label,
-              style: GoogleFonts.poppins(
+              style: FontHelper.poppins(
                 fontSize: labelFontSize,
                 fontWeight: FontWeight.w500,
                 color: AppColors.textPrimary,
@@ -55,7 +55,7 @@ class ImageUploadField extends StatelessWidget {
             if (isRequired)
               Text(
                 ' *',
-                style: GoogleFonts.poppins(
+                style: FontHelper.poppins(
                   fontSize: labelFontSize,
                   fontWeight: FontWeight.w500,
                   color: Colors.red,
@@ -132,7 +132,7 @@ class ImageUploadField extends StatelessWidget {
           SizedBox(height: iconSpacing),
           Text(
             'Nouvelle image sélectionnée',
-            style: GoogleFonts.poppins(
+            style: FontHelper.poppins(
               fontSize: newImageFontSize,
               color: AppColors.primary,
               fontWeight: FontWeight.w500,
@@ -161,7 +161,7 @@ class ImageUploadField extends StatelessWidget {
           SizedBox(height: spacing),
           Text(
             'Ajouter $label',
-            style: GoogleFonts.poppins(
+            style: FontHelper.poppins(
               color: AppColors.textSecondary.withOpacity(0.7),
               fontSize: fontSize,
             ),

@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:saarciflex_app/core/constants/colors.dart';
 import 'package:saarciflex_app/presentation/features/simulation/viewmodels/simulation_viewmodel.dart';
 
@@ -32,7 +32,7 @@ class SimulationErrorState extends StatelessWidget {
             const SizedBox(height: 24),
             Text(
               'Erreur de chargement',
-              style: GoogleFonts.poppins(
+              style: FontHelper.poppins(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textPrimary,
@@ -41,7 +41,7 @@ class SimulationErrorState extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               provider.errorMessage ?? 'Une erreur est survenue',
-              style: GoogleFonts.poppins(
+              style: FontHelper.poppins(
                 fontSize: 14,
                 fontWeight: FontWeight.w400,
                 color: AppColors.textSecondary,
@@ -65,7 +65,7 @@ class SimulationErrorState extends StatelessWidget {
               ),
               child: Text(
                 'Réessayer',
-                style: GoogleFonts.poppins(
+                style: FontHelper.poppins(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
                 ),

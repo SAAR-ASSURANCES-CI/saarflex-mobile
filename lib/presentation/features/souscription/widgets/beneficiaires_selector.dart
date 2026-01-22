@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:saarciflex_app/core/constants/colors.dart';
 import 'package:saarciflex_app/data/models/beneficiaire_model.dart';
 
@@ -68,7 +68,7 @@ class _BeneficiairesSelectorState extends State<BeneficiairesSelector> {
       children: [
         Text(
           'Bénéficiaires',
-          style: GoogleFonts.poppins(
+          style: FontHelper.poppins(
             fontSize: titleFontSize,
             fontWeight: FontWeight.w600,
             color: AppColors.textPrimary,
@@ -80,7 +80,7 @@ class _BeneficiairesSelectorState extends State<BeneficiairesSelector> {
             Expanded(
               child: Text(
                 'Ajoutez ou modifiez les informations des bénéficiaires',
-                style: GoogleFonts.poppins(
+                style: FontHelper.poppins(
                   fontSize: descriptionFontSize,
                   color: AppColors.textSecondary,
                 ),
@@ -107,7 +107,7 @@ class _BeneficiairesSelectorState extends State<BeneficiairesSelector> {
               ),
               child: Text(
                 '${widget.beneficiaires.length}/${widget.maxBeneficiaires}',
-                style: GoogleFonts.poppins(
+                style: FontHelper.poppins(
                   fontSize: badgeFontSize,
                   fontWeight: FontWeight.w600,
                   color: widget.beneficiaires.length >= widget.maxBeneficiaires
@@ -135,7 +135,7 @@ class _BeneficiairesSelectorState extends State<BeneficiairesSelector> {
           SizedBox(height: spacing3),
           Text(
             widget.errorText!,
-            style: GoogleFonts.poppins(
+            style: FontHelper.poppins(
               fontSize: errorFontSize,
               color: AppColors.error,
             ),
@@ -185,7 +185,7 @@ class _BeneficiairesSelectorState extends State<BeneficiairesSelector> {
             child: Center(
               child: Text(
                 beneficiaire.ordre.toString(),
-                style: GoogleFonts.poppins(
+                style: FontHelper.poppins(
                   fontSize: badgeFontSize,
                   fontWeight: FontWeight.w600,
                   color: AppColors.primary,
@@ -200,7 +200,7 @@ class _BeneficiairesSelectorState extends State<BeneficiairesSelector> {
               children: [
                 Text(
                   beneficiaire.nomComplet,
-                  style: GoogleFonts.poppins(
+                  style: FontHelper.poppins(
                     fontSize: nameFontSize,
                     fontWeight: FontWeight.w600,
                     color: AppColors.textPrimary,
@@ -211,7 +211,7 @@ class _BeneficiairesSelectorState extends State<BeneficiairesSelector> {
                 SizedBox(height: spacing2),
                 Text(
                   beneficiaire.lienSouscripteur,
-                  style: GoogleFonts.poppins(
+                  style: FontHelper.poppins(
                     fontSize: linkFontSize,
                     color: AppColors.textSecondary,
                   ),
@@ -305,7 +305,7 @@ class _BeneficiairesSelectorState extends State<BeneficiairesSelector> {
                   Expanded(
                     child: Text(
                       'Modifier le bénéficiaire',
-                      style: GoogleFonts.poppins(
+                      style: FontHelper.poppins(
                         fontSize: titleFontSize,
                         fontWeight: FontWeight.w700,
                         color: AppColors.textPrimary,
@@ -346,7 +346,7 @@ class _BeneficiairesSelectorState extends State<BeneficiairesSelector> {
                       ),
                       child: Text(
                         'Annuler',
-                        style: GoogleFonts.poppins(
+                        style: FontHelper.poppins(
                           fontSize: buttonFontSize,
                           fontWeight: FontWeight.w600,
                           color: AppColors.textSecondary,
@@ -369,7 +369,7 @@ class _BeneficiairesSelectorState extends State<BeneficiairesSelector> {
                       ),
                       child: Text(
                         'Modifier',
-                        style: GoogleFonts.poppins(
+                        style: FontHelper.poppins(
                           fontSize: buttonFontSize,
                           fontWeight: FontWeight.w600,
                         ),
@@ -413,7 +413,7 @@ class _BeneficiairesSelectorState extends State<BeneficiairesSelector> {
               Expanded(
                 child: Text(
                   'Ajouter un bénéficiaire',
-                  style: GoogleFonts.poppins(
+                  style: FontHelper.poppins(
                     fontSize: titleFontSize,
                     fontWeight: FontWeight.w600,
                     color: AppColors.textPrimary,
@@ -438,7 +438,7 @@ class _BeneficiairesSelectorState extends State<BeneficiairesSelector> {
               ),
               child: Text(
                 'Ajouter',
-                style: GoogleFonts.poppins(fontSize: buttonFontSize),
+                style: FontHelper.poppins(fontSize: buttonFontSize),
               ),
             ),
           ),
@@ -460,7 +460,7 @@ class _BeneficiairesSelectorState extends State<BeneficiairesSelector> {
       children: [
         TextFormField(
           controller: _nomController,
-          style: GoogleFonts.poppins(
+          style: FontHelper.poppins(
             fontSize: inputFontSize,
             fontWeight: FontWeight.w500,
             color: AppColors.textPrimary,
@@ -468,11 +468,11 @@ class _BeneficiairesSelectorState extends State<BeneficiairesSelector> {
           decoration: InputDecoration(
             labelText: 'Nom complet',
             hintText: 'Ex: Marie Dupont',
-            hintStyle: GoogleFonts.poppins(
+            hintStyle: FontHelper.poppins(
               fontSize: hintFontSize,
               color: AppColors.textSecondary.withOpacity(0.7),
             ),
-            labelStyle: GoogleFonts.poppins(
+            labelStyle: FontHelper.poppins(
               fontSize: labelFontSize,
               color: AppColors.textSecondary,
             ),
@@ -503,14 +503,14 @@ class _BeneficiairesSelectorState extends State<BeneficiairesSelector> {
           value: _liensDisponibles.contains(_selectedLien)
               ? _selectedLien
               : null,
-          style: GoogleFonts.poppins(
+          style: FontHelper.poppins(
             fontSize: inputFontSize,
             fontWeight: FontWeight.w500,
             color: AppColors.textPrimary,
           ),
           decoration: InputDecoration(
             labelText: 'Lien avec le souscripteur',
-            labelStyle: GoogleFonts.poppins(
+            labelStyle: FontHelper.poppins(
               fontSize: labelFontSize,
               color: AppColors.textSecondary,
             ),
@@ -544,7 +544,7 @@ class _BeneficiairesSelectorState extends State<BeneficiairesSelector> {
                 value: lien,
                 child: Text(
                   lien,
-                  style: GoogleFonts.poppins(
+                  style: FontHelper.poppins(
                     fontSize: inputFontSize,
                     fontWeight: FontWeight.w500,
                     color: AppColors.textPrimary,
@@ -559,7 +559,7 @@ class _BeneficiairesSelectorState extends State<BeneficiairesSelector> {
                 value: _selectedLien,
                 child: Text(
                   _selectedLien!,
-                  style: GoogleFonts.poppins(
+                  style: FontHelper.poppins(
                     fontSize: inputFontSize,
                     fontWeight: FontWeight.w500,
                     color: AppColors.textPrimary,
@@ -578,7 +578,7 @@ class _BeneficiairesSelectorState extends State<BeneficiairesSelector> {
           SizedBox(height: spacing),
           TextFormField(
             controller: _lienController,
-            style: GoogleFonts.poppins(
+            style: FontHelper.poppins(
               fontSize: inputFontSize,
               fontWeight: FontWeight.w500,
               color: AppColors.textPrimary,
@@ -586,11 +586,11 @@ class _BeneficiairesSelectorState extends State<BeneficiairesSelector> {
             decoration: InputDecoration(
               labelText: 'Précisez le lien',
               hintText: 'Ex: Cousin, Ami, etc.',
-              hintStyle: GoogleFonts.poppins(
+              hintStyle: FontHelper.poppins(
                 fontSize: hintFontSize,
                 color: AppColors.textSecondary.withOpacity(0.7),
               ),
-              labelStyle: GoogleFonts.poppins(
+              labelStyle: FontHelper.poppins(
                 fontSize: labelFontSize,
                 color: AppColors.textSecondary,
               ),
@@ -732,7 +732,7 @@ class _BeneficiairesSelectorState extends State<BeneficiairesSelector> {
       builder: (context) => AlertDialog(
         title: Text(
           'Supprimer le bénéficiaire',
-          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+          style: FontHelper.poppins(fontWeight: FontWeight.w600),
         ),
         content: const Text(
           'Êtes-vous sûr de vouloir supprimer ce bénéficiaire ?',
@@ -806,7 +806,7 @@ class _BeneficiairesSelectorState extends State<BeneficiairesSelector> {
           Expanded(
             child: Text(
               'Limite de ${widget.maxBeneficiaires} bénéficiaire(s) atteinte. Vous pouvez modifier ou supprimer les bénéficiaires existants.',
-              style: GoogleFonts.poppins(
+              style: FontHelper.poppins(
                 fontSize: fontSize,
                 color: AppColors.textSecondary,
               ),

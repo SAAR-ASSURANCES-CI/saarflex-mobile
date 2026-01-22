@@ -1,6 +1,6 @@
-import 'package:saarciflex_app/core/constants/colors.dart';
+﻿import 'package:saarciflex_app/core/constants/colors.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:provider/provider.dart';
 import 'package:saarciflex_app/presentation/features/contracts/viewmodels/contract_viewmodel.dart';
 import 'package:saarciflex_app/data/models/saved_quote_model.dart';
@@ -141,7 +141,7 @@ class _SavedQuotesTabState extends State<SavedQuotesTab> {
             SizedBox(height: spacing1),
             Text(
               'Erreur de chargement',
-              style: GoogleFonts.poppins(
+              style: FontHelper.poppins(
                 fontSize: titleFontSize,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textPrimary,
@@ -152,7 +152,7 @@ class _SavedQuotesTabState extends State<SavedQuotesTab> {
             Text(
               error,
               textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(
+              style: FontHelper.poppins(
                 fontSize: errorFontSize,
                 color: AppColors.textSecondary,
               ),
@@ -173,7 +173,7 @@ class _SavedQuotesTabState extends State<SavedQuotesTab> {
               ),
               label: Text(
                 'Réessayer',
-                style: GoogleFonts.poppins(fontSize: buttonFontSize),
+                style: FontHelper.poppins(fontSize: buttonFontSize),
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
@@ -286,7 +286,7 @@ class _SavedQuotesTabState extends State<SavedQuotesTab> {
                 children: [
                   Text(
                     quote.nomPersonnalise ?? quote.nomProduit,
-                    style: GoogleFonts.poppins(
+                    style: FontHelper.poppins(
                       fontSize: titleFontSize,
                       fontWeight: FontWeight.w700,
                       color: AppColors.textPrimary,
@@ -297,7 +297,7 @@ class _SavedQuotesTabState extends State<SavedQuotesTab> {
                   SizedBox(height: widget.screenWidth < 360 ? 6.0 : 8.0),
                   Text(
                     quote.typeProduit,
-                    style: GoogleFonts.poppins(
+                    style: FontHelper.poppins(
                       fontSize: subtitleFontSize,
                       color: AppColors.textSecondary,
                     ),
@@ -361,7 +361,7 @@ class _SavedQuotesTabState extends State<SavedQuotesTab> {
                     icon: Icon(Icons.delete_outline, size: buttonIconSize),
                     label: Text(
                       'Supprimer',
-                      style: GoogleFonts.poppins(fontSize: buttonFontSize),
+                      style: FontHelper.poppins(fontSize: buttonFontSize),
                     ),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.error,
@@ -382,7 +382,7 @@ class _SavedQuotesTabState extends State<SavedQuotesTab> {
                     icon: Icon(Icons.check, size: buttonIconSize),
                     label: Text(
                       'Souscrire',
-                      style: GoogleFonts.poppins(fontSize: buttonFontSize),
+                      style: FontHelper.poppins(fontSize: buttonFontSize),
                     ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
@@ -415,7 +415,7 @@ class _SavedQuotesTabState extends State<SavedQuotesTab> {
             width: labelWidth,
             child: Text(
               label,
-              style: GoogleFonts.poppins(
+              style: FontHelper.poppins(
                 fontSize: fontSize,
                 fontWeight: FontWeight.w500,
                 color: AppColors.textSecondary,
@@ -427,7 +427,7 @@ class _SavedQuotesTabState extends State<SavedQuotesTab> {
           Expanded(
             child: Text(
               value,
-              style: GoogleFonts.poppins(
+              style: FontHelper.poppins(
                 fontSize: fontSize,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textPrimary,
@@ -483,11 +483,11 @@ class _SavedQuotesTabState extends State<SavedQuotesTab> {
           builder: (context) => AlertDialog(
             title: Text(
               'Supprimer le devis',
-              style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+              style: FontHelper.poppins(fontWeight: FontWeight.w600),
             ),
             content: Text(
               'Êtes-vous sûr de vouloir supprimer le devis "${quote.nomPersonnalise ?? quote.nomProduit}" ?',
-              style: GoogleFonts.poppins(),
+              style: FontHelper.poppins(),
             ),
             actions: [
               TextButton(
@@ -534,7 +534,7 @@ class _SavedQuotesTabState extends State<SavedQuotesTab> {
         Expanded(
           child: Text(
             title,
-            style: GoogleFonts.poppins(
+            style: FontHelper.poppins(
               fontSize: fontSize,
               fontWeight: FontWeight.w600,
               color: AppColors.textPrimary,
@@ -591,7 +591,7 @@ class _SavedQuotesTabState extends State<SavedQuotesTab> {
               Expanded(
                 child: Text(
                   'Bénéficiaires',
-                  style: GoogleFonts.poppins(
+                  style: FontHelper.poppins(
                     fontSize: (14.0 / widget.textScaleFactor).clamp(12.0, 16.0),
                     fontWeight: FontWeight.w600,
                     color: AppColors.textPrimary,
@@ -638,7 +638,7 @@ class _SavedQuotesTabState extends State<SavedQuotesTab> {
                       child: Center(
                         child: Text(
                           '${index + 1}',
-                          style: GoogleFonts.poppins(
+                          style: FontHelper.poppins(
                             fontSize: badgeFontSize,
                             fontWeight: FontWeight.w600,
                             color: AppColors.primary,
@@ -654,7 +654,7 @@ class _SavedQuotesTabState extends State<SavedQuotesTab> {
                           Text(
                             beneficiaire['nom_complet']?.toString() ??
                                 'Nom non renseigné',
-                            style: GoogleFonts.poppins(
+                            style: FontHelper.poppins(
                               fontSize: nameFontSize,
                               fontWeight: FontWeight.w600,
                               color: AppColors.textPrimary,
@@ -666,7 +666,7 @@ class _SavedQuotesTabState extends State<SavedQuotesTab> {
                           Text(
                             beneficiaire['lien_souscripteur']?.toString() ??
                                 'Lien non renseigné',
-                            style: GoogleFonts.poppins(
+                            style: FontHelper.poppins(
                               fontSize: linkFontSize,
                               fontWeight: FontWeight.w400,
                               color: AppColors.textSecondary,
@@ -700,7 +700,7 @@ class _SavedQuotesTabState extends State<SavedQuotesTab> {
                   Expanded(
                     child: Text(
                       '${informations['nombre_beneficiaires'] ?? 0} bénéficiaire(s) configuré(s)',
-                      style: GoogleFonts.poppins(
+                      style: FontHelper.poppins(
                         fontSize: (14.0 / widget.textScaleFactor).clamp(12.0, 16.0),
                         fontWeight: FontWeight.w500,
                         color: AppColors.textSecondary,

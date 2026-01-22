@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:saarciflex_app/presentation/features/profile/screens/edit_profile_screen.dart';
@@ -119,12 +119,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _uploadAvatar(String imagePath) async {
     try {
-      final avatarPath = await _fileUploadService.uploadAvatar(imagePath);
       final authProvider = context.read<AuthViewModel>();
       
-      await authProvider.updateUserField('avatar_path', avatarPath);
-      
+      await _fileUploadService.uploadAvatar(imagePath);
+      authProvider.markAvatarUploaded();
       await authProvider.loadUserProfile();
+      authProvider.forceAvatarRefresh();
+      await Future.delayed(const Duration(milliseconds: 100));
 
       if (mounted) {
         ErrorHandler.showSuccessSnackBar(
@@ -263,7 +264,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             title: Text(
               "Profile",
-              style: GoogleFonts.poppins(
+              style: FontHelper.poppins(
                 fontSize: appBarFontSize,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textPrimary,
@@ -290,7 +291,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     padding: const EdgeInsets.only(top: 8),
                     child: Text(
                       'Upload en cours...',
-                      style: GoogleFonts.poppins(
+                      style: FontHelper.poppins(
                         fontSize: 12,
                         color: AppColors.textSecondary,
                       ),
@@ -389,7 +390,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         child: Text(
           "Modifier le profil",
-          style: GoogleFonts.poppins(
+          style: FontHelper.poppins(
             fontSize: (16.0 / textScaleFactor).clamp(14.0, 18.0),
             fontWeight: FontWeight.w600,
           ),

@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:saarciflex_app/core/constants/colors.dart';
 import 'package:saarciflex_app/data/models/product_model.dart';
 import 'package:saarciflex_app/core/utils/product_formatters.dart';
@@ -33,7 +33,7 @@ class AllProductsList extends StatelessWidget {
         children: [
           Text(
             'Tous nos produits',
-            style: GoogleFonts.poppins(
+            style: FontHelper.poppins(
               fontSize: titleFontSize,
               fontWeight: FontWeight.w700,
               color: AppColors.textPrimary,
@@ -105,7 +105,7 @@ class AllProductsList extends StatelessWidget {
                     children: [
                       Text(
                         ProductFormatters.formatProductName(product.nom),
-                        style: GoogleFonts.poppins(
+                        style: FontHelper.poppins(
                           fontSize: nameFontSize,
                           fontWeight: FontWeight.w600,
                           color: AppColors.textPrimary,
@@ -116,7 +116,7 @@ class AllProductsList extends StatelessWidget {
                       SizedBox(height: spacing2),
                       Text(
                         product.typeLabel,
-                        style: GoogleFonts.poppins(
+                        style: FontHelper.poppins(
                           fontSize: typeFontSize,
                           color: AppColors.primary,
                           fontWeight: FontWeight.w500,
@@ -129,7 +129,7 @@ class AllProductsList extends StatelessWidget {
                         ProductFormatters.formatProductDescription(
                           product.description,
                         ),
-                        style: GoogleFonts.poppins(
+                        style: FontHelper.poppins(
                           fontSize: descFontSize,
                           color: AppColors.textSecondary,
                         ),

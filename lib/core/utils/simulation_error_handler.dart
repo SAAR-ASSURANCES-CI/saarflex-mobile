@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:saarciflex_app/core/constants/colors.dart';
 
 class SimulationErrorHandler {
@@ -67,7 +67,7 @@ class SimulationErrorHandler {
           children: [
             Text(
               title,
-              style: GoogleFonts.poppins(
+              style: FontHelper.poppins(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
                 color: AppColors.white,
@@ -76,7 +76,7 @@ class SimulationErrorHandler {
             const SizedBox(height: 4),
             Text(
               message,
-              style: GoogleFonts.poppins(
+              style: FontHelper.poppins(
                 fontSize: 12,
                 fontWeight: FontWeight.w400,
                 color: AppColors.white.withOpacity(0.9),
@@ -103,7 +103,7 @@ class SimulationErrorHandler {
             Expanded(
               child: Text(
                 message,
-                style: GoogleFonts.poppins(
+                style: FontHelper.poppins(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                   color: AppColors.white,
@@ -131,7 +131,7 @@ class SimulationErrorHandler {
             Expanded(
               child: Text(
                 message,
-                style: GoogleFonts.poppins(
+                style: FontHelper.poppins(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                   color: AppColors.white,
@@ -170,7 +170,7 @@ class SimulationErrorHandler {
               Expanded(
                 child: Text(
                   title,
-                  style: GoogleFonts.poppins(
+                  style: FontHelper.poppins(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
                     color: AppColors.textPrimary,
@@ -181,7 +181,7 @@ class SimulationErrorHandler {
           ),
           content: Text(
             message,
-            style: GoogleFonts.poppins(
+            style: FontHelper.poppins(
               fontSize: 14,
               fontWeight: FontWeight.w400,
               color: AppColors.textSecondary,
@@ -192,7 +192,7 @@ class SimulationErrorHandler {
               onPressed: onPressed ?? () => Navigator.of(context).pop(),
               child: Text(
                 buttonText ?? 'OK',
-                style: GoogleFonts.poppins(
+                style: FontHelper.poppins(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
                   color: AppColors.primary,

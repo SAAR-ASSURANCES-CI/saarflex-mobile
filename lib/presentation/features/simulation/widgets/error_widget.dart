@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:saarciflex_app/core/constants/colors.dart';
 
 class SimulationErrorWidget extends StatelessWidget {
@@ -42,7 +42,7 @@ class SimulationErrorWidget extends StatelessWidget {
             const SizedBox(height: 24),
             Text(
               title,
-              style: GoogleFonts.poppins(
+              style: FontHelper.poppins(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textPrimary,
@@ -51,7 +51,7 @@ class SimulationErrorWidget extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               message,
-              style: GoogleFonts.poppins(
+              style: FontHelper.poppins(
                 fontSize: 14,
                 fontWeight: FontWeight.w400,
                 color: AppColors.textSecondary,
@@ -76,7 +76,7 @@ class SimulationErrorWidget extends StatelessWidget {
                 ),
                 child: Text(
                   buttonText ?? 'Réessayer',
-                  style: GoogleFonts.poppins(
+                  style: FontHelper.poppins(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                   ),
@@ -128,7 +128,7 @@ class SimulationErrorCompactWidget extends StatelessWidget {
           Expanded(
             child: Text(
               message,
-              style: GoogleFonts.poppins(
+              style: FontHelper.poppins(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
                 color: backgroundColor != null
@@ -143,7 +143,7 @@ class SimulationErrorCompactWidget extends StatelessWidget {
               onPressed: onRetry,
               child: Text(
                 'Réessayer',
-                style: GoogleFonts.poppins(
+                style: FontHelper.poppins(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                   color: backgroundColor != null

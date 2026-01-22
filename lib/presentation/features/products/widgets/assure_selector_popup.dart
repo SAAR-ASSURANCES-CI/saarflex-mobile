@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:saarciflex_app/core/constants/colors.dart';
 
 class AssureSelectorDialog extends StatefulWidget {
@@ -26,7 +26,7 @@ class _AssureSelectorDialogState extends State<AssureSelectorDialog> {
           children: [
             Text(
               'Qui est l\'assuré ?',
-              style: GoogleFonts.poppins(
+              style: FontHelper.poppins(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textPrimary,
@@ -138,7 +138,7 @@ class _AssureSelectorDialogState extends State<AssureSelectorDialog> {
                 children: [
                   Text(
                     title,
-                    style: GoogleFonts.poppins(
+                    style: FontHelper.poppins(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                       color: AppColors.textPrimary,
@@ -146,7 +146,7 @@ class _AssureSelectorDialogState extends State<AssureSelectorDialog> {
                   ),
                   Text(
                     subtitle,
-                    style: GoogleFonts.poppins(
+                    style: FontHelper.poppins(
                       fontSize: 12,
                       color: AppColors.textSecondary,
                     ),

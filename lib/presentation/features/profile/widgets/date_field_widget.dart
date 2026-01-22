@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:saarciflex_app/core/constants/colors.dart';
 
 class DateFieldWidget extends StatelessWidget {
@@ -50,7 +50,7 @@ class DateFieldWidget extends StatelessWidget {
         RichText(
           text: TextSpan(
             text: label,
-            style: GoogleFonts.poppins(
+            style: FontHelper.poppins(
               fontSize: labelFontSize,
               fontWeight: FontWeight.w500,
               color: AppColors.textPrimary,
@@ -64,7 +64,7 @@ class DateFieldWidget extends StatelessWidget {
               if (isModified)
                 TextSpan(
                   text: ' (modifié)',
-                  style: GoogleFonts.poppins(
+                  style: FontHelper.poppins(
                     fontSize: modifiedFontSize,
                     color: AppColors.primary,
                     fontWeight: FontWeight.w500,
@@ -111,7 +111,7 @@ class DateFieldWidget extends StatelessWidget {
                     selectedDate != null
                         ? _formatDate(selectedDate!)
                         : 'Sélectionner $label',
-                    style: GoogleFonts.poppins(
+                    style: FontHelper.poppins(
                       fontSize: textFontSize,
                       fontWeight: FontWeight.w500,
                       color: selectedDate != null

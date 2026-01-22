@@ -338,17 +338,23 @@ class ApiService {
         final data = responseData['data'] ?? responseData;
         final avatarUrlRaw = data['avatar_url'] ?? data['avatar_path'];
         String? avatarUrl;
-        if (avatarUrlRaw != null && avatarUrlRaw.toString().contains('localhost')) {
+        
+        if (avatarUrlRaw == null || avatarUrlRaw.toString().trim().isEmpty) {
+          avatarUrl = null;
+        } else if (avatarUrlRaw.toString().contains('localhost') || avatarUrlRaw.toString().contains('127.0.0.1')) {
           try {
             final uri = Uri.parse(avatarUrlRaw.toString());
             final path = uri.path;
             final normalizedPath = path.startsWith('/') ? path.substring(1) : path;
             avatarUrl = normalizedPath;
           } catch (e) {
-            avatarUrl = data['avatar_path'];
+            final fallback = data['avatar_path'];
+            avatarUrl = (fallback != null && fallback.toString().trim().isNotEmpty) 
+                ? fallback.toString() 
+                : null;
           }
         } else {
-          avatarUrl = avatarUrlRaw;
+          avatarUrl = avatarUrlRaw.toString();
         }
         return User(
           id: data['id'],
@@ -416,17 +422,23 @@ class ApiService {
         final data = responseData['data'] ?? responseData;
         final avatarUrlRaw = data['avatar_url'] ?? data['avatar_path'];
         String? avatarUrl;
-        if (avatarUrlRaw != null && avatarUrlRaw.toString().contains('localhost')) {
+        
+        if (avatarUrlRaw == null || avatarUrlRaw.toString().trim().isEmpty) {
+          avatarUrl = null;
+        } else if (avatarUrlRaw.toString().contains('localhost') || avatarUrlRaw.toString().contains('127.0.0.1')) {
           try {
             final uri = Uri.parse(avatarUrlRaw.toString());
             final path = uri.path;
             final normalizedPath = path.startsWith('/') ? path.substring(1) : path;
             avatarUrl = normalizedPath;
           } catch (e) {
-            avatarUrl = data['avatar_path'];
+            final fallback = data['avatar_path'];
+            avatarUrl = (fallback != null && fallback.toString().trim().isNotEmpty) 
+                ? fallback.toString() 
+                : null;
           }
         } else {
-          avatarUrl = avatarUrlRaw;
+          avatarUrl = avatarUrlRaw.toString();
         }
 
         return User(

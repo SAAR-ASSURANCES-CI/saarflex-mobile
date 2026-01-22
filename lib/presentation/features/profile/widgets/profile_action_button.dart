@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 
 class ProfileActionButton extends StatelessWidget {
   final String text;
@@ -39,7 +39,7 @@ class ProfileActionButton extends StatelessWidget {
               icon: Icon(icon, size: iconSize),
               label: Text(
                 text,
-                style: GoogleFonts.poppins(
+                style: FontHelper.poppins(
                   fontSize: fontSize,
                   fontWeight: FontWeight.w600,
                 ),
@@ -58,7 +58,7 @@ class ProfileActionButton extends StatelessWidget {
               icon: Icon(icon, size: iconSize),
               label: Text(
                 text,
-                style: GoogleFonts.poppins(
+                style: FontHelper.poppins(
                   fontSize: fontSize,
                   fontWeight: FontWeight.w600,
                 ),

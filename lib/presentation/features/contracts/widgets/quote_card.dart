@@ -1,6 +1,6 @@
-import 'package:saarciflex_app/core/constants/colors.dart';
+﻿import 'package:saarciflex_app/core/constants/colors.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:intl/intl.dart';
 import 'package:saarciflex_app/data/models/saved_quote_model.dart';
 import 'package:saarciflex_app/core/utils/format_helper.dart';
@@ -92,7 +92,7 @@ class QuoteCard extends StatelessWidget {
             children: [
               Text(
                 quote.nomPersonnalise ?? quote.nomProduit,
-                style: GoogleFonts.poppins(
+                style: FontHelper.poppins(
                   fontSize: titleFontSize,
                   fontWeight: FontWeight.w600,
                   color: AppColors.textPrimary,
@@ -103,7 +103,7 @@ class QuoteCard extends StatelessWidget {
               SizedBox(height: spacing2),
               Text(
                 quote.typeProduit,
-                style: GoogleFonts.poppins(
+                style: FontHelper.poppins(
                   fontSize: subtitleFontSize,
                   color: AppColors.textSecondary,
                 ),
@@ -124,7 +124,7 @@ class QuoteCard extends StatelessWidget {
           ),
           child: Text(
             _getStatusText(),
-            style: GoogleFonts.poppins(
+            style: FontHelper.poppins(
               fontSize: statusFontSize,
               fontWeight: FontWeight.w500,
               color: _getStatusColor(),
@@ -179,7 +179,7 @@ class QuoteCard extends StatelessWidget {
             Expanded(
               child: Text(
                 quote.nomPersonnalise ?? quote.nomProduit,
-                style: GoogleFonts.poppins(
+                style: FontHelper.poppins(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
                 ),
@@ -255,7 +255,7 @@ class QuoteCard extends StatelessWidget {
             onPressed: () => Navigator.pop(context),
             child: Text(
               'Fermer',
-              style: GoogleFonts.poppins(
+              style: FontHelper.poppins(
                 color: AppColors.primary,
                 fontWeight: FontWeight.w600,
               ),
@@ -280,7 +280,7 @@ class QuoteCard extends StatelessWidget {
             const SizedBox(width: 8),
             Text(
               title,
-              style: GoogleFonts.poppins(
+              style: FontHelper.poppins(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
                 color: AppColors.primary,
@@ -305,7 +305,7 @@ class QuoteCard extends StatelessWidget {
               width: 100,
               child: Text(
                 '$label:',
-                style: GoogleFonts.poppins(
+                style: FontHelper.poppins(
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
                   color: AppColors.textSecondary,
@@ -317,7 +317,7 @@ class QuoteCard extends StatelessWidget {
           Expanded(
             child: Text(
               value,
-              style: GoogleFonts.poppins(
+              style: FontHelper.poppins(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textPrimary,
@@ -357,7 +357,7 @@ class QuoteCard extends StatelessWidget {
             Flexible(
               child: Text(
                 label,
-                style: GoogleFonts.poppins(
+                style: FontHelper.poppins(
                   fontSize: labelFontSize,
                   color: AppColors.textSecondary,
                 ),
@@ -370,7 +370,7 @@ class QuoteCard extends StatelessWidget {
         SizedBox(height: valueSpacing),
         Text(
           value,
-          style: GoogleFonts.poppins(
+          style: FontHelper.poppins(
             fontSize: valueFontSize,
             fontWeight: FontWeight.w600,
             color: AppColors.textPrimary,
@@ -396,7 +396,7 @@ class QuoteCard extends StatelessWidget {
             icon: Icon(Icons.delete_outline, size: buttonIconSize),
             label: Text(
               'Supprimer',
-              style: GoogleFonts.poppins(fontSize: buttonFontSize),
+              style: FontHelper.poppins(fontSize: buttonFontSize),
             ),
             style: OutlinedButton.styleFrom(
               foregroundColor: AppColors.error,
@@ -412,7 +412,7 @@ class QuoteCard extends StatelessWidget {
             icon: Icon(Icons.check, size: buttonIconSize),
             label: Text(
               'Souscrire',
-              style: GoogleFonts.poppins(fontSize: buttonFontSize),
+              style: FontHelper.poppins(fontSize: buttonFontSize),
             ),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,

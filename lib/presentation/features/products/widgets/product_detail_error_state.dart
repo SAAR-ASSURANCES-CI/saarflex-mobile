@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:saarciflex_app/core/constants/colors.dart';
 import 'package:saarciflex_app/presentation/features/products/widgets/product_detail_app_bar.dart';
 
@@ -35,7 +35,7 @@ class ProductDetailErrorState extends StatelessWidget {
               const SizedBox(height: 32),
               Text(
                 'Produit introuvable',
-                style: GoogleFonts.poppins(
+                style: FontHelper.poppins(
                   fontSize: 24,
                   fontWeight: FontWeight.w700,
                   color: AppColors.textPrimary,
@@ -44,7 +44,7 @@ class ProductDetailErrorState extends StatelessWidget {
               const SizedBox(height: 12),
               Text(
                 errorMessage,
-                style: GoogleFonts.poppins(
+                style: FontHelper.poppins(
                   fontSize: 16,
                   fontWeight: FontWeight.w400,
                   color: AppColors.textSecondary,
@@ -67,7 +67,7 @@ class ProductDetailErrorState extends StatelessWidget {
                   ),
                   child: Text(
                     'Retour à la liste',
-                    style: GoogleFonts.poppins(
+                    style: FontHelper.poppins(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),

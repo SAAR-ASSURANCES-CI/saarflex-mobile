@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:saarciflex_app/core/constants/colors.dart';
 
 class ProductSimulationSection extends StatelessWidget {
@@ -30,7 +30,7 @@ class ProductSimulationSection extends StatelessWidget {
               const SizedBox(width: 8),
               Text(
                 'Simulation de devis',
-                style: GoogleFonts.poppins(
+                style: FontHelper.poppins(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
                   color: AppColors.textPrimary,
@@ -41,7 +41,7 @@ class ProductSimulationSection extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             'Obtenez instantanément un devis personnalisé en fonction de votre profil et de vos besoins.',
-            style: GoogleFonts.poppins(
+            style: FontHelper.poppins(
               fontSize: 14,
               fontWeight: FontWeight.w400,
               color: AppColors.textSecondary,
@@ -70,7 +70,7 @@ class ProductSimulationSection extends StatelessWidget {
                     children: [
                       Text(
                         'Simulation rapide',
-                        style: GoogleFonts.poppins(
+                        style: FontHelper.poppins(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                           color: AppColors.primary,
@@ -78,7 +78,7 @@ class ProductSimulationSection extends StatelessWidget {
                       ),
                       Text(
                         'Résultat en moins de 2 minutes',
-                        style: GoogleFonts.poppins(
+                        style: FontHelper.poppins(
                           fontSize: 12,
                           fontWeight: FontWeight.w400,
                           color: AppColors.textSecondary,

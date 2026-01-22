@@ -1,6 +1,6 @@
-import 'package:saarciflex_app/core/constants/colors.dart';
+﻿import 'package:saarciflex_app/core/constants/colors.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:saarciflex_app/presentation/features/auth/screens/login_screen.dart';
 import 'signup_screen.dart';
@@ -119,7 +119,7 @@ class WelcomeScreen extends StatelessWidget {
                             delay: const Duration(milliseconds: 300),
                             child: Text(
                               'SAAR Assurances',
-                              style: GoogleFonts.poppins(
+                              style: FontHelper.poppins(
                                 fontSize: titleFontSize,
                                 fontWeight: FontWeight.w700,
                                 color: AppColors.textPrimary,
@@ -134,7 +134,7 @@ class WelcomeScreen extends StatelessWidget {
                             delay: const Duration(milliseconds: 500),
                             child: Text(
                               'Un réservoir de sécurité',
-                              style: GoogleFonts.poppins(
+                              style: FontHelper.poppins(
                                 fontSize: subtitleFontSize,
                                 fontWeight: FontWeight.w400,
                                 color: AppColors.textSecondary,
@@ -188,7 +188,7 @@ class WelcomeScreen extends StatelessWidget {
                                   child: Center(
                                     child: Text(
                                       'Créer un compte',
-                                      style: GoogleFonts.poppins(
+                                      style: FontHelper.poppins(
                                         fontSize: buttonFontSize,
                                         fontWeight: FontWeight.w600,
                                         color: AppColors.white,
@@ -220,7 +220,7 @@ class WelcomeScreen extends StatelessWidget {
                                 child: RichText(
                                   textAlign: TextAlign.center,
                                   text: TextSpan(
-                                    style: GoogleFonts.poppins(
+                                    style: FontHelper.poppins(
                                       fontSize: buttonFontSize,
                                       fontWeight: FontWeight.w400,
                                       color: AppColors.textSecondary,
@@ -231,7 +231,7 @@ class WelcomeScreen extends StatelessWidget {
                                       ),
                                       TextSpan(
                                         text: 'Se connecter',
-                                        style: GoogleFonts.poppins(
+                                        style: FontHelper.poppins(
                                           fontSize: buttonFontSize,
                                           fontWeight: FontWeight.w600,
                                           color: AppColors.primary,
@@ -253,7 +253,7 @@ class WelcomeScreen extends StatelessWidget {
                               ),
                               child: Text(
                                 "En continuant, vous acceptez nos Conditions Générales d'Utilisation",
-                                style: GoogleFonts.poppins(
+                                style: FontHelper.poppins(
                                   fontSize: termsFontSize,
                                   color: AppColors.textHint,
                                   fontWeight: FontWeight.w400,

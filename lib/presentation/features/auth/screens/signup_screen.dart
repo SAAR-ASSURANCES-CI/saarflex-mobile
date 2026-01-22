@@ -1,7 +1,7 @@
-import 'package:saarciflex_app/core/constants/colors.dart';
+﻿import 'package:saarciflex_app/core/constants/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:provider/provider.dart';
 import 'package:saarciflex_app/presentation/features/auth/viewmodels/auth_viewmodel.dart';
 import 'package:saarciflex_app/core/utils/error_handler.dart';
@@ -265,7 +265,7 @@ class _SignupScreenState extends State<SignupScreen> {
       ),
       title: Text(
         "Créer un compte",
-        style: GoogleFonts.poppins(
+        style: FontHelper.poppins(
           fontSize: fontSize,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
@@ -314,7 +314,7 @@ class _SignupScreenState extends State<SignupScreen> {
         SizedBox(height: logoSpacing),
         Text(
           "Rejoignez SAAR",
-          style: GoogleFonts.poppins(
+          style: FontHelper.poppins(
             fontSize: titleFontSize,
             fontWeight: FontWeight.w700,
             color: AppColors.textPrimary,
@@ -323,7 +323,7 @@ class _SignupScreenState extends State<SignupScreen> {
         SizedBox(height: titleSpacing),
         Text(
           "Créez votre compte et découvrez nos services",
-          style: GoogleFonts.poppins(
+          style: FontHelper.poppins(
             fontSize: subtitleFontSize,
             color: AppColors.textSecondary,
           ),
@@ -456,7 +456,7 @@ class _SignupScreenState extends State<SignupScreen> {
       children: [
         Text(
           label,
-          style: GoogleFonts.poppins(
+          style: FontHelper.poppins(
             fontSize: labelFontSize,
             fontWeight: FontWeight.w600,
             color: AppColors.textPrimary,
@@ -470,13 +470,13 @@ class _SignupScreenState extends State<SignupScreen> {
           keyboardType: keyboardType,
           textInputAction: textInputAction,
           onFieldSubmitted: onFieldSubmitted,
-          style: GoogleFonts.poppins(
+          style: FontHelper.poppins(
             fontSize: fieldFontSize,
             color: AppColors.textPrimary,
           ),
           decoration: InputDecoration(
             hintText: hintText,
-            hintStyle: GoogleFonts.poppins(
+            hintStyle: FontHelper.poppins(
               color: AppColors.textHint,
               fontSize: fieldFontSize,
             ),
@@ -523,7 +523,7 @@ class _SignupScreenState extends State<SignupScreen> {
               Expanded(
                 child: Text(
                   error,
-                  style: GoogleFonts.poppins(
+                  style: FontHelper.poppins(
                     color: AppColors.error,
                     fontSize: errorFontSize,
                     fontWeight: FontWeight.w500,
@@ -572,7 +572,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 padding: EdgeInsets.only(top: screenWidth < 360 ? 2.0 : 0.0),
                 child: RichText(
                   text: TextSpan(
-                    style: GoogleFonts.poppins(
+                    style: FontHelper.poppins(
                       fontSize: labelFontSize,
                       color: _hasOpenedCGU
                           ? AppColors.textSecondary
@@ -583,7 +583,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       const TextSpan(text: "J'accepte les "),
                       TextSpan(
                         text: "conditions générales d'utilisation",
-                        style: GoogleFonts.poppins(
+                        style: FontHelper.poppins(
                           fontSize: labelFontSize,
                           color: AppColors.primary,
                           fontWeight: FontWeight.w600,
@@ -613,7 +613,7 @@ class _SignupScreenState extends State<SignupScreen> {
               Expanded(
                 child: Text(
                   "Veuillez d'abord consulter les conditions générales d'utilisation",
-                  style: GoogleFonts.poppins(
+                  style: FontHelper.poppins(
                     fontSize: helpFontSize,
                     color: AppColors.warning,
                     height: 1.4,
@@ -671,7 +671,7 @@ class _SignupScreenState extends State<SignupScreen> {
               )
             : Text(
                 "Créer mon compte",
-                style: GoogleFonts.poppins(
+                style: FontHelper.poppins(
                   fontSize: buttonFontSize,
                   fontWeight: FontWeight.w600,
                 ),

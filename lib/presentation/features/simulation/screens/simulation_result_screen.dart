@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:saarciflex_app/core/constants/colors.dart';
 import 'package:saarciflex_app/data/models/product_model.dart';
 import 'package:saarciflex_app/data/models/simulation_model.dart';
@@ -168,7 +168,7 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
                                         Flexible(
                                           child: Text(
                                             'Upload des images en cours...',
-                                            style: GoogleFonts.poppins(
+                                            style: FontHelper.poppins(
                                               fontSize: (14.0 / textScaleFactor).clamp(12.0, 16.0),
                                             ),
                                             maxLines: 2,
@@ -197,7 +197,7 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
                                         Flexible(
                                           child: Text(
                                             'Images uploadées avec succès !',
-                                            style: GoogleFonts.poppins(
+                                            style: FontHelper.poppins(
                                               fontSize: (14.0 / textScaleFactor).clamp(12.0, 16.0),
                                             ),
                                             maxLines: 2,
@@ -275,7 +275,7 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
       ),
       title: Text(
         'Résultat de simulation',
-        style: GoogleFonts.poppins(
+        style: FontHelper.poppins(
           fontSize: titleFontSize,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
@@ -302,7 +302,7 @@ class _SimulationResultScreenState extends State<SimulationResultScreen> {
         SnackBar(
           content: Text(
             'Veuillez saisir un nom pour votre devis',
-            style: GoogleFonts.poppins(
+            style: FontHelper.poppins(
               fontSize: 14,
               fontWeight: FontWeight.w500,
             ),

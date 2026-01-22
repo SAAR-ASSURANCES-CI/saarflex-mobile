@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:saarciflex_app/core/constants/colors.dart';
 import 'package:saarciflex_app/core/utils/format_helper.dart';
 import 'package:saarciflex_app/data/models/simulation_model.dart';
@@ -162,7 +162,7 @@ class _ResultDetailsCardState extends State<ResultDetailsCard> {
               Expanded(
                 child: Text(
                   'Détails du calcul',
-                  style: GoogleFonts.poppins(
+                  style: FontHelper.poppins(
                     fontSize: titleFontSize,
                     fontWeight: FontWeight.w600,
                     color: AppColors.textPrimary,
@@ -177,7 +177,7 @@ class _ResultDetailsCardState extends State<ResultDetailsCard> {
           if (_isLoadingCriteres)
             Text(
               'Chargement des détails...',
-              style: GoogleFonts.poppins(
+              style: FontHelper.poppins(
                 fontSize: textFontSize,
                 fontWeight: FontWeight.w400,
                 color: AppColors.textSecondary,
@@ -187,7 +187,7 @@ class _ResultDetailsCardState extends State<ResultDetailsCard> {
           else
             Text(
               _buildDynamicCalculationText(),
-              style: GoogleFonts.poppins(
+              style: FontHelper.poppins(
                 fontSize: textFontSize,
                 fontWeight: FontWeight.w400,
                 color: AppColors.textSecondary,
@@ -213,7 +213,7 @@ class _ResultDetailsCardState extends State<ResultDetailsCard> {
                   Expanded(
                     child: Text(
                       'Ce devis expire le ${widget.resultat.expiresAt!.formatDate()}',
-                      style: GoogleFonts.poppins(
+                      style: FontHelper.poppins(
                         fontSize: expirationFontSize,
                         fontWeight: FontWeight.w500,
                         color: Colors.orange[700],

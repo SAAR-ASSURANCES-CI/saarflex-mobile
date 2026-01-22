@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:saarciflex_app/core/constants/colors.dart';
 import 'package:saarciflex_app/data/models/product_model.dart';
 import 'package:saarciflex_app/presentation/features/profile/screens/edit_profile_screen.dart';
@@ -27,7 +27,7 @@ class PhotoRequiredDialog extends StatelessWidget {
           Expanded(
             child: Text(
               'Photos requises',
-              style: GoogleFonts.poppins(
+              style: FontHelper.poppins(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textPrimary,
@@ -42,7 +42,7 @@ class PhotoRequiredDialog extends StatelessWidget {
         children: [
           Text(
             'Pour simuler un devis, vous devez d\'abord uploader vos photos d\'identité.',
-            style: GoogleFonts.poppins(
+            style: FontHelper.poppins(
               fontSize: 14,
               color: AppColors.textSecondary,
             ),
@@ -59,7 +59,7 @@ class PhotoRequiredDialog extends StatelessWidget {
               children: [
                 Text(
                   photoTitle,
-                  style: GoogleFonts.poppins(
+                  style: FontHelper.poppins(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                     color: AppColors.textPrimary,
@@ -68,7 +68,7 @@ class PhotoRequiredDialog extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   photoDescription,
-                  style: GoogleFonts.poppins(
+                  style: FontHelper.poppins(
                     fontSize: 12,
                     color: AppColors.textSecondary,
                   ),
@@ -83,7 +83,7 @@ class PhotoRequiredDialog extends StatelessWidget {
           onPressed: () => Navigator.of(context).pop(),
           child: Text(
             'Annuler',
-            style: GoogleFonts.poppins(
+            style: FontHelper.poppins(
               color: AppColors.textSecondary,
               fontWeight: FontWeight.w500,
             ),
@@ -108,7 +108,7 @@ class PhotoRequiredDialog extends StatelessWidget {
           ),
           child: Text(
             'Ajouter mes photos',
-            style: GoogleFonts.poppins(
+            style: FontHelper.poppins(
               color: Colors.white,
               fontWeight: FontWeight.w600,
             ),

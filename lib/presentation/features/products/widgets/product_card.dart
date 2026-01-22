@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:saarciflex_app/data/models/product_model.dart';
 import 'package:saarciflex_app/core/utils/product_formatters.dart';
 import 'package:saarciflex_app/presentation/features/products/widgets/product_icon_widget.dart';
@@ -97,7 +97,7 @@ class ProductCard extends StatelessWidget {
             children: [
               Text(
                 ProductFormatters.formatProductName(product.nom),
-                style: GoogleFonts.poppins(
+                style: FontHelper.poppins(
                   fontSize: nameFontSize,
                   fontWeight: FontWeight.w600,
                   color: Colors.grey[800],
@@ -109,7 +109,7 @@ class ProductCard extends StatelessWidget {
                 SizedBox(height: spacing2),
                 Text(
                   ProductFormatters.formatProductTypeShort(product.type),
-                  style: GoogleFonts.poppins(
+                  style: FontHelper.poppins(
                     fontSize: typeFontSize,
                     fontWeight: FontWeight.w500,
                     color: product.displayColor,
@@ -133,7 +133,7 @@ class ProductCard extends StatelessWidget {
             ),
             child: Text(
               ProductFormatters.formatProductStatus(product.statut),
-              style: GoogleFonts.poppins(
+              style: FontHelper.poppins(
                 fontSize: statusFontSize,
                 fontWeight: FontWeight.w500,
                 color: product.isActive ? Colors.green[700] : Colors.red[700],
@@ -151,7 +151,7 @@ class ProductCard extends StatelessWidget {
     
     return Text(
       ProductFormatters.formatProductDescription(product.description),
-      style: GoogleFonts.poppins(
+      style: FontHelper.poppins(
         fontSize: fontSize,
         color: Colors.grey[600],
         height: 1.4,
@@ -176,7 +176,7 @@ class ProductCard extends StatelessWidget {
           Flexible(
             child: Text(
               ProductFormatters.formatProductBranch(product.branche),
-              style: GoogleFonts.poppins(fontSize: fontSize, color: Colors.grey[500]),
+              style: FontHelper.poppins(fontSize: fontSize, color: Colors.grey[500]),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -193,7 +193,7 @@ class ProductCard extends StatelessWidget {
           Flexible(
             child: Text(
               ProductFormatters.formatProductCreatedAt(product.createdAt),
-              style: GoogleFonts.poppins(fontSize: fontSize, color: Colors.grey[500]),
+              style: FontHelper.poppins(fontSize: fontSize, color: Colors.grey[500]),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -264,7 +264,7 @@ class ProductCardCompact extends StatelessWidget {
                     children: [
                       Text(
                         ProductFormatters.formatProductName(product.nom),
-                        style: GoogleFonts.poppins(
+                        style: FontHelper.poppins(
                           fontSize: nameFontSize,
                           fontWeight: FontWeight.w600,
                           color: Colors.grey[800],
@@ -275,7 +275,7 @@ class ProductCardCompact extends StatelessWidget {
                       SizedBox(height: spacing2),
                       Text(
                         ProductFormatters.formatProductTypeShort(product.type),
-                        style: GoogleFonts.poppins(
+                        style: FontHelper.poppins(
                           fontSize: typeFontSize,
                           color: product.displayColor,
                         ),

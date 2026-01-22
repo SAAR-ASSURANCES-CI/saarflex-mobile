@@ -1,6 +1,6 @@
-import 'package:saarciflex_app/core/constants/colors.dart';
+﻿import 'package:saarciflex_app/core/constants/colors.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:provider/provider.dart';
 import 'package:saarciflex_app/presentation/features/auth/screens/login_screen.dart';
 import 'package:saarciflex_app/presentation/features/auth/viewmodels/auth_viewmodel.dart';
@@ -136,7 +136,7 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
       ),
       title: Text(
         "Nouveau mot de passe",
-        style: GoogleFonts.poppins(
+        style: FontHelper.poppins(
           fontSize: (22.0 / textScaleFactor).clamp(20.0, 26.0),
           fontWeight: FontWeight.w700,
           color: Colors.white,
@@ -169,7 +169,7 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
         const SizedBox(height: 24),
         Text(
           "Créer un nouveau mot de passe",
-          style: GoogleFonts.poppins(
+          style: FontHelper.poppins(
             fontSize: 28,
             fontWeight: FontWeight.w700,
             color: AppColors.textPrimary,
@@ -179,7 +179,7 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
         const SizedBox(height: 8),
         Text(
           "Votre mot de passe doit respecter les critères de sécurité ci-dessous.",
-          style: GoogleFonts.poppins(
+          style: FontHelper.poppins(
             fontSize: 16,
             color: AppColors.textSecondary,
           ),
@@ -195,7 +195,7 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
       children: [
         Text(
           "Nouveau mot de passe",
-          style: GoogleFonts.poppins(
+          style: FontHelper.poppins(
             fontSize: 16,
             fontWeight: FontWeight.w600,
             color: AppColors.textPrimary,
@@ -205,13 +205,13 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
         TextFormField(
           controller: _passwordController,
           obscureText: _obscurePassword,
-          style: GoogleFonts.poppins(
+          style: FontHelper.poppins(
             fontSize: 16,
             color: AppColors.textPrimary,
           ),
           decoration: InputDecoration(
             hintText: 'Votre nouveau mot de passe',
-            hintStyle: GoogleFonts.poppins(color: AppColors.textHint),
+            hintStyle: FontHelper.poppins(color: AppColors.textHint),
             prefixIcon: Icon(Icons.lock_outline, color: AppColors.primary),
             suffixIcon: IconButton(
               icon: Icon(
@@ -265,7 +265,7 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
       children: [
         Text(
           "Confirmer le mot de passe",
-          style: GoogleFonts.poppins(
+          style: FontHelper.poppins(
             fontSize: 16,
             fontWeight: FontWeight.w600,
             color: AppColors.textPrimary,
@@ -275,13 +275,13 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
         TextFormField(
           controller: _confirmPasswordController,
           obscureText: _obscureConfirmPassword,
-          style: GoogleFonts.poppins(
+          style: FontHelper.poppins(
             fontSize: 16,
             color: AppColors.textPrimary,
           ),
           decoration: InputDecoration(
             hintText: 'Confirmez votre mot de passe',
-            hintStyle: GoogleFonts.poppins(color: AppColors.textHint),
+            hintStyle: FontHelper.poppins(color: AppColors.textHint),
             prefixIcon: Icon(Icons.lock_outline, color: AppColors.primary),
             suffixIcon: IconButton(
               icon: Icon(
@@ -333,7 +333,7 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
               Expanded(
                 child: Text(
                   _confirmPasswordError!,
-                  style: GoogleFonts.poppins(
+                  style: FontHelper.poppins(
                     color: AppColors.error,
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
@@ -388,7 +388,7 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
               const SizedBox(width: 12),
               Text(
                 "Critères de sécurité",
-                style: GoogleFonts.poppins(
+                style: FontHelper.poppins(
                   fontWeight: FontWeight.w600,
                   color: AppColors.textPrimary,
                   fontSize: 16,
@@ -411,7 +411,7 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
                   Expanded(
                     child: Text(
                       req,
-                      style: GoogleFonts.poppins(
+                      style: FontHelper.poppins(
                         fontSize: 14,
                         color: AppColors.textSecondary,
                         fontWeight: FontWeight.w500,
@@ -460,7 +460,7 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
                   const SizedBox(width: 12),
                   Text(
                     "Mise à jour...",
-                    style: GoogleFonts.poppins(
+                    style: FontHelper.poppins(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
@@ -474,7 +474,7 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
                   const SizedBox(width: 8),
                   Text(
                     "Mettre à jour",
-                    style: GoogleFonts.poppins(
+                    style: FontHelper.poppins(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),

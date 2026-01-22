@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:provider/provider.dart';
 import 'package:saarciflex_app/core/constants/colors.dart';
 import 'package:saarciflex_app/core/constants/api_constants.dart';
@@ -247,8 +247,12 @@ class _EditProfileScreenRefactoredState
             builder: (context, authProvider, child) {
               final currentUser = authProvider.currentUser;
               final hasAvatar = ProfileHelpers.isValidImage(currentUser?.avatarUrl);
-              final avatarUrl = currentUser?.avatarUrl != null
-                  ? ProfileHelpers.buildImageUrl(currentUser!.avatarUrl!, ApiConstants.baseUrl)
+              
+              final avatarUrlRaw = currentUser?.avatarUrl;
+              final avatarUrl = avatarUrlRaw != null
+                  ? (avatarUrlRaw.startsWith('http://') || avatarUrlRaw.startsWith('https://'))
+                      ? avatarUrlRaw
+                      : ProfileHelpers.buildImageUrl(avatarUrlRaw, ApiConstants.baseUrl)
                   : null;
               
               final cacheBuster = authProvider.avatarTimestamp ?? 
@@ -256,7 +260,9 @@ class _EditProfileScreenRefactoredState
                   DateTime.now().millisecondsSinceEpoch;
               
               final avatarUrlWithCacheBuster = avatarUrl != null 
-                  ? '$avatarUrl?t=$cacheBuster&v=${DateTime.now().millisecondsSinceEpoch}'
+                  ? (avatarUrl.contains('?') 
+                      ? '$avatarUrl&t=$cacheBuster&v=${DateTime.now().millisecondsSinceEpoch}'
+                      : '$avatarUrl?t=$cacheBuster&v=${DateTime.now().millisecondsSinceEpoch}')
                   : null;
 
               return Container(
@@ -302,7 +308,7 @@ class _EditProfileScreenRefactoredState
           SizedBox(height: titleSpacing),
           Text(
             "Modifiez vos informations",
-            style: GoogleFonts.poppins(
+            style: FontHelper.poppins(
               fontSize: titleFontSize,
               fontWeight: FontWeight.w600,
               color: AppColors.textPrimary,
@@ -314,7 +320,7 @@ class _EditProfileScreenRefactoredState
           SizedBox(height: subtitleSpacing),
           Text(
             "Vous pouvez modifier un ou plusieurs champs",
-            style: GoogleFonts.poppins(
+            style: FontHelper.poppins(
               fontSize: subtitleFontSize,
               fontWeight: FontWeight.w400,
               color: AppColors.textSecondary,
@@ -380,7 +386,7 @@ class _EditProfileScreenRefactoredState
                   Flexible(
                     child: Text(
                       "Enregistrement...",
-                      style: GoogleFonts.poppins(
+                      style: FontHelper.poppins(
                         fontSize: fontSize,
                         fontWeight: FontWeight.w600,
                       ),
@@ -394,7 +400,7 @@ class _EditProfileScreenRefactoredState
                 formController.hasChanges
                     ? "Enregistrer les modifications"
                     : "Aucune modification",
-                style: GoogleFonts.poppins(
+                style: FontHelper.poppins(
                   fontSize: fontSize,
                   fontWeight: FontWeight.w600,
                 ),

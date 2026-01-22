@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:saarciflex_app/core/constants/colors.dart';
 
 class SimulationFormTitle extends StatelessWidget {
@@ -12,7 +12,7 @@ class SimulationFormTitle extends StatelessWidget {
       children: [
         Text(
           'Renseignez vos informations',
-          style: GoogleFonts.poppins(
+          style: FontHelper.poppins(
             fontSize: 20,
             fontWeight: FontWeight.w600,
             color: AppColors.textPrimary,
@@ -21,7 +21,7 @@ class SimulationFormTitle extends StatelessWidget {
         const SizedBox(height: 8),
         Text(
           'Complétez les champs ci-dessous pour obtenir votre devis personnalisé.',
-          style: GoogleFonts.poppins(
+          style: FontHelper.poppins(
             fontSize: 14,
             fontWeight: FontWeight.w400,
             color: AppColors.textSecondary,

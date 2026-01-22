@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:saarciflex_app/core/constants/colors.dart';
 
 class ValidationErrorWidget extends StatelessWidget {
@@ -38,7 +38,7 @@ class ValidationErrorWidget extends StatelessWidget {
           Expanded(
             child: Text(
               error,
-              style: GoogleFonts.poppins(
+              style: FontHelper.poppins(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
                 color: AppColors.error,
@@ -73,7 +73,7 @@ class ValidationErrorWidget extends StatelessWidget {
           Flexible(
             child: Text(
               error,
-              style: GoogleFonts.poppins(
+              style: FontHelper.poppins(
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
                 color: AppColors.error,
@@ -123,7 +123,7 @@ class FormValidationErrorsWidget extends StatelessWidget {
               const SizedBox(width: 8),
               Text(
                 'Erreurs de validation',
-                style: GoogleFonts.poppins(
+                style: FontHelper.poppins(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
                   color: AppColors.warning,
@@ -135,7 +135,7 @@ class FormValidationErrorsWidget extends StatelessWidget {
                   onPressed: onClearAll,
                   child: Text(
                     'Effacer tout',
-                    style: GoogleFonts.poppins(
+                    style: FontHelper.poppins(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                       color: AppColors.warning,
@@ -153,7 +153,7 @@ class FormValidationErrorsWidget extends StatelessWidget {
                 children: [
                   Text(
                     '• ',
-                    style: GoogleFonts.poppins(
+                    style: FontHelper.poppins(
                       fontSize: 12,
                       color: AppColors.warning,
                     ),
@@ -161,7 +161,7 @@ class FormValidationErrorsWidget extends StatelessWidget {
                   Expanded(
                     child: Text(
                       entry.value,
-                      style: GoogleFonts.poppins(
+                      style: FontHelper.poppins(
                         fontSize: 12,
                         fontWeight: FontWeight.w400,
                         color: AppColors.warning,

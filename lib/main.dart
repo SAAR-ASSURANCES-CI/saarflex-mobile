@@ -1,10 +1,11 @@
 import 'package:saarciflex_app/core/constants/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:saarciflex_app/core/utils/session_manager.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:saarciflex_app/presentation/shared/app_lifecycle_wrapper.dart';
+import 'package:saarciflex_app/presentation/shared/splash_screen.dart';
 import 'presentation/features/auth/viewmodels/auth_viewmodel.dart';
 import 'presentation/features/profile/viewmodels/profile_viewmodel.dart';
 import 'presentation/features/products/viewmodels/product_viewmodel.dart';
@@ -26,10 +27,6 @@ void main() async {
     return true;
   }());
   sessionManager.initialize();
-  
-  await GoogleFonts.pendingFonts([
-    GoogleFonts.poppins(),
-  ]);
   
   runApp(const Saarciflex());
 }
@@ -84,7 +81,7 @@ class Saarciflex extends StatelessWidget {
           theme: ThemeData(
             primarySwatch: Colors.blue,
             primaryColor: AppColors.primary, 
-            fontFamily: GoogleFonts.poppins().fontFamily,
+            fontFamily: FontHelper.poppinsFontFamily,
             colorScheme: ColorScheme.light(
               primary: AppColors.primary,
               secondary: AppColors.secondary,
@@ -93,7 +90,7 @@ class Saarciflex extends StatelessWidget {
             appBarTheme: AppBarTheme(
               backgroundColor: Colors.transparent,
               elevation: 0,
-              titleTextStyle: GoogleFonts.poppins(
+              titleTextStyle: FontHelper.poppins(
                 color: AppColors.primary,
                 fontSize: 20,
                 fontWeight: FontWeight.w600,
@@ -102,9 +99,8 @@ class Saarciflex extends StatelessWidget {
             ),
           ),
 
-          home: const AuthenticationWrapper(),
-
           routes: {
+            '/': (context) => const SplashScreen(),
             '/welcome': (context) => const WelcomeScreen(),
             '/login': (context) => const LoginScreen(),
             '/signup': (context) => const SignupScreen(),
@@ -159,7 +155,7 @@ class _AuthenticationWrapperState extends State<AuthenticationWrapper> {
                   const SizedBox(height: 20),
                   Text(
                     'Chargement en cours...',
-                    style: GoogleFonts.poppins(
+                    style: FontHelper.poppins(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
                       color: AppColors.textSecondary,

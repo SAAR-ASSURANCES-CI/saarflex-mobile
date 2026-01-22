@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:saarciflex_app/core/constants/colors.dart';
 import 'package:saarciflex_app/data/models/simulation_model.dart';
 import 'package:saarciflex_app/presentation/features/simulation/viewmodels/simulation_result_viewmodel.dart';
@@ -89,7 +89,7 @@ class ResultActionButtons extends StatelessWidget {
             )
           : Text(
               isAlreadySaved ? 'Déjà sauvegardé' : 'Sauvegarder',
-              style: GoogleFonts.poppins(
+              style: FontHelper.poppins(
                 fontSize: fontSize,
                 fontWeight: FontWeight.w600,
               ),
@@ -115,7 +115,7 @@ class ResultActionButtons extends StatelessWidget {
       ),
       child: Text(
         'Souscrire',
-        style: GoogleFonts.poppins(
+        style: FontHelper.poppins(
           fontSize: fontSize,
           fontWeight: FontWeight.w600,
         ),

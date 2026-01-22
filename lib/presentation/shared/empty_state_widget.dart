@@ -1,6 +1,6 @@
-import 'package:saarciflex_app/core/constants/colors.dart';
+﻿import 'package:saarciflex_app/core/constants/colors.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 
 class EmptyStateWidget extends StatelessWidget {
   final IconData icon;
@@ -37,7 +37,7 @@ class EmptyStateWidget extends StatelessWidget {
             const SizedBox(height: 24),
             Text(
               title,
-              style: GoogleFonts.poppins(
+              style: FontHelper.poppins(
                 fontSize: 20,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textPrimary,
@@ -47,7 +47,7 @@ class EmptyStateWidget extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               message,
-              style: GoogleFonts.poppins(
+              style: FontHelper.poppins(
                 fontSize: 16,
                 color: AppColors.textSecondary,
                 height: 1.5,

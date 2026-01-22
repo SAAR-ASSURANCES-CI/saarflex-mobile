@@ -1,6 +1,6 @@
-import 'package:saarciflex_app/core/constants/colors.dart';
+﻿import 'package:saarciflex_app/core/constants/colors.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:provider/provider.dart';
 import 'package:saarciflex_app/presentation/features/auth/screens/otp_verification_screen.dart';
 import 'package:saarciflex_app/presentation/features/auth/viewmodels/auth_viewmodel.dart';
@@ -109,7 +109,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       ),
       title: Text(
         "Mot de passe oublié",
-        style: GoogleFonts.poppins(
+        style: FontHelper.poppins(
           fontSize: (22.0 / textScaleFactor).clamp(20.0, 26.0),
           fontWeight: FontWeight.w700,
           color: Colors.white,
@@ -136,7 +136,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
         const SizedBox(height: 24),
         Text(
           "Réinitialiser le mot de passe",
-          style: GoogleFonts.poppins(
+          style: FontHelper.poppins(
             fontSize: 28,
             fontWeight: FontWeight.w700,
             color: AppColors.textPrimary,
@@ -145,7 +145,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
         const SizedBox(height: 8),
         Text(
           "Entrez votre email pour vérifier votre compte",
-          style: GoogleFonts.poppins(
+          style: FontHelper.poppins(
             fontSize: 16,
             color: AppColors.textSecondary,
           ),
@@ -160,7 +160,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       children: [
         Text(
           "Email",
-          style: GoogleFonts.poppins(
+          style: FontHelper.poppins(
             fontSize: 16,
             fontWeight: FontWeight.w600,
             color: AppColors.textPrimary,
@@ -172,13 +172,13 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
           focusNode: _emailFocus,
           keyboardType: TextInputType.emailAddress,
           textInputAction: TextInputAction.done,
-          style: GoogleFonts.poppins(
+          style: FontHelper.poppins(
             fontSize: 16,
             color: AppColors.textPrimary,
           ),
           decoration: InputDecoration(
             hintText: 'Votre adresse email',
-            hintStyle: GoogleFonts.poppins(color: AppColors.textHint),
+            hintStyle: FontHelper.poppins(color: AppColors.textHint),
             prefixIcon: Icon(Icons.email_outlined, color: AppColors.primary),
             filled: true,
             fillColor: AppColors.surface,
@@ -219,7 +219,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
               Expanded(
                 child: Text(
                   _emailError!,
-                  style: GoogleFonts.poppins(
+                  style: FontHelper.poppins(
                     color: AppColors.error,
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
@@ -262,7 +262,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
               )
             : Text(
                 "Continuer",
-                style: GoogleFonts.poppins(
+                style: FontHelper.poppins(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),

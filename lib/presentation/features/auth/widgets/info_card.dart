@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:saarciflex_app/core/constants/colors.dart';
 
 class InfoCard extends StatelessWidget {
@@ -34,7 +34,7 @@ class InfoCard extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             title,
-            style: GoogleFonts.poppins(
+            style: FontHelper.poppins(
               fontSize: 18,
               fontWeight: FontWeight.w600,
               color: AppColors.primary,
@@ -44,7 +44,7 @@ class InfoCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             message,
-            style: GoogleFonts.poppins(
+            style: FontHelper.poppins(
               fontSize: 14,
               fontWeight: FontWeight.w400,
               color: AppColors.primary.withOpacity(0.8),

@@ -57,8 +57,7 @@ class ProfileHelpers {
           final uri = Uri.parse(imageUrl);
           final path = uri.path;
           final normalizedPath = path.startsWith('/') ? path.substring(1) : path;
-          final out = '$baseUrl/$normalizedPath';
-          return out;
+          return '$baseUrl/$normalizedPath';
         } catch (e) {
           return imageUrl;
         }
@@ -67,13 +66,14 @@ class ProfileHelpers {
     }
     
     final normalizedPath = imageUrl.startsWith('/') ? imageUrl.substring(1) : imageUrl;
-    final out = '$baseUrl/$normalizedPath';
-    return out;
+    return '$baseUrl/$normalizedPath';
   }
 
 
 
   static bool isValidImage(String? imageUrl) {
-    return imageUrl != null && imageUrl.isNotEmpty;
+    if (imageUrl == null) return false;
+    final trimmed = imageUrl.trim();
+    return trimmed.isNotEmpty && trimmed != 'null';
   }
 }

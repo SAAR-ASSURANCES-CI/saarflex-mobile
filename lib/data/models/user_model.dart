@@ -106,7 +106,29 @@ class User {
   }
 
   factory User.fromJson(Map<String, dynamic> json) {
-    final avatarUrl = json['avatar_path'];
+    final avatarUrlRaw = json['avatar_url'] ?? json['avatar_path'];
+    String? avatarUrl;
+    
+    if (avatarUrlRaw == null || avatarUrlRaw.toString().trim().isEmpty) {
+      avatarUrl = null;
+    } else {
+      final avatarStr = avatarUrlRaw.toString().trim();
+      if (avatarStr.contains('localhost') || avatarStr.contains('127.0.0.1')) {
+        try {
+          final uri = Uri.parse(avatarStr);
+          final path = uri.path;
+          final normalizedPath = path.startsWith('/') ? path.substring(1) : path;
+          avatarUrl = normalizedPath;
+        } catch (e) {
+          final fallback = json['avatar_path'];
+          avatarUrl = (fallback != null && fallback.toString().trim().isNotEmpty) 
+              ? fallback.toString().trim() 
+              : null;
+        }
+      } else {
+        avatarUrl = avatarStr;
+      }
+    }
     
     return User(
       id: json['id'],

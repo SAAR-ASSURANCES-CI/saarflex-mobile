@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:saarciflex_app/core/constants/colors.dart';
 import 'package:saarciflex_app/data/models/critere_tarification_model.dart';
 import 'package:saarciflex_app/presentation/features/simulation/widgets/validation_error_widget.dart';
@@ -98,7 +98,7 @@ class _CritereInputWidgetState extends State<CritereInputWidget> {
   Widget _buildLabel() {
     return RichText(
       text: TextSpan(
-        style: GoogleFonts.poppins(
+        style: FontHelper.poppins(
           fontSize: 16,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
@@ -149,7 +149,7 @@ class _CritereInputWidgetState extends State<CritereInputWidget> {
           : [FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]'))],
       decoration: InputDecoration(
         hintText: 'Votre ${widget.critere.nom.toLowerCase()}',
-        hintStyle: GoogleFonts.poppins(color: AppColors.textHint),
+        hintStyle: FontHelper.poppins(color: AppColors.textHint),
         prefixIcon: Icon(Icons.calculate, color: AppColors.primary),
         filled: true,
         fillColor: AppColors.surface,
@@ -167,7 +167,7 @@ class _CritereInputWidgetState extends State<CritereInputWidget> {
         ),
         contentPadding: const EdgeInsets.all(16),
       ),
-      style: GoogleFonts.poppins(fontSize: 16, color: AppColors.textPrimary),
+      style: FontHelper.poppins(fontSize: 16, color: AppColors.textPrimary),
       onChanged: (value) {
         if (widget.formatMilliers) {
           final cleanValue = value.replaceAll(RegExp(r'[^\d]'), '');
@@ -186,7 +186,7 @@ class _CritereInputWidgetState extends State<CritereInputWidget> {
       value: widget.valeur?.toString(),
       decoration: InputDecoration(
         hintText: 'Sélectionnez une option',
-        hintStyle: GoogleFonts.poppins(color: AppColors.textHint),
+        hintStyle: FontHelper.poppins(color: AppColors.textHint),
         prefixIcon: Icon(Icons.list, color: AppColors.primary),
         filled: true,
         fillColor: AppColors.surface,
@@ -204,7 +204,7 @@ class _CritereInputWidgetState extends State<CritereInputWidget> {
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16),
       ),
-      style: GoogleFonts.poppins(fontSize: 16, color: AppColors.textPrimary),
+      style: FontHelper.poppins(fontSize: 16, color: AppColors.textPrimary),
       items: widget.critere.valeursString.map((valeur) {
         return DropdownMenuItem(value: valeur, child: Text(valeur));
       }).toList(),
@@ -226,7 +226,7 @@ class _CritereInputWidgetState extends State<CritereInputWidget> {
           const SizedBox(width: 12),
           Text(
             widget.critere.nom,
-            style: GoogleFonts.poppins(
+            style: FontHelper.poppins(
               fontSize: 16,
               fontWeight: FontWeight.w500,
               color: AppColors.textPrimary,
@@ -282,7 +282,7 @@ class _CritereInputWidgetState extends State<CritereInputWidget> {
                 selectedDate != null
                     ? _formatDate(selectedDate)
                     : 'Sélectionnez ${widget.critere.nom.toLowerCase()}',
-                style: GoogleFonts.poppins(
+                style: FontHelper.poppins(
                   fontSize: 16,
                   color: selectedDate != null
                       ? AppColors.textPrimary
@@ -302,7 +302,7 @@ class _CritereInputWidgetState extends State<CritereInputWidget> {
       keyboardType: TextInputType.text,
       decoration: InputDecoration(
         hintText: 'Saisissez ${widget.critere.nom.toLowerCase()}',
-        hintStyle: GoogleFonts.poppins(color: AppColors.textHint),
+        hintStyle: FontHelper.poppins(color: AppColors.textHint),
         prefixIcon: Icon(Icons.text_fields, color: AppColors.primary),
         filled: true,
         fillColor: AppColors.surface,
@@ -320,7 +320,7 @@ class _CritereInputWidgetState extends State<CritereInputWidget> {
         ),
         contentPadding: const EdgeInsets.all(16),
       ),
-      style: GoogleFonts.poppins(fontSize: 16, color: AppColors.textPrimary),
+      style: FontHelper.poppins(fontSize: 16, color: AppColors.textPrimary),
       onChanged: (value) => widget.onChanged(value.trim().isEmpty ? null : value.trim()),
     );
   }

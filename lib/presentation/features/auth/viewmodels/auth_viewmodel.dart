@@ -22,6 +22,7 @@ class AuthViewModel extends ChangeNotifier {
   String? _uploadErrorMessage;
   double _uploadProgress = 0.0;
   int? _avatarTimestamp;
+  bool _avatarJustUploaded = false;
 
   static bool _hasInitialized = false;
   static const String _initTimestampKey = 'auth_init_timestamp';
@@ -218,7 +219,10 @@ class AuthViewModel extends ChangeNotifier {
       final user = await _profileRepository.getUserProfile();
       _currentUser = user;
       
-      if (previousAvatarTimestamp != null) {
+      if (_avatarJustUploaded) {
+        _avatarTimestamp = DateTime.now().millisecondsSinceEpoch;
+        _avatarJustUploaded = false;
+      } else if (previousAvatarTimestamp != null) {
         final previousAvatarUrl = previousUser?.avatarUrl;
         final newAvatarUrl = user.avatarUrl;
         if (previousAvatarUrl != newAvatarUrl) {
@@ -226,6 +230,8 @@ class AuthViewModel extends ChangeNotifier {
         } else {
           _avatarTimestamp = previousAvatarTimestamp;
         }
+      } else if (user.avatarUrl != null) {
+        _avatarTimestamp = DateTime.now().millisecondsSinceEpoch;
       }
       _setLoading(false);
       notifyListeners();
@@ -455,6 +461,15 @@ class AuthViewModel extends ChangeNotifier {
     _clearError();
     _clearUploadError();
     notifyListeners();
+  }
+
+  void forceAvatarRefresh() {
+    _avatarTimestamp = DateTime.now().millisecondsSinceEpoch;
+    notifyListeners();
+  }
+
+  void markAvatarUploaded() {
+    _avatarJustUploaded = true;
   }
 
   Future<void> updateUserField(String fieldName, dynamic value) async {
