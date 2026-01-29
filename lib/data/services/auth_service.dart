@@ -39,7 +39,7 @@ class AuthService {
   Future<void> logout() async {
     try {
       await _apiService.logout();
-    } catch (e, st) {
+    } catch (e) {
       if (kDebugMode) debugPrint('Logout error: $e');
     }
   }

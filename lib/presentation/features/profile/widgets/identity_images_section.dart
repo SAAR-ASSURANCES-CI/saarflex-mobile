@@ -13,7 +13,7 @@ class IdentityImagesSection extends StatelessWidget {
   final bool isUploadingVerso;
   final XFile? rectoImage;
   final XFile? versoImage;
-  final Function(bool) onPickImage;
+  final Function(bool, ImageSource) onPickImage;
   final double screenWidth;
   final double textScaleFactor;
 
@@ -45,22 +45,99 @@ class IdentityImagesSection extends StatelessWidget {
           label: ImageLabels.getRectoLabel(currentIdentityType),
           imageUrl: frontDocumentPath,
           isUploading: isUploadingRecto,
-          onTap: () => onPickImage(true),
+          onTap: () => _showImageSourceDialog(context, true),
           selectedImage: rectoImage,
           screenWidth: screenWidth,
           textScaleFactor: textScaleFactor,
         ),
+        _buildFileSizeInfo(screenWidth, textScaleFactor),
         SizedBox(height: fieldSpacing),
         ImageUploadField(
           label: ImageLabels.getVersoLabel(currentIdentityType),
           imageUrl: backDocumentPath,
           isUploading: isUploadingVerso,
-          onTap: () => onPickImage(false),
+          onTap: () => _showImageSourceDialog(context, false),
           selectedImage: versoImage,
           screenWidth: screenWidth,
           textScaleFactor: textScaleFactor,
         ),
+        _buildFileSizeInfo(screenWidth, textScaleFactor),
       ],
+    );
+  }
+
+  void _showImageSourceDialog(BuildContext context, bool isRecto) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (bottomSheetContext) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                margin: const EdgeInsets.only(top: 12, bottom: 8),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              ListTile(
+                leading: const Icon(Icons.camera_alt_rounded),
+                title: const Text('Prendre une photo'),
+                onTap: () {
+                  Navigator.pop(bottomSheetContext);
+                  onPickImage(isRecto, ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library_rounded),
+                title: const Text('Choisir depuis la galerie'),
+                onTap: () {
+                  Navigator.pop(bottomSheetContext);
+                  onPickImage(isRecto, ImageSource.gallery);
+                },
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildFileSizeInfo(double screenWidth, double textScaleFactor) {
+    final infoFontSize = (11.0 / textScaleFactor).clamp(10.0, 12.0);
+    final iconSize = screenWidth < 360 ? 14.0 : 16.0;
+    final iconSpacing = screenWidth < 360 ? 4.0 : 6.0;
+    final topSpacing = screenWidth < 360 ? 4.0 : 6.0;
+    final alertColor = Colors.orange[700] ?? const Color.fromARGB(255, 235, 107, 27);
+    
+    return Padding(
+      padding: EdgeInsets.only(top: topSpacing),
+      child: Row(
+        children: [
+          Icon(
+            Icons.info_outline_rounded,
+            size: iconSize,
+            color: alertColor,
+          ),
+          SizedBox(width: iconSpacing),
+          Text(
+            'Taille maximale : 5 Mo',
+            style: FontHelper.poppins(
+              fontSize: infoFontSize,
+              color: alertColor,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
     );
   }
 

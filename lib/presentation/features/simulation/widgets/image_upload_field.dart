@@ -23,6 +23,8 @@ class ImageUploadField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasImage = selectedImage != null || uploadedImageUrl != null;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final imageHeight = screenWidth < 360 ? 180.0 : 220.0;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -48,7 +50,7 @@ class ImageUploadField extends StatelessWidget {
           onTap: isUploading ? null : onTap,
           child: Container(
             width: double.infinity,
-            height: 120,
+            height: imageHeight,
             decoration: BoxDecoration(
               color: hasImage
                   ? AppColors.primary.withOpacity(0.1)
@@ -86,7 +88,7 @@ class ImageUploadField extends StatelessWidget {
                     ),
                   )
                 : hasImage
-                ? _buildImagePreview()
+                ? _buildImagePreview(imageHeight)
                 : _buildUploadPlaceholder(),
           ),
         ),
@@ -120,7 +122,7 @@ class ImageUploadField extends StatelessWidget {
     );
   }
 
-  Widget _buildImagePreview() {
+  Widget _buildImagePreview(double imageHeight) {
     return Stack(
       children: [
         ClipRRect(
@@ -129,7 +131,7 @@ class ImageUploadField extends StatelessWidget {
               ? Image.network(
                   uploadedImageUrl!,
                   width: double.infinity,
-                  height: 120,
+                  height: imageHeight,
                   fit: BoxFit.cover,
                   loadingBuilder: (context, child, loadingProgress) {
                     if (loadingProgress == null) return child;
@@ -157,7 +159,7 @@ class ImageUploadField extends StatelessWidget {
               ? Image.file(
                   File(selectedImage!.path),
                   width: double.infinity,
-                  height: 120,
+                  height: imageHeight,
                   fit: BoxFit.cover,
                 )
               : Container(

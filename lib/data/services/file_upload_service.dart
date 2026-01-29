@@ -6,6 +6,7 @@ import 'package:path/path.dart' as path;
 import 'package:image_picker/image_picker.dart';
 import 'package:saarciflex_app/core/constants/api_constants.dart';
 import 'package:saarciflex_app/core/utils/storage_helper.dart';
+import 'package:saarciflex_app/data/services/api_service.dart';
 
 class FileUploadService {
   Future<String> uploadIdentityDocument({
@@ -221,22 +222,40 @@ class FileUploadService {
   Future<http.StreamedResponse> _sendUploadRequest(
     http.MultipartRequest request,
   ) async {
-    final streamedResponse = await request.send();
+    try {
+      final streamedResponse = await request.send();
 
-    if (streamedResponse.statusCode != 200 &&
-        streamedResponse.statusCode != 201) {
-      final responseBody = await streamedResponse.stream.bytesToString();
-      
-      try {
-        final errorData = json.decode(responseBody);
-        final errorMessage = errorData['message'] ?? 'Erreur lors de l\'upload';
-        throw Exception('$errorMessage (${streamedResponse.statusCode})');
-      } catch (e) {
-        throw Exception('Erreur serveur (${streamedResponse.statusCode}): $responseBody');
+      if (streamedResponse.statusCode != 200 &&
+          streamedResponse.statusCode != 201) {
+        final responseBody = await streamedResponse.stream.bytesToString();
+        
+        try {
+          final errorData = json.decode(responseBody);
+          final errorMessage = errorData['message'] ?? 'Erreur lors de l\'upload';
+          throw ApiException(
+            errorMessage,
+            streamedResponse.statusCode,
+          );
+        } catch (e) {
+          if (e is ApiException) rethrow;
+          throw ApiException(
+            'Erreur serveur: ${responseBody.length > 100 ? responseBody.substring(0, 100) + "..." : responseBody}',
+            streamedResponse.statusCode,
+          );
+        }
       }
-    }
 
-    return streamedResponse;
+      return streamedResponse;
+    } on SocketException {
+      throw ApiException('Problème de connexion internet. Vérifiez votre réseau.');
+    } on HttpException catch (e) {
+      throw ApiException('Erreur de communication avec le serveur: ${e.message}');
+    } on FormatException {
+      throw ApiException('Format de réponse invalide du serveur.');
+    } catch (e) {
+      if (e is ApiException) rethrow;
+      throw ApiException('Erreur lors de l\'upload: ${e.toString()}');
+    }
   }
 
   Future<String> _extractImageUrl(http.StreamedResponse response) async {

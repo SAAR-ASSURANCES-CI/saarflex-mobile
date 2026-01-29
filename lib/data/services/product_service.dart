@@ -80,7 +80,7 @@ class ProductService {
       } else if (response.statusCode == 404) {
         return null;
       }
-    } catch (e, st) {
+    } catch (e) {
       if (kDebugMode) debugPrint('Get product error: $e');
     }
     
