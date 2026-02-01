@@ -7,6 +7,8 @@ import 'package:saarciflex_app/presentation/features/auth/screens/signup_screen.
 import 'package:saarciflex_app/core/utils/error_handler.dart';
 import 'package:saarciflex_app/presentation/features/auth/viewmodels/auth_viewmodel.dart';
 import 'package:saarciflex_app/core/utils/validation_cache.dart';
+import 'package:saarciflex_app/core/services/biometric_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -25,6 +27,10 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isFormValid = false;
   AutovalidateMode _autovalidateMode = AutovalidateMode.disabled;
 
+  bool _biometricAvailable = false;
+  bool _biometricEnabled = false;
+  bool _checkingBiometric = false;
+
   final _emailFocus = FocusNode();
   final _passwordFocus = FocusNode();
 
@@ -40,6 +46,31 @@ class _LoginScreenState extends State<LoginScreen> {
     super.initState();
     _emailController.addListener(_debouncedEmailValidation);
     _passwordController.addListener(_debouncedPasswordValidation);
+    _checkBiometricAvailability();
+    _checkBiometricEnabled();
+  }
+
+  Future<void> _checkBiometricAvailability() async {
+    final available = await BiometricService.isAvailable();
+    final hasEnrolled = await BiometricService.hasEnrolledBiometrics();
+    
+    if (mounted) {
+      setState(() {
+        _biometricAvailable = available && hasEnrolled;
+      });
+    }
+  }
+
+  Future<void> _checkBiometricEnabled() async {
+    final prefs = await SharedPreferences.getInstance();
+    final enabled = prefs.getBool('biometric_enabled') ?? false;
+    final hasSavedCredentials = prefs.getString('saved_email') != null;
+    
+    if (mounted) {
+      setState(() {
+        _biometricEnabled = enabled && hasSavedCredentials;
+      });
+    }
   }
 
   void _debouncedEmailValidation() {
@@ -122,7 +153,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 : (screenWidth * 0.08).clamp(24.0, 48.0);
         final verticalPadding = screenHeight < 600 ? 16.0 : 24.0;
         final bottomPadding = viewInsets.bottom > 0 
-            ? viewInsets.bottom + 16.0 
+            ? 16.0 
             : 24.0;
         
         final topSpacing = screenHeight < 600 ? 10.0 : 20.0;
@@ -498,40 +529,82 @@ class _LoginScreenState extends State<LoginScreen> {
     final buttonHeight = screenWidth < 360 ? 48.0 : 50.0;
     final buttonFontSize = (16.0 / textScaleFactor).clamp(14.0, 18.0);
     
-    return SizedBox(
-      width: double.infinity,
-      height: buttonHeight,
-      child: ElevatedButton(
-        onPressed: authProvider.isLoading || !_isFormValid
-            ? null
-            : () => _handleLogin(authProvider),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: _isFormValid
-              ? AppColors.primary
-              : AppColors.disabled,
-          foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          elevation: 0,
-        ),
-        child: authProvider.isLoading
-            ? SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: SizedBox(
+            height: buttonHeight,
+            child: ElevatedButton(
+              onPressed: authProvider.isLoading || !_isFormValid
+                  ? null
+                  : () => _handleLogin(authProvider),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _isFormValid
+                    ? AppColors.primary
+                    : AppColors.disabled,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
-              )
-            : Text(
-                "Se connecter",
-                style: FontHelper.poppins(
-                  fontSize: buttonFontSize,
-                  fontWeight: FontWeight.w600,
+                elevation: 0,
+              ),
+              child: authProvider.isLoading
+                  ? SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : Text(
+                      "Se connecter",
+                      style: FontHelper.poppins(
+                        fontSize: buttonFontSize,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+            ),
+          ),
+        ),
+        if (_biometricAvailable && _biometricEnabled) ...[
+          const SizedBox(width: 12),
+          Container(
+            width: buttonHeight,
+            height: buttonHeight,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppColors.primary.withOpacity(0.1),
+              border: Border.all(
+                color: AppColors.primary,
+                width: 2,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withOpacity(0.2),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: _checkingBiometric || authProvider.isLoading
+                    ? null
+                    : () => _authenticateWithBiometric(authProvider),
+                borderRadius: BorderRadius.circular(buttonHeight / 2),
+                child: Icon(
+                  Icons.fingerprint,
+                  size: screenWidth < 360 ? 24 : 28,
+                  color: AppColors.primary,
                 ),
               ),
-      ),
+            ),
+          ),
+        ],
+      ],
     );
   }
 
@@ -609,6 +682,25 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (success && mounted) {
+        final prefs = await SharedPreferences.getInstance();
+        
+        if (_rememberMe) {
+          await prefs.setString('saved_email', _emailController.text.trim());
+          await prefs.setString('saved_password', _passwordController.text);
+          await prefs.setBool('biometric_enabled', true);
+          
+          _checkBiometricAvailability();
+          _checkBiometricEnabled();
+        } else {
+          await prefs.remove('saved_email');
+          await prefs.remove('saved_password');
+          await prefs.setBool('biometric_enabled', false);
+          
+          setState(() {
+            _biometricEnabled = false;
+          });
+        }
+        
         Navigator.pushReplacementNamed(context, '/dashboard');
       } else if (mounted) {
         setState(() {
@@ -623,6 +715,63 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     }
   }
+
+  Future<void> _authenticateWithBiometric(AuthViewModel authProvider) async {
+    if (!_biometricAvailable || _checkingBiometric) return;
+    
+    setState(() {
+      _checkingBiometric = true;
+      _generalError = null;
+    });
+
+    try {
+      final authenticated = await BiometricService.authenticate(
+        reason: 'Authentifiez-vous pour accéder à votre compte SAAR CI',
+      );
+      
+      if (authenticated && mounted) {
+        final prefs = await SharedPreferences.getInstance();
+        final savedEmail = prefs.getString('saved_email');
+        final savedPassword = prefs.getString('saved_password');
+        
+        if (savedEmail != null && savedPassword != null) {
+          final success = await authProvider.login(
+            email: savedEmail,
+            password: savedPassword,
+          );
+          
+          if (success && mounted) {
+            Navigator.pushReplacementNamed(context, '/dashboard');
+          } else if (mounted) {
+            setState(() {
+              _generalError = authProvider.errorMessage ?? 
+                  'Erreur de connexion. Veuillez réessayer avec votre mot de passe.';
+            });
+          }
+        } else {
+          if (mounted) {
+            setState(() {
+              _generalError = 'Aucune information de connexion sauvegardée. '
+                  'Veuillez vous connecter avec votre mot de passe.';
+            });
+          }
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _generalError = 'Erreur lors de l\'authentification biométrique';
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _checkingBiometric = false;
+        });
+      }
+    }
+  }
+
 
   @override
   void dispose() {

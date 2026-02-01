@@ -51,7 +51,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     user: authProvider.currentUser,
                     onProfil: _handleProfil,
                     onNotification: () => _showComingSoon(context),
-                    onSettings: () => _showComingSoon(context),
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),

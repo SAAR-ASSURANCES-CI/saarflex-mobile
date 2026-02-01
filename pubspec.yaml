@@ -18,6 +18,7 @@ dependencies:
   flutter_native_splash: ^2.4.6
   intl: ^0.20.2
   flutter_secure_storage: ^9.2.4
+  local_auth: ^2.3.0
   uuid: ^4.5.1
   flutter_localization: ^0.3.3
   flutter_localizations:
