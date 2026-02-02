@@ -368,10 +368,16 @@ class SimulationViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> pickImage(bool isRecto, BuildContext context) async {
+  Future<void> pickImage(bool isRecto, BuildContext context, ImageSource source) async {
     try {
       final imagePicker = ImagePicker();
-      final image = await imagePicker.pickImage(source: ImageSource.gallery);
+      final imageQuality = source == ImageSource.camera ? 80 : 85;
+      final image = await imagePicker.pickImage(
+        source: source,
+        maxWidth: 1920,
+        maxHeight: 1920,
+        imageQuality: imageQuality,
+      );
 
       if (image != null) {
         final extension = image.path.toLowerCase();
@@ -547,10 +553,6 @@ class SimulationViewModel extends ChangeNotifier {
     _informationsVehicule = informations;
     notifyListeners();
   }
-
-  Future<void> calcDureeFromProfile(BuildContext context) async {
-    await calcAutoDureeWithContext(context);
-   }
 
   bool _isSaarNansou() {
     final isSaarNansouById = _simulationRepository.isSaarNansou(_produitId);

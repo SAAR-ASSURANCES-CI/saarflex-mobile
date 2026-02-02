@@ -181,26 +181,24 @@ class _EditProfileScreenRefactoredState
                   ),
                   SizedBox(height: sectionSpacing),
 
-                  IdentityImagesSection(
-                    currentIdentityType: formController.getBackendIdentityType(
-                      formController.selectedIdType,
-                    ),
-                    frontDocumentPath: context
-                        .read<AuthViewModel>()
-                        .currentUser
-                        ?.frontDocumentPath,
-                    backDocumentPath: context
-                        .read<AuthViewModel>()
-                        .currentUser
-                        ?.backDocumentPath,
-                    isUploadingRecto: formController.isUploadingRecto,
-                    isUploadingVerso: formController.isUploadingVerso,
-                    rectoImage: formController.rectoImage,
-                    versoImage: formController.versoImage,
-                    onPickImage: (isRecto) =>
-                        formController.pickImage(isRecto, context),
-                    screenWidth: screenWidth,
-                    textScaleFactor: textScaleFactor,
+                  Consumer<AuthViewModel>(
+                    builder: (context, authProvider, child) {
+                      return IdentityImagesSection(
+                        currentIdentityType: formController.getBackendIdentityType(
+                          formController.selectedIdType,
+                        ),
+                        frontDocumentPath: authProvider.currentUser?.frontDocumentPath,
+                        backDocumentPath: authProvider.currentUser?.backDocumentPath,
+                        isUploadingRecto: formController.isUploadingRecto,
+                        isUploadingVerso: formController.isUploadingVerso,
+                        rectoImage: formController.rectoImage,
+                        versoImage: formController.versoImage,
+                        onPickImage: (isRecto, source) =>
+                            formController.pickImage(isRecto, context, source),
+                        screenWidth: screenWidth,
+                        textScaleFactor: textScaleFactor,
+                      );
+                    },
                   ),
                   SizedBox(height: buttonSpacing),
 

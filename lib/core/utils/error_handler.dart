@@ -32,12 +32,48 @@ class ErrorHandler {
         return 'Format de fichier non supporté.';
       } else if (error is HttpException) {
         return 'Erreur de communication avec le serveur.';
-      } else if (error.toString().contains('Fichier trop volumineux')) {
-        return 'Fichier trop volumineux. Taille maximum: 10MB.';
-      } else if (error.toString().contains('Format de fichier non supporté')) {
-        return 'Format de fichier non supporté. Utilisez JPG, PNG ou WebP.';
       } else {
-        return 'Erreur lors de l\'upload du fichier.';
+        final errorString = error.toString().toLowerCase();
+        
+        if (errorString.contains('fichier trop volumineux') || 
+            errorString.contains('trop volumineux')) {
+          if (errorString.contains('max')) {
+            return error.toString().contains('max') 
+                ? error.toString() 
+                : 'Fichier trop volumineux. Taille maximum: 5MB.';
+          }
+          return 'Fichier trop volumineux. Taille maximum: 5MB.';
+        } else if (errorString.contains('format de fichier non supporté') ||
+                   errorString.contains('format non supporté')) {
+          return 'Format de fichier non supporté. Utilisez JPG, PNG ou WebP.';
+        } else if (errorString.contains('fichier introuvable') ||
+                   errorString.contains('file not found')) {
+          return 'Fichier introuvable. Veuillez réessayer.';
+        } else if (errorString.contains('authentification requise') ||
+                   errorString.contains('authentication required')) {
+          return 'Authentification requise. Veuillez vous reconnecter.';
+        } else if (errorString.contains('timeout') ||
+                   errorString.contains('timed out')) {
+          return 'Le téléchargement a pris trop de temps. Vérifiez votre connexion.';
+        } else if (errorString.contains('permission') ||
+                   errorString.contains('access denied')) {
+          return 'Permission refusée. Vérifiez vos droits d\'accès.';
+        } else if (errorString.contains('url') && errorString.contains('non reçu')) {
+          return 'Erreur serveur: réponse invalide. Veuillez réessayer.';
+        } else if (errorString.contains('erreur serveur')) {
+          final match = RegExp(r'\((\d+)\)').firstMatch(errorString);
+          if (match != null) {
+            final statusCode = match.group(1);
+            return 'Erreur serveur (code $statusCode). Veuillez réessayer plus tard.';
+          }
+          return 'Erreur serveur. Veuillez réessayer plus tard.';
+        } else {
+          final errorMsg = error.toString();
+          if (errorMsg.length < 100 && !errorMsg.contains('Exception:')) {
+            return errorMsg;
+          }
+          return 'Erreur lors de l\'upload du fichier. Veuillez vérifier la taille et le format.';
+        }
       }
     } catch (e) {
       return 'Erreur de traitement des erreurs d\'upload.';
@@ -131,7 +167,7 @@ class ErrorHandler {
       case 403:
         return 'Permission d\'upload refusée.';
       case 413:
-        return 'Fichier trop volumineux. Taille maximum: 10MB.';
+        return 'Fichier trop volumineux. Taille maximum: 5MB.';
       case 415:
         return 'Format de fichier non supporté.';
       case 500:

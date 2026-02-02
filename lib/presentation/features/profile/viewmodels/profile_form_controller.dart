@@ -235,10 +235,16 @@ class ProfileFormController extends ChangeNotifier {
   }
 
 
-  Future<void> pickImage(bool isRecto, BuildContext context) async {
+  Future<void> pickImage(bool isRecto, BuildContext context, ImageSource source) async {
     try {
       final imagePicker = ImagePicker();
-      final image = await imagePicker.pickImage(source: ImageSource.gallery);
+      final imageQuality = source == ImageSource.camera ? 80 : 85;
+      final image = await imagePicker.pickImage(
+        source: source,
+        maxWidth: 1920,
+        maxHeight: 1920,
+        imageQuality: imageQuality,
+      );
 
       if (image != null) {
 
@@ -258,6 +264,17 @@ class ProfileFormController extends ChangeNotifier {
         await _uploadImage(image.path, isRecto, context);
       }
     } catch (e) {
+      if (isRecto) {
+        _isUploadingRecto = false;
+        _rectoImage = null;
+        _rectoImagePath = null;
+      } else {
+        _isUploadingVerso = false;
+        _versoImage = null;
+        _versoImagePath = null;
+      }
+      notifyListeners();
+      
       if (context.mounted) {
         ErrorHandler.showErrorSnackBar(
           context,
@@ -392,48 +409,74 @@ class ProfileFormController extends ChangeNotifier {
   }
 
 
-  Future<void> _uploadBothImages(BuildContext context) async {
-    if (_rectoImage == null || _versoImage == null) {
-      ErrorHandler.showErrorSnackBar(
-        context,
-        'Veuillez sélectionner les deux images avant l\'upload',
-      );
-      return;
-    }
+Future<void> _uploadBothImages(BuildContext context) async {
+  if (_rectoImage == null || _versoImage == null) {
+    ErrorHandler.showErrorSnackBar(
+      context,
+      'Veuillez sélectionner les deux images avant l\'upload',
+    );
+    return;
+  }
 
+  try {
+    _isUploadingRecto = true;
+    _isUploadingVerso = true;
+    notifyListeners();
+
+    final result = await _profileRepository.uploadIdentityImages(
+      rectoPath: _rectoImagePath!,
+      versoPath: _versoImagePath!,
+    );
+
+    final authProvider = context.read<AuthViewModel>();
+    
     try {
-      _isUploadingRecto = true;
-      _isUploadingVerso = true;
-      notifyListeners();
-
-      final result = await _profileRepository.uploadIdentityImages(
-        rectoPath: _rectoImagePath!,
-        versoPath: _versoImagePath!,
-      );
-
-      final authProvider = context.read<AuthViewModel>();
-      authProvider.updateUserField('frontDocumentPath', result['recto_path']);
-      authProvider.updateUserField('backDocumentPath', result['verso_path']);
-
-      if (context.mounted) {
-        ErrorHandler.showSuccessSnackBar(
-          context,
-          'Images uploadées avec succès !',
-        );
-      }
-      _checkForChanges();
+      await authProvider.updateUserField('front_document_path', result['recto_path']);
+      await authProvider.updateUserField('back_document_path', result['verso_path']);
+      
+      authProvider.forceIdentityImagesRefresh();
+      
+      await Future.delayed(const Duration(milliseconds: 500));
+      await authProvider.loadUserProfile();
+      
     } catch (e) {
       if (context.mounted) {
         ErrorHandler.showErrorSnackBar(
           context,
-          ErrorHandler.handleUploadError(e),
+          'Images uploadées mais erreur lors de la sauvegarde: ${ErrorHandler.handleProfileError(e)}',
         );
       }
-    } finally {
+      rethrow;
+    }
+
+    _isUploadingRecto = false;
+    _isUploadingVerso = false;
+    notifyListeners();
+    
+    await Future.delayed(const Duration(milliseconds: 50));
+    
+    if (context.mounted) {
+      ErrorHandler.showSuccessSnackBar(
+        context,
+        'Images uploadées avec succès !',
+      );
+    }
+    _checkForChanges();
+    notifyListeners();
+  } catch (e) {
+    if (context.mounted) {
+      ErrorHandler.showErrorSnackBar(
+        context,
+        ErrorHandler.handleUploadError(e),
+      );
+    }
+  } finally {
+    if (_isUploadingRecto || _isUploadingVerso) {
       _isUploadingRecto = false;
       _isUploadingVerso = false;
       notifyListeners();
     }
+  }
   }
 
   Map<String, String?> validateChangedFields() {

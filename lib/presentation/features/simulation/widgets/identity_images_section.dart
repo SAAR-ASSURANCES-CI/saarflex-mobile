@@ -60,6 +60,7 @@ class IdentityImagesSection extends StatelessWidget {
           selectedImage: rectoImage,
           uploadedImageUrl: uploadedRectoUrl,
         ),
+        _buildFileSizeInfo(),
         const SizedBox(height: 20),
         ImageUploadField(
           label: ImageLabels.getVersoLabel(identityType),
@@ -68,7 +69,34 @@ class IdentityImagesSection extends StatelessWidget {
           selectedImage: versoImage,
           uploadedImageUrl: uploadedVersoUrl,
         ),
+        _buildFileSizeInfo(),
       ],
+    );
+  }
+
+  Widget _buildFileSizeInfo() {
+    final alertColor = Colors.orange[700] ?? const Color.fromARGB(255, 235, 107, 27);
+    
+    return Padding(
+      padding: const EdgeInsets.only(top: 6),
+      child: Row(
+        children: [
+          Icon(
+            Icons.info_outline_rounded,
+            size: 16,
+            color: alertColor,
+          ),
+          const SizedBox(width: 6),
+          Text(
+            'Taille maximale : 5 Mo',
+            style: FontHelper.poppins(
+              fontSize: 11,
+              color: alertColor,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

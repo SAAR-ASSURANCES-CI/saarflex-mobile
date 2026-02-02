@@ -8,12 +8,14 @@ class ImageDisplayWidget extends StatelessWidget {
   final String label;
   final String? imageUrl;
   final VoidCallback onEdit;
+  final int? cacheTimestamp;
 
   const ImageDisplayWidget({
     super.key,
     required this.label,
     required this.imageUrl,
     required this.onEdit,
+    this.cacheTimestamp,
   });
 
   @override
@@ -22,6 +24,7 @@ class ImageDisplayWidget extends StatelessWidget {
     final fullImageUrl = imageUrl != null
         ? ProfileHelpers.buildImageUrl(imageUrl!, ApiConstants.baseUrl)
         : '';
+    final screenWidth = MediaQuery.of(context).size.width;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
@@ -30,7 +33,7 @@ class ImageDisplayWidget extends StatelessWidget {
         children: [
           _buildImageHeader(),
           const SizedBox(height: 8),
-          _buildImageContainer(fullImageUrl, hasValidImage),
+          _buildImageContainer(fullImageUrl, hasValidImage, screenWidth),
         ],
       ),
     );
@@ -50,9 +53,12 @@ class ImageDisplayWidget extends StatelessWidget {
   Widget _buildImageContainer(
     String fullImageUrl,
     bool hasValidImage,
+    double screenWidth,
   ) {
+    final imageHeight = screenWidth < 360 ? 180.0 : 220.0;
+    
     return Container(
-      height: 150,
+      height: imageHeight,
       width: double.infinity,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
@@ -68,9 +74,17 @@ class ImageDisplayWidget extends StatelessWidget {
   }
 
   Widget _buildNetworkImage(String imageUrl) {
+    final cacheBuster = cacheTimestamp ?? imageUrl.hashCode;
+    final imageUrlWithCache = imageUrl.contains('?')
+        ? '$imageUrl&t=$cacheBuster'
+        : '$imageUrl?t=$cacheBuster';
+    
     return Image.network(
-      imageUrl,
+      imageUrlWithCache,
+      key: ValueKey('profile_image_${imageUrl}_$cacheBuster'),
       fit: BoxFit.cover,
+      cacheWidth: null,
+      cacheHeight: null,
       loadingBuilder: (context, child, loadingProgress) {
         if (loadingProgress == null) return child;
         return Center(

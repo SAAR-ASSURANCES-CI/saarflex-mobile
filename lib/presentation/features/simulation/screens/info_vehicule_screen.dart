@@ -104,14 +104,14 @@ class _InfoVehiculeScreenState extends State<InfoVehiculeScreen> {
                 Consumer<SimulationViewModel>(
                   builder: (context, simulationViewModel, child) {
                     return PermisImagesSection(
-                      isUploadingRecto: false, // Pas d'upload immédiat
-                      isUploadingVerso: false, // Pas d'upload immédiat
+                      isUploadingRecto: false,
+                      isUploadingVerso: false,
                       onPickRecto: () => _pickImage(true),
                       onPickVerso: () => _pickImage(false),
                       rectoImage: simulationViewModel.tempPermisRectoImage,
                       versoImage: simulationViewModel.tempPermisVersoImage,
-                      uploadedRectoUrl: null, // Pas d'URL uploadée ici
-                      uploadedVersoUrl: null, // Pas d'URL uploadée ici
+                      uploadedRectoUrl: null,
+                      uploadedVersoUrl: null,
                     );
                   },
                 ),
