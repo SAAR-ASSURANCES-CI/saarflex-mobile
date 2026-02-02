@@ -94,7 +94,6 @@ class SessionManager {
         await prefs.remove('auth_token');
         await prefs.remove('auth_timestamp');
       } catch (e2) {
-        // ignore: empty_catches
       }
       
       if (onLogout != null) {

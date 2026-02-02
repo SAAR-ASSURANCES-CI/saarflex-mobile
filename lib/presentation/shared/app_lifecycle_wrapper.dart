@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:saarciflex_app/core/utils/session_manager.dart';
 import 'package:saarciflex_app/main.dart';
-import 'package:flutter/foundation.dart';
 import 'package:saarciflex_app/presentation/features/auth/viewmodels/auth_viewmodel.dart';
 
 class AppLifecycleWrapper extends StatefulWidget {
@@ -35,8 +34,7 @@ class _AppLifecycleWrapperState extends State<AppLifecycleWrapper>
       try {
         final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
         authViewModel.forceLogout();
-      } catch (e, st) {
-        if (kDebugMode) debugPrint('Session expired error: $e');
+      } catch (e) {
       }
     }
     
@@ -105,8 +103,7 @@ class _AppLifecycleWrapperState extends State<AppLifecycleWrapper>
       try {
         final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
         authViewModel.ensureUserProfileLoaded();
-      } catch (e, st) {
-        if (kDebugMode) debugPrint('App resumed error: $e');
+      } catch (e) {
       }
     }
   }

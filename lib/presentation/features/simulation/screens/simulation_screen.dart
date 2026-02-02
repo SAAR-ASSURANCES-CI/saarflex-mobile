@@ -278,7 +278,6 @@ class _SimulationScreenState extends State<SimulationScreen> {
         );
       }
     } catch (e, st) {
-      if (kDebugMode) debugPrint('Simulation result error: $e');
     }
   }
 }

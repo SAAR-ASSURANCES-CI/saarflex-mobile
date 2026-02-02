@@ -6,7 +6,6 @@ import 'package:saarciflex_app/data/models/simulation_model.dart';
 import 'package:saarciflex_app/data/models/critere_tarification_model.dart';
 import 'package:saarciflex_app/core/constants/api_constants.dart';
 import 'package:saarciflex_app/core/utils/storage_helper.dart';
-import 'package:flutter/foundation.dart';
 import 'package:saarciflex_app/data/services/api_service.dart';
 
 class SimulationService {
@@ -523,13 +522,8 @@ class SimulationService {
           return dureeFromApi;
         }
       } catch (e) {
-        if (kDebugMode) debugPrint('Auto duree calc error: $e');
       }
     }
-
-    if (age >= 18 && age <= 68) return 10;
-    if (age >= 69 && age <= 71) return 5;
-    if (age >= 72 && age <= 75) return 2;
     return null;
   }
 

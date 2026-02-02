@@ -40,7 +40,6 @@ class AuthService {
     try {
       await _apiService.logout();
     } catch (e, st) {
-      if (kDebugMode) debugPrint('Logout error: $e');
     }
   }
 

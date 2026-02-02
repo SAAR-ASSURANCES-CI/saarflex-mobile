@@ -202,7 +202,6 @@ class ErrorHandler {
         ),
       );
     } catch (e, st) {
-      if (kDebugMode) debugPrint('Error showing snackbar: $e');
     }
   }
 
@@ -218,7 +217,6 @@ class ErrorHandler {
         ),
       );
     } catch (e, st) {
-      if (kDebugMode) debugPrint('Error showing snackbar: $e');
     }
   }
 

@@ -48,6 +48,19 @@ class _LoginScreenState extends State<LoginScreen> {
     _passwordController.addListener(_debouncedPasswordValidation);
     _checkBiometricAvailability();
     _checkBiometricEnabled();
+    _prefillEmailIfSaved();
+  }
+
+  Future<void> _prefillEmailIfSaved() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedEmail = prefs.getString('saved_email');
+    
+    if (savedEmail != null && mounted) {
+      _emailController.text = savedEmail;
+      setState(() {
+        _rememberMe = true;
+      });
+    }
   }
 
   Future<void> _checkBiometricAvailability() async {
@@ -64,11 +77,11 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _checkBiometricEnabled() async {
     final prefs = await SharedPreferences.getInstance();
     final enabled = prefs.getBool('biometric_enabled') ?? false;
-    final hasSavedCredentials = prefs.getString('saved_email') != null;
+    final hasBiometricPassword = prefs.getString('biometric_password') != null;
     
     if (mounted) {
       setState(() {
-        _biometricEnabled = enabled && hasSavedCredentials;
+        _biometricEnabled = enabled && hasBiometricPassword;
       });
     }
   }
@@ -686,19 +699,18 @@ class _LoginScreenState extends State<LoginScreen> {
         
         if (_rememberMe) {
           await prefs.setString('saved_email', _emailController.text.trim());
-          await prefs.setString('saved_password', _passwordController.text);
+        } else {
+          await prefs.remove('saved_email');
+        }
+        
+        final isDeviceAuthSupported = await BiometricService.isDeviceAuthSupported();
+        if (isDeviceAuthSupported) {
+          await prefs.setString('biometric_password', _passwordController.text);
+          await prefs.setString('biometric_email', _emailController.text.trim());
           await prefs.setBool('biometric_enabled', true);
           
           _checkBiometricAvailability();
           _checkBiometricEnabled();
-        } else {
-          await prefs.remove('saved_email');
-          await prefs.remove('saved_password');
-          await prefs.setBool('biometric_enabled', false);
-          
-          setState(() {
-            _biometricEnabled = false;
-          });
         }
         
         Navigator.pushReplacementNamed(context, '/dashboard');
@@ -725,19 +737,19 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      final authenticated = await BiometricService.authenticate(
+      final authenticated = await BiometricService.authenticateWithFallback(
         reason: 'Authentifiez-vous pour accéder à votre compte SAAR CI',
       );
       
       if (authenticated && mounted) {
         final prefs = await SharedPreferences.getInstance();
-        final savedEmail = prefs.getString('saved_email');
-        final savedPassword = prefs.getString('saved_password');
+        final biometricEmail = prefs.getString('biometric_email');
+        final biometricPassword = prefs.getString('biometric_password');
         
-        if (savedEmail != null && savedPassword != null) {
+        if (biometricEmail != null && biometricPassword != null) {
           final success = await authProvider.login(
-            email: savedEmail,
-            password: savedPassword,
+            email: biometricEmail,
+            password: biometricPassword,
           );
           
           if (success && mounted) {

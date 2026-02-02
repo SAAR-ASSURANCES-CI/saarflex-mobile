@@ -133,7 +133,6 @@ class SimulationViewModel extends ChangeNotifier {
           try {
             await calcAutoDureeWithContext(_contextForAutoCalc!);
           } catch (e) {
-            if (kDebugMode) debugPrint('Auto duree error: $e');
           }
         }
       });
@@ -577,7 +576,6 @@ class SimulationViewModel extends ChangeNotifier {
           _informationsAssure!['date_naissance'] = birthDate;
         }
       } catch (e) {
-        if (kDebugMode) debugPrint('Birth date update error: $e');
       }
     }
     
@@ -628,7 +626,6 @@ class SimulationViewModel extends ChangeNotifier {
         updateCritereReponse(critereDuree.nom, dureeString);
       }
     } catch (e) {
-      if (kDebugMode) debugPrint('Duree update error: $e');
     }
   }
 

@@ -81,7 +81,6 @@ class ProductService {
         return null;
       }
     } catch (e, st) {
-      if (kDebugMode) debugPrint('Get product error: $e');
     }
     
     final products = await fetchProductsFromApi();
