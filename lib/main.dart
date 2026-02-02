@@ -69,7 +69,7 @@ class Saarciflex extends StatelessWidget {
       child: AppLifecycleWrapper(
         child: MaterialApp(
           navigatorKey: navigatorKey,
-          title: 'SAAR Assurances',
+          title: 'SAAR Assurances CI',
           debugShowCheckedModeBanner: false,
 
           localizationsDelegates: const [
@@ -166,7 +166,7 @@ class _AuthenticationWrapperState extends State<AuthenticationWrapper> {
     if (!mounted) return;
 
     final authenticated = await BiometricService.authenticateWithFallback(
-      reason: 'Authentifiez-vous pour accéder à votre compte SAAR CI',
+      reason: 'Authentifiez-vous pour accéder à votre compte SAARCIFLEX',
     );
 
     if (authenticated && mounted) {

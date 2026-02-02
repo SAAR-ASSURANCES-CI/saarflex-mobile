@@ -118,7 +118,7 @@ class WelcomeScreen extends StatelessWidget {
                             duration: const Duration(milliseconds: 800),
                             delay: const Duration(milliseconds: 300),
                             child: Text(
-                              'SAAR Assurances',
+                              'SAAR Assurances CI',
                               style: FontHelper.poppins(
                                 fontSize: titleFontSize,
                                 fontWeight: FontWeight.w700,

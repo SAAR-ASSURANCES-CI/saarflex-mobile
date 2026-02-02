@@ -140,7 +140,7 @@ class DashboardHeader extends StatelessWidget {
             children: [
               const TextSpan(text: "Bienvenue sur "),
               TextSpan(
-                text: "SAAR CI",
+                text: "SAARCIFLEX",
                 style: FontHelper.poppins(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,

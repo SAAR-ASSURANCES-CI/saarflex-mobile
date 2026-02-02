@@ -74,7 +74,7 @@ class _SplashScreenState extends State<SplashScreen> {
               ShaderMask(
                 shaderCallback: (bounds) => blueGradient.createShader(bounds),
                 child: Text(
-                  'SAAR Assurances',
+                  'SAAR Assurances CI',
                   style: FontHelper.poppins(
                     fontSize: 28,
                     fontWeight: FontWeight.w700,

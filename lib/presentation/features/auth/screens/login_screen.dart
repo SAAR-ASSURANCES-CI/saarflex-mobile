@@ -297,7 +297,7 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
         SizedBox(height: titleSpacing),
         Text(
-          "Connectez-vous à votre compte SAAR",
+          "Connectez-vous à votre compte SAARCIFLEX",
           style: FontHelper.poppins(
             fontSize: subtitleFontSize,
             color: AppColors.textSecondary,
@@ -738,7 +738,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       final authenticated = await BiometricService.authenticateWithFallback(
-        reason: 'Authentifiez-vous pour accéder à votre compte SAAR CI',
+        reason: 'Authentifiez-vous pour accéder à votre compte SAARCIFLEX',
       );
       
       if (authenticated && mounted) {

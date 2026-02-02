@@ -28,7 +28,7 @@ class BiometricService {
     try {
       final bool didAuthenticate = await _auth.authenticate(
         localizedReason: reason ?? 
-            'Veuillez vous authentifier pour accéder à votre compte SAAR CI',
+            'Veuillez vous authentifier pour accéder à votre compte SAARCIFLEX',
         options: const AuthenticationOptions(
           biometricOnly: true,
           stickyAuth: true,
@@ -90,7 +90,7 @@ class BiometricService {
     try {
       final bool didAuthenticate = await _auth.authenticate(
         localizedReason: reason ?? 
-            'Veuillez vous authentifier pour accéder à votre compte SAAR CI',
+            'Veuillez vous authentifier pour accéder à votre compte SAARCIFLEX',
         options: const AuthenticationOptions(
           biometricOnly: false,
           stickyAuth: true,

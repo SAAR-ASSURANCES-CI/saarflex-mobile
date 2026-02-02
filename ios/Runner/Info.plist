@@ -48,6 +48,6 @@
 		<key>UIStatusBarHidden</key>
 		<false/>
 		<key>NSFaceIDUsageDescription</key>
-		<string>Nous utilisons Face ID pour sécuriser votre connexion à SAAR CI</string>
+		<string>Nous utilisons Face ID pour sécuriser votre connexion à SAARCIFLEX</string>
 	</dict>
 </plist>
