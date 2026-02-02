@@ -80,8 +80,7 @@ class ProductService {
       } else if (response.statusCode == 404) {
         return null;
       }
-    } catch (e) {
-      if (kDebugMode) debugPrint('Get product error: $e');
+    } catch (e, st) {
     }
     
     final products = await fetchProductsFromApi();

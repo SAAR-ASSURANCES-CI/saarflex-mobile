@@ -35,7 +35,6 @@ class _AppLifecycleWrapperState extends State<AppLifecycleWrapper>
         final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
         authViewModel.forceLogout();
       } catch (e) {
-        if (kDebugMode) debugPrint('Session expired error: $e');
       }
     }
     
@@ -105,7 +104,6 @@ class _AppLifecycleWrapperState extends State<AppLifecycleWrapper>
         final authViewModel = Provider.of<AuthViewModel>(context, listen: false);
         authViewModel.ensureUserProfileLoaded();
       } catch (e) {
-        if (kDebugMode) debugPrint('App resumed error: $e');
       }
     }
   }

@@ -237,8 +237,7 @@ class ErrorHandler {
           duration: const Duration(seconds: 3),
         ),
       );
-    } catch (e) {
-      if (kDebugMode) debugPrint('Error showing snackbar: $e');
+    } catch (e, st) {
     }
   }
 
@@ -253,8 +252,7 @@ class ErrorHandler {
           duration: const Duration(seconds: 2),
         ),
       );
-    } catch (e) {
-      if (kDebugMode) debugPrint('Error showing snackbar: $e');
+    } catch (e, st) {
     }
   }
 

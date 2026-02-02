@@ -10,35 +10,25 @@ class DashboardHeader extends StatelessWidget {
   final User? user;
   final VoidCallback onProfil;
   final VoidCallback onNotification;
-  final VoidCallback onSettings;
 
   const DashboardHeader({
     super.key,
     required this.user,
     required this.onProfil,
     required this.onNotification,
-    required this.onSettings,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.only(
-         top: 12,
-        bottom: 16,
-        left: 20,
-        right: 20,
-      ),
+      padding: const EdgeInsets.only(top: 12, bottom: 16, left: 20, right: 20),
       child: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _buildUserAvatar(context),
-                _buildActionButtons(),
-              ],
+              children: [_buildUserAvatar(context), _buildActionButtons()],
             ),
             const SizedBox(height: 16),
             _buildWelcomeText(),
@@ -53,22 +43,27 @@ class DashboardHeader extends StatelessWidget {
       builder: (context, authProvider, child) {
         final currentUser = authProvider.currentUser ?? user;
         final hasAvatar = ProfileHelpers.isValidImage(currentUser?.avatarUrl);
-        
+
         final avatarUrlRaw = currentUser?.avatarUrl;
         final avatarUrl = avatarUrlRaw != null
-            ? (avatarUrlRaw.startsWith('http://') || avatarUrlRaw.startsWith('https://'))
-                ? avatarUrlRaw
-                : ProfileHelpers.buildImageUrl(avatarUrlRaw, ApiConstants.baseUrl)
+            ? (avatarUrlRaw.startsWith('http://') ||
+                      avatarUrlRaw.startsWith('https://'))
+                  ? avatarUrlRaw
+                  : ProfileHelpers.buildImageUrl(
+                      avatarUrlRaw,
+                      ApiConstants.baseUrl,
+                    )
             : null;
 
-        final cacheBuster = authProvider.avatarTimestamp ?? 
-            currentUser?.updatedAt?.millisecondsSinceEpoch ?? 
+        final cacheBuster =
+            authProvider.avatarTimestamp ??
+            currentUser?.updatedAt?.millisecondsSinceEpoch ??
             DateTime.now().millisecondsSinceEpoch;
-        
-        final avatarUrlWithCacheBuster = avatarUrl != null 
-            ? (avatarUrl.contains('?') 
-                ? '$avatarUrl&t=$cacheBuster&v=${DateTime.now().millisecondsSinceEpoch}'
-                : '$avatarUrl?t=$cacheBuster&v=${DateTime.now().millisecondsSinceEpoch}')
+
+        final avatarUrlWithCacheBuster = avatarUrl != null
+            ? (avatarUrl.contains('?')
+                  ? '$avatarUrl&t=$cacheBuster&v=${DateTime.now().millisecondsSinceEpoch}'
+                  : '$avatarUrl?t=$cacheBuster&v=${DateTime.now().millisecondsSinceEpoch}')
             : null;
 
         return Container(
@@ -76,10 +71,7 @@ class DashboardHeader extends StatelessWidget {
           height: 56,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(
-              color: Colors.white,
-              width: 3,
-            ),
+            border: Border.all(color: Colors.white, width: 3),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.1),
@@ -97,7 +89,9 @@ class DashboardHeader extends StatelessWidget {
               child: hasAvatar && avatarUrlWithCacheBuster != null
                   ? Image.network(
                       avatarUrlWithCacheBuster,
-                      key: ValueKey('dashboard_avatar_${currentUser?.id}_$cacheBuster'),
+                      key: ValueKey(
+                        'dashboard_avatar_${currentUser?.id}_$cacheBuster',
+                      ),
                       width: 56,
                       height: 56,
                       fit: BoxFit.cover,
@@ -124,17 +118,10 @@ class DashboardHeader extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Colors.blue[100]!,
-            Colors.blue[50]!,
-          ],
+          colors: [Colors.blue[100]!, Colors.blue[50]!],
         ),
       ),
-      child: Icon(
-        Icons.person_rounded,
-        color: Colors.blue[400],
-        size: 32,
-      ),
+      child: Icon(Icons.person_rounded, color: Colors.blue[400], size: 32),
     );
   }
 
@@ -143,12 +130,26 @@ class DashboardHeader extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          "Bienvenue !",
-          style: FontHelper.poppins(
-            fontSize: 15,
-            fontWeight: FontWeight.w500,
-            color: Colors.grey[600],
+        RichText(
+          text: TextSpan(
+            style: FontHelper.poppins(
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey[600],
+            ),
+            children: [
+              const TextSpan(text: "Bienvenue sur "),
+              TextSpan(
+                text: "SAAR CI",
+                style: FontHelper.poppins(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.blue[700],
+                  letterSpacing: 0.5,
+                ),
+              ),
+              const TextSpan(text: " !"),
+            ],
           ),
         ),
         const SizedBox(height: 4),
@@ -174,10 +175,7 @@ class DashboardHeader extends StatelessWidget {
           onTap: onNotification,
         ),
         const SizedBox(width: 8),
-        _buildHeaderButton(
-          icon: Icons.person_outline_rounded,
-          onTap: onProfil,
-        ),
+        _buildHeaderButton(icon: Icons.person_outline_rounded, onTap: onProfil),
       ],
     );
   }
@@ -205,14 +203,9 @@ class DashboardHeader extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(14),
-          child: Icon(
-            icon,
-            color: Colors.grey[700],
-            size: 22,
-          ),
+          child: Icon(icon, color: Colors.grey[700], size: 22),
         ),
       ),
     );
   }
-
 }

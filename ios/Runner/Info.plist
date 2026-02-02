@@ -47,5 +47,7 @@
 		<true/>
 		<key>UIStatusBarHidden</key>
 		<false/>
+		<key>NSFaceIDUsageDescription</key>
+		<string>Nous utilisons Face ID pour sécuriser votre connexion à SAAR CI</string>
 	</dict>
 </plist>

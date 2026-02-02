@@ -6,6 +6,8 @@ import 'package:saarciflex_app/core/utils/session_manager.dart';
 import 'package:saarciflex_app/core/utils/font_helper.dart';
 import 'package:saarciflex_app/presentation/shared/app_lifecycle_wrapper.dart';
 import 'package:saarciflex_app/presentation/shared/splash_screen.dart';
+import 'package:saarciflex_app/core/services/biometric_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'presentation/features/auth/viewmodels/auth_viewmodel.dart';
 import 'presentation/features/profile/viewmodels/profile_viewmodel.dart';
 import 'presentation/features/products/viewmodels/product_viewmodel.dart';
@@ -122,18 +124,62 @@ class AuthenticationWrapper extends StatefulWidget {
 
 class _AuthenticationWrapperState extends State<AuthenticationWrapper> {
   bool _initialized = false;
+  bool _biometricDialogShown = false;
 
   @override 
   void initState() {
     super.initState();  
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (mounted) {
-        context.read<AuthViewModel>().initializeAuth();
-        setState(() {
-          _initialized = true;
-        });
+        await context.read<AuthViewModel>().initializeAuth();
+        if (mounted) {
+          setState(() {
+            _initialized = true;
+          });
+          _checkAndShowBiometricDialog();
+        }
       }
     });
+  }
+
+  Future<void> _checkAndShowBiometricDialog() async {
+    if (_biometricDialogShown) return;
+
+    final authProvider = context.read<AuthViewModel>();
+    
+    if (authProvider.isLoggedIn) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    final biometricEnabled = prefs.getBool('biometric_enabled') ?? false;
+    final hasBiometricPassword = prefs.getString('biometric_password') != null;
+    final hasBiometricEmail = prefs.getString('biometric_email') != null;
+
+    if (!biometricEnabled || !hasBiometricPassword || !hasBiometricEmail) return;
+
+    final isDeviceAuthSupported = await BiometricService.isDeviceAuthSupported();
+    if (!isDeviceAuthSupported) return;
+
+    _biometricDialogShown = true;
+
+    await Future.delayed(const Duration(milliseconds: 300));
+
+    if (!mounted) return;
+
+    final authenticated = await BiometricService.authenticateWithFallback(
+      reason: 'Authentifiez-vous pour accéder à votre compte SAAR CI',
+    );
+
+    if (authenticated && mounted) {
+      final biometricEmail = prefs.getString('biometric_email');
+      final biometricPassword = prefs.getString('biometric_password');
+
+      if (biometricEmail != null && biometricPassword != null) {
+        await authProvider.login(
+          email: biometricEmail,
+          password: biometricPassword,
+        );
+      }
+    }
   }
 
   @override
