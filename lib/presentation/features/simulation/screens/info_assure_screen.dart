@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:saarciflex_app/core/constants/colors.dart';
 import 'package:saarciflex_app/data/models/product_model.dart';
 import 'package:saarciflex_app/presentation/features/simulation/screens/simulation_screen.dart';
@@ -74,11 +75,19 @@ class _InfoAssureScreenState extends State<InfoAssureScreen> {
     final sectionSpacing = screenHeight < 600 ? 24.0 : 32.0;
     final bottomSpacing = screenHeight < 600 ? 24.0 : 32.0;
     
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      resizeToAvoidBottomInset: true,
-      appBar: const InfoAssureAppBar(),
-      body: Padding(
+    return PopScope(
+      onPopInvoked: (didPop) {
+        if (didPop) {
+          final simulationViewModel = context.read<SimulationViewModel>();
+          simulationViewModel.deleteTempImage(true);
+          simulationViewModel.deleteTempImage(false);
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        resizeToAvoidBottomInset: true,
+        appBar: const InfoAssureAppBar(),
+        body: Padding(
         padding: EdgeInsets.only(
           left: horizontalPadding,
           right: horizontalPadding,
@@ -100,14 +109,14 @@ class _InfoAssureScreenState extends State<InfoAssureScreen> {
                   builder: (context, simulationViewModel, child) {
                     return IdentityImagesSection(
                       identityType: _formData['type_piece_identite'],
-                      isUploadingRecto: false, // Pas d'upload immédiat
-                      isUploadingVerso: false, // Pas d'upload immédiat
-                      onPickRecto: () => _pickImage(true),
-                      onPickVerso: () => _pickImage(false),
+                      isUploadingRecto: false,
+                      isUploadingVerso: false,
+                      onPickRecto: () => _showImageSourceDialog(true),
+                      onPickVerso: () => _showImageSourceDialog(false),
                       rectoImage: simulationViewModel.tempRectoImage,
                       versoImage: simulationViewModel.tempVersoImage,
-                      uploadedRectoUrl: null, // Pas d'URL uploadée ici
-                      uploadedVersoUrl: null, // Pas d'URL uploadée ici
+                      uploadedRectoUrl: null,
+                      uploadedVersoUrl: null,
                     );
                   },
                 ),
@@ -118,6 +127,7 @@ class _InfoAssureScreenState extends State<InfoAssureScreen> {
             ),
           ),
         ),
+      ),
       ),
     );
   }
@@ -217,9 +227,54 @@ class _InfoAssureScreenState extends State<InfoAssureScreen> {
     return null;
   }
 
-  Future<void> _pickImage(bool isRecto) async {
+  void _showImageSourceDialog(bool isRecto) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (bottomSheetContext) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                margin: const EdgeInsets.only(top: 12, bottom: 8),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              ListTile(
+                leading: const Icon(Icons.camera_alt_rounded),
+                title: const Text('Prendre une photo'),
+                onTap: () {
+                  Navigator.pop(bottomSheetContext);
+                  _pickImage(isRecto, ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library_rounded),
+                title: const Text('Choisir depuis la galerie'),
+                onTap: () {
+                  Navigator.pop(bottomSheetContext);
+                  _pickImage(isRecto, ImageSource.gallery);
+                },
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _pickImage(bool isRecto, ImageSource source) async {
     final simulationViewModel = context.read<SimulationViewModel>();
-    await simulationViewModel.pickImage(isRecto, context);
+    await simulationViewModel.pickImage(isRecto, context, source);
     _validateForm();
   }
 

@@ -23,6 +23,7 @@ class AuthViewModel extends ChangeNotifier {
   double _uploadProgress = 0.0;
   int? _avatarTimestamp;
   bool _avatarJustUploaded = false;
+  int? _identityImagesTimestamp;
 
   static bool _hasInitialized = false;
   static const String _initTimestampKey = 'auth_init_timestamp';
@@ -36,6 +37,7 @@ class AuthViewModel extends ChangeNotifier {
   String? get uploadErrorMessage => _uploadErrorMessage;
   double get uploadProgress => _uploadProgress;
   int? get avatarTimestamp => _avatarTimestamp;
+  int? get identityImagesTimestamp => _identityImagesTimestamp;
 
   String get userName => _currentUser?.displayName ?? 'Utilisateur';
   String get userEmail => _currentUser?.email ?? '';
@@ -214,6 +216,7 @@ class AuthViewModel extends ChangeNotifier {
 
     final previousUser = _currentUser;
     final previousAvatarTimestamp = _avatarTimestamp;
+    final previousIdentityImagesTimestamp = _identityImagesTimestamp;
 
     try {
       final user = await _profileRepository.getUserProfile();
@@ -233,6 +236,22 @@ class AuthViewModel extends ChangeNotifier {
       } else if (user.avatarUrl != null) {
         _avatarTimestamp = DateTime.now().millisecondsSinceEpoch;
       }
+      
+      if (previousIdentityImagesTimestamp != null) {
+        final previousFrontPath = previousUser?.frontDocumentPath;
+        final previousBackPath = previousUser?.backDocumentPath;
+        final newFrontPath = user.frontDocumentPath;
+        final newBackPath = user.backDocumentPath;
+        
+        if (previousFrontPath != newFrontPath || previousBackPath != newBackPath) {
+          _identityImagesTimestamp = DateTime.now().millisecondsSinceEpoch;
+        } else {
+          _identityImagesTimestamp = previousIdentityImagesTimestamp;
+        }
+      } else if (user.frontDocumentPath != null || user.backDocumentPath != null) {
+        _identityImagesTimestamp = DateTime.now().millisecondsSinceEpoch;
+      }
+      
       _setLoading(false);
       notifyListeners();
     } catch (e) {
@@ -249,9 +268,11 @@ class AuthViewModel extends ChangeNotifier {
         _currentUser = null;
         _authToken = null;
         _avatarTimestamp = null;
+        _identityImagesTimestamp = null;
       } else {
         _currentUser = previousUser;
         _avatarTimestamp = previousAvatarTimestamp;
+        _identityImagesTimestamp = previousIdentityImagesTimestamp;
       }
       
       _setError(errorMessage);
@@ -484,9 +505,18 @@ class AuthViewModel extends ChangeNotifier {
         _avatarTimestamp = DateTime.now().millisecondsSinceEpoch;
       }
       
+      if (fieldName == 'front_document_path' || fieldName == 'back_document_path') {
+        _identityImagesTimestamp = DateTime.now().millisecondsSinceEpoch;
+      }
+      
       notifyListeners();
     } catch (e) {
       _setError(ErrorHandler.handleProfileError(e));
     }
+  }
+  
+  void forceIdentityImagesRefresh() {
+    _identityImagesTimestamp = DateTime.now().millisecondsSinceEpoch;
+    notifyListeners();
   }
 }

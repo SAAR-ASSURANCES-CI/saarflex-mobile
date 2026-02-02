@@ -35,7 +35,7 @@ class ImageUploadField extends StatelessWidget {
     final newImageFontSize = (12.0 / textScaleFactor).clamp(10.0, 14.0);
     final placeholderFontSize = (14.0 / textScaleFactor).clamp(12.0, 16.0);
     final labelSpacing = screenWidth < 360 ? 6.0 : 8.0;
-    final imageHeight = screenWidth < 360 ? 120.0 : 150.0;
+    final imageHeight = screenWidth < 360 ? 180.0 : 220.0;
     final iconSize = screenWidth < 360 ? 32.0 : 40.0;
     final iconSpacing = screenWidth < 360 ? 6.0 : 8.0;
 
@@ -97,6 +97,7 @@ class ImageUploadField extends StatelessWidget {
                           )
                         : Image.network(
                             imageUrl!,
+                            key: ValueKey('identity_image_$imageUrl'),
                             fit: BoxFit.cover,
                             loadingBuilder: (context, child, loadingProgress) {
                               if (loadingProgress == null) return child;

@@ -304,7 +304,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 SizedBox(height: sectionSpacing),
                 _buildIdentitySection(user, screenWidth, textScaleFactor),
                 SizedBox(height: sectionSpacing),
-                _buildIdentityImagesSection(user, screenWidth, textScaleFactor),
+                _buildIdentityImagesSection(user, authProvider, screenWidth, textScaleFactor),
                 SizedBox(height: actionsSpacing),
                 _buildActionButtons(screenWidth, textScaleFactor),
                 SizedBox(height: bottomSpacing),
@@ -316,7 +316,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildIdentityImagesSection(User? user, double screenWidth, double textScaleFactor) {
+  Widget _buildIdentityImagesSection(User? user, AuthViewModel authProvider, double screenWidth, double textScaleFactor) {
     final rectoLabel = ImageLabels.getRectoLabel(user?.identityType);
     final versoLabel = ImageLabels.getVersoLabel(user?.identityType);
     final sectionTitle = ImageLabels.getUploadTitle(user?.identityType);
@@ -334,6 +334,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             label: rectoLabel,
             imageUrl: user.frontDocumentPath!,
             onEdit: _navigateToEditProfile,
+            cacheTimestamp: authProvider.identityImagesTimestamp ?? 
+                          user.updatedAt?.millisecondsSinceEpoch,
           )
         else
           ProfileInfoRow(
@@ -352,6 +354,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             label: versoLabel,
             imageUrl: user.backDocumentPath!,
             onEdit: _navigateToEditProfile,
+            cacheTimestamp: authProvider.identityImagesTimestamp ?? 
+                          user.updatedAt?.millisecondsSinceEpoch,
           )
         else
           ProfileInfoRow(
