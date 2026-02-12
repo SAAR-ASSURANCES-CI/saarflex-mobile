@@ -92,7 +92,7 @@ void main() {
           413,
         );
         final result = ErrorHandler.handleUploadError(error);
-        expect(result, 'Fichier trop volumineux. Taille maximum: 10MB.');
+        expect(result, 'Fichier trop volumineux. Taille maximum: 5MB.');
       });
 
       test('transforme ApiException 415 en message utilisateur', () {
@@ -113,7 +113,7 @@ void main() {
       test('gère erreur avec message "Fichier trop volumineux"', () {
         final error = Exception('Fichier trop volumineux');
         final result = ErrorHandler.handleUploadError(error);
-        expect(result, 'Fichier trop volumineux. Taille maximum: 10MB.');
+        expect(result, 'Fichier trop volumineux. Taille maximum: 5MB.');
       });
     });
 
