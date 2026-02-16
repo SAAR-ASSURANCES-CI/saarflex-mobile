@@ -32,7 +32,7 @@ void main() {
       );
 
       expect(find.text('Bon retour !'), findsOneWidget);
-      expect(find.text('Connectez-vous à votre compte SAAR'), findsOneWidget);
+      expect(find.text('Connectez-vous à votre compte SAARCIFLEX'), findsOneWidget);
     });
 
     testWidgets('affiche le bouton de navigation vers signup', (WidgetTester tester) async {

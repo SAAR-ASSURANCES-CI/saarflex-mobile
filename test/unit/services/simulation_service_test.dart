@@ -31,24 +31,24 @@ void main() {
     });
 
     group('calculerDureeAuto', () {
-      test('retourne 10 pour âge entre 18 et 68', () async {
+      test('sans produitId retourne null pour âge entre 18 et 68', () async {
         final service = SimulationService();
-        expect(await service.calculerDureeAuto(25), 10);
-        expect(await service.calculerDureeAuto(50), 10);
-        expect(await service.calculerDureeAuto(68), 10);
+        expect(await service.calculerDureeAuto(25), null);
+        expect(await service.calculerDureeAuto(50), null);
+        expect(await service.calculerDureeAuto(68), null);
       });
 
-      test('retourne 5 pour âge entre 69 et 71', () async {
+      test('sans produitId retourne null pour âge entre 69 et 71', () async {
         final service = SimulationService();
-        expect(await service.calculerDureeAuto(69), 5);
-        expect(await service.calculerDureeAuto(70), 5);
-        expect(await service.calculerDureeAuto(71), 5);
+        expect(await service.calculerDureeAuto(69), null);
+        expect(await service.calculerDureeAuto(70), null);
+        expect(await service.calculerDureeAuto(71), null);
       });
 
-      test('retourne 2 pour âge entre 72 et 75', () async {
+      test('sans produitId retourne null pour âge entre 72 et 75', () async {
         final service = SimulationService();
-        expect(await service.calculerDureeAuto(72), 2);
-        expect(await service.calculerDureeAuto(75), 2);
+        expect(await service.calculerDureeAuto(72), null);
+        expect(await service.calculerDureeAuto(75), null);
       });
 
       test('retourne null pour âge < 18', () async {
