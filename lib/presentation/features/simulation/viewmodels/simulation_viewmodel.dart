@@ -564,6 +564,13 @@ class SimulationViewModel extends ChangeNotifier {
     
     return isSaarNansouById;
   }
+  bool _isAsMillenium() {
+  if (_produitNom != null) {
+    final nomLower = _produitNom!.toLowerCase();
+    return nomLower.contains('millenium') || nomLower.contains('as millenium');
+  }
+  return false;
+}
 
   Future<void> _calcAutoDuree([BuildContext? context]) async {
     DateTime? birthDate = _getBirthDate();
@@ -591,16 +598,17 @@ class SimulationViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> calcAutoDureeWithContext(BuildContext context) async {
-    if (!_isSaarNansou()) {
-      return;
-    }
-    if (_criteresProduit.isEmpty) {
-      return;
-    }
+Future<void> calcAutoDureeWithContext(BuildContext context) async {
+  if (_criteresProduit.isEmpty) return;
+
+  if (_isSaarNansou()) {
     await _calcAutoDuree(context);
     notifyListeners();
-  }
+  } else if (_isAsMillenium()) {
+  _setDuree(10);
+  notifyListeners();
+}
+}
 
   DateTime? _getBirthDate() {
     final dateNaissance = _informationsAssure?['date_naissance'];
@@ -611,25 +619,31 @@ class SimulationViewModel extends ChangeNotifier {
     return await _simulationRepository.calculerDureeAuto(age, produitId: _produitId);
   }
 
-  void _setDuree(int duree) {
-    try {
-      final critereDuree = _criteresProduit.firstWhere(
-        (critere) {
-          final nomLower = critere.nom.toLowerCase();
-          return nomLower.contains('durée') || 
-                 nomLower.contains('duree') || 
-                 nomLower.contains('cotisation');
-        },
-        orElse: () => throw Exception('Critère Durée Cotisation non trouvé'),
-      );
+void _setDuree(int duree) {
+  try {
+    final critereDuree = _criteresProduit.firstWhere(
+      (critere) {
+        final nomLower = critere.nom.toLowerCase();
+        return nomLower.contains('durée') || 
+               nomLower.contains('duree') || 
+               nomLower.contains('cotisation');
+      },
+      orElse: () => throw Exception('Critère Durée non trouvé'),
+    );
 
-      final dureeString = duree.toString();
+    final dureeString = duree.toString();
+
+    if (critereDuree.type == TypeCritere.categoriel) {
       if (critereDuree.valeursString.contains(dureeString)) {
         updateCritereReponse(critereDuree.nom, dureeString);
       }
-    } catch (e) {
+    } 
+    else if (critereDuree.type == TypeCritere.numerique) {
+      updateCritereReponse(critereDuree.nom, dureeString);
     }
+  } catch (e) {
   }
+}
 
   void clearTempImagesAfterSave() {
     _clearTempImages();

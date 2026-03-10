@@ -30,6 +30,8 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _biometricAvailable = false;
   bool _biometricEnabled = false;
   bool _checkingBiometric = false;
+  IconData _biometricIcon = Icons.fingerprint;
+String _biometricLabel = 'Empreinte digitale';
 
   final _emailFocus = FocusNode();
   final _passwordFocus = FocusNode();
@@ -68,7 +70,11 @@ class _LoginScreenState extends State<LoginScreen> {
     final hasEnrolled = await BiometricService.hasEnrolledBiometrics();
     
     if (mounted) {
+      final icon = await BiometricService.getPrimaryIcon();
+final label = await BiometricService.getPrimaryLabel();
       setState(() {
+        _biometricIcon = icon;
+_biometricLabel = label;
         _biometricAvailable = available && hasEnrolled;
       });
     }
@@ -582,41 +588,44 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
         if (_biometricAvailable && _biometricEnabled) ...[
-          const SizedBox(width: 12),
-          Container(
-            width: buttonHeight,
-            height: buttonHeight,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppColors.primary.withOpacity(0.1),
-              border: Border.all(
-                color: AppColors.primary,
-                width: 2,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.primary.withOpacity(0.2),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: _checkingBiometric || authProvider.isLoading
-                    ? null
-                    : () => _authenticateWithBiometric(authProvider),
-                borderRadius: BorderRadius.circular(buttonHeight / 2),
-                child: Icon(
-                  Icons.fingerprint,
-                  size: screenWidth < 360 ? 24 : 28,
-                  color: AppColors.primary,
-                ),
-              ),
-            ),
+  const SizedBox(width: 12),
+  Tooltip(                    
+    message: _biometricLabel, 
+    child: Container(        
+      width: buttonHeight,
+      height: buttonHeight,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: AppColors.primary.withOpacity(0.1),
+        border: Border.all(
+          color: AppColors.primary,
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withOpacity(0.2),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: _checkingBiometric || authProvider.isLoading
+              ? null
+              : () => _authenticateWithBiometric(authProvider),
+          borderRadius: BorderRadius.circular(buttonHeight / 2),
+          child: Icon(
+            _biometricIcon,
+            size: screenWidth < 360 ? 24 : 28,
+            color: AppColors.primary,
+          ),
+        ),
+      ),
+    ),                         
+  ),                        
+],
       ],
     );
   }
