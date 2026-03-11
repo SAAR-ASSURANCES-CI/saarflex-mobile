@@ -37,16 +37,17 @@ class _DynamicFormFieldState extends State<DynamicFormField> {
     super.initState();
     _updateControllerValue();
   }
-
-  @override
-  void didUpdateWidget(DynamicFormField oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (!_isEditing &&
-        (oldWidget.valeur != widget.valeur ||
-            oldWidget.formatMilliers != widget.formatMilliers)) {
-      _updateControllerValue();
-    }
+@override
+void didUpdateWidget(DynamicFormField oldWidget) {
+  super.didUpdateWidget(oldWidget);
+  if (!_isEditing &&
+      (oldWidget.valeur != widget.valeur ||
+          oldWidget.formatMilliers != widget.formatMilliers)) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _updateControllerValue();
+    });
   }
+}
 
   String _formatNombreAvecSeparateurs(String valeur) {
     String valeurSansSeparateurs = valeur.replaceAll(RegExp(r'[^\d]'), '');

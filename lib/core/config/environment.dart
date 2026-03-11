@@ -21,9 +21,9 @@ class EnvironmentConfig {
       case Environment.dev:
         return const String.fromEnvironment(
           'DEV_API_URL',
-          defaultValue: 'https://api-saarflex.saarassurancesci.com',
+          defaultValue: 'https://api.saarassurancesci.com',
         );
-      case Environment.staging:
+      case Environment.staging: 
         return const String.fromEnvironment(
           'STAGING_API_URL',
           defaultValue: 'https://staging-api.example.com',

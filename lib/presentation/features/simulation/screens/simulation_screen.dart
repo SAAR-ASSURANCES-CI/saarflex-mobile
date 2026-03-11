@@ -72,7 +72,7 @@ class _SimulationScreenState extends State<SimulationScreen> {
         produitNom: widget.produit.nom,
       );
       
-      if (_isSaarNansou(widget.produit.nom)) {
+      if (_isSaarNansou(widget.produit.nom) || _isAsMillenium(widget.produit.nom)) {
         bool _hasCalculated = false;
         void checkAndCalculate() {
           if (!mounted || _hasCalculated) return;
@@ -101,6 +101,10 @@ class _SimulationScreenState extends State<SimulationScreen> {
     final nomLower = nomProduit.toLowerCase();
     return nomLower.contains('nansou') || nomLower.contains('saar nansou');
   }
+  bool _isAsMillenium(String nomProduit) {
+  final nomLower = nomProduit.toLowerCase();
+  return nomLower.contains('millenium') || nomLower.contains('as millenium');
+}
 
   @override
   void dispose() {
@@ -190,11 +194,14 @@ class _SimulationScreenState extends State<SimulationScreen> {
       final isDureeCotisation = nomLower.contains('durée') || 
                                  nomLower.contains('duree') || 
                                  nomLower.contains('cotisation');
-      final enabled = !(isSaarNansou && isDureeCotisation);
-      String? infoText;
-      if (isSaarNansou && isDureeCotisation && !enabled) {
-        infoText = 'Cette durée est déterminée automatiquement selon votre âge.';
-      }
+final isAsMillenium = _isAsMillenium(widget.produit.nom);
+final enabled = !((isSaarNansou || isAsMillenium) && isDureeCotisation);
+String? infoText;
+if (isSaarNansou && isDureeCotisation && !enabled) {
+  infoText = 'Cette durée est déterminée automatiquement selon votre âge.';
+} else if (isAsMillenium && isDureeCotisation && !enabled) {
+  infoText = 'La durée du contrat As Millenium est fixée à 10 ans.';
+}
 
       return DynamicFormField(
         critere: critere,

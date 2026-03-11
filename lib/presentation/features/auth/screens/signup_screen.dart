@@ -23,7 +23,7 @@ class _SignupScreenState extends State<SignupScreen> {
   final _confirmPasswordController = TextEditingController();
 
   bool _acceptTerms = false;
-  bool _hasOpenedCGU = false;
+  bool _cguAutoOpened = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _isFormValid = false;
@@ -157,16 +157,24 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 
   void _updateFormValidity() {
-    final newIsValid =
+    final fieldsValid  =
         _nameError == null &&
         _emailError == null &&
         _passwordErrors.isEmpty &&
         _confirmPasswordError == null &&
-        _acceptTerms &&
         _nameController.text.isNotEmpty &&
         _emailController.text.isNotEmpty &&
         _passwordController.text.isNotEmpty &&
         _confirmPasswordController.text.isNotEmpty;
+
+      if (fieldsValid && !_cguAutoOpened) {
+    _cguAutoOpened = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _showCGUModal();
+    });
+  }
+
+  final newIsValid = fieldsValid && _acceptTerms;
 
     if (_isFormValid != newIsValid) {
       _isFormValid = newIsValid;
@@ -192,7 +200,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 : (screenWidth * 0.08).clamp(24.0, 48.0);
         final verticalPadding = screenHeight < 600 ? 16.0 : 24.0;
         final bottomPadding = viewInsets.bottom > 0 
-            ? viewInsets.bottom + 16.0 
+            ?  16.0 
             : 24.0;
         
         final topSpacing = screenHeight < 600 ? 10.0 : 20.0;
@@ -554,14 +562,12 @@ class _SignupScreenState extends State<SignupScreen> {
               height: checkboxSize,
               child: Checkbox(
                 value: _acceptTerms,
-                onChanged: _hasOpenedCGU
-                    ? (value) {
+                onChanged:(value) {
                         setState(() {
                           _acceptTerms = value ?? false;
                           _updateFormValidity();
                         });
-                      }
-                    : null,
+                      },
                 activeColor: AppColors.primary,
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
@@ -574,9 +580,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   text: TextSpan(
                     style: FontHelper.poppins(
                       fontSize: labelFontSize,
-                      color: _hasOpenedCGU
-                          ? AppColors.textSecondary
-                          : AppColors.textHint,
+                      color:AppColors.textSecondary,
                       height: 1.4,
                     ),
                     children: [
@@ -600,44 +604,18 @@ class _SignupScreenState extends State<SignupScreen> {
             ),
           ],
         ),
-        if (!_hasOpenedCGU) ...[
-          SizedBox(height: helpSpacing),
-          Row(
-            children: [
-              Icon(
-                Icons.info_outline_rounded,
-                size: screenWidth < 360 ? 14 : 16,
-                color: AppColors.warning,
-              ),
-              SizedBox(width: screenWidth < 360 ? 6 : 8),
-              Expanded(
-                child: Text(
-                  "Veuillez d'abord consulter les conditions générales d'utilisation",
-                  style: FontHelper.poppins(
-                    fontSize: helpFontSize,
-                    color: AppColors.warning,
-                    height: 1.4,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
+
       ],
     );
   }
-
-  void _showCGUModal() {
-    CGUModal.show(context).then((_) {
-      if (mounted) {
-        setState(() {
-          _hasOpenedCGU = true;
-          _acceptTerms = true;
-          _updateFormValidity();
-        });
-      }
-    });
-  }
+void _showCGUModal() {
+  CGUModal.show(context).then((_) {
+    if (mounted) {
+      setState(() {_updateFormValidity();
+      });
+    }
+  });
+}
 
   Widget _buildCreateAccountButton(AuthViewModel authProvider, double textScaleFactor, double screenWidth) {
     final buttonHeight = screenWidth < 360 ? 48.0 : 50.0;
