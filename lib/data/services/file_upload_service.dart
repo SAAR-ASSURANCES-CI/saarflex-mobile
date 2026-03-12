@@ -155,27 +155,6 @@ class FileUploadService {
 
     final rectoExtension = path.extension(rectoFile.path);
     final versoExtension = path.extension(versoFile.path);
-
-  //   request.files.add(
-  //     await http.MultipartFile.fromPath(
-  //       'files',
-  //       rectoFile.path,
-  //       filename: 'recto$rectoExtension',
-  //       contentType: _getContentTypeFromExtension(rectoFile.path),
-  //     ),
-  //   );
-
-  //   request.files.add(
-  //     await http.MultipartFile.fromPath(
-  //       'files',
-  //       versoFile.path,
-  //       filename: 'verso$versoExtension',
-  //       contentType: _getContentTypeFromExtension(versoFile.path),
-  //     ),
-  //   );
-
-  //   return request;
-  // }
   final rectoBytes = await rectoFile.readAsBytes();
     final versoBytes = rectoFile.path == versoFile.path
         ? rectoBytes
