@@ -696,23 +696,24 @@ class ApiService {
       if (!await versoFile.exists()) {
         throw ApiException('Fichier verso introuvable');
       }
+      final rectoBytes = await rectoFile.readAsBytes();
+      final versoBytes = rectoPath == versoPath
+          ? rectoBytes
+          : await versoFile.readAsBytes();
 
-      final rectoMultipartFile = await http.MultipartFile.fromPath(
+      request.files.add(http.MultipartFile.fromBytes(
         'files',
-        rectoPath,
+        rectoBytes,
         filename: 'recto.jpg',
         contentType: MediaType('image', 'jpeg'),
-      );
-      request.files.add(rectoMultipartFile);
+      ));
 
-      final versoMultipartFile = await http.MultipartFile.fromPath(
+      request.files.add(http.MultipartFile.fromBytes(
         'files',
-        versoPath,
+        versoBytes,
         filename: 'verso.jpg',
         contentType: MediaType('image', 'jpeg'),
-      );
-      request.files.add(versoMultipartFile);
-
+      ));
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
 

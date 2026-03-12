@@ -160,7 +160,13 @@ class _InfoAssureScreenState extends State<InfoAssureScreen> {
           items: _typesPiece,
           value: _formData['type_piece_identite'],
           validator: _validateRequired,
-          onChanged: (value) => _updateFormData('type_piece_identite', value),
+          onChanged: (value) {
+            _updateFormData('type_piece_identite', value);
+            final type = (value?.toLowerCase().contains('passeport') ?? false)
+                ? 'PASSEPORT'
+                : 'CNI';
+            context.read<SimulationViewModel>().setTypeDocument(type);
+          },
         ),
         SizedBox(height: fieldSpacing),
         CustomTextField(

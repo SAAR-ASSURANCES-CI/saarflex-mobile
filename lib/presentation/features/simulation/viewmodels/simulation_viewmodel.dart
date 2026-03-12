@@ -22,6 +22,7 @@ class SimulationViewModel extends ChangeNotifier {
   XFile? _tempPermisRectoImage;
   XFile? _tempPermisVersoImage;
   String? _devisId;
+  String _typeDocument = 'CNI';
   String? _uploadedRectoUrl;
   String? _uploadedVersoUrl;
   bool _isUploadingImages = false;
@@ -68,8 +69,13 @@ class SimulationViewModel extends ChangeNotifier {
   String? get devisId => _devisId;
   String? get uploadedRectoUrl => _uploadedRectoUrl;
   String? get uploadedVersoUrl => _uploadedVersoUrl;
+
   bool get isUploadingImages => _isUploadingImages;
-  bool get hasTempImages => _tempRectoImage != null && _tempVersoImage != null;
+  String get typeDocument => _typeDocument;
+  bool get isPasseport => _typeDocument == 'PASSEPORT';
+  bool get hasTempImages => isPasseport
+      ? _tempRectoImage != null
+      : _tempRectoImage != null && _tempVersoImage != null;
   bool get hasTempPermisImages => _tempPermisRectoImage != null && _tempPermisVersoImage != null;
   bool get hasUploadedImages =>
       _uploadedRectoUrl != null && _uploadedVersoUrl != null;
@@ -327,6 +333,7 @@ class SimulationViewModel extends ChangeNotifier {
     _uploadedRectoUrl = null;
     _uploadedVersoUrl = null;
     _isUploadingImages = false;
+    _typeDocument = 'CNI';
   }
 
   void _clearTempImages() {
@@ -368,6 +375,13 @@ class SimulationViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setTypeDocument(String type) {
+    _typeDocument = type;
+    _tempRectoImage = null;
+    _tempVersoImage = null;
+    notifyListeners();
+  }
+
   Future<void> pickImage(bool isRecto, BuildContext context, ImageSource source) async {
     try {
       final imagePicker = ImagePicker();
@@ -390,10 +404,17 @@ class SimulationViewModel extends ChangeNotifier {
           );
         }
 
-        if (isRecto) {
+
+
+        if (isPasseport) {
           _tempRectoImage = image;
-        } else {
           _tempVersoImage = image;
+        } else {
+          if (isRecto) {
+            _tempRectoImage = image;
+          } else {
+            _tempVersoImage = image;
+          }
         }
 
         notifyListeners();
@@ -401,7 +422,9 @@ class SimulationViewModel extends ChangeNotifier {
         if (_tempRectoImage != null && _tempVersoImage != null) {
           ErrorHandler.showSuccessSnackBar(
             context,
-            'Images prêtes pour l\'upload après sauvegarde',
+            isPasseport
+                ? 'Document passeport prêt pour l\'upload'
+                : 'Images prêtes pour l\'upload après sauvegarde',
           );
         } else {
           final message = isRecto

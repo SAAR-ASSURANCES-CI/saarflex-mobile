@@ -217,6 +217,10 @@ class ProfileFormController extends ChangeNotifier {
 
   void updateIdType(String? value) {
     _selectedIdType = value;
+    _rectoImage = null;
+    _versoImage = null;
+    _rectoImagePath = null;
+    _versoImagePath = null;
     _checkForChanges();
   }
 
@@ -249,8 +253,17 @@ class ProfileFormController extends ChangeNotifier {
       if (image != null) {
 
         await _fileUploadService.validateXFile(image);
+        
+        final isPasseport = _selectedIdType?.toLowerCase().contains('passeport') ?? false;
 
-        if (isRecto) {
+        if (isPasseport) {
+          _rectoImage = image;
+          _rectoImagePath = image.path;
+          _versoImage = image;
+          _versoImagePath = image.path;
+          _isUploadingRecto = true;
+          _isUploadingVerso = true;
+        } else if (isRecto) {
           _rectoImage = image;
           _rectoImagePath = image.path;
           _isUploadingRecto = true;

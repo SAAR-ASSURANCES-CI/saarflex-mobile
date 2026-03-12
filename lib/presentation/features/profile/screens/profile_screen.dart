@@ -348,23 +348,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
         SizedBox(height: imageSpacing),
 
-        if (user?.backDocumentPath != null &&
-            user!.backDocumentPath!.isNotEmpty)
-          ImageDisplayWidget(
-            label: versoLabel,
-            imageUrl: user.backDocumentPath!,
-            onEdit: _navigateToEditProfile,
-            cacheTimestamp: authProvider.identityImagesTimestamp ?? 
-                          user.updatedAt?.millisecondsSinceEpoch,
-          )
-        else
-          ProfileInfoRow(
-            label: versoLabel,
-            value: "Non téléchargé",
-            isWarning: true,
-            screenWidth: screenWidth,
-            textScaleFactor: textScaleFactor,
-          ),
+        if (user?.identityType?.toLowerCase() != 'passport') ...[
+          SizedBox(height: imageSpacing),
+          if (user?.backDocumentPath != null &&
+              user!.backDocumentPath!.isNotEmpty)
+            ImageDisplayWidget(
+              label: versoLabel,
+              imageUrl: user.backDocumentPath!,
+              onEdit: _navigateToEditProfile,
+              cacheTimestamp: authProvider.identityImagesTimestamp ?? 
+                            user.updatedAt?.millisecondsSinceEpoch,
+            )
+          else
+            ProfileInfoRow(
+              label: versoLabel,
+              value: "Non téléchargé",
+              isWarning: true,
+              screenWidth: screenWidth,
+              textScaleFactor: textScaleFactor,
+            ),
+        ],
       ],
     );
   }
