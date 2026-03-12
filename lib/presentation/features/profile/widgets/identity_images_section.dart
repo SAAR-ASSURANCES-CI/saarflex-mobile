@@ -16,6 +16,10 @@ class IdentityImagesSection extends StatelessWidget {
   final Function(bool, ImageSource) onPickImage;
   final double screenWidth;
   final double textScaleFactor;
+  bool get _isPasseport {
+    final t = currentIdentityType?.toLowerCase() ?? '';
+    return t.contains('passport') || t.contains('passeport');
+  }
 
   const IdentityImagesSection({
     super.key,
@@ -41,6 +45,7 @@ class IdentityImagesSection extends StatelessWidget {
       screenWidth: screenWidth,
       textScaleFactor: textScaleFactor,
       children: [
+
         ImageUploadField(
           label: ImageLabels.getRectoLabel(currentIdentityType),
           imageUrl: frontDocumentPath,
@@ -51,17 +56,19 @@ class IdentityImagesSection extends StatelessWidget {
           textScaleFactor: textScaleFactor,
         ),
         _buildFileSizeInfo(screenWidth, textScaleFactor),
-        SizedBox(height: fieldSpacing),
-        ImageUploadField(
-          label: ImageLabels.getVersoLabel(currentIdentityType),
-          imageUrl: backDocumentPath,
-          isUploading: isUploadingVerso,
-          onTap: () => _showImageSourceDialog(context, false),
-          selectedImage: versoImage,
-          screenWidth: screenWidth,
-          textScaleFactor: textScaleFactor,
-        ),
-        _buildFileSizeInfo(screenWidth, textScaleFactor),
+        if (!_isPasseport) ...[
+          SizedBox(height: fieldSpacing),
+          ImageUploadField(
+            label: ImageLabels.getVersoLabel(currentIdentityType),
+            imageUrl: backDocumentPath,
+            isUploading: isUploadingVerso,
+            onTap: () => _showImageSourceDialog(context, false),
+            selectedImage: versoImage,
+            screenWidth: screenWidth,
+            textScaleFactor: textScaleFactor,
+          ),
+          _buildFileSizeInfo(screenWidth, textScaleFactor),
+        ],
       ],
     );
   }

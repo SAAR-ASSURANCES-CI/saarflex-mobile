@@ -548,8 +548,6 @@ class _SignupScreenState extends State<SignupScreen> {
   Widget _buildTermsCheckbox(double screenWidth, double textScaleFactor) {
     final checkboxSize = screenWidth < 360 ? 18.0 : 20.0;
     final labelFontSize = (14.0 / textScaleFactor).clamp(12.0, 16.0);
-    final helpFontSize = (12.0 / textScaleFactor).clamp(10.0, 14.0);
-    final helpSpacing = screenWidth < 360 ? 6.0 : 8.0;
     
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

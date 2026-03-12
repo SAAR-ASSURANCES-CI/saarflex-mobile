@@ -15,6 +15,8 @@ class IdentityImagesSection extends StatelessWidget {
   final XFile? versoImage;
   final String? uploadedRectoUrl;
   final String? uploadedVersoUrl;
+  bool get _isPasseport =>
+      identityType?.toLowerCase().contains('passeport') ?? false;
 
   const IdentityImagesSection({
     super.key,
@@ -53,6 +55,7 @@ class IdentityImagesSection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 20),
+
         ImageUploadField(
           label: ImageLabels.getRectoLabel(identityType),
           isUploading: isUploadingRecto,
@@ -61,15 +64,17 @@ class IdentityImagesSection extends StatelessWidget {
           uploadedImageUrl: uploadedRectoUrl,
         ),
         _buildFileSizeInfo(),
-        const SizedBox(height: 20),
-        ImageUploadField(
-          label: ImageLabels.getVersoLabel(identityType),
-          isUploading: isUploadingVerso,
-          onTap: onPickVerso,
-          selectedImage: versoImage,
-          uploadedImageUrl: uploadedVersoUrl,
-        ),
-        _buildFileSizeInfo(),
+        if (!_isPasseport) ...[
+          const SizedBox(height: 20),
+          ImageUploadField(
+            label: ImageLabels.getVersoLabel(identityType),
+            isUploading: isUploadingVerso,
+            onTap: onPickVerso,
+            selectedImage: versoImage,
+            uploadedImageUrl: uploadedVersoUrl,
+          ),
+          _buildFileSizeInfo(),
+        ],
       ],
     );
   }
